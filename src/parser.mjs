@@ -253,7 +253,7 @@ export class ExifParser {
 					gps.timestamp = reviveDate(gps.GPSDateStamp + ' ' + gps.GPSTimeStamp)
 				if (gps && gps.GPSLatitude) {
 					gps.latitude   = ConvertDMSToDD(...gps.GPSLatitude, gps.GPSLatitudeRef)
-					gps.longtitude = ConvertDMSToDD(...gps.GPSLongitude, gps.GPSLongitudeRef)
+					gps.longitude = ConvertDMSToDD(...gps.GPSLongitude, gps.GPSLongitudeRef)
 				}
 			}
 		}

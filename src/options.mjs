@@ -35,7 +35,7 @@ var defaultOptions = {
 	// TIFF BLOCKS
 	// Sub Exif.
 	exif: true,
-	// GPS latitue and longtitude data.
+	// GPS latitue and longitude data.
 	gps: true,
 	// Size and other information about embeded thumbnail.
 	thumbnail: false,
