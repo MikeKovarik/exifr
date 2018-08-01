@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<style>
+	body {
+		font-family: Segoe UI;
+		font-family: monospace;
+		box-sizing: border-box;
+	}
+	img {
+		width: 300px;
+	}
+	</style>
+</head>
+<body>
+
+	View Console
+
+	<script>
+	var worker = new Worker('worker.js')
+	console.log('main script spawned worker')
+	console.time('worker-demo')
+	worker.postMessage('../test/IMG_20180725_163423.jpg')
+	worker.onmessage = e => {
+		console.timeEnd('worker-demo')
+		console.log('main script received exif from worker', e.data)
+	}
+	</script>
+
+</body>
+</html>

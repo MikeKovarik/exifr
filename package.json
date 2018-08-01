@@ -1,0 +1,16 @@
+{
+  "name": "exifr",
+  "version": "1.0.0",
+  "description": "📑 The fastest and most versatile JavaScript EXIF reading library.",
+  "author": "Mike Kovarik",
+  "license": "MIT",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
+    "rollup": "0.63.5"
+  }
+}
