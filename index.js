@@ -978,7 +978,7 @@
 						gps$$1.timestamp = reviveDate(gps$$1.GPSDateStamp + ' ' + gps$$1.GPSTimeStamp);
 					if (gps$$1 && gps$$1.GPSLatitude) {
 						gps$$1.latitude   = ConvertDMSToDD(...gps$$1.GPSLatitude, gps$$1.GPSLatitudeRef);
-						gps$$1.longtitude = ConvertDMSToDD(...gps$$1.GPSLongitude, gps$$1.GPSLongitudeRef);
+						gps$$1.longitude = ConvertDMSToDD(...gps$$1.GPSLongitude, gps$$1.GPSLongitudeRef);
 					}
 				}
 			}
@@ -1223,7 +1223,7 @@
 		// TIFF BLOCKS
 		// Sub Exif.
 		exif: true,
-		// GPS latitue and longtitude data.
+		// GPS latitue and longitude data.
 		gps: true,
 		// Size and other information about embeded thumbnail.
 		thumbnail: false,
