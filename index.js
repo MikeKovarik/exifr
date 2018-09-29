@@ -1,6 +1,6 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
-	typeof define === 'function' && define.amd ? define(['fs'], factory) :
+	typeof define === 'function' && define.amd ? define('exifr', ['fs'], factory) :
 	(global.exifr = factory(global.fs));
 }(this, (function (_fs) { 'use strict';
 
@@ -860,7 +860,7 @@
 
 
 
-
+	// https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
 	// https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
 	// http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
 	// JPG contains SOI, APP1, [APP2, ... APPn], DQT, DHT, and more segments
