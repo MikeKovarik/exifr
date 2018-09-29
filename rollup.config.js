@@ -16,6 +16,7 @@ export default {
 		file: `index.js`,
 		format: 'umd',
 		name: pkg.name,
+		amd: {id: pkg.name},
 		globals,
 	},
 	plugins: [

@@ -135,7 +135,7 @@ function isIptcSegmentHead(buffer, offset) {
 
 
 
-
+// https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
 // https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
 // http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
 // JPG contains SOI, APP1, [APP2, ... APPn], DQT, DHT, and more segments

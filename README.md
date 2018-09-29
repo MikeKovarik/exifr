@@ -42,7 +42,7 @@ Works in both Node.js and web browser and accepts pretty much everything you thr
 import getExif from 'exifr'
 
 getExif('./myimage.jpg')
-  .then(exif => console.log('Camera:', exif.image.Make, exif.image.Model))
+  .then(exif => console.log('Camera:', exif.Make, exif.Model))
   .catch(console.error)
 ```
 
@@ -55,8 +55,8 @@ var fs = require('fs').promises
 fs.readFile('./myimage.jpg')
   .then(getExif)
   .then(exif => {
-    console.log('Latitude', exif.gps.GPSLatitude)
-    console.log('Longitude', exif.gps.GPSLongitude)
+    console.log('Latitude', exif.GPSLatitude)
+    console.log('Longitude', exif.GPSLongitude)
   })
   .catch(console.error)
 ```
@@ -75,7 +75,7 @@ fs.readFile('./myimage.jpg')
 var getExif = window.exifr // UMD module exposed on global object
 
 getExif(document.querySelector('img'))
-  .then(exif => console.log('Exposure:', exif.exif.ExposureTime))
+  .then(exif => console.log('Exposure:', exif.ExposureTime))
 ```
 
 ### ESM in browser
@@ -95,7 +95,7 @@ picker.addEventListener('change', async e => {
   var files = Array.from(picker.files)
   var promises = files.map(getExif)
   var exifs = await Promise.all(promises)
-  var dates = exifs.map(exif => exif.exif.DateTimeOriginal.toGMTString())
+  var dates = exifs.map(exif => exif.DateTimeOriginal.toGMTString())
   console.log(`${files.length} photos taken on:`, dates)
 })
 ```
