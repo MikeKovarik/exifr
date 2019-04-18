@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('fs')) :
 	typeof define === 'function' && define.amd ? define('exifr', ['fs'], factory) :
-	(global.exifr = factory(global.fs));
-}(this, (function (_fs) { 'use strict';
+	(global = global || self, global.exifr = factory(global.fs));
+}(this, function (_fs) { 'use strict';
 
 	_fs = _fs && _fs.hasOwnProperty('default') ? _fs['default'] : _fs;
 
@@ -904,20 +904,20 @@
 		getResult() {
 			if (this.options.mergeOutput) {
 				// NOTE: skipping thumbnail and xmp
-				var exif$$1 = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc);
+				var exif = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc);
 			} else {
-				var exif$$1 = {};
-				if (this.image)     exif$$1.image     = this.image;
-				if (this.thumbnail) exif$$1.thumbnail = this.thumbnail;
-				if (this.exif)      exif$$1.exif      = this.exif;
-				if (this.gps)       exif$$1.gps       = this.gps;
-				if (this.interop)   exif$$1.interop   = this.interop;
-				if (this.iptc)      exif$$1.iptc      = this.iptc;
+				var exif = {};
+				if (this.image)     exif.image     = this.image;
+				if (this.thumbnail) exif.thumbnail = this.thumbnail;
+				if (this.exif)      exif.exif      = this.exif;
+				if (this.gps)       exif.gps       = this.gps;
+				if (this.interop)   exif.interop   = this.interop;
+				if (this.iptc)      exif.iptc      = this.iptc;
 			}
-			if (this.xmp)       exif$$1.xmp       = this.xmp;
+			if (this.xmp)       exif.xmp       = this.xmp;
 			// Return undefined rather than empty object if there's no data.
-			if (Object.keys(exif$$1).length === 0) return
-			return exif$$1
+			if (Object.keys(exif).length === 0) return
+			return exif
 		}
 
 
@@ -971,14 +971,14 @@
 				this.exif = this.parseTiffTags(this.tiffOffset + ifd0.ExifIFDPointer, exif);
 
 			if (this.options.gps && ifd0.GPSInfoIFDPointer) {
-				let gps$$1 = this.gps = this.parseTiffTags(this.tiffOffset + ifd0.GPSInfoIFDPointer, gps);
+				let gps$1 = this.gps = this.parseTiffTags(this.tiffOffset + ifd0.GPSInfoIFDPointer, gps);
 				// Add custom timestamp property as a mixture of GPSDateStamp and GPSTimeStamp
 				if (this.options.postProcess) {
-					if (gps$$1.GPSDateStamp && gps$$1.GPSTimeStamp)
-						gps$$1.timestamp = reviveDate(gps$$1.GPSDateStamp + ' ' + gps$$1.GPSTimeStamp);
-					if (gps$$1 && gps$$1.GPSLatitude) {
-						gps$$1.latitude   = ConvertDMSToDD(...gps$$1.GPSLatitude, gps$$1.GPSLatitudeRef);
-						gps$$1.longitude = ConvertDMSToDD(...gps$$1.GPSLongitude, gps$$1.GPSLongitudeRef);
+					if (gps$1.GPSDateStamp && gps$1.GPSTimeStamp)
+						gps$1.timestamp = reviveDate(gps$1.GPSDateStamp + ' ' + gps$1.GPSTimeStamp);
+					if (gps$1 && gps$1.GPSLatitude) {
+						gps$1.latitude   = ConvertDMSToDD(...gps$1.GPSLatitude, gps$1.GPSLatitudeRef);
+						gps$1.longitude = ConvertDMSToDD(...gps$1.GPSLongitude, gps$1.GPSLongitudeRef);
 					}
 				}
 			}
@@ -1168,7 +1168,7 @@
 	function setValueOrArrayOfValues(newValue, existingValue) {
 		if (existingValue !== undefined) {
 			if (existingValue instanceof Array) {
-				existingValue.push(val);
+				existingValue.push(newValue);
 				return existingValue
 			} else {
 				return [existingValue, newValue]
@@ -1481,4 +1481,4 @@
 
 	return def;
 
-})));
+}));
