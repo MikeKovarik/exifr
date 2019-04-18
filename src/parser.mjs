@@ -443,7 +443,7 @@ function reviveDate(string) {
 function setValueOrArrayOfValues(newValue, existingValue) {
 	if (existingValue !== undefined) {
 		if (existingValue instanceof Array) {
-			existingValue.push(val)
+			existingValue.push(newValue)
 			return existingValue
 		} else {
 			return [existingValue, newValue]
