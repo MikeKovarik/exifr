@@ -22,14 +22,24 @@ So why exifr?
 
 ### Features
 
-* **Isomorphic**. Works in both Node and Browsers. Accepts wide range of inputs: ArrayBuffer, Uint8Array, DataView, <img> elements, string URL and paths, Object URL, Base64 URL
-* **Blazing Fast**. Like relly fast. Like 1-2ms fast.
-* allows fine grained parsing (*only need GPS coords? No need to parse through kBs of exif)*)
-* Promise based (*NOTE: Uses Node.js 10.x experimental Promise FS API*)
-* No dependencies. *Not even Node's builtins like Buffer.*
-* Comes as UMD module (compiled from ESM). No need to bundle or browserify. Just import, require or \<script\> it in your .mjs, .js or .html file.
-* Simple output, meaningful descriptive strings instead of enum values, dates converted to Date instances, etc... (Can be disabled with options.postProcess)
-* Written is ES6 as an ES Module.
+* **Isomorphic**.
+<br> *Works in both Node and Browsers.*
+* **Wide range of inputs**
+<br> *`ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
+* **Blazing Fast**.
+<br> *Like really fast. Like 1-2ms fast.*
+* **Efficient**.
+<br> *Only reads first couple of blocks of the file.*
+* Fine grained parsing
+<br> *only need GPS coords? No need to parse the whole exif)*
+* Promise based
+<br> *Uses Node.js 10.x experimental Promise FS API*
+* Comes as UMD module (compiled from ESM).
+<br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
+* Simple output
+<br> *meaningful descriptive strings instead of enum values, dates converted to Date instances, etc...*
+* Written in ES6 as an ES Module.
+* No dependencies.
 
 ### Supports
 
