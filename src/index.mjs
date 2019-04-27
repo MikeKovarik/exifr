@@ -1,5 +1,5 @@
-import {parse, ExifParser, findTiff} from './parser.mjs'
-import {getUint8, getUint16} from './buff-util.mjs'
+import {parse, findTiff} from './parser.mjs'
+//import {getUint8, getUint16} from './buff-util.mjs'
 import {hasBuffer, isBrowser, isNode} from './buff-util.mjs'
 import {processOptions} from './options.mjs'
 // Sigh... Ugly, ugly, ugly. FS Promises are experimental plus this code needs to be isomorphic
