@@ -1,5 +1,11 @@
 # exifr
 
+[![Build Status](https://travis-ci.org/MikeKovarik/exifr.png)](https://travis-ci.org/MikeKovarik/exifr)
+[![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
+[![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
+[![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
+[![devDependency Status](https://david-dm.org/MikeKovarik/exifr/dev-status.svg)](https://david-dm.org/MikeKovarik/exifr#info=devDependencies)
+
 📑 The fastest and most versatile JavaScript EXIF reading library.
 
 ## Installation

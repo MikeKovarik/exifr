@@ -4,14 +4,16 @@
   "description": "📑 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
-  "keywords": ["exif", "jpg", "jpeg", "metadata", "gps", "jfif"],
+  "keywords": ["exif", "jpg", "jpeg", "metadata", "gps", "jfif", "image", "picture", "photo", "buffer", "uint8array", "node", "browser", "multiplatform", "decode", "parse"],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "test": "mocha test/test.js",
+    "build": "rollup -c rollup.config.prod.js",
+    "dev": "rollup -c rollup.config.dev.js -w"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^5.2.0",
-    "rollup": "0.63.5"
+    "rollup": "^1.10.0",
+    "rollup-plugin-notify": "^1.0.1"
   }
 }
