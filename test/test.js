@@ -1,5 +1,5 @@
-var isNode = typeof require === 'function'
 var isBrowser = typeof navigator === 'object'
+var isNode = typeof require === 'function' && !isBrowser
 
 if (isBrowser) {
 	mocha.setup('bdd')
