@@ -1,11 +1,12 @@
 {
   "name": "exifr",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "📑 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
   "keywords": ["exif", "jpg", "jpeg", "metadata", "gps", "jfif", "image", "picture", "photo", "buffer", "uint8array", "node", "browser", "multiplatform", "decode", "parse"],
-  "bugs": "https://github.com/MikeKovarik/exifr/issues/",
+  "homepage": "http://mutiny.cz/exifr",
+  "bugs": "https://github.com/MikeKovarik/exifr/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/MikeKovarik/exifr.git"
