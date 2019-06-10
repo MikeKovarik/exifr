@@ -71,7 +71,3 @@ export function toString(buffer, start, end) {
 		return buffer.toString('ascii', start, end)
 	}
 }
-
-// TODO: Benchmark and possibly reimplement with custom decoder.
-function uint8ArrayToString(arr) {
-}

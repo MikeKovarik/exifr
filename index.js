@@ -732,10 +732,6 @@
 		}
 	}
 
-	// TODO: Benchmark and possibly reimplement with custom decoder.
-	function uint8ArrayToString(arr) {
-	}
-
 	const SIZE_LOOKUP = [
 		1, 1, 2, 4, 8,
 		1, 1, 2, 4, 8
@@ -753,17 +749,16 @@
 	// Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
 	function findAppSegment(buffer, n, condition, callback) {
-		var length = (buffer.length || buffer.byteLength) - 10;
-		var nMarkerByte = 0xE0 | n;
-		for (var offset = 0; offset < length; offset++) {
+		let length = (buffer.length || buffer.byteLength) - 10;
+		let nMarkerByte = 0xE0 | n;
+		for (let offset = 0; offset < length; offset++) {
 			if (getUint8(buffer, offset) === 0xFF
 			 && getUint8(buffer, offset + 1) === nMarkerByte
 			 && condition(buffer, offset)) {
-			 	if (callback)
-					return callback(buffer, offset)
-				var start = offset;
-				var size = getUint16(buffer, offset + 2);
-				var end = start + size;
+			 	if (callback) return callback(buffer, offset)
+				let start = offset;
+				let size = getUint16(buffer, offset + 2);
+				let end = start + size;
 				return {start, size, end}
 			}
 		}
@@ -772,6 +767,10 @@
 
 
 	function findTiff(buffer) {
+		// tiff files start with tiff segment without the app segment header
+		var marker = getUint16(buffer, 0);
+		if (marker === 0x4949 || marker === 0x4D4D) return 0
+		// otherwise find the segment header.
 		return findAppSegment(buffer, 1, isExifSegment, getExifSize)
 	}
 
@@ -888,8 +887,10 @@
 			this.options = options;
 			this.baseOffset = 0;
 
-			if (tiffPosition)
+			if (typeof tiffPosition === 'object')
 				this.tiffOffset = tiffPosition.start;
+			else
+				this.tiffOffset = tiffPosition;
 
 			// The basic EXIF tags (image, exif, gps)
 			if (this.options.tiff)	this.parseTiff();
@@ -982,7 +983,7 @@
 					}
 				}
 			}
-		
+
 			if (this.options.interop) {
 				var interopIfdOffset = ifd0.InteroperabilityIFDPointer || (this.exif && this.exif.InteroperabilityIFDPointer);
 				if (interopIfdOffset)
@@ -1000,11 +1001,14 @@
 		}
 
 		parseTiffTags(offset, tagNames) {
+			// TODO: re-read file if portion of the exif is outside of read chunk
+			// (test/001.tif has tiff segment at the beggining plus at the end)
+			if (offset > this.buffer.byteLength)
+				throw new Error(`offset ${offset} out of chunk size ${this.buffer.byteLength}`)
 			var entriesCount = getUint16(this.buffer, offset, this.le);
 			offset += 2;
 			var res = {};
 			for (var i = 0; i < entriesCount; i++) {
-				var tempOffset = offset;
 				var tag = getUint16(this.buffer, offset, this.le);
 				var key = tagNames[tag] || tag;
 				var val = this.parseTiffTag(offset);
@@ -1249,36 +1253,40 @@
 	var fs = typeof _fs !== 'undefined' ? _fs.promises : undefined;
 
 
+	// TODO: - minified UMD bundle
+	// TODO: - offer two UMD bundles (with tags.mjs dictionary and without)
+	// TODO: - API for including 3rd party XML parser
+	// TODO: - better code & file structure
 
 	async function def(arg, options = {}) {
 		options = processOptions(options);
-		if (typeof arg === 'string') {
-			return handleUrl(arg, options)
-		} else if (isBrowser && arg instanceof HTMLImageElement) {
-			return handleUrl(arg.src, options)
-		} else if (hasBuffer && Buffer.isBuffer(arg)) {
+		if (typeof arg === 'string')
+			return handleString(arg, options)
+		else if (isBrowser && arg instanceof HTMLImageElement)
+			return handleString(arg.src, options)
+		else if (hasBuffer && Buffer.isBuffer(arg))
 			return handleBuffer(arg, options)
-		} else if (arg instanceof Uint8Array) {
+		else if (arg instanceof Uint8Array)
 			return handleUint8Array(arg, options)
-		} else if (arg instanceof ArrayBuffer) {
+		else if (arg instanceof ArrayBuffer)
 			return handleArrayBuffer(arg, options)
-		} else if (arg instanceof DataView) {
-			return handleDataView(arg, options)
-		} else if (isBrowser && arg instanceof Blob) {
+		else if (arg instanceof DataView)
+			return handleBuffer(arg, options)
+		else if (isBrowser && arg instanceof Blob)
 			return handleBlob(arg, options)
-		} else {
+		else
 			throw new Error('Invalid input argument')
-		}
 	}
 
-	function handleUrl(url, options) {
+	function handleString(url, options) {
 		if (isBase64Url(url)) {
+			// base64 url
 			return handleBase64Url(url, options)
 		} else if (isBrowser) {
 			// NOTE: Object URL (blob url) is handled (fetched) the same way as normal URLs.
 			return handleSimpleUrl(url, options)
 		} else if (isNode) {
-			// Read file from drive
+			// file path: Read file from drive
 			return readFileFromDisk(url, options)
 		} else {
 			throw new Error('Invalid input argument')
@@ -1290,19 +1298,13 @@
 	}
 
 	function handleArrayBuffer(arrayBuffer, options) {
-		return handleDataView(new DataView(arrayBuffer), options)
-	}
-
-	function handleDataView(view, options) {
-		var exifPosition = findTiff(view);
-		if (exifPosition)
-			return parse(view, options, exifPosition)
+		return handleBuffer(new DataView(arrayBuffer), options)
 	}
 
 	function handleBuffer(buffer, options) {
-		var exifPosition = findTiff(buffer);
-		if (exifPosition)
-			return parse(buffer, options, exifPosition)
+		var tiffPosition = findTiff(buffer);
+		if (tiffPosition === undefined) return
+		return parse(buffer, options, tiffPosition)
 	}
 
 
@@ -1328,13 +1330,13 @@
 				return
 			}
 			// Try to search for beginning of exif within the first 512 bytes.
-			var exifPosition = findTiff(seekChunk);
-			if (exifPosition) {
+			var tiffPosition = findTiff(seekChunk);
+			if (tiffPosition !== undefined) {
 				// Exif was found. Allocate appropriately sized buffer and read the whole exif into the buffer.
 				// NOTE: does not load the whole file, just exif.
-				var exifChunk = Buffer.allocUnsafe(exifPosition.size);
-				await fh.read(exifChunk, 0, exifPosition.size, exifPosition.start);
-				return parse(exifChunk, options, {start: 0})
+				var tiffChunk = Buffer.allocUnsafe(tiffPosition.size);
+				await fh.read(tiffChunk, 0, tiffPosition.size, tiffPosition.start);
+				return parse(tiffChunk, options, {start: 0})
 			}
 			// Close FD/FileHandle since we're using lower-level APIs.
 			await fh.close();
@@ -1373,53 +1375,45 @@
 	// It can be used with Blobs, URLs, Base64 (URL).
 	// blobs and fetching from url uses larger chunks with higher chances of having the whole exif within (iteration 3).
 	// base64 string (and base64 based url) uses smaller chunk at first (iteration 2).
-	async function universalWebReader(convertToDataView, input, options, end) {
-		var view = await convertToDataView(input, {end});
-		var exifPosition = findTiff(view);
-		if (exifPosition) {
+	async function webReader(toDataViewConverter, input, options, end) {
+		var view = await toDataViewConverter(input, {end});
+		var tiffPosition = findTiff(view);
+		if (tiffPosition !== undefined) {
 			// Exif was found.
-			if (exifPosition.end > view.byteLength) {
+			if (tiffPosition.end > view.byteLength) {
 				// Exif was found outside the buffer we alread have.
 				// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
-				view = await convertToDataView(input, exifPosition);
+				view = await toDataViewConverter(input, tiffPosition);
 				return parse(view, options, {start: 0})
 			} else {
-				return parse(view, options, exifPosition)
+				return parse(view, options, tiffPosition)
 			}
 		}
 		// Seeking for the exif at the beginning of the file failed.
 		// Fall back to scanning throughout the whole file if allowed.
 		if (options.scanWholeFileFallback) {
-			view = convertToDataView(input);
+			view = toDataViewConverter(input);
 			return handleBuffer(view, options)
 		}
 	}
 
-	function handleBlob(blob, options) {
-		return universalWebReader(convertBlobToDataView, blob, options, options.parseChunkSize)
-	}
-
-	function handleSimpleUrl(url, options) {
-		return universalWebReader(fetchAsDataView, url, options, options.parseChunkSize)
-	}
-
-	function handleBase64Url(url, options) {
-		return universalWebReader(base64ToDataView, url, options, options.seekChunkSize)
-	}
-
+	var handleBlob     = (blob, options) => webReader(convertBlobToDataView, blob, options, options.parseChunkSize);
+	var handleSimpleUrl = (url, options) => webReader(fetchAsDataView, url, options, options.parseChunkSize);
+	var handleBase64Url = (url, options) => webReader(base64ToDataView, url, options, options.seekChunkSize);
 
 
 
 
 	// HELPER FUNCTIONS
 
-	function isBase64Url(url) {
-		return url.startsWith('data:')
+	function isBase64Url(string) {
+		return string.startsWith('data:')
+			|| string.length > 10000 // naive
+		//	|| string.startsWith('/9j/') // expects JPG to always start the same
 	}
 
 	function convertBlobToDataView(blob, {start = 0, end} = {}) {
-		if (end)
-			blob = blob.slice(start, end);
+		if (end) blob = blob.slice(start, end);
 		return new Promise((resolve, reject) => {
 			var reader = new FileReader();
 			reader.onloadend = () => resolve(new DataView(reader.result || new ArrayBuffer(0)));
@@ -1430,8 +1424,7 @@
 
 	async function fetchAsDataView(url, {start = 0, end} = {}) {
 		var headers = {};
-		if (end)
-			headers.range = `bytes=${start}-${end}`;
+		if (start || end) headers.range = `bytes=${[start, end].join('-')}`;
 		var res = await fetch(url, {headers});
 		return new DataView(await res.arrayBuffer())
 	}

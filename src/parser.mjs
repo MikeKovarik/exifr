@@ -1,4 +1,4 @@
-import * as tags from './tags'
+import * as tags from './tags.mjs'
 import {
 	getUint8,
 	getUint16,
@@ -28,17 +28,16 @@ export function parse(...args) {
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
 function findAppSegment(buffer, n, condition, callback) {
-	var length = (buffer.length || buffer.byteLength) - 10
-	var nMarkerByte = 0xE0 | n
-	for (var offset = 0; offset < length; offset++) {
+	let length = (buffer.length || buffer.byteLength) - 10
+	let nMarkerByte = 0xE0 | n
+	for (let offset = 0; offset < length; offset++) {
 		if (getUint8(buffer, offset) === 0xFF
 		 && getUint8(buffer, offset + 1) === nMarkerByte
 		 && condition(buffer, offset)) {
-		 	if (callback)
-				return callback(buffer, offset)
-			var start = offset
-			var size = getUint16(buffer, offset + 2)
-			var end = start + size
+		 	if (callback) return callback(buffer, offset)
+			let start = offset
+			let size = getUint16(buffer, offset + 2)
+			let end = start + size
 			return {start, size, end}
 		}
 	}
@@ -47,6 +46,10 @@ function findAppSegment(buffer, n, condition, callback) {
 
 
 export function findTiff(buffer) {
+	// tiff files start with tiff segment without the app segment header
+	var marker = getUint16(buffer, 0)
+	if (marker === 0x4949 || marker === 0x4D4D) return 0
+	// otherwise find the segment header.
 	return findAppSegment(buffer, 1, isExifSegment, getExifSize)
 }
 
@@ -163,8 +166,10 @@ export class ExifParser {
 		this.options = options
 		this.baseOffset = 0
 
-		if (tiffPosition)
+		if (typeof tiffPosition === 'object')
 			this.tiffOffset = tiffPosition.start
+		else
+			this.tiffOffset = tiffPosition
 
 		// The basic EXIF tags (image, exif, gps)
 		if (this.options.tiff)	this.parseTiff()
@@ -257,7 +262,7 @@ export class ExifParser {
 				}
 			}
 		}
-	
+
 		if (this.options.interop) {
 			var interopIfdOffset = ifd0.InteroperabilityIFDPointer || (this.exif && this.exif.InteroperabilityIFDPointer)
 			if (interopIfdOffset)
@@ -275,11 +280,14 @@ export class ExifParser {
 	}
 
 	parseTiffTags(offset, tagNames) {
+		// TODO: re-read file if portion of the exif is outside of read chunk
+		// (test/001.tif has tiff segment at the beggining plus at the end)
+		if (offset > this.buffer.byteLength)
+			throw new Error(`offset ${offset} out of chunk size ${this.buffer.byteLength}`)
 		var entriesCount = getUint16(this.buffer, offset, this.le)
 		offset += 2
 		var res = {}
 		for (var i = 0; i < entriesCount; i++) {
-			var tempOffset = offset
 			var tag = getUint16(this.buffer, offset, this.le)
 			var key = tagNames[tag] || tag
 			var val = this.parseTiffTag(offset)

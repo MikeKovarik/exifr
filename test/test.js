@@ -217,6 +217,15 @@ describe('parsed exif data', () => {
 		assert.exists(exif.xmp)
 	})
 
+	it('.tif file starting with 49 49', async () => {
+		var exif = await getExif(getPath('001.tif'), true)
+		assert.exists(exif)
+		assert.equal(exif.Make, 'DJI')
+		assert.equal(exif.ImageWidth, '640')
+		//assert.equal(exif.ImageHeight, '512')
+		assert.equal(exif.latitude, 50.86259891666667)
+	})
+
 	//it('exif-js issue #124', async () => {
 	//	var exif = await getExif(getPath('exif-js-issue-124.tiff'), true)
 	//	assert.equal(exif.Make, 'FLIR')

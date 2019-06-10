@@ -27,7 +27,7 @@ async function runExperiment(arg, description) {
 	var exif = await getExif(arg, options)
 	console.log(exif)
 	console.log('latitude  ', exif.latitude)
-	console.log('longtitude', exif.longtitude)
+	console.log('longitude', exif.longitude)
 	console.timeEnd(description)
 }
 
