@@ -218,7 +218,12 @@ describe('parsed exif data', () => {
 	})
 
 	it('.tif file starting with 49 49', async () => {
-		var exif = await getExif(getPath('001.tif'), true)
+		var path = getPath('001.tif')
+		if (isNode)
+			var buffer = await fs.readFile(path)
+		else
+			var buffer = await fetch(path).then(res => res.arrayBuffer())
+		var exif = await getExif(buffer)
 		assert.exists(exif)
 		assert.equal(exif.Make, 'DJI')
 		assert.equal(exif.ImageWidth, '640')
@@ -229,6 +234,11 @@ describe('parsed exif data', () => {
 	it('exif-js issue #124', async () => {
 		var exif = await getExif(getPath('exif-js-issue-124.tiff'), true)
 		assert.equal(exif.Make, 'FLIR')
+	})
+
+	it('tiff at 0; gps segment at the end of file', async () => {
+		var exif = await getExif(getPath('001.tif'), true)
+		assert.equal(exif.Make, 'DJI')
 	})
 
 })
