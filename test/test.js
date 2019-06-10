@@ -112,8 +112,35 @@ describe('reader (input formats)', () => {
 	//	await getExif(img)
 	//})
 
-	it('tiff offset at 0; ID0 offset at 677442 (header at the beginning of file, data at the end)', async () => {
-		var exif = await getExif(getPath('001.tif'), true)
+
+	// file with short exif where all segments are together at the
+	// start of the file, within single chunk
+
+	it('read whole file (simple)', async () => {
+		let options = {scanWholeFileForce: true}
+		var exif = await getExif(getPath('IMG_20180725_163423.jpg'), options)
+		assert.equal(exif.Make, 'Google')
+	})
+
+	it('read file by chunks (simple)', async () => {
+		let options = {scanWholeFileForce: false}
+		var exif = await getExif(getPath('IMG_20180725_163423.jpg'), options)
+		assert.equal(exif.Make, 'Google')
+	})
+
+	// Exif is scattered throughout the file.
+	// Header at the beginning of file, data at the end.
+	// tiff offset at 0; ID0 offset at 677442
+
+	it('read whole file (complex)', async () => {
+		let options = {scanWholeFileForce: true}
+		var exif = await getExif(getPath('001.tif'), options)
+		assert.equal(exif.Make, 'DJI')
+	})
+
+	it('read file by chunks (complex)', async () => {
+		let options = {scanWholeFileForce: false}
+		var exif = await getExif(getPath('001.tif'), options)
 		assert.equal(exif.Make, 'DJI')
 	})
 
