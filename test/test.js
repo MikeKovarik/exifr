@@ -226,9 +226,9 @@ describe('parsed exif data', () => {
 		assert.equal(exif.latitude, 50.86259891666667)
 	})
 
-	//it('exif-js issue #124', async () => {
-	//	var exif = await getExif(getPath('exif-js-issue-124.tiff'), true)
-	//	assert.equal(exif.Make, 'FLIR')
-	//})
+	it('exif-js issue #124', async () => {
+		var exif = await getExif(getPath('exif-js-issue-124.tiff'), true)
+		assert.equal(exif.Make, 'FLIR')
+	})
 
 })
