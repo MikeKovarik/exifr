@@ -177,6 +177,8 @@ export class ExifParser extends Reader {
 	}
 
 	getResult() {
+		// close FS file handle just in case it's still open
+		this.close()
 		if (this.options.mergeOutput) {
 			// NOTE: skipping thumbnail and xmp
 			var exif = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc)

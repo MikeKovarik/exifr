@@ -64,15 +64,18 @@ export default class Reader {
 	}
 
 	readBlob(blob) {
-		return this.webReader(blobToDataView, blob, this.options.parseChunkSize)
+		this.toDataViewConverter = blobToDataView
+		return this.webReader(blob, this.options.parseChunkSize)
 	}
 
 	readSimpleUrl(url) {
-		return this.webReader(fetchAsDataView, url, this.options.parseChunkSize)
+		this.toDataViewConverter = fetchAsDataView
+		return this.webReader(url, this.options.parseChunkSize)
 	}
 
 	readBase64Url(base64) {
-		return this.webReader(base64ToDataView, base64, this.options.seekChunkSize)
+		this.toDataViewConverter = base64ToDataView
+		return this.webReader(base64, this.options.seekChunkSize)
 	}
 
 
@@ -95,17 +98,16 @@ export default class Reader {
 	// It can be used with Blobs, URLs, Base64 (URL).
 	// blobs and fetching from url uses larger chunks with higher chances of having the whole exif within (iteration 3).
 	// base64 string (and base64 based url) uses smaller chunk at first (iteration 2).
-	async webReader(toDataViewConverter, input, end) {
-		this._input = input // todo: use
-		this._converter = toDataViewConverter // todo: use
-		var view = await toDataViewConverter(input, {end})
+	async webReader(input, end) {
+		this._input = input
+		var view = await this.toDataViewConverter(this._input, {end})
 		var tiffPosition = findTiff(view)
 		if (tiffPosition !== undefined) {
 			// Exif was found.
 			if (tiffPosition.end > view.byteLength) {
 				// Exif was found outside the buffer we alread have.
 				// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
-				view = await toDataViewConverter(input, tiffPosition)
+				view = await this.toDataViewConverter(this._input, tiffPosition)
 				return this.parse(view, {start: 0})
 			} else {
 				return this.parse(view, tiffPosition)
@@ -114,7 +116,7 @@ export default class Reader {
 		// Seeking for the exif at the beginning of the file failed.
 		// Fall back to scanning throughout the whole file if allowed.
 		if (this.options.scanWholeFileFallback) {
-			view = toDataViewConverter(input)
+			view = this.toDataViewConverter(this._input)
 			return this.readBuffer(view)
 		}
 	}
@@ -132,28 +134,25 @@ export default class Reader {
 			return this.readBuffer(buffer)
 		}
 		// Start by opening the file and reading the first 512 bytes.
-		var fh = await fs.open(filename, 'r')
+		this.fh = await fs.open(filename, 'r')
 		try {
 			var seekChunk = Buffer.allocUnsafe(this.options.seekChunkSize)
-			var {bytesRead} = await fh.read(seekChunk, 0, seekChunk.length, null)
-			if (!bytesRead) {
-				fh.close()
-				return
-			}
+			var {bytesRead} = await this.fh.read(seekChunk, 0, seekChunk.length, null)
+			if (!bytesRead) return this.close()
 			// Try to search for beginning of exif within the first 512 bytes.
 			var tiffPosition = findTiff(seekChunk)
 			if (tiffPosition !== undefined) {
 				// Exif was found. Allocate appropriately sized buffer and read the whole exif into the buffer.
 				// NOTE: does not load the whole file, just exif.
 				var tiffChunk = Buffer.allocUnsafe(tiffPosition.size)
-				await fh.read(tiffChunk, 0, tiffPosition.size, tiffPosition.start)
+				await this.fh.read(tiffChunk, 0, tiffPosition.size, tiffPosition.start)
 				return this.parse(tiffChunk, {start: 0})
 			}
 			// Close FD/FileHandle since we're using lower-level APIs.
-			await fh.close()
+			await this.close()
 		} catch(err) {
 			// Try to close the FD/FileHandle in any case.
-			await fh.close()
+			await this.close()
 			throw err
 		}
 		// Seeking for the exif at the beginning of the file failed.
@@ -161,6 +160,13 @@ export default class Reader {
 		if (this.options.scanWholeFileFallback) {
 			var buffer = await fs.readFile(filename)
 			return this.readBuffer(buffer)
+		}
+	}
+
+	async close() {
+		if (this.fh) {
+			this.fh.close()
+			this.fh = undefined
 		}
 	}
 
