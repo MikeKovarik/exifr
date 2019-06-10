@@ -1,3 +1,4 @@
+import Reader from './reader.mjs'
 import * as tags from './tags.mjs'
 import {
 	getUint8,
@@ -15,11 +16,6 @@ const SIZE_LOOKUP = [
 	1, 1, 2, 4, 8,
 	1, 1, 2, 4, 8
 ]
-
-// First argument can be either Buffer or DataView instance.
-export function parse(...args) {
-	return (new ExifParser(...args)).getResult()
-}
 
 
 
@@ -159,11 +155,10 @@ function isIptcSegmentHead(buffer, offset) {
 // - 0th IFD + value
 // - 1th IFD + value
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
-export class ExifParser {
+export class ExifParser extends Reader {
 
-	constructor(buffer, options = {}, tiffPosition) {
+	parse(buffer, tiffPosition) {
 		this.buffer = buffer
-		this.options = options
 		this.baseOffset = 0
 
 		if (typeof tiffPosition === 'object')

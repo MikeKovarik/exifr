@@ -44,7 +44,7 @@ var defaultOptions = {
 
 }
 
-export function processOptions(objectOrBool) {
+export function processOptions(objectOrBool = {}) {
 	var options = Object.assign({}, defaultOptions)
 	if (typeof objectOrBool === 'boolean') {
 		for (var key in options)

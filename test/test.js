@@ -66,7 +66,7 @@ async function createBase64Url(url) {
 }
 
 
-describe('input formats', () => {
+describe('reader (input formats)', () => {
 
 	isNode && it('string file path', async () => {
 		var exif = await getExif(getPath('IMG_20180725_163423.jpg'))
@@ -112,11 +112,16 @@ describe('input formats', () => {
 	//	await getExif(img)
 	//})
 
+	it('tiff offset at 0; ID0 offset at 677442 (header at the beginning of file, data at the end)', async () => {
+		var exif = await getExif(getPath('001.tif'), true)
+		assert.equal(exif.Make, 'DJI')
+	})
+
 })
 
 
 
-describe('parsed exif data', () => {
+describe('parser (exif data)', () => {
 
 	it('should merge all segments by default', async () => {
 		var exif = await getExif(getPath('IMG_20180725_163423.jpg'))
@@ -234,11 +239,6 @@ describe('parsed exif data', () => {
 	it('exif-js issue #124', async () => {
 		var exif = await getExif(getPath('exif-js-issue-124.tiff'), true)
 		assert.equal(exif.Make, 'FLIR')
-	})
-
-	it('tiff at 0; gps segment at the end of file', async () => {
-		var exif = await getExif(getPath('001.tif'), true)
-		assert.equal(exif.Make, 'DJI')
 	})
 
 })
