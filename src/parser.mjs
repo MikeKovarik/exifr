@@ -167,13 +167,16 @@ export class ExifParser extends Reader {
 			this.tiffOffset = tiffPosition
 
 		// The basic EXIF tags (image, exif, gps)
-		if (this.options.tiff)	this.parseTiff()
-		// Additional XML data
-		if (this.options.xmp)	this.parseXmp()
-		// Image profile
-		if (this.options.icc)	this.parseIcc()
-		// Captions and copyrights
-		if (this.options.iptc)	this.parseIptc()
+		if (this.options.tiff) {
+			this.parseTiffSegment()
+			if (this.options.exif)      this.parseExifBlock()
+			if (this.options.gps)       this.parseGpsBlock()
+			if (this.options.interop)   this.parseInteropBlock()
+			if (this.options.thumbnail) this.parseThumbnailBlock()
+		}
+		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
+		if (this.options.icc)  this.parseIccSegment()  // Image profile
+		if (this.options.iptc) this.parseIptcSegment() // Captions and copyrights
 	}
 
 	getResult() {
@@ -205,7 +208,7 @@ export class ExifParser extends Reader {
 	// This expects this.tiffOffset to be defined and poiting at the first byte after the header
 	// (in other words - 11th byte of the segment) and skips checks that should be done in other
 	// methods like .findTiff()
-	parseTiff() {
+	parseTiffSegment() {
 		// Cancel if the file doesn't contain the segment or if it's damaged.
 		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
 
@@ -222,58 +225,68 @@ export class ExifParser extends Reader {
 		if (getUint16(this.buffer, this.tiffOffset + 2, this.le) !== 0x002A)
 			throw new Error('Invalid EXIF data: expected 0x002A.')
 
-		var ifd0Offset = getUint32(this.buffer, this.tiffOffset + 4, this.le)
+		this.ifd0Offset = getUint32(this.buffer, this.tiffOffset + 4, this.le)
 
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
-		if (ifd0Offset < 8)
+		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
-		var ifd0 = this.parseTiffTags(this.tiffOffset + ifd0Offset, tags.exif)
+		var ifd0 = this.parseTiffTags(this.tiffOffset + this.ifd0Offset, tags.exif)
+		this.image = ifd0
 
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(ifd0).length === 0) return
 
-		// IFD0 segment contains also offset pointers to another segments deeper within the EXIF.
+		this.ExifIFDPointer = ifd0.ExifIFDPointer
+		this.GPSInfoIFDPointer = ifd0.GPSInfoIFDPointer
+		this.InteroperabilityIFDPointer = ifd0.InteroperabilityIFDPointer
+
+		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.postProcess) {
-			this.image = Object.assign({}, ifd0)
 			delete this.image.ExifIFDPointer
 			delete this.image.GPSInfoIFDPointer
 			delete this.image.InteroperabilityIFDPointer
-		} else {
-			this.image = ifd0
 		}
+	}
 
-		if (this.options.exif && ifd0.ExifIFDPointer)
-			this.exif = this.parseTiffTags(this.tiffOffset + ifd0.ExifIFDPointer, tags.exif)
+	// EXIF block of TIFF segment
+	parseExifBlock() {
+		if (this.ExifIFDPointer === undefined) return
+		this.exif = this.parseTiffTags(this.tiffOffset + this.ExifIFDPointer, tags.exif)
+	}
 
-		if (this.options.gps && ifd0.GPSInfoIFDPointer) {
-			let gps = this.gps = this.parseTiffTags(this.tiffOffset + ifd0.GPSInfoIFDPointer, tags.gps)
-			// Add custom timestamp property as a mixture of GPSDateStamp and GPSTimeStamp
-			if (this.options.postProcess) {
-				if (gps.GPSDateStamp && gps.GPSTimeStamp)
-					gps.timestamp = reviveDate(gps.GPSDateStamp + ' ' + gps.GPSTimeStamp)
-				if (gps && gps.GPSLatitude) {
-					gps.latitude   = ConvertDMSToDD(...gps.GPSLatitude, gps.GPSLatitudeRef)
-					gps.longitude = ConvertDMSToDD(...gps.GPSLongitude, gps.GPSLongitudeRef)
-				}
+	// GPS block of TIFF segment
+	parseGpsBlock() {
+		if (this.GPSInfoIFDPointer === undefined) return
+		let gps = this.gps = this.parseTiffTags(this.tiffOffset + this.GPSInfoIFDPointer, tags.gps)
+		// Add custom timestamp property as a mixture of GPSDateStamp and GPSTimeStamp
+		if (this.options.postProcess) {
+			if (gps.GPSDateStamp && gps.GPSTimeStamp)
+				gps.timestamp = reviveDate(gps.GPSDateStamp + ' ' + gps.GPSTimeStamp)
+			if (gps && gps.GPSLatitude) {
+				gps.latitude   = ConvertDMSToDD(...gps.GPSLatitude, gps.GPSLatitudeRef)
+				gps.longitude = ConvertDMSToDD(...gps.GPSLongitude, gps.GPSLongitudeRef)
 			}
 		}
+	}
 
-		if (this.options.interop) {
-			var interopIfdOffset = ifd0.InteroperabilityIFDPointer || (this.exif && this.exif.InteroperabilityIFDPointer)
-			if (interopIfdOffset)
-				this.interop = this.parseTiffTags(this.tiffOffset + interopIfdOffset, tags.exif)
-		}
+	// INTEROP block of TIFF segment
+	parseInteropBlock() {
+		if (!this.options.interop) return
+		var interopIfdOffset = this.InteroperabilityIFDPointer || (this.exif && this.exif.InteroperabilityIFDPointer)
+		if (interopIfdOffset === undefined) return
+		this.interop = this.parseTiffTags(this.tiffOffset + interopIfdOffset, tags.exif)
+	}
 
-		if (this.options.thumbnail && !this.options.mergeOutput) {
-			var ifd0Entries = getUint16(this.buffer, this.tiffOffset + ifd0Offset, this.le)
-			var thumbnailIfdOffsetPointer = this.tiffOffset + ifd0Offset + 2 + (ifd0Entries * 12)
-			var thumbnailIfdOffset = getUint32(this.buffer, thumbnailIfdOffsetPointer, this.le)
-			if (thumbnailIfdOffset)
-				this.thumbnail = this.parseTiffTags(this.tiffOffset + thumbnailIfdOffset, tags.exif)
-		}
-
+	// THUMBNAIL block of TIFF segment
+	parseThumbnailBlock() {
+		if (this.options.mergeOutput) return
+		var ifd0Entries = getUint16(this.buffer, this.tiffOffset + this.ifd0Offset, this.le)
+		var thumbnailIfdOffsetPointer = this.tiffOffset + this.ifd0Offset + 2 + (ifd0Entries * 12)
+		var thumbnailIfdOffset = getUint32(this.buffer, thumbnailIfdOffsetPointer, this.le)
+		if (thumbnailIfdOffset === undefined) return
+		this.thumbnail = this.parseTiffTags(this.tiffOffset + thumbnailIfdOffset, tags.exif)
 	}
 
 	parseTiffTags(offset, tagNames) {
@@ -369,7 +382,7 @@ export class ExifParser extends Reader {
 	}
 
 
-	parseXmp() {
+	parseXmpSegment() {
 		// Cancel if the file doesn't contain the segment or if it's damaged.
 		if (!this.ensureSegmentPosition('xmp', findXmp)) return
 
@@ -381,19 +394,19 @@ export class ExifParser extends Reader {
 			let start = this.xmp.indexOf('<x:xmpmeta')
 			let end = this.xmp.indexOf('x:xmpmeta>') + 10
 			this.xmp = this.xmp.slice(start, end)
+			// offer user to supply custom xml parser
+			if (this.parseXml) this.xmp = this.parseXml(this.xmp)
 		}
 	}
 
 
 	// Not currently implemented.
-	parseIcc() {
-		// TODO
+	parseIccSegment() {
 	}
-
 
 	// NOTE: This only works with single segment IPTC data.
 	// TODO: Implement multi-segment parsing.
-	parseIptc() {
+	parseIptcSegment() {
 		// Cancel if the file doesn't contain the segment or if it's damaged.
 		if (!this.ensureSegmentPosition('iptc', findIptc)) return
 
