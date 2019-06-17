@@ -14,8 +14,11 @@ var fs = typeof _fs !== 'undefined' ? _fs.promises : undefined
 
 export default class Reader {
 
-	async read(arg, options) {
+	constructor(options) {
 		this.options = processOptions(options)
+	}
+
+	async read(arg) {
 		if (typeof arg === 'string')
 			return this.readString(arg)
 		else if (isBrowser && arg instanceof HTMLImageElement)
@@ -60,31 +63,27 @@ export default class Reader {
 	readBuffer(buffer) {
 		let tiffPosition = findTiff(buffer)
 		if (tiffPosition === undefined) return
-		return this.parse(buffer, tiffPosition)
+		return [buffer, tiffPosition]
 	}
 
 	async readBlob(blob) {
 		this.reader = new BlobReader(blob, this.options)
-		let [buffer, tiffPosition] = await this.reader.read(this.options.parseChunkSize)
-		return this.parse(buffer, tiffPosition)
+		return this.reader.read(this.options.parseChunkSize)
 	}
 
 	async readUrl(url) {
 		this.reader = new UrlReader(url, this.options)
-		let [buffer, tiffPosition] = await this.reader.read(this.options.parseChunkSize)
-		return this.parse(buffer, tiffPosition)
+		return this.reader.read(this.options.parseChunkSize)
 	}
 
 	async readBase64(base64) {
 		this.reader = new Base64Reader(base64, this.options)
-		let [buffer, tiffPosition] = await this.reader.read(this.options.seekChunkSize)
-		return this.parse(buffer, tiffPosition)
+		return this.reader.read(this.options.seekChunkSize)
 	}
 
 	async readFileFromDisk(filePath) {
 		this.reader = new FsReader(filePath, this.options)
-		let [buffer, tiffPosition] = await this.reader.read()
-		return this.parse(buffer, tiffPosition)
+		return this.reader.read()
 	}
 
 	get mode() {
