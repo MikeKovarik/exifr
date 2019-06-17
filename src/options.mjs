@@ -2,12 +2,18 @@ var defaultOptions = {
 
 	// READING & PARSING
 
-	// We're trying not to read the whole file to increate performance but certain
+	// We're trying not to read the whole file to increase performance but certain
 	// segments (IPTC, XMP) require whole file to be buffered and parsed through.
-	scanWholeFileForce: false,
+	//forceWholeFile: false,
 	// Only the first 512 Bytes are scanned for EXIF due to performance reasons.
 	// Setting this to true enables searching through the whole file.
-	scanWholeFileFallback: false,
+	//allowWholeFile: false,
+
+	// true - force fetching whole file / reading whole file (whole file mode)
+	// undefined - allow reading additional chunks (chunked mode)
+	// false - do not allow reading additional chunks (chunked mode)
+	wholeFile: undefined,
+
 	// Size of the chunk that can be scanned for EXIF.
 	seekChunkSize: 512,
 	// In browser its sometimes better to download larger chunk in hope that it contains the
@@ -53,7 +59,5 @@ export function processOptions(objectOrBool = {}) {
 	} else {
 		Object.assign(options, objectOrBool)
 	}
-	if (options.xmp || options.icc || options.iptc)
-		options.scanWholeFileForce = true
 	return options
 }

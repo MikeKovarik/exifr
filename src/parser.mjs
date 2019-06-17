@@ -44,7 +44,7 @@ function findAppSegment(buffer, n, condition, callback) {
 export function findTiff(buffer) {
 	// tiff files start with tiff segment without the app segment header
 	var marker = getUint16(buffer, 0)
-	if (marker === 0x4949 || marker === 0x4D4D) return 0
+	if (marker === 0x4949 || marker === 0x4D4D) return {start: 0}
 	// otherwise find the segment header.
 	return findAppSegment(buffer, 1, isExifSegment, getExifSize)
 }
@@ -141,8 +141,9 @@ function isIptcSegmentHead(buffer, offset) {
 // APPn contain metadata about the image in various formats. There can be multiple APPn segments,
 // even multiple segments of the same type.
 // APP1 contains the basic and most important EXIF data.
-// APP2 contains ICC, APP13 contains IPTC, and the main APP1 (the one with EXIF) is often followed
-// by another APP1 with XMP data (in XML format).
+// APP2 contains ICC
+// APP13 contains IPTC
+// the main APP1 (the one with EXIF) is often followed by another APP1 with XMP data (in XML format).
 // Structure of APPn (APP1, APP2, APP13, etc...):
 // - First two bytes are the marker FF En (e.g. FF E1 for APP1)
 // - 3rd & 4th bytes are length of the APPn segment
@@ -157,22 +158,20 @@ function isIptcSegmentHead(buffer, offset) {
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
 export class ExifParser extends Reader {
 
-	parse(buffer, tiffPosition) {
+	async parse(buffer, tiffPosition) {
 		this.buffer = buffer
 		this.baseOffset = 0
 
 		if (typeof tiffPosition === 'object')
 			this.tiffOffset = tiffPosition.start
-		else
-			this.tiffOffset = tiffPosition
 
 		// The basic EXIF tags (image, exif, gps)
 		if (this.options.tiff) {
-			this.parseTiffSegment()
-			if (this.options.exif)      this.parseExifBlock()
-			if (this.options.gps)       this.parseGpsBlock()
-			if (this.options.interop)   this.parseInteropBlock()
-			if (this.options.thumbnail) this.parseThumbnailBlock()
+			await this.parseApp1Segment()
+			if (this.options.exif)      await this.parseExifBlock()
+			if (this.options.gps)       await this.parseGpsBlock()
+			if (this.options.interop)   await this.parseInteropBlock()
+			if (this.options.thumbnail) await this.parseThumbnailBlock()
 		}
 		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
 		if (this.options.icc)  this.parseIccSegment()  // Image profile
@@ -180,8 +179,6 @@ export class ExifParser extends Reader {
 	}
 
 	getResult() {
-		// close FS file handle just in case it's still open
-		this.close()
 		if (this.options.mergeOutput) {
 			// NOTE: skipping thumbnail and xmp
 			var exif = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc)
@@ -208,10 +205,8 @@ export class ExifParser extends Reader {
 	// This expects this.tiffOffset to be defined and poiting at the first byte after the header
 	// (in other words - 11th byte of the segment) and skips checks that should be done in other
 	// methods like .findTiff()
-	parseTiffSegment() {
-		// Cancel if the file doesn't contain the segment or if it's damaged.
-		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
 
+	parseTiffHeader() {
 		// Detect endian 11th byte of TIFF (1st after header)
 		var marker = getUint16(this.buffer, this.tiffOffset)
 		if (marker === 0x4949)
@@ -226,40 +221,54 @@ export class ExifParser extends Reader {
 			throw new Error('Invalid EXIF data: expected 0x002A.')
 
 		this.ifd0Offset = getUint32(this.buffer, this.tiffOffset + 4, this.le)
+		console.log('this.ifd0Offset', this.ifd0Offset)
+	}
+
+	async parseApp1Segment() {
+		// Cancel if the file doesn't contain the segment or if it's damaged.
+		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
+
+		this.parseTiffHeader()
 
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
-		var ifd0 = this.parseTiffTags(this.tiffOffset + this.ifd0Offset, tags.exif)
+		var ifd0 = await this.parseTiffTags(this.tiffOffset + this.ifd0Offset, tags.exif)
 		this.image = ifd0
 
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(ifd0).length === 0) return
 
 		this.ExifIFDPointer = ifd0.ExifIFDPointer
-		this.GPSInfoIFDPointer = ifd0.GPSInfoIFDPointer
 		this.InteroperabilityIFDPointer = ifd0.InteroperabilityIFDPointer
+		this.GPSInfoIFDPointer = ifd0.GPSInfoIFDPointer
+
+		console.log('this.ExifIFDPointer', this.ExifIFDPointer)
+		console.log('this.InteroperabilityIFDPointer', this.InteroperabilityIFDPointer)
+		console.log('this.GPSInfoIFDPointer', this.GPSInfoIFDPointer)
 
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.postProcess) {
 			delete this.image.ExifIFDPointer
-			delete this.image.GPSInfoIFDPointer
 			delete this.image.InteroperabilityIFDPointer
+			delete this.image.GPSInfoIFDPointer
 		}
 	}
 
 	// EXIF block of TIFF segment
-	parseExifBlock() {
+	// 0x8769
+	async parseExifBlock() {
 		if (this.ExifIFDPointer === undefined) return
-		this.exif = this.parseTiffTags(this.tiffOffset + this.ExifIFDPointer, tags.exif)
+		this.exif = await this.parseTiffTags(this.tiffOffset + this.ExifIFDPointer, tags.exif)
 	}
 
 	// GPS block of TIFF segment
-	parseGpsBlock() {
+	// 0x8825
+	async parseGpsBlock() {
 		if (this.GPSInfoIFDPointer === undefined) return
-		let gps = this.gps = this.parseTiffTags(this.tiffOffset + this.GPSInfoIFDPointer, tags.gps)
+		let gps = this.gps = await this.parseTiffTags(this.tiffOffset + this.GPSInfoIFDPointer, tags.gps)
 		// Add custom timestamp property as a mixture of GPSDateStamp and GPSTimeStamp
 		if (this.options.postProcess) {
 			if (gps.GPSDateStamp && gps.GPSTimeStamp)
@@ -272,35 +281,53 @@ export class ExifParser extends Reader {
 	}
 
 	// INTEROP block of TIFF segment
-	parseInteropBlock() {
+	// 0xA005
+	async parseInteropBlock() {
 		if (!this.options.interop) return
 		var interopIfdOffset = this.InteroperabilityIFDPointer || (this.exif && this.exif.InteroperabilityIFDPointer)
 		if (interopIfdOffset === undefined) return
-		this.interop = this.parseTiffTags(this.tiffOffset + interopIfdOffset, tags.exif)
+		this.interop = await this.parseTiffTags(this.tiffOffset + interopIfdOffset, tags.exif)
 	}
 
 	// THUMBNAIL block of TIFF segment
-	parseThumbnailBlock() {
+	async parseThumbnailBlock() {
 		if (this.options.mergeOutput) return
-		var ifd0Entries = getUint16(this.buffer, this.tiffOffset + this.ifd0Offset, this.le)
-		var thumbnailIfdOffsetPointer = this.tiffOffset + this.ifd0Offset + 2 + (ifd0Entries * 12)
-		var thumbnailIfdOffset = getUint32(this.buffer, thumbnailIfdOffsetPointer, this.le)
-		if (thumbnailIfdOffset === undefined) return
-		this.thumbnail = this.parseTiffTags(this.tiffOffset + thumbnailIfdOffset, tags.exif)
+		let ifd0Entries = getUint16(this.buffer, this.tiffOffset + this.ifd0Offset, this.le)
+		let temp = this.tiffOffset + this.ifd0Offset + 2 + (ifd0Entries * 12)
+		this.ifd1Offset = getUint32(this.buffer, temp, this.le)
+		if (this.ifd1Offset === undefined) return
+		this.thumbnail = await this.parseTiffTags(this.tiffOffset + this.ifd1Offset, tags.exif)
 	}
 
-	parseTiffTags(offset, tagNames) {
+	async parseTiffTags(offset, tagNames) {
 		// TODO: re-read file if portion of the exif is outside of read chunk
 		// (test/001.tif has tiff segment at the beggining plus at the end)
-		if (offset > this.buffer.byteLength)
-			throw new Error(`offset ${offset} out of chunk size ${this.buffer.byteLength}`)
-		var entriesCount = getUint16(this.buffer, offset, this.le)
+		if (offset > this.buffer.byteLength) {
+			if (this.mode === 'chunked') {
+				var chunk = await this.reader.readChunk({
+					start: offset,
+					size: 10000,
+				})
+				offset = 0
+			} else {
+				throw new Error(`segment offset ${offset} is out of chunk size ${this.buffer.byteLength}`)
+			}
+		} else {
+			var chunk = this.buffer
+		}
+		console.log('chunk', chunk)
+		console.log('offset', offset)
+		console.log('chunk', chunk.buffer.slice(offset))
+		var entriesCount = getUint16(chunk, offset, this.le)
+		console.log('entriesCount', entriesCount)
+		//return
 		offset += 2
 		var res = {}
 		for (var i = 0; i < entriesCount; i++) {
-			var tag = getUint16(this.buffer, offset, this.le)
+			var tag = getUint16(chunk, offset, this.le)
 			var key = tagNames[tag] || tag
-			var val = this.parseTiffTag(offset)
+			var val = this.parseTiffTag(chunk, offset)
+			console.log(`${i} / ${entriesCount} |`, offset, '|', tag, key, val)
 			if (this.options.postProcess)
 				val = this.translateValue(key, val)
 			res[key] = val
@@ -309,19 +336,24 @@ export class ExifParser extends Reader {
 		return res
 	}
 
-	parseTiffTag(offset) {
-		var type = getUint16(this.buffer, offset + 2, this.le)
-		var valuesCount = getUint32(this.buffer, offset + 4, this.le)
+	parseTiffTag(chunk, offset) {
+		var type = getUint16(chunk, offset + 2, this.le)
+		var valuesCount = getUint32(chunk, offset + 4, this.le)
 		var valueByteSize = SIZE_LOOKUP[type - 1]
 		if (valueByteSize * valuesCount <= 4)
 			var valueOffset = offset + 8
 		else
-			var valueOffset = this.tiffOffset + getUint32(this.buffer, offset + 8, this.le)
+			var valueOffset = this.tiffOffset + getUint32(chunk, offset + 8, this.le)
+
+		console.log(type, valuesCount, valueByteSize, valueOffset)
+
+		if (valueOffset > chunk.buffer.byteLength)
+			throw new Error(`tiff value offset ${valueOffset} is out of chunk size ${chunk.buffer.byteLength}`)
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === 2) {
 			var end = valueOffset + valuesCount
-			var string = toString(this.buffer, valueOffset, end)
+			var string = toString(chunk, valueOffset, end)
 			if (string.endsWith('\0')) // remove null terminator
 				return string.slice(0, -1)
 			return string
@@ -329,33 +361,33 @@ export class ExifParser extends Reader {
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === 7)
-			return slice(this.buffer, valueOffset, valueOffset + valuesCount)
+			return slice(chunk, valueOffset, valueOffset + valuesCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
 		if (valuesCount === 1) {
 			// Return single value.
-			return this.parseTiffTagValue(valueOffset, type)
+			return this.parseTiffTagValue(chunk, valueOffset, type)
 		} else {
 			// Return array of values.
 			var res = []
 			for (var i = 0; i < valuesCount; i++) {
-				res.push(this.parseTiffTagValue(valueOffset, type))
+				res.push(this.parseTiffTagValue(chunk, valueOffset, type))
 				valueOffset += valueByteSize
 			}
 			return res
 		}
 	}
 
-	parseTiffTagValue(offset, type) {
+	parseTiffTagValue(chunk, offset, type) {
 		switch (type) {
-			case 1:  return getUint8(this.buffer, offset)
-			case 3:  return getUint16(this.buffer, offset, this.le)
-			case 4:  return getUint32(this.buffer, offset, this.le)
-			case 5:  return getUint32(this.buffer, offset, this.le) / getUint32(this.buffer, offset + 4, this.le)
-			case 6:  return getInt8(this.buffer, offset)
-			case 8:  return getInt16(this.buffer, offset, this.le)
-			case 9:  return getInt32(this.buffer, offset, this.le)
-			case 10: return getInt32(this.buffer, offset, this.le) / getInt32(this.buffer, offset + 4, this.le)
+			case 1:  return getUint8(chunk, offset)
+			case 3:  return getUint16(chunk, offset, this.le)
+			case 4:  return getUint32(chunk, offset, this.le)
+			case 5:  return getUint32(chunk, offset, this.le) / getUint32(chunk, offset + 4, this.le)
+			case 6:  return getInt8(chunk, offset)
+			case 8:  return getInt16(chunk, offset, this.le)
+			case 9:  return getInt32(chunk, offset, this.le)
+			case 10: return getInt32(chunk, offset, this.le) / getInt32(chunk, offset + 4, this.le)
 		}
 	}
 
