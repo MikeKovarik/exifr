@@ -11,11 +11,22 @@ import {
 	toString
 } from './buff-util.mjs'
 
-
-const SIZE_LOOKUP = [
-	1, 1, 2, 4, 8,
-	1, 1, 2, 4, 8
-]
+const SIZE_LOOKUP = {
+	1: 1, // BYTE      - 8-bit unsigned integer
+	2: 1, // ASCII     - 8-bit bytes w/ last byte null
+	3: 2, // SHORT     - 16-bit unsigned integer
+	4: 4, // LONG      - 32-bit unsigned integer
+	5: 8, // RATIONAL  - 64-bit unsigned fraction
+	6: 1, // SBYTE     - 8-bit signed integer
+	7: 1, // UNDEFINED - 8-bit untyped data
+	8: 2, // SSHORT    - 16-bit signed integer
+	9: 4, // SLONG     - 32-bit signed integer
+	10: 8, // SRATIONAL - 64-bit signed fraction (Two 32-bit signed integers)
+	11: 4, // FLOAT,    - 32-bit IEEE floating point
+	12: 8, // DOUBLE    - 64-bit IEEE floating point
+	// https://sno.phy.queensu.ca/~phil/exiftool/standards.html
+	13: 4 // IFD (sometimes used instead of 4 LONG)
+}
 
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
@@ -186,6 +197,7 @@ export class ExifParser extends Reader {
 			if (this.app1Offset <= 0) this.app1Offset = undefined
 		}
 
+
 		if (this.options.tiff) await this.parseTiff() // The basic EXIF tags (image, exif, gps)
 		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
 		if (this.options.icc)  this.parseIccSegment()  // Image profile
@@ -238,6 +250,8 @@ export class ExifParser extends Reader {
 		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
 		this.parseTiffHeader()
 		await this.parseIfd0Block()
+
+
 		if (this.options.exif)      await this.parseExifBlock()
 		if (this.options.gps)       await this.parseGpsBlock()
 		if (this.options.interop)   await this.parseInteropBlock()
@@ -268,6 +282,7 @@ export class ExifParser extends Reader {
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
 		var ifd0 = await this.parseTiffTags(this.tiffOffset + this.ifd0Offset, tags.exif)
 		this.image = ifd0
+		//console.log('this.image', this.image)
 
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(ifd0).length === 0) return
@@ -386,7 +401,7 @@ export class ExifParser extends Reader {
 	parseTiffTag(chunk, offset) {
 		var type = getUint16(chunk, offset + 2, this.le)
 		var valuesCount = getUint32(chunk, offset + 4, this.le)
-		var valueByteSize = SIZE_LOOKUP[type - 1]
+		var valueByteSize = SIZE_LOOKUP[type]
 		if (valueByteSize * valuesCount <= 4)
 			var valueOffset = offset + 8
 		else
@@ -433,6 +448,10 @@ export class ExifParser extends Reader {
 			case 8:  return getInt16(chunk, offset, this.le)
 			case 9:  return getInt32(chunk, offset, this.le)
 			case 10: return getInt32(chunk, offset, this.le) / getInt32(chunk, offset + 4, this.le)
+			//case 11: return getFloat()  // TODO: buffer.readFloatBE() buffer.readFloatLE()
+			//case 12: return getDouble() // TODO: buffer.readDoubleBE() buffer.readDoubleLE()
+			case 13: return getUint32(chunk, offset, this.le)
+			default: throw new Error(`Invalid tiff type ${type}`)
 		}
 	}
 

@@ -182,14 +182,12 @@ TODO: rewrite chunked reader for 3.0.0
 	it('scattered file, read/fetch whole file - should succeed', async () => {
 		let options = {wholeFile: true}
 		var exif = await parse(getPath('001.tif'), options)
-		console.log('exif', exif)
 		assert.equal(exif.Make, 'DJI')
 	})
 
 	it('scattered file, chunked mode, allow additional chunks - should succeed', async () => {
 		let options = {wholeFile: undefined}
 		var exif = await parse(getPath('001.tif'), options)
-		console.log('exif', exif)
 		assert.equal(exif.Make, 'DJI')
 	})
 
@@ -218,6 +216,7 @@ describe('parser (exif data)', () => {
 			'fast-exif-issue-2.jpg',
 			'node-exif-issue-58.jpg',
 			'001.tif',
+			'002.tiff',
 			'exif-js-issue-124.tiff',
 		]
 		for (let name of images) {
@@ -330,32 +329,45 @@ describe('parser (exif data)', () => {
 		assert.equal(exif, undefined)
 	})
 
-	it('should not skip exif if 0xFF byte precedes marker (fast-exif issue #2)', async () => {
-		var exif = await parse(buffers['fast-exif-issue-2.jpg'], true)
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.ApertureValue, 5.655638)
-		assert.equal(exif.LensModel, '24.0-70.0 mm f/2.8')
-	})
+	describe('issues (special cases)', () => {
 
-	it('should properly detect EXIF (node-exif issue #58)', async () => {
-		var exif = await parse(buffers['node-exif-issue-58.jpg'], true)
-		assert.exists(exif, `exif doesn't exist`)
-		assert.exists(exif.xmp)
-	})
+		it('#2 - 001.tif starting with 49 49', async () => {
+			var exif = await parse(buffers['001.tif'])
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.Make, 'DJI')
+			assert.equal(exif.ImageWidth, '640')
+			//assert.equal(exif.ImageHeight, '512')
+			assert.equal(exif.latitude, 50.86259891666667)
+		})
 
-	it('.tif file starting with 49 49', async () => {
-		var exif = await parse(buffers['001.tif'])
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.Make, 'DJI')
-		assert.equal(exif.ImageWidth, '640')
-		//assert.equal(exif.ImageHeight, '512')
-		assert.equal(exif.latitude, 50.86259891666667)
-	})
+		it('#2 - 002.tiff with value type 13 (IFD pointer) instead of 4', async () => {
+			let options = {
+				gps: true,
+				mergeOutput: false,
+			}
+			var exif = await parse(buffers['002.tiff'], options)
+			assert.exists(exif.gps)
+		})
 
-	it('exif-js issue #124', async () => {
-		var exif = await parse(buffers['exif-js-issue-124.tiff'], true)
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.Make, 'FLIR')
+		it('fast-exif #2 - should not skip exif if 0xFF byte precedes marker', async () => {
+			var exif = await parse(buffers['fast-exif-issue-2.jpg'], true)
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.ApertureValue, 5.655638)
+			assert.equal(exif.LensModel, '24.0-70.0 mm f/2.8')
+		})
+
+		it('node-exif #58 - should properly detect EXIF', async () => {
+			var exif = await parse(buffers['node-exif-issue-58.jpg'], true)
+			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif.xmp)
+		})
+
+		it('exif-js #124', async () => {
+			var exif = await parse(buffers['exif-js-issue-124.tiff'], true)
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.Make, 'FLIR')
+		})
+
 	})
 
 	describe('thumbnail', () => {
@@ -368,7 +380,7 @@ describe('parser (exif data)', () => {
 		// return buffer
 		isNode && it('getThumbnail()', async () => {
 			let parser = new ExifParser(options)
-			var exif = await parser.parse(buffers['IMG_20180725_163423.jpg'])
+			await parser.parse(buffers['IMG_20180725_163423.jpg'])
 			var buffer = await parser.getThumbnail()
 			assert.instanceOf(buffer, Buffer)
 			assert.equal(buffer[0], 0xff)
@@ -378,7 +390,7 @@ describe('parser (exif data)', () => {
 		// return arraybuffer
 		isBrowser && it('getThumbnail()', async () => {
 			let parser = new ExifParser(options)
-			var exif = await parser.parse(buffers['IMG_20180725_163423.jpg'])
+			await parser.parse(buffers['IMG_20180725_163423.jpg'])
 			var arrayBuffer = await parser.getThumbnail()
 			assert.instanceOf(arrayBuffer, ArrayBuffer)
 			let view = new Uint8Array(arrayBuffer)
@@ -388,9 +400,8 @@ describe('parser (exif data)', () => {
 
 		isBrowser && it('getThumbnailUrl()', async () => {
 			let parser = new ExifParser(options)
-			var exif = await parser.parse(buffers['IMG_20180725_163423.jpg'])
+			await parser.parse(buffers['IMG_20180725_163423.jpg'])
 			var url = await parser.getThumbnailUrl()
-			console.log('url', url)
 			assert.typeOf(url, 'string')
 		})
 
