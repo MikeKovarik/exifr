@@ -5,11 +5,20 @@
 	<style>
 	body {
 		font-family: Segoe UI;
-		font-family: monospace;
 		box-sizing: border-box;
 	}
 	img {
 		width: 300px;
+	}
+	#dropzone {
+		width: 200px;
+		height: 120px;
+		border: 2px dashed #EEE;
+		margin: 8px 0;
+		color: #DDD;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	</style>
 </head>
@@ -17,7 +26,7 @@
 
 	<input id="fileinput" type="file" multiple>
 
-	<div id="dropzone">DROPZONE</div>
+	<div id="dropzone">Drop your file here</div>
 
 	<script src="../index.js"></script>
 	<script src="./gps.js"></script>

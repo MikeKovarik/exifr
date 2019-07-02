@@ -4,13 +4,15 @@
 // To run this script in node, use 'node --experimental-modules gps.mjs'
 // To run this in browser, use latest version of Chrome or Edge and make sure your
 // http server serves files with .mjs extensions with the type/javascript mime.
-import getExif from '../index.mjs'
+// Also the module imports 'fs' module and it fails in browsers. For that you could
+// use newly drafted importmaps.
 
+import ExifParser from '../index.mjs'
 
-async function getGps(file) {
-	var exif = await getExif(file)
+async function main() {
+	var exif = await ExifParser.parse('../test/IMG_20180725_163423.jpg')
 	console.log('latitude  ', exif.latitude)
 	console.log('longtitude', exif.longtitude)
 }
 
-getGps('IMG_20180725_163423.jpg').catch(console.error)
+main().catch(console.error)

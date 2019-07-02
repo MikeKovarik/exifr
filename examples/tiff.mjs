@@ -1,7 +1,7 @@
-import getExif from '../index.mjs'
+import ExifParser from '../index.mjs'
 import {promises as fs} from 'fs'
 
 fs.readFile('../test/001.tif')
-	.then(buffer => getExif(buffer))
+	.then(buffer => ExifParser.parse(buffer))
 	.then(console.log)
 	.catch(console.error)

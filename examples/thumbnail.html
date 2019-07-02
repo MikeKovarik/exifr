@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<style>
+	body {
+		font-family: Segoe UI;
+		box-sizing: border-box;
+	}
+	img {
+		width: 400px;
+	}
+	pre {
+		white-space: pre-line;
+	}
+	</style>
+</head>
+<body>
+
+	<input id="fileinput" type="file">
+
+	<h3>Original image</h3>
+	<img id="original">
+	<pre id="original-desc"></pre>
+
+	<h3>Extracted thumbnail</h3>
+	<img id="thumbnail">
+	<pre id="thumbnail-desc"></pre>
+
+	<script src="../index.js"></script>
+	<script>
+		let ExifReader = window.exifr
+
+		function promiseImg(img) {
+			if (img.naturalWidth !== 0)
+				return Promise.resolve()
+			else
+				return new Promise((resolve, reject) => {
+					img.onload = resolve
+					img.onerror = reject
+				})
+		}
+
+		var promiseTimeout = millis => new Promise(resolve => setTimeout(resolve, millis))
+
+		let filePicker = document.querySelector('input[type="file"]')
+		let original = document.querySelector("#original")
+		let thumbnail = document.querySelector("#thumbnail")
+		let originalDesc = document.querySelector("#original-desc")
+		let thumbnailDesc = document.querySelector("#thumbnail-desc")
+
+		processUrl('../test/IMG_20180725_163423.jpg')
+
+		async function processUrl(url) {
+			original.src = url
+			await promiseImg(original)
+			// original image loaded, extract thumb
+			let t0 = performance.now()
+			thumbnail.src = await ExifReader.thumbnailUrl(original)
+			console.log(thumbnail.src)
+			let t1 = performance.now()
+			// thumb extracted
+			printImgInfo(original, originalDesc)
+			await promiseTimeout() // needed for reloading after selecting another img
+			await promiseImg(thumbnail)
+			printImgInfo(thumbnail, thumbnailDesc, `extracted in ${Math.round(t1 - t0)} ms`)
+		}
+
+		function printImgInfo(img, pre, ...lines) {
+			pre.innerHTML = [
+				`width: ${img.naturalWidth}`,
+				`height: ${img.naturalHeight}`,
+				...lines
+			].join('\n')
+		}
+
+		filePicker.addEventListener('change', async e => {
+			let url = URL.createObjectURL(e.target.files[0])
+			processUrl(url)
+		})
+
+		function arrayBufferToUrl(arrayBuffer) {
+			let thumbBlob = new Blob([arrayBuffer], {type: 'image/jpeg'})
+			return URL.createObjectURL(thumbBlob)
+		}
+
+	</script>
+
+</body>
+</html>

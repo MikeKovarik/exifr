@@ -2,9 +2,9 @@ var isNode = typeof require === 'function'
 var isBrowser = typeof navigator === 'object'
 
 if (isBrowser) {
-	var getExif = window['exifr']
+	var ExifParser = window['exifr']
 } else if (isNode) {
-	var getExif = require('../index.js')
+	var ExifParser = require('../index.js')
 	var fs = require('fs').promises
 }
 
@@ -24,7 +24,7 @@ async function runExperiment(arg, description) {
 	console.log('------------------------------------')
 	console.log('Running:', description)
 	console.time(description)
-	var exif = await getExif(arg, options)
+	var exif = await ExifParser.parse(arg, options)
 	console.log(exif)
 	console.log('latitude  ', exif.latitude)
 	console.log('longitude', exif.longitude)
@@ -86,16 +86,26 @@ async function runNodeCode() {
 
 async function runBrowserCode() {
 
-	var input = document.querySelector('#fileinput')
-	input.addEventListener('change', async e => {
-		var files = Array.from(input.files)
+	var picker = document.querySelector('#fileinput')
+	var dropzone = document.querySelector('#dropzone')
+
+	dropzone.addEventListener('dragenter', e => e.preventDefault())
+	dropzone.addEventListener('dragover', e => e.preventDefault())
+	dropzone.addEventListener('drop', e => {
+		e.preventDefault()
+		handleFiles(e.dataTransfer.files)
+	})
+	picker.addEventListener('change', e => handleFiles(picker.files))
+
+	async function handleFiles(files) {
+		files = Array.from(files)
 		console.time('custom files')
 		var now = Date.now()
 		var promises = files.map(file => runExperiment(file, `File ${file.name}`))
 		await Promise.all(promises)
 		console.timeEnd('custom files')
 		document.body.after(`${files.length} photos processed in ${Date.now() - now}ms.\n`)
-	})
+	}
 
 	var arrayBuffer = await createArrayBuffer()
 	await runExperiment(arrayBuffer, `arrayBuffer`)
