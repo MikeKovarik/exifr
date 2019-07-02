@@ -29,13 +29,13 @@ var defaultOptions = {
 
 	// PARSED SEGMENTS
 
-	// TIFF - The basic EXIF tags (image, exif, gps)
+	// APP1 - TIFF - The basic EXIF tags (image, exif, gps)
 	tiff: true,
-	// XMP = XML based extension, often used by editors like Photoshop.
+	// APP1 - XMP = XML based extension, often used by editors like Photoshop.
 	xmp: false,
-	// ICC - Not implemented yet
+	// APP2 - ICC - Not implemented yet
 	icc: false,
-	// IPTC - Captions and copyrights
+	// APP13 - IPTC - Captions and copyrights
 	iptc: false,
 
 	// TIFF BLOCKS

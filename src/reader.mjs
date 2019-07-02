@@ -308,8 +308,6 @@ class UrlReader extends WebReader {
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
 		let res = await fetch(url, {headers})
 		let chunk = new DataView(await res.arrayBuffer())
-		console.log('headers.range', headers.range)
-		console.log('chunk', chunk)
 		return chunk
 	}
 

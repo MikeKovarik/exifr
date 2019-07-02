@@ -172,55 +172,66 @@ export class ExifParser extends Reader {
 
 	static async parse(arg, options) {
 		let instance = new ExifParser(options)
-		return instance.parse(arg)
+		await instance.read(arg)
+		if (instance.tiffPosition === undefined) return
+		return instance.parse()
 	}
 
-	async parse(arg) {
-		let result = await this.read(arg)
-		if (!result) return
-		let [buffer, tiffPosition] = result
-		await this.parseAll(buffer, tiffPosition)
+	static async thumbnail(arg, options = {}) {
+		options.mergeOutput = false
+		let instance = new ExifParser(options)
+		await instance.read(arg)
+		if (instance.tiffPosition === undefined) return
+		return instance.getThumbnail()
+	}
+
+	static async thumbnailUrl(...args) {
+		let arrayBuffer = await this.thumbnail(...args)
+		let blob = new Blob([arrayBuffer])
+		return URL.createObjectURL(blob)
+	}
+
+	async read(arg) {
+		let [buffer, tiffPosition] = await super.read(arg) || [arg, undefined]
+		this.buffer = buffer
+		this.tiffPosition = tiffPosition
+	}
+
+	async parse() {
+		await this.parseAll()
 		// close FS file handle just in case it's still open
 		if (this.reader) this.reader.destroy()
-		return this.getResult()
+
+		if (this.options.mergeOutput) {
+			// NOTE: skipping thumbnail and xmp
+			var output = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc)
+		} else {
+			var output = {}
+			if (this.image)     output.image     = this.image
+			if (this.thumbnail) output.thumbnail = this.thumbnail
+			if (this.exif)      output.exif      = this.exif
+			if (this.gps)       output.gps       = this.gps
+			if (this.interop)   output.interop   = this.interop
+			if (this.iptc)      output.iptc      = this.iptc
+		}
+		if (this.xmp)       output.xmp       = this.xmp
+		// Return undefined rather than empty object if there's no data.
+		if (Object.keys(output).length === 0) return
+		return output
 	}
 
-	async parseAll(buffer, tiffPosition) {
-
-		this.buffer = buffer
-		this.baseOffset = 0
-
-		if (typeof tiffPosition === 'object') {
-			this.tiffOffset = tiffPosition.start
+	async parseAll() {
+		if (typeof this.tiffPosition === 'object') {
+			this.tiffOffset = this.tiffPosition.start
 			// jpg wraps tiff into app1 segment.
 			this.app1Offset = this.tiffOffset - 6
 			if (this.app1Offset <= 0) this.app1Offset = undefined
 		}
 
-
 		if (this.options.tiff) await this.parseTiff() // The basic EXIF tags (image, exif, gps)
 		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
 		if (this.options.icc)  this.parseIccSegment()  // Image profile
 		if (this.options.iptc) this.parseIptcSegment() // Captions and copyrights
-	}
-
-	getResult() {
-		if (this.options.mergeOutput) {
-			// NOTE: skipping thumbnail and xmp
-			var exif = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc)
-		} else {
-			var exif = {}
-			if (this.image)     exif.image     = this.image
-			if (this.thumbnail) exif.thumbnail = this.thumbnail
-			if (this.exif)      exif.exif      = this.exif
-			if (this.gps)       exif.gps       = this.gps
-			if (this.interop)   exif.interop   = this.interop
-			if (this.iptc)      exif.iptc      = this.iptc
-		}
-		if (this.xmp)       exif.xmp       = this.xmp
-		// Return undefined rather than empty object if there's no data.
-		if (Object.keys(exif).length === 0) return
-		return exif
 	}
 
 
@@ -250,7 +261,6 @@ export class ExifParser extends Reader {
 		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
 		this.parseTiffHeader()
 		await this.parseIfd0Block()
-
 
 		if (this.options.exif)      await this.parseExifBlock()
 		if (this.options.gps)       await this.parseGpsBlock()
@@ -357,12 +367,6 @@ export class ExifParser extends Reader {
 			return Buffer.from(slice)
 		else
 			return slice
-	}
-
-	async getThumbnailUrl() {
-		let arrayBuffer = await this.getThumbnail()
-		let blob = new Blob([arrayBuffer])
-		return window.createObjectUrl(blob)
 	}
 
 	async parseTiffTags(offset, tagNames) {
@@ -524,7 +528,7 @@ export class ExifParser extends Reader {
 		var OFFSET = name + 'Offset'
 		var END = name + 'End'
 		if (this[OFFSET] === undefined || (requireEnd && this[END] === undefined)) {
-			let position = finder(this.buffer, this.baseOffset)
+			let position = finder(this.buffer/*, this.baseOffset*/)
 			if (position === undefined) return false
 			this[OFFSET] = position.start
 			this[END]    = position.end
