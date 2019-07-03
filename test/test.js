@@ -205,7 +205,7 @@ describe('parser (exif data)', () => {
 			'001.tif',
 			'002.tiff',
 			'exif-js-issue-124.tiff',
-			'nothumb.jpg',
+			'noexif.jpg',
 		]
 		for (let name of images) {
 			if (isNode)
@@ -215,106 +215,126 @@ describe('parser (exif data)', () => {
 		}
 	})
 
-	it('should merge all segments by default', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.Make, 'Google')
-		assert.equal(exif.ExposureTime, 0.000376)
-		assert.equal(exif.GPSLongitude.length, 3)
-	})
-
-	it('should contain IFD0 block (as exif.image)', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.image.Make, 'Google')
-		assert.equal(exif.image.Model, 'Pixel')
-	})
-
-	it('should contain Exif block (as exif.exif)', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.exif.ExposureTime, 0.000376)
-	})
-
-	it('should contain GPS block (as exif.gps)', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.gps.GPSLatitude.length, 3)
-		assert.equal(exif.gps.GPSLongitude.length, 3)
-	})
-
-	it('should contain interop if requested', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, interop: true})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.interop.InteropIndex, 'R98')
-	})
-
-	it('should contain thumbnail (IFD1) if requested', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, thumbnail: true})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.thumbnail.ImageHeight, 189)
-	})
-
-	it('should contain GPS block (as exif.gps) and processing method', async () => {
-		var exif = await ExifParser.parse(buffers['PANO_20180725_162444.jpg'], {mergeOutput: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.gps.GPSProcessingMethod, 'fused', `exif doesn't contain gps`)
-	})
-
-	it('should translate values to string by default', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.Contrast, 'Normal')
-		assert.equal(exif.MeteringMode, 'CenterWeightedAverage')
-	})
-
-	it('should not translate values to string if options.postProcess = false', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.Contrast, 0)
-		assert.equal(exif.MeteringMode, 2)
-	})
-
-	it('should revive dates as Date instance by default', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
-		assert.exists(exif, `exif doesn't exist`)
-		assert.instanceOf(exif.DateTimeOriginal, Date)
-	})
-
-	it('should not revive dates as Date instance if options.postProcess = false', async () => {
-		var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.DateTimeOriginal, '2018:07:25 16:34:23')
-	})
-
-	it('should contain XMP segment (if whole file buffer is provided and options.xmp is enabled)', async () => {
-		var exif = await ExifParser.parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: true})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.typeOf(exif.xmp, 'string', `exif doesn't contain xmp`)
-	})
-
-	it('should contain IPTC segment (as exif.iptc) if requested', async () => {
-		var exif = await ExifParser.parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true})
-		assert.exists(exif, `exif doesn't exist`)
-		assert.typeOf(exif.iptc.caption, 'string')
-		assert.equal(exif.iptc.credit, 'AP')
-		assert.equal(exif.iptc.headline, 'BUSH')
-	})
-
-	//it('should contain ICC segment (as exif.icc) if requested', async () => {
-	//	var exif = await ExifParser.parse(buffers['Bush-dog.jpg'], {mergeOutput: false, icc: true})
-	//	assert.exists(exif.icc)
-	//})
-
-	it('should contain Exif block (as exif.exif) if requested', async () => {
-		var exif = await ExifParser.parse(buffers['img_1771.jpg'])
-		assert.exists(exif, `exif doesn't exist`)
-		assert.equal(exif.ApertureValue, 4.65625)
-	})
-
 	it('should return undefined if no exif was found', async () => {
 		var exif = await ExifParser.parse(buffers['img_1771_no_exif.jpg'])
 		assert.equal(exif, undefined)
+	})
+
+	it(`should return undefined if no exif was found (internal .parse() method)`, async () => {
+		let intput = buffers['noexif.jpg']
+		let parser = new ExifParser()
+		await parser.parse(intput)
+		let exif = await parser.parse()
+		assert.isUndefined(exif)
+	})
+
+	describe('TIFF Segment', () => {
+
+		it('should contain IFD0 block (as exif.image)', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.image.Make, 'Google')
+			assert.equal(exif.image.Model, 'Pixel')
+		})
+
+		it('should contain Exif block (as exif.exif)', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.exif.ExposureTime, 0.000376)
+		})
+
+		it('should contain GPS block (as exif.gps)', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.gps.GPSLatitude.length, 3)
+			assert.equal(exif.gps.GPSLongitude.length, 3)
+		})
+
+		it('should contain interop if requested', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, interop: true})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.interop.InteropIndex, 'R98')
+		})
+
+		it('should contain thumbnail (IFD1) if requested', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, thumbnail: true})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.thumbnail.ImageHeight, 189)
+		})
+
+		it('should contain GPS block (as exif.gps) and processing method', async () => {
+			var exif = await ExifParser.parse(buffers['PANO_20180725_162444.jpg'], {mergeOutput: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.gps.GPSProcessingMethod, 'fused', `exif doesn't contain gps`)
+		})
+
+		it('should contain Exif block (as exif.exif) if requested', async () => {
+			var exif = await ExifParser.parse(buffers['img_1771.jpg'])
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.ApertureValue, 4.65625)
+		})
+
+	})
+
+	describe('Other segments', () => {
+
+		it('should contain XMP segment (if whole file buffer is provided and options.xmp is enabled)', async () => {
+			var exif = await ExifParser.parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: true})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.typeOf(exif.xmp, 'string', `exif doesn't contain xmp`)
+		})
+
+		it('should contain IPTC segment (as exif.iptc) if requested', async () => {
+			var exif = await ExifParser.parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.typeOf(exif.iptc.caption, 'string')
+			assert.equal(exif.iptc.credit, 'AP')
+			assert.equal(exif.iptc.headline, 'BUSH')
+		})
+
+		//it('should contain ICC segment (as exif.icc) if requested', async () => {
+		//	var exif = await ExifParser.parse(buffers['Bush-dog.jpg'], {mergeOutput: false, icc: true})
+		//	assert.exists(exif.icc)
+		//})
+
+	})
+
+	describe('output', () => {
+
+		it('should merge all segments by default', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.Make, 'Google')
+			assert.equal(exif.ExposureTime, 0.000376)
+			assert.equal(exif.GPSLongitude.length, 3)
+		})
+
+		it('should translate values to string by default', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.Contrast, 'Normal')
+			assert.equal(exif.MeteringMode, 'CenterWeightedAverage')
+		})
+
+		it('should not translate values to string if options.postProcess = false', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.Contrast, 0)
+			assert.equal(exif.MeteringMode, 2)
+		})
+
+		it('should revive dates as Date instance by default', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'])
+			assert.exists(exif, `exif doesn't exist`)
+			assert.instanceOf(exif.DateTimeOriginal, Date)
+		})
+
+		it('should not revive dates as Date instance if options.postProcess = false', async () => {
+			var exif = await ExifParser.parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
+			assert.exists(exif, `exif doesn't exist`)
+			assert.equal(exif.DateTimeOriginal, '2018:07:25 16:34:23')
+		})
+
 	})
 
 	describe('issues (special cases)', () => {
@@ -365,23 +385,24 @@ describe('parser (exif data)', () => {
 			mergeOutput: false,
 		}
 
-		it('getThumbnail() returns Buffer or ArrayBuffer of thumbnail', async () => {
+		it('thumbnail() returns Buffer or ArrayBuffer of thumbnail', async () => {
 			let intput = buffers['IMG_20180725_163423.jpg']
 			let parser = new ExifParser(options)
 			await parser.read(intput)
 			//await parser.parse(intput)
-			var output = await parser.getThumbnail()
+			var output = await parser.thumbnail()
 			// Buffer in Node, ArrayBuffer in browser
 			output = new Uint8Array(output)
 			assert.equal(output[0], 0xff)
 			assert.equal(output[1], 0xd8)
 		})
 
-		it(`getThumbnail() returns undefined if there's no thumbnail`, async () => {
-			let intput = buffers['nothumb.jpg']
+		it(`thumbnail() returns undefined if there's no thumbnail`, async () => {
+			let intput = buffers['noexif.jpg']
+			console.log('intput', intput)
 			let parser = new ExifParser(options)
 			await parser.read(intput)
-			assert.isUndefined(await parser.getThumbnail())
+			assert.isUndefined(await parser.thumbnail())
 		})
 
 		it('static thumbnail()', async () => {
