@@ -389,9 +389,27 @@ describe('parser (exif data)', () => {
 			let intput = buffers['IMG_20180725_163423.jpg']
 			let parser = new ExifParser(options)
 			await parser.read(intput)
-			//await parser.parse(intput)
 			var output = await parser.thumbnail()
-			// Buffer in Node, ArrayBuffer in browser
+			output = new Uint8Array(output)
+			assert.equal(output[0], 0xff)
+			assert.equal(output[1], 0xd8)
+		})
+
+		it('thumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)', async () => {
+			let intput = buffers['IMG_20180725_163423.jpg']
+			let parser = new ExifParser(true)
+			await parser.read(intput)
+			var output = await parser.thumbnail()
+			output = new Uint8Array(output)
+			assert.equal(output[0], 0xff)
+			assert.equal(output[1], 0xd8)
+		})
+
+		it('thumbnail() returns Buffer or ArrayBuffer of thumbnail (default)', async () => {
+			let intput = buffers['IMG_20180725_163423.jpg']
+			let parser = new ExifParser()
+			await parser.read(intput)
+			var output = await parser.thumbnail()
 			output = new Uint8Array(output)
 			assert.equal(output[0], 0xff)
 			assert.equal(output[1], 0xd8)
