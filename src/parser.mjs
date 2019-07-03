@@ -178,7 +178,6 @@ export class ExifParser extends Reader {
 	}
 
 	static async thumbnail(arg, options = {}) {
-		options.mergeOutput = false
 		let instance = new ExifParser(options)
 		await instance.read(arg)
 		if (instance.tiffPosition === undefined) return
@@ -342,9 +341,9 @@ export class ExifParser extends Reader {
 	}
 
 	// THUMBNAIL block of TIFF of APP1 segment
-	async parseThumbnailBlock() {
+	async parseThumbnailBlock(force = false) {
 		if (this.thumbnailParsed) return
-		if (this.options.mergeOutput) return
+		if (force === false && this.options.mergeOutput) return
 		let ifd0Entries = getUint16(this.buffer, this.tiffOffset + this.ifd0Offset, this.le)
 		let temp = this.tiffOffset + this.ifd0Offset + 2 + (ifd0Entries * 12)
 		this.ifd1Offset = getUint32(this.buffer, temp, this.le)
@@ -359,7 +358,7 @@ export class ExifParser extends Reader {
 		if (this.tiffPosition === undefined) return
 
 		if (!this.tiffParsed) await this.parseTiff()
-		if (!this.thumbnailParsed) await this.parseThumbnailBlock()
+		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.thumbnail['ThumbnailOffset'] + this.tiffOffset
 		let length = this.thumbnail['ThumbnailLength']
