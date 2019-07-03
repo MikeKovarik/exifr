@@ -91,7 +91,7 @@ function getXmpSize(buffer, offset) {
 }
 
 
-
+/*
 // NOTE: This only works with single segment ICC data.
 // TODO: Implement multi-segment parsing.
 // Not implemented for now
@@ -106,7 +106,7 @@ function isIccSegment(buffer, offset) {
 function getIccSize(buffer, offset) {
 	// TODO
 }
-
+*/
 
 
 // NOTE: This only works with single segment IPTC data.
@@ -182,7 +182,7 @@ export class ExifParser extends Reader {
 		let instance = new ExifParser(options)
 		await instance.read(arg)
 		if (instance.tiffPosition === undefined) return
-		return instance.getThumbnail()
+		return instance.thumbnail()
 	}
 
 	static async thumbnailUrl(...args) {
@@ -192,13 +192,27 @@ export class ExifParser extends Reader {
 	}
 
 	async read(arg) {
-		let [buffer, tiffPosition] = await super.read(arg) || [arg, undefined]
+		let [buffer, tiffPosition] = await super.read(arg) || [new DataView(arg), undefined]
 		this.buffer = buffer
 		this.tiffPosition = tiffPosition
 	}
 
 	async parse() {
-		await this.parseAll()
+		// return undefined if file has no exif
+		if (this.tiffPosition === undefined) return
+
+		if (typeof this.tiffPosition === 'object') {
+			this.tiffOffset = this.tiffPosition.start
+			// jpg wraps tiff into app1 segment.
+			this.app1Offset = this.tiffOffset - 6
+			if (this.app1Offset <= 0) this.app1Offset = undefined
+		}
+
+		if (this.options.tiff) await this.parseTiff() // The basic EXIF tags (image, exif, gps)
+		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
+		if (this.options.icc)  this.parseIccSegment()  // Image profile
+		if (this.options.iptc) this.parseIptcSegment() // Captions and copyrights
+
 		// close FS file handle just in case it's still open
 		if (this.reader) this.reader.destroy()
 
@@ -219,21 +233,6 @@ export class ExifParser extends Reader {
 		if (Object.keys(output).length === 0) return
 		return output
 	}
-
-	async parseAll() {
-		if (typeof this.tiffPosition === 'object') {
-			this.tiffOffset = this.tiffPosition.start
-			// jpg wraps tiff into app1 segment.
-			this.app1Offset = this.tiffOffset - 6
-			if (this.app1Offset <= 0) this.app1Offset = undefined
-		}
-
-		if (this.options.tiff) await this.parseTiff() // The basic EXIF tags (image, exif, gps)
-		if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
-		if (this.options.icc)  this.parseIccSegment()  // Image profile
-		if (this.options.iptc) this.parseIptcSegment() // Captions and copyrights
-	}
-
 
 	// .tif files do no have any APPn segments. and usually start right with TIFF header
 	// .jpg files can have multiple APPn segments. They always have APP1 whic is a wrapper for TIFF.
@@ -355,7 +354,10 @@ export class ExifParser extends Reader {
 	}
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
-	async getThumbnail() {
+	async thumbnail() {
+		// return undefined if file has no exif
+		if (this.tiffPosition === undefined) return
+
 		if (!this.tiffParsed) await this.parseTiff()
 		if (!this.thumbnailParsed) await this.parseThumbnailBlock()
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
