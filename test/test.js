@@ -417,7 +417,6 @@ describe('parser (exif data)', () => {
 
 		it(`thumbnail() returns undefined if there's no thumbnail`, async () => {
 			let intput = buffers['noexif.jpg']
-			console.log('intput', intput)
 			let parser = new ExifParser(options)
 			await parser.read(intput)
 			assert.isUndefined(await parser.thumbnail())
@@ -435,7 +434,6 @@ describe('parser (exif data)', () => {
 		isBrowser && it('static thumbnailUrl()', async () => {
 			let intput = buffers['IMG_20180725_163423.jpg']
 			var url = await ExifParser.thumbnailUrl(intput, options)
-			console.log('url', url)
 			assert.typeOf(url, 'string')
 		})
 

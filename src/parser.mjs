@@ -191,7 +191,7 @@ export class ExifParser extends Reader {
 	}
 
 	async read(arg) {
-		let [buffer, tiffPosition] = await super.read(arg) || [new DataView(arg), undefined]
+		let [buffer, tiffPosition] = await super.read(arg) || []
 		this.buffer = buffer
 		this.tiffPosition = tiffPosition
 	}
