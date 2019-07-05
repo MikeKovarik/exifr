@@ -47,9 +47,9 @@ Works everywhere and accepts pretty much everything you throw at it.
 ### Supports
 
 * Basic TIFF/EXIF support
-* XMP Segments - Additional software/photoshop related data. Returned as string (exifr does not include XML parser).
+* XMP Segments - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
 * IPTC Segments - Captions & copyrights
-* Embeded thumbnail extraction
+* Embedded thumbnail extraction
 
 ## Usage
 
@@ -140,11 +140,11 @@ exifr exports `parse`, `thumbnailBuffer`, `thumbnailUrl` functions and `ExifPars
 
 ### `parse(input[, options])` => `Promise<object>`
 
-Accepts any argument, parses it and returns exif object.
+Accepts any input argument, parses it and returns exif object.
 
 ### `thumbnailBuffer(input)` => `Promise<Buffer|ArrayBuffer>`
 
-Extracts embeded thumbnail from the photo and returns it as Buffer (Node.JS) or ArrayBuffer (browser). 
+Extracts embedded thumbnail from the photo and returns it as a `Buffer` (Node.JS) or an `ArrayBuffer` (browser). 
 
 Only parses as little EXIF as necessary to find offset of the thumbnail.
 
@@ -192,7 +192,7 @@ can be:
 ##### Chunked mode
 
 `parseChunkSize`
-In browser its sometimes better to download larger chunk in hope that it contains the whole EXIF (and not just its begining like in case of `seekChunkSize`) in prevetion of additional loading and fetching.
+In browser it's sometimes better to download larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `seekChunkSize`) in prevention of additional loading and fetching.
 
 Supports HTTP ranges.
 
@@ -201,7 +201,7 @@ Supports HTTP ranges.
 If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
 
 * `options.wholeFile` `bool/undefined` default `undefined`
-<br>Sets whether to read the file as a whole, or just by small chunks.
+<br>Sets whether to read the file as a whole or just by small chunks.
 <br>*Used when file path or url to the image is given.*
   * `true` - whole file mode
   <br>forces fetching/reading whole file
@@ -210,24 +210,24 @@ If you're not concerned about performance and time (mostly in Node.js) you can t
   <br>Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
   <br>*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
   * `false` - chunked mode
-  <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger than the chunk.
+  <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
   <br>Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.
 
 * `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
 <br>Byte size of the first chunk that will be read and parsed for EXIF.
 <br>*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
 <br>Node.js: Used for all input types.
-<br>Browser: Used when input `arg` is buffer. Otherwise `parseChunkSize` is used.
+<br>Browser: Used when input `arg` is buffer. Otherwise, `parseChunkSize` is used.
 
 * `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
-<br>Size of the chunk to fetch in browser in chunked mode.
-<br>*Much like `seekChunkSize` but used in browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
+<br>Size of the chunk to fetch in the browser in chunked mode.
+<br>*Much like `seekChunkSize` but used in the browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
 <br>Node.js: Not used.
-<br>Browser: Used when input `arg` is string URL. Otherwise `seekChunkSize` is used.
+<br>Browser: Used when input `arg` is string URL. Otherwise, `seekChunkSize` is used.
 
 If parsing file known to have EXIF fails try:
 * Increasing `seekChunkSize`
-* Increasing `parseChunkSize` in browser if file URL is used as input.
+* Increasing `parseChunkSize` in the browser if file URL is used as input.
 * Disabling chunked mode (read whole file)
 
 #### Segments & Blocks
@@ -237,7 +237,7 @@ If parsing file known to have EXIF fails try:
 <br>TIFF contains the following blocks / is requred for reading the following block:
   * `options.exif: true` - Sub Exif.
   * `options.gps: true` - GPS latitue and longitude data.
-  * `options.thumbnail: false` - Size and other information about embeded thumbnail.
+  * `options.thumbnail: false` - Size and other information about embedded thumbnail.
   * `options.interop: false` - This is a thing too.
 * `options.xmp: false` - APP1 - XMP
 <br>XML based extension, often used by editors like Photoshop.
@@ -252,15 +252,15 @@ If parsing file known to have EXIF fails try:
 <br>Translate enum values to strings, convert dates to Date instances, etc...
 
 * `options.mergeOutput` `number` default: `true`
-<br>Changes output format by merging all segments and blocks into single object.
+<br>Changes output format by merging all segments and blocks into a single object.
 
 ## Note on performance
 
 As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
 
-We're able to parse image within couple of milliseconds (tens of millis on phones) thanks to selective disk reads (Node.js) and Blob / ArrayBuffer (Browser) manipulations. Because you don't need to read whole file and parse through a MBs of data if we an educated guess can be made to only read a couple small chunks where EXIF usually is. Plus each supported data type is approached differently to ensure the best performance.
+We're able to parse image within a couple of milliseconds (tens of millis on phones) thanks to selective disk reads (Node.js) and Blob / ArrayBuffer (Browser) manipulations. Because you don't need to read the whole file and parse through a MBs of data if we an educated guess can be made to only read a couple of small chunks where EXIF usually is. Plus each supported data type is approached differently to ensure the best performance.
 
-Observations from testing with +-4MB pictures (*Highest quality, highest resolution Google Pixel photos, tested on a decade old quad code CPU*). Note: These are no scientific measurements.
+Observations from testing with +-4MB pictures (*Highest quality, highest resolution Google Pixel photos, tested on a decade old quad core CPU*). Note: These are no scientific measurements.
 
 * Node: Selective disk reads take about 1ms.
 * Node: Processing fully buffered data take about 2.5ms on average.
@@ -268,10 +268,10 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Browser: Blob can go up to 10ms on average.
 * Browser: \<img> with Object URL as a src varies between 5ms to 30ms
 * Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
-* Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real world photo-to-exif time can be as slow as 150ms.
+* Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
 
 ## TODOs and Future ideas
-The library is already production ready and battle tested, but there's always room for improvement
+The library is already production ready and battle-tested, but there's always room for improvement
 
 * [ ] API for providing custom XML parser 
 * [ ] modularizing the library
