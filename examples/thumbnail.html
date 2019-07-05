@@ -27,10 +27,10 @@
 	<img id="thumbnail">
 	<pre id="thumbnail-desc"></pre>
 
+	<!-- UMD module that exports itself to window.exifr -->
 	<script src="../index.js"></script>
-	<script>
-		let ExifReader = window.exifr
 
+	<script>
 		function promiseImg(img) {
 			if (img.naturalWidth !== 0)
 				return Promise.resolve()
@@ -56,7 +56,7 @@
 			await promiseImg(original)
 			// original image loaded, extract thumb
 			let t0 = performance.now()
-			thumbnail.src = await ExifReader.thumbnailUrl(original)
+			thumbnail.src = await exifr.thumbnailUrl(original)
 			console.log(thumbnail.src)
 			let t1 = performance.now()
 			// thumb extracted

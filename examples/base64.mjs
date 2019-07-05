@@ -1,7 +1,7 @@
-import ExifParser from '../index.mjs'
+import {parse} from '../index.mjs'
 
 setTimeout(() => {
-	ExifParser.parse(base64)
+	parse(base64)
 		.then(console.log)
 		.catch(console.error)
 })

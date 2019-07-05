@@ -14,17 +14,27 @@
 </head>
 <body>
 
-	View Console
+	<pre></pre>
 
 	<script>
-	var worker = new Worker('worker.js')
-	console.log('main script spawned worker')
-	console.time('worker-demo')
+	let worker = new Worker('worker.js')
+	let pre = document.querySelector('pre')
+
+	function log(string) {
+		pre.innerText += string + '\n'
+	}
+
+	log(`main script spawned worker`)
+	let t1 = performance.now()
 	worker.postMessage('../test/IMG_20180725_163423.jpg')
 	worker.onmessage = e => {
-		console.timeEnd('worker-demo')
-		console.log('main script received exif from worker', e.data)
+		let t2 = performance.now()
+		log(`${(t2 - t1).toFixed(1)} ms`)
+		log(`main script received exif from worker`)
+		log('-------------------------------------------------------')
+		log(JSON.stringify(e.data, null, 2))
 	}
+
 	</script>
 
 </body>

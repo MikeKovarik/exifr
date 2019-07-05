@@ -10,26 +10,16 @@
 	img {
 		width: 300px;
 	}
-	#dropzone {
-		width: 200px;
-		height: 120px;
-		border: 2px dashed #EEE;
-		margin: 8px 0;
-		color: #DDD;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
 	</style>
 </head>
 <body>
 
-	<input id="fileinput" type="file" multiple>
-
-	<div id="dropzone">Drop your file here</div>
+	<p>View console.</p>
+	<p>This test compares parse speed of multiple input types (Blob, ArrayBuffer, URL, Base64, img element, etc...)</p>
+	<p>Parser options are set to absolute minimum needed to extract GPS coords as fast as possible.</p>
 
 	<script src="../index.js"></script>
-	<script src="./gps.js"></script>
+	<script src="./benchmark.js"></script>
 
 </body>
 </html>

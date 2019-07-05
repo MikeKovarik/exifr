@@ -1,4 +1,4 @@
-var ExifParser = require('../index.js')
+var {parse} = require('../index.js')
 var fs = require('fs').promises
 
 
@@ -8,7 +8,7 @@ var fs = require('fs').promises
 let options = {xmp: true}
 // Read the file from disk and feed the buffer into exifr with given options.
 fs.readFile('../test/cookiezen.jpg')
-	.then(buffer => ExifParser.parse(buffer, options))
+	.then(buffer => parse(buffer, options))
 	// NOTE ABOUT XMP: XML string is returned because exifr doesn't include XML parsing.
 	// You can use XML parser of your choice to post process XMP data.
 	.then(console.log)
