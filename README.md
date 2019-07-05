@@ -14,13 +14,15 @@
 npm install exifr
 ```
 
-## Why? Yet another exif library?
+also availabe as UMD bundle transpiled for ES5
 
-Yes, there are many great exif libraries and modules already out there, some of which served as an inspiration for this one. But they are usually left unmaintained with plenty of open issues and no hope for accepting PRs. Most of them are not isomorphic, have questionable output format and performance, unnecessary dependencies and one even extends prototype of Number and Buffer! But no pointing fingers.
+```
+https://unpkg.com/exifr
+```
 
-So why exifr?
+## Features
 
-### Features
+Works everywhere and accepts pretty much everything you throw at it.
 
 * **Isomorphic**.
 <br> *Works in both Node and Browsers.*
@@ -29,172 +31,226 @@ So why exifr?
 * **Blazing Fast**.
 <br> *Like really fast. Like 1-2ms fast.*
 * **Efficient**.
-<br> *Only reads first couple of blocks of the file.*
+<br> *Only reads first few bytes of the file.*
 * Fine grained parsing
-<br> *only need GPS coords? No need to parse the whole exif)*
+<br> *only need GPS coords? No need to parse the whole exif*
 * Promise based
 <br> *Uses Node.js 10.x experimental Promise FS API*
-* Comes as UMD module (compiled from ESM).
+* Comes as UMD module (along with ESM source).
 <br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
 * Simple output
 <br> *meaningful descriptive strings instead of enum values, dates converted to Date instances, etc...*
-* Written in ES6 as an ES Module.
-* No dependencies.
+* **No dependencies**
 
 ### Supports
 
 * Basic TIFF/EXIF support
 * XMP Segments - Additional software/photoshop related data. Returned as string (exifr does not include XML parser).
 * IPTC Segments - Captions & copyrights
-
+* Embeded thumbnail extraction
 
 ## Usage
 
-Works in both Node.js and web browser and accepts pretty much everything you throw at it. Buffer, ArrayBuffer, Uint8Array, string file path, URL, Object URL, Base64 encoded data URL, even \<img\> element.
-
-### Example of usage in Node
+ESM in Node.js
 
 ```js
-import getExif from 'exifr'
-
-getExif('./myimage.jpg')
+import * as exifr from 'exifr'
+// exifr handles disk reading. Only reads a few hundred bytes.
+exifr.parse('./myimage.jpg')
   .then(exif => console.log('Camera:', exif.Make, exif.Model))
   .catch(console.error)
 ```
 
-### ESM in Node
+CJS in Node.js
 
 ```js
-var getExif = require('exifr')
-var fs = require('fs').promises
-
+let exifr = require('exifr')
+let fs = require('fs').promises
+// Or read the file on your own and feed the buffer into exifr.
 fs.readFile('./myimage.jpg')
-  .then(getExif)
-  .then(exif => {
-    console.log('Latitude', exif.GPSLatitude)
-    console.log('Longitude', exif.GPSLongitude)
-  })
+  .then(exifr.parse)
+  .then(exif => console.log('lat lon', exif.latitude, exif.longitude))
   .catch(console.error)
 ```
 
-### Example of usage in Browser
+
+UMD in Browser
 
 ```html
-// index.html
-<script src="./node_modules/exifr/index.js"></script>
-<script src="./myapp.js"></script>
 <img src="./myimage.jpg">
+<script src="./node_modules/exifr/index.js"></script>
+<script>
+  // UMD module exposed on global window.exifr object
+  exifr.parse(document.querySelector('img'))
+    .then(exif => console.log('Exposure:', exif.ExposureTime))
+</script>
 ```
 
-```js
-// myapp.js
-var getExif = window.exifr // UMD module exposed on global object
-
-getExif(document.querySelector('img'))
-  .then(exif => console.log('Exposure:', exif.ExposureTime))
-```
-
-### ESM in browser
+ESM in Browser
 
 ```html
-// index.html
 <input id="filepicker" type="file" multiple>
-<script type="module" src="./myapp.mjs"></script>
+<script type="module">
+  import {parse} from './node_modules/exifr/index.js'
+
+  document.querySelector('#filepicker').addEventListener('change', async e => {
+    let files = Array.from(e.target.files)
+    let promises = files.map(parse)
+    let exifs = await Promise.all(promises)
+    let dates = exifs.map(exif => exif.DateTimeOriginal.toGMTString())
+    console.log(`${files.length} photos taken on:`, dates)
+  })
+</script>
 ```
 
-```js
-// myapp.mjs
-import getExif from './node_modules/exifr/index.js'
+Extracting thumbnail
 
-var picker = document.querySelector('#filepicker')
-picker.addEventListener('change', async e => {
-  var files = Array.from(picker.files)
-  var promises = files.map(getExif)
-  var exifs = await Promise.all(promises)
-  var dates = exifs.map(exif => exif.DateTimeOriginal.toGMTString())
-  console.log(`${files.length} photos taken on:`, dates)
+```js
+let img = document.querySelector("#thumb")
+document.querySelector('input[type="file"]').addEventListener('change', async e => {
+  let file = e.target.files[0]
+  img.src = await exifr.thumbnailUrl(file)
 })
 ```
 
-### Usage in Worker
+```js
+let thumbBuffer = await exifr.thumbnailBuffer(imageBuffer)
+```
 
-main.html
+Usage in WebWorker
 
 ```js
-var worker = new Worker('./worker.js')
+let worker = new Worker('./worker.js')
 worker.postMessage('../test/IMG_20180725_163423.jpg')
 worker.onmessage = e => console.log(e.data)
 ```
 
-
-worker.js
-
 ```js
+// worker.js
 importScripts('./node_modules/exifr/index.js')
-var getExif = self.exifr // UMD
-
-self.onmessage = async e => postMessage(await getExif(e.data))
+let exifr = self.exifr // UMD
+self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
 ## API
 
-### `getExif(arg[, options])`
+exifr exports `parse`, `thumbnailBuffer`, `thumbnailUrl` functions and `ExifParser` class
 
-exifr only exports single function (ESM default export). Accepts two arguments.
+### `parse(input[, options])` => `Promise<object>`
 
-`arg` can be a string path or URL (even Base64 and Object URL / Blob URL), instance of Buffer, ArrayBuffer, Uint8Array, DataView, File, Blob and \<img> element.
+Accepts any argument, parses it and returns exif object.
 
-`options` is optional and can be wither object with custom settings, or boolean that enables/disables parsing of all EXIF segments and blocks.
+### `thumbnailBuffer(input)` => `Promise<Buffer|ArrayBuffer>`
 
-### Default options
+Extracts embeded thumbnail from the photo and returns it as Buffer (Node.JS) or ArrayBuffer (browser). 
+
+Only parses as little EXIF as necessary to find offset of the thumbnail.
+
+### `thumbnailUrl(input)` => `Promise<string>`
+
+Browser only - exports the thumbnail wrapped in Object URL.
+
+User is expected to revoke the URL when not needed anymore.
+
+### `ExifParser` class
+
+Afore mentioned functions are wrappers that internally instantiate `new ExifParse(options)` class, then call `parser.read(input)`, and finally call either `parser.parse()` or `parser.extractThumbnail()`.
+
+To do both parsing EXIF and extracting thumbnail efficiently you can use this class yourself.
 
 ```js
-{
-
-  // READING & PARSING
-
-  // We're trying not to read the whole file to increate performance but certain
-  // segments (IPTC, XMP) require whole file to be buffered and parsed through.
-  scanWholeFileForce: false,
-  // Only the first 512 Bytes are scanned for EXIF due to performance reasons.
-  // Setting this to true enables searching through the whole file.
-  scanWholeFileFallback: false,
-  // Size of the chunk that can be scanned for EXIF.
-  seekChunkSize: 512,
-  // In browser its sometimes better to download larger chunk in hope that it contains the
-  // whole EXIF (and not just its begining like in case of seekChunkSize) in prevetion
-  // of additional loading and fetching.
-  parseChunkSize: 64 * 1024,
-
-  // Translate enum values to strings, convert dates to Date instances, etc...
-  postProcess: true,
-  // Changes output format by merging all segments and blocks into single object.
-  // NOTE: Causes loss of thumbnail EXIF data.
-  mergeOutput: true,
-
-  // PARSED SEGMENTS
-
-  // TIFF - The basic EXIF tags (image, exif, gps)
-  tiff: true,
-  // XMP = XML based extension, often used by editors like Photoshop.
-  xmp: false,
-  // ICC - Not implemented yet
-  icc: false,
-  // IPTC - Captions and copyrights
-  iptc: false,
-
-  // TIFF BLOCKS
-  // Sub Exif.
-  exif: true,
-  // GPS latitue and longtitude data.
-  gps: true,
-  // Size and other information about embeded thumbnail.
-  thumbnail: false,
-  // This is a thing too.
-  interop: false,
-
-}
+let parser = new ExifParser(options)
+let exif = await parser.read(input)
+let thumb = await parser.extractThumbnail()
 ```
+
+### Arguments and options
+
+#### `input`
+can be:
+* `string` file path
+* `string` URL
+* `string` Base64
+* `string` Object URL / Blob URL
+* `Buffer`
+* `ArrayBuffer`
+* `Uint8Array`
+* `DataView`
+* `File`
+* `Blob`
+* `<img>` element
+
+#### `options`
+ is optional argument and can be either:
+* `object` with granular settings
+* `boolean` shortcut to enable parsing all segments and blocks
+
+#### Reading file from disk or fetching url
+
+##### Chunked mode
+
+`parseChunkSize`
+In browser its sometimes better to download larger chunk in hope that it contains the whole EXIF (and not just its begining like in case of `seekChunkSize`) in prevetion of additional loading and fetching.
+
+Supports HTTP ranges.
+
+##### Whole file mode
+
+If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
+
+* `options.wholeFile` `bool/undefined` default `undefined`
+<br>Sets whether to read the file as a whole, or just by small chunks.
+<br>*Used when file path or url to the image is given.*
+  * `true` - whole file mode
+  <br>forces fetching/reading whole file
+  * `undefined` - chunked mode, **default value**
+  <br>Reads first few bytes of the file to look for EXIF in (`seekChunkSize`) and allows reading/fetching additional chunks.
+  <br>Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
+  <br>*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
+  * `false` - chunked mode
+  <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger than the chunk.
+  <br>Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.
+
+* `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
+<br>Byte size of the first chunk that will be read and parsed for EXIF.
+<br>*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
+<br>Node.js: Used for all input types.
+<br>Browser: Used when input `arg` is buffer. Otherwise `parseChunkSize` is used.
+
+* `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
+<br>Size of the chunk to fetch in browser in chunked mode.
+<br>*Much like `seekChunkSize` but used in browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
+<br>Node.js: Not used.
+<br>Browser: Used when input `arg` is string URL. Otherwise `seekChunkSize` is used.
+
+If parsing file known to have EXIF fails try:
+* Increasing `seekChunkSize`
+* Increasing `parseChunkSize` in browser if file URL is used as input.
+* Disabling chunked mode (read whole file)
+
+#### Segments & Blocks
+
+* `options.tiff: true` - APP1 - TIFF
+<br>The basic EXIF tags (image, exif, gps)
+<br>TIFF contains the following blocks / is requred for reading the following block:
+  * `options.exif: true` - Sub Exif.
+  * `options.gps: true` - GPS latitue and longitude data.
+  * `options.thumbnail: false` - Size and other information about embeded thumbnail.
+  * `options.interop: false` - This is a thing too.
+* `options.xmp: false` - APP1 - XMP
+<br>XML based extension, often used by editors like Photoshop.
+* ~~`options.icc: false` - APP2 - ICC~~
+<br>~~Not implemented yet~~
+* `options.iptc: false` - APP13 - IPTC
+<br>Captions and copyrights
+
+#### Output format
+
+* `options.postProcess` `number` default: `true`
+<br>Translate enum values to strings, convert dates to Date instances, etc...
+
+* `options.mergeOutput` `number` default: `true`
+<br>Changes output format by merging all segments and blocks into single object.
 
 ## Note on performance
 
@@ -213,10 +269,22 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real world photo-to-exif time can be as slow as 150ms.
 
 ## TODOs and Future ideas
-* ICC
-* WebP image support
-* Parsing readernotes. Probably as an additional opt-in extension file to keep the core as light as possible. [node-exif](https://github.com/gomfunkel/node-exif/tree/master/lib/exif/makernotes) module already has a few great implementations and [PRs](https://github.com/gomfunkel/node-exif/issues/25) ([Canon makernote](https://gist.github.com/redaktor/bae0ef2377ab70bc5276)).
+The library is already production ready and battle tested, but there's always room for improvement
 
+* [ ] API for providing custom XML parser 
+* [ ] modularizing the library
+  * [ ] by parsers (minimalistic with TIFF only, default with IPTC, ICC & XMP parsing)
+  * [ ] with & without 
+  * [ ] minified / default (with and without tag dictionary, minified for the web)
+* [ ] Parsing ICC
+* [ ] Parsing readernotes. 
+<br> [node-exif](https://github.com/gomfunkel/node-exif/tree/master/lib/exif/makernotes) module already has a few great implementations and [PRs](https://github.com/gomfunkel/node-exif/issues/25) ([Canon makernote](https://gist.github.com/redaktor/bae0ef2377ab70bc5276)).
+* [ ] WebP image support
+* [x] tidy up file reader / loader code
+* [x] .tif & .tiff image support
+* [x] Thumbnail extraction
+
+Probably as an additional opt-in extension file to keep the core as light as possible.
 ## Licence
 
 MIT, Mike Kovařík, Mutiny.cz
