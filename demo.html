@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		body {
+			font-family: Segoe UI, Roboto;
+			font-size: 15px;
+			padding: 64px 32px 32px 32px;
+			background-color: rgb(234, 234, 234);
+			background-color: rgb(244, 244, 254);
+			background: linear-gradient(to bottom, rgb(234, 234, 234), rgb(245, 250, 255));
+			color: rgb(80, 80, 80);
+		}
+		a,
+		h1,
+		h2,
+		h3,
+		[accent] {
+			color: rgb(50, 80, 144);
+		}
+		img {
+			width: 200px;
+		}
+		h1 {
+			font-weight: 500;
+			font-size: 40px;
+		}
+		h2 {
+			font-weight: 500;
+			font-size: 24px;
+		}
+
+		h1,
+		h2,
+		h3 {
+			position: relative;
+			margin-top: 0px;
+			margin-bottom: 8px;
+		}
+		* + h2 {
+			margin-top: 48px;
+		}
+		* + h3 {
+			margin-top: 24px;
+		}
+		#picker,
+		#dropzone,
+		pre,
+		p {
+			margin-top: 8px;
+			margin-bottom: 8px;
+		}
+
+		h1::after,
+		h2::after {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: -0.3em;
+			height: 4px;
+			width: 120px;
+			background-color: currentColor;
+		}
+
+		#dropzone {
+			position: relative;
+			width: 220px;
+			height: 120px;
+			border: 2px dashed rgba(0, 0, 0, 0.1);
+			color: rgba(0, 0, 0, 0.3);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+		}
+		#dropzone:hover {
+			border: 2px dashed rgba(0, 0, 0, 0.2);
+			color: rgba(0, 0, 0, 0.5);
+		}
+			#picker {
+				position: absolute;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				width: 100%;
+				height: 100%;
+				opacity: 0;
+			}
+
+		form {
+			font-family: monospace;
+		}
+		pre {
+			white-space: pre-wrap;
+			font-size: 10px;
+		}
+		table {
+			font-size: 12px;
+			border-spacing: 0;
+			border-collapse: collapse;
+		}
+			table td {
+				padding: 1px 0;
+			}
+			table td + td {
+				padding-left: 12px;
+			}
+
+		[muted] {
+			opacity: 0.4;
+		}
+		#grid {
+			display: grid;
+			gap: 32px;
+			grid-template-areas:
+				"input-head output-head  output-head output-head"
+				"input      app1-ifd0    app1-thumb   output     "
+				"input      app1-exif    app1-thumb   output     "
+				"input      app1-gps     app1-interop output     "
+				"input      .            .            output     "
+				"input      .            .            output     "
+		}
+		#input        {grid-area: input}
+		#options      {grid-area: options}
+		#app1-ifd0    {grid-area: app1-ifd0}
+		#app1-exif    {grid-area: app1-exif}
+		#app1-gps     {grid-area: app1-gps}
+		#app1-interop {grid-area: app1-interop}
+		#app1-thumb   {grid-area: app1-thumb}
+		#output       {grid-area: output}
+		#output-head {
+			grid-area: output-head;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>Exifr</h1>
+	<p>📑 The fastest and most versatile JavaScript EXIF reading library.</p>
+
+	<br>
+	<br>
+
+	<div id="grid">
+
+		<h2 style="grid-area: input-head">Input</h2>
+
+		<div id="output-head">
+			<h2>Output</h2>
+			<div id="time"></div>
+		</div>
+
+		<div style="grid-area: input">
+
+			<h3>File</h3>
+			<div id="dropzone">
+				<input id="picker" type="file" multiple>
+				Click to pick
+				<br>or<br>
+				drop your file here
+			</div>
+
+			<h3>Options</h3>
+			<form>
+				<div>{</div>
+				<div muted>&nbsp;&nbsp;// APP segments</div>
+				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" name="tiff" checked>,</div>
+				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" name="xmp">,</div>
+				<!--div>&nbsp;&nbsp;icc:       <input type="checkbox" name="icc">,</div-->
+				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" name="iptc">,</div>
+				<div muted>&nbsp;&nbsp;// TIFF blocks</div>
+				<div>&nbsp;&nbsp;exif:      <input type="checkbox" name="exif" checked>,</div>
+				<div>&nbsp;&nbsp;gps:       <input type="checkbox" name="gps" checked>,</div>
+				<div>&nbsp;&nbsp;interop:   <input type="checkbox" name="interop">,</div>
+				<div>&nbsp;&nbsp;thumbnail: <input type="checkbox" name="thumbnail" checked>,</div>
+				<div muted>&nbsp;&nbsp;// output style</div>
+				<div>&nbsp;&nbsp;postProcess: <input type="checkbox" name="postProcess" checked>,</div>
+				<div>&nbsp;&nbsp;mergeOutput: <input type="checkbox" name="mergeOutput" checked>,</div>
+				<div>}</div>
+			</form>
+
+		</div>
+
+		<div id="app1-thumb">
+			<h3>APP1 - Thumbnail</h3>
+			<table></table>
+			<br>
+			<img>
+		</div>
+
+		<div id="app1-ifd0">
+			<h3>APP1 - IFD0</h3>
+			<table></table>
+		</div>
+
+		<div id="app1-exif">
+			<h3>APP1 - EXIF</h3>
+			<table></table>
+		</div>
+
+		<div id="app1-gps">
+			<h3>APP1 - GPS</h3>
+			<table></table>
+		</div>
+
+		<div id="app1-interop">
+			<h3>APP1 - Interop</h3>
+			<table></table>
+		</div>
+
+		<div id="app1-iptc">
+			<h3>APP1 - IPTC</h3>
+			<table></table>
+		</div>
+
+		<div id="app1-xmp">
+			<h3>APP1 - XMP</h3>
+			<pre></pre>
+		</div>
+
+		<div id="output">
+			<h3>Raw output</h3>
+			<pre></pre>
+		</div>
+
+	</div>
+
+
+	<h2>Examples</h2>
+	<p>You can find more examples <a href="./examples/">here</a> in the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a>.</p>
+	<p>They come in all forms, shapes and sizes. There are some that are:</p>
+	<li><a href="./examples/benchmark.html">Isomorphic (works the same in Node and browser)</a></li>
+	<li>specific to <a href="./examples/thumbnail.js">Node's file system API</a> and other are tailored to <a href="./examples/thumbnail.html">browser</a></li>
+	<li>various input formats like <a href="./examples/benchmark.html">Blob, ArrayBuffer, raw &lt;img&gt; tags</a>, <a href="./exampleS/base64.mjs">Base64 string</a>, etc...</a></li>
+	<li><a href="./examples/node.js">CommonJS</a> or <a href="./examples/esm.mjs">ES Modules</a></li>
+	<li><a href="./examples/worker.html">Web worker example</a></li>
+	<li><a href="./examples/tiff.mjs">Extract the full exif</a> or <a href="./examples/xmp.js">just the one little thing you need</a></li>
+	<li><a href="./examples/benchmark.html">Tryna-be-scientific benchmark</a></li>
+
+	<h2>Tests</h2>
+	<p>Run them yourself in <a href="./test/">browser</a> or in Node.</p>
+
+	<script src="./index.js"></script>
+	<script>
+		var {ExifParser, defaultOptions, parse} = window['exifr']
+
+		let lastFile
+
+		var picker = document.querySelector('#picker')
+		var dropzone = document.querySelector('#dropzone')
+		let outputNode = document.querySelector('#output pre')
+		let form = document.querySelector('form')
+		var time = document.querySelector('#time')
+
+		var outputNodes = {
+			image: document.querySelector('#app1-ifd0 table'),
+			exif: document.querySelector('#app1-exif table'),
+			gps: document.querySelector('#app1-gps table'),
+			thumbnail: document.querySelector('#app1-thumb table'),
+			interop: document.querySelector('#app1-interop table'),
+			iptc: document.querySelector('#app1-iptc table'),
+			xmp: document.querySelector('#app1-xmp pre'),
+		}
+
+		var thumbImg = document.querySelector('#app1-thumb img')
+
+		// picker & dropzone
+		dropzone.addEventListener('dragenter', e => e.preventDefault())
+		dropzone.addEventListener('dragover', e => e.preventDefault())
+		dropzone.addEventListener('drop', e => {
+			e.preventDefault()
+			handleFile(e.dataTransfer.files[0])
+		})
+		picker.addEventListener('change', e => handleFile(picker.files[0]))
+
+		// options checkboxes
+		let inputs = Array.from(form.querySelectorAll('input'))
+		for (let input of inputs) input.addEventListener('change', e => handleFile())
+
+		// Load the demo image as array buffer to keep in memory
+		// to prevent distortion of initial parse time.
+		// i.e: show off library's performance and don't include file load time in it.
+		fetch('./test/IMG_20180725_163423.jpg')
+			.then(res => res.arrayBuffer())
+			.then(handleFile)
+
+		async function handleFile(file = lastFile) {
+			lastFile = file
+
+			let options = Object.fromEntries(inputs.map(input => [input.name, input.checked]))
+
+			// parse with users preconfigured settings
+			let t1 = performance.now()
+			let rawOutput = await parse(file, options)
+			let t2 = performance.now()
+			time.innerText = `parsed in ${(t2 - t1).toFixed(1)} ms`
+			cleanOutput(rawOutput)
+			outputNode.innerText = JSON.stringify(rawOutput, null, 2)
+
+			// now parse again for the nice boxes with clear information.
+			options.mergeOutput = false
+			options.postProcess = true
+			let parser = new ExifParser(options)
+			await parser.read(file)
+			let output = await parser.parse()
+			renderTable(parser, output, 'image',   ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software'])
+			renderTable(parser, output, 'exif',    ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'])
+			renderTable(parser, output, 'gps',     ['latitude', 'longitude'])
+			renderTable(parser, output, 'interop', ['InteropIndex', 'InteropVersion'])
+			renderTable(parser, output, 'iptc',    ['headline', 'caption', 'source', 'country'])
+			renderTable(parser, output, 'xmp')
+			if (parser.thumbnail) {
+				let arrayBuffer = await parser.extractThumbnail()
+				let blob = new Blob([arrayBuffer])
+				renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
+				thumbImg.src = URL.createObjectURL(blob)
+				thumbImg.style.display = ''
+			} else {
+				thumbImg.style.display = 'none'
+			}
+		}
+
+		function cleanOutput(exif) {
+			if (exif === undefined) return {}
+			if (exif.exif) exif = exif.exif
+			if (exif.MakerNote) exif.MakerNote = '[... OMITTED ...]'
+			if (exif.UserComment) exif.UserComment = '[... OMITTED ...]'
+			if (exif.ApplicationNotes) exif.ApplicationNotes = '[... OMITTED ...]'
+		}
+
+		function renderTable(parser, output, name, props) {
+			let {options} = parser
+			let node = outputNodes[name]
+			let data = output[name]
+			if (data) {
+				if (props) {
+					let rows = props.map(prop => `<td>${prop}</td><td>${data[prop]}</td>`)
+					node.innerHTML = '<tr>' + rows.join('</tr><tr>') + '</tr>'
+				} else {
+					node.innerText = data
+				}
+			} else if (!options[name]) {
+				node.innerHTML = '<tr><tr>Not parsed</tr></tr>'
+			} else {
+				node.innerHTML = '<tr><tr>No data found</tr></tr>'
+			}
+		}
+
+
+	</script>
+
+</body>
+</html>
