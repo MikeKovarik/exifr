@@ -4,8 +4,22 @@
   "description": "📑 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
-  "keywords": ["exif", "jpg", "jpeg", "metadata", "gps", "jfif", "image", "picture", "photo", "buffer", "uint8array", "node", "browser", "multiplatform", "decode", "parse"],
-  "homepage": "http://mutiny.cz/exifr",
+  "keywords": [
+    "exif",
+    "tiff",
+    "jpg",
+    "jpeg",
+    "metadata",
+    "makernote",
+    "xmp",
+    "gps",
+    "image",
+    "picture",
+    "photo",
+    "buffer",
+    "uint8array"
+  ],
+  "homepage": "https://exifr.netlify.com",
   "bugs": "https://github.com/MikeKovarik/exifr/issues",
   "repository": {
     "type": "git",
@@ -17,8 +31,8 @@
     "dev": "rollup -c rollup.config.dev.js -w"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^5.2.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
     "rollup": "^1.10.0",
     "rollup-plugin-notify": "^1.0.1"
   }

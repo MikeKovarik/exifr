@@ -8,6 +8,8 @@
 
 📑 The fastest and most versatile JavaScript EXIF reading library.
 
+Try it yourself - [demo page](https://exifr.netlify.com/).
+
 ## Installation
 
 ```

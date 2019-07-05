@@ -258,7 +258,6 @@ describe('parser (exif data)', () => {
 
 		it(`should contain thumbnail (IFD1) if requested`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, thumbnail: true})
-			console.log('exif', exif)
 			assert.exists(exif, `exif doesn't exist`)
 			assert.equal(exif.thumbnail.ImageHeight, 189)
 		})
