@@ -191,10 +191,7 @@ can be:
 
 ##### Chunked mode
 
-`parseChunkSize`
-In browser it's sometimes better to download larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `seekChunkSize`) in prevention of additional loading and fetching.
-
-Supports HTTP ranges.
+In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
 
 ##### Whole file mode
 
