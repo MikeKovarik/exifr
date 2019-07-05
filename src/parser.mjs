@@ -31,6 +31,12 @@ const SIZE_LOOKUP = {
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
 
+const THUMB_OFFSET = 'ThumbnailOffset'
+const THUMB_LENGTH = 'ThumbnailLength'
+const IFD_EXIF     = 'ExifIFDPointer'
+const IFD_INTEROP  = 'InteroperabilityIFDPointer'
+const IFD_GPS      = 'GPSInfoIFDPointer'
+
 // First argument can be Node's Buffer or Web's DataView instance.
 // Takes chunk of file and tries to find EXIF (it usually starts inside the chunk, but is much larger).
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
@@ -170,26 +176,6 @@ function isIptcSegmentHead(buffer, offset) {
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
 export class ExifParser extends Reader {
 
-	static async parse(arg, options) {
-		let instance = new ExifParser(options)
-		await instance.read(arg)
-		if (instance.tiffPosition === undefined) return
-		return instance.parse()
-	}
-
-	static async thumbnail(arg, options = {}) {
-		let instance = new ExifParser(options)
-		await instance.read(arg)
-		if (instance.tiffPosition === undefined) return
-		return instance.thumbnail()
-	}
-
-	static async thumbnailUrl(...args) {
-		let arrayBuffer = await this.thumbnail(...args)
-		let blob = new Blob([arrayBuffer])
-		return URL.createObjectURL(blob)
-	}
-
 	async read(arg) {
 		let [buffer, tiffPosition] = await super.read(arg) || []
 		this.buffer = buffer
@@ -215,22 +201,35 @@ export class ExifParser extends Reader {
 		// close FS file handle just in case it's still open
 		if (this.reader) this.reader.destroy()
 
-		if (this.options.mergeOutput) {
-			// NOTE: skipping thumbnail and xmp
-			var output = Object.assign({}, this.image, this.exif, this.gps, this.interop, this.iptc)
-		} else {
-			var output = {}
-			if (this.image)     output.image     = this.image
-			if (this.thumbnail) output.thumbnail = this.thumbnail
-			if (this.exif)      output.exif      = this.exif
-			if (this.gps)       output.gps       = this.gps
-			if (this.interop)   output.interop   = this.interop
-			if (this.iptc)      output.iptc      = this.iptc
-		}
-		if (this.xmp)       output.xmp       = this.xmp
+		let {image, exif, gps, interop, thumbnail, iptc} = this
+		if (this.options.mergeOutput)
+			var output = Object.assign({}, image, exif, gps, interop, thumbnail, iptc)
+		else
+			var output = {image, exif, gps, interop, thumbnail, iptc}
+		if (this.xmp) output.xmp = this.xmp
 		// Return undefined rather than empty object if there's no data.
+		for (let key in output)
+			if (output[key] === undefined)
+				delete output[key]
 		if (Object.keys(output).length === 0) return
 		return output
+	}
+
+	// THUMBNAIL buffer of TIFF of APP1 segment
+	async extractThumbnail() {
+		// return undefined if file has no exif
+		if (this.tiffPosition === undefined) return
+		if (!this.tiffParsed) await this.parseTiff()
+		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
+		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
+		let offset = this.thumbnail[THUMB_OFFSET] + this.tiffOffset
+		let length = this.thumbnail[THUMB_LENGTH]
+		let arrayBuffer = this.buffer.buffer
+		let slice = arrayBuffer.slice(offset, offset + length)
+		if (typeof Buffer !== 'undefined')
+			return Buffer.from(slice)
+		else
+			return slice
 	}
 
 	// .tif files do no have any APPn segments. and usually start right with TIFF header
@@ -258,12 +257,11 @@ export class ExifParser extends Reader {
 		// This is not really TIFF segment. rather TIFF wrapped inside APP1 segment.
 		if (!this.ensureSegmentPosition('tiff', findTiff, false)) return
 		this.parseTiffHeader()
-		await this.parseIfd0Block()
-
-		if (this.options.exif)      await this.parseExifBlock()
-		if (this.options.gps)       await this.parseGpsBlock()
-		if (this.options.interop)   await this.parseInteropBlock()
-		if (this.options.thumbnail) await this.parseThumbnailBlock()
+		await this.parseIfd0Block()                                  // APP1 - IFD0
+		if (this.options.exif)      await this.parseExifBlock()      // APP1 - EXIF IFD
+		if (this.options.gps)       await this.parseGpsBlock()       // APP1 - GPS IFD
+		if (this.options.interop)   await this.parseInteropBlock()   // APP1 - Interop IFD
+		if (this.options.thumbnail) await this.parseThumbnailBlock() // APP1 - IFD1
 	}
 
 	parseTiffHeader() {
@@ -295,16 +293,16 @@ export class ExifParser extends Reader {
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(ifd0).length === 0) return
 
-		this.exifOffset    = ifd0.ExifIFDPointer
-		this.interopOffset = ifd0.InteroperabilityIFDPointer
-		this.gpsOffset     = ifd0.GPSInfoIFDPointer
+		this.exifOffset    = ifd0[IFD_EXIF]
+		this.interopOffset = ifd0[IFD_INTEROP]
+		this.gpsOffset     = ifd0[IFD_GPS]
 
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.postProcess) {
-			delete this.image.ExifIFDPointer
-			delete this.image.InteroperabilityIFDPointer
-			delete this.image.GPSInfoIFDPointer
+			delete this.image[IFD_EXIF]
+			delete this.image[IFD_INTEROP]
+			delete this.image[IFD_GPS]
 		}
 	}
 
@@ -325,7 +323,7 @@ export class ExifParser extends Reader {
 			if (gps.GPSDateStamp && gps.GPSTimeStamp)
 				gps.timestamp = reviveDate(gps.GPSDateStamp + ' ' + gps.GPSTimeStamp)
 			if (gps && gps.GPSLatitude) {
-				gps.latitude   = ConvertDMSToDD(...gps.GPSLatitude, gps.GPSLatitudeRef)
+				gps.latitude  = ConvertDMSToDD(...gps.GPSLatitude, gps.GPSLatitudeRef)
 				gps.longitude = ConvertDMSToDD(...gps.GPSLongitude, gps.GPSLongitudeRef)
 			}
 		}
@@ -335,7 +333,7 @@ export class ExifParser extends Reader {
 	// 0xA005
 	async parseInteropBlock() {
 		if (!this.options.interop) return
-		this.interopOffset = this.interopOffset || (this.exif && this.exif.InteroperabilityIFDPointer)
+		this.interopOffset = this.interopOffset || (this.exif && this.exif[IFD_INTEROP])
 		if (this.interopOffset === undefined) return
 		this.interop = await this.parseTiffTags(this.tiffOffset + this.interopOffset, tags.exif)
 	}
@@ -350,24 +348,6 @@ export class ExifParser extends Reader {
 		if (this.ifd1Offset === undefined) return
 		this.thumbnail = await this.parseTiffTags(this.tiffOffset + this.ifd1Offset, tags.exif)
 		this.thumbnailParsed = true
-	}
-
-	// THUMBNAIL buffer of TIFF of APP1 segment
-	async thumbnail() {
-		// return undefined if file has no exif
-		if (this.tiffPosition === undefined) return
-
-		if (!this.tiffParsed) await this.parseTiff()
-		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
-		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
-		let offset = this.thumbnail['ThumbnailOffset'] + this.tiffOffset
-		let length = this.thumbnail['ThumbnailLength']
-		let arrayBuffer = this.buffer.buffer
-		let slice = arrayBuffer.slice(offset, offset + length)
-		if (typeof Buffer !== 'undefined')
-			return Buffer.from(slice)
-		else
-			return slice
 	}
 
 	async parseTiffTags(offset, tagNames) {
@@ -396,7 +376,7 @@ export class ExifParser extends Reader {
 			var val = this.parseTiffTag(chunk, offset)
 			//console.log(`${i} / ${entriesCount} |`, offset, '|', tag, key, val)
 			if (this.options.postProcess)
-				val = this.translateValue(key, val)
+				val = translateValue(key, val)
 			res[key] = val
 			offset += 12
 		}
@@ -460,28 +440,6 @@ export class ExifParser extends Reader {
 		}
 	}
 
-	// Converts date string to Date instances, replaces enums with string descriptions
-	// and fixes values that are incorrectly treated as buffers.
-	translateValue(key, val) {
-		if (val === undefined || val === null)
-			return undefined
-		if (tags.dates.includes(key))
-			return reviveDate(val)
-		if (key === 'SceneType')
-			return Array.from(val).map(v => tags.valueString.SceneType[v]).join(', ')
-		if (key === 'ComponentsConfiguration')
-			return Array.from(val).map(v => tags.valueString.Components[v]).join(', ')
-		if (tags.valueString[key] !== undefined)
-			return tags.valueString[key][val] || val
-		if (key === 'FlashpixVersion' || key === 'ExifVersion')
-			return toString(val)
-		if (key === 'GPSVersionID')
-			return Array.from(val).join('.')
-		if (key === 'GPSTimeStamp')
-			return Array.from(val).join(':')
-		return val
-	}
-
 
 	parseXmpSegment() {
 		// Cancel if the file doesn't contain the segment or if it's damaged.
@@ -542,6 +500,28 @@ export class ExifParser extends Reader {
 
 }
 
+
+// Converts date string to Date instances, replaces enums with string descriptions
+// and fixes values that are incorrectly treated as buffers.
+function translateValue(key, val) {
+	if (val === undefined || val === null)
+		return undefined
+	if (tags.dates.includes(key))
+		return reviveDate(val)
+	if (key === 'SceneType')
+		return Array.from(val).map(v => tags.valueString.SceneType[v]).join(', ')
+	if (key === 'ComponentsConfiguration')
+		return Array.from(val).map(v => tags.valueString.Components[v]).join(', ')
+	if (tags.valueString[key] !== undefined)
+		return tags.valueString[key][val] || val
+	if (key === 'FlashpixVersion' || key === 'ExifVersion')
+		return toString(val)
+	if (key === 'GPSVersionID')
+		return Array.from(val).join('.')
+	if (key === 'GPSTimeStamp')
+		return Array.from(val).join(':')
+	return val
+}
 
 function reviveDate(string) {
 	if (typeof string !== 'string')

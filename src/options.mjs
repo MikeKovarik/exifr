@@ -1,4 +1,4 @@
-var defaultOptions = {
+export const defaultOptions = {
 
 	// READING & PARSING
 
@@ -39,25 +39,26 @@ var defaultOptions = {
 	iptc: false,
 
 	// TIFF BLOCKS
-	// Sub Exif.
+	// APP1 - Exif IFD.
 	exif: true,
-	// GPS latitue and longitude data.
+	// APP1 - GPS IFD - GPS latitue and longitude data.
 	gps: true,
-	// Size and other information about embeded thumbnail.
-	thumbnail: false,
-	// This is a thing too.
+	// APP1 - Interop IFD - This is a thing too.
 	interop: false,
+	// APP1 - IFD1 - Size and other information about embeded thumbnail.
+	thumbnail: false,
 
 }
 
-export function processOptions(objectOrBool = {}) {
-	var options = Object.assign({}, defaultOptions)
-	if (typeof objectOrBool === 'boolean') {
-		for (var key in options)
-			if (key !== 'postProcess' && key !== 'mergeOutput' && typeof options[key] === 'boolean')
-				options[key] = objectOrBool
+export function processOptions(userOptions = {}) {
+	let options = Object.assign({}, defaultOptions)
+	if (userOptions === true || userOptions === false) {
+		for (let key in options) options[key] = userOptions
+		options.mergeOutput = defaultOptions.mergeOutput
+		options.postProcess = defaultOptions.postProcess
 	} else {
-		Object.assign(options, objectOrBool)
+		Object.assign(options, userOptions)
 	}
+	if (options.mergeOutput) options.thumbnail = false
 	return options
 }
