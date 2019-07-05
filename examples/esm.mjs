@@ -13,8 +13,8 @@ import {parse} from '../index.mjs'
 
 async function main() {
 	var exif = await parse('../test/IMG_20180725_163423.jpg')
-	console.log('latitude  ', exif.latitude)
-	console.log('longtitude', exif.longtitude)
+	console.log('latitude ', exif.latitude)
+	console.log('longitude', exif.longitude)
 }
 
 main().catch(console.error)

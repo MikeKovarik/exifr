@@ -12,6 +12,7 @@ var fs = typeof _fs !== 'undefined' ? _fs.promises : undefined
 // TODO: - API for including 3rd party XML parser
 // TODO: - better code & file structure
 
+
 export default class Reader {
 
 	constructor(options) {
@@ -37,19 +38,15 @@ export default class Reader {
 			throw new Error('Invalid input argument')
 	}
 
-	readString(url) {
-		if (isBase64Url(url)) {
-			// base64 url
-			return this.readBase64(url)
-		} else if (isBrowser) {
-			// NOTE: Object URL (blob url) is handled (fetched) the same way as normal URLs.
-			return this.readUrl(url)
-		} else if (isNode) {
-			// file path: Read file from drive
-			return this.readFileFromDisk(url)
-		} else {
+	readString(string) {
+		if (isBase64Url(string))
+			return this.readBase64(string)
+		else if (isBrowser)
+			return this.readUrl(string)
+		else if (isNode)
+			return this.readFileFromDisk(string)
+		else
 			throw new Error('Invalid input argument')
-		}
 	}
 
 	readUint8Array(uint8arr) {
