@@ -221,6 +221,7 @@ export class ExifParser extends Reader {
 		if (this.tiffPosition === undefined) return
 		if (!this.tiffParsed) await this.parseTiff()
 		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
+		if (this.thumbnail === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.thumbnail[THUMB_OFFSET] + this.tiffOffset
 		let length = this.thumbnail[THUMB_LENGTH]
@@ -339,15 +340,18 @@ export class ExifParser extends Reader {
 	}
 
 	// THUMBNAIL block of TIFF of APP1 segment
+	// returns boolean "does the file contain thumbnail"
 	async parseThumbnailBlock(force = false) {
-		if (this.thumbnailParsed) return
-		if (force === false && this.options.mergeOutput) return
+		if (this.thumbnailParsed) return true
+		if (force === false && this.options.mergeOutput) return false
 		let ifd0Entries = getUint16(this.buffer, this.tiffOffset + this.ifd0Offset, this.le)
 		let temp = this.tiffOffset + this.ifd0Offset + 2 + (ifd0Entries * 12)
 		this.ifd1Offset = getUint32(this.buffer, temp, this.le)
-		if (this.ifd1Offset === undefined) return
+		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
+		if (this.ifd1Offset === 0) return false
 		this.thumbnail = await this.parseTiffTags(this.tiffOffset + this.ifd1Offset, tags.exif)
 		this.thumbnailParsed = true
+		return true
 	}
 
 	async parseTiffTags(offset, tagNames) {

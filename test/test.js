@@ -416,14 +416,12 @@ describe('parser (exif data)', () => {
 			assert.equal(output[1], 0xd8)
 		})
 
-		it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (cookiezen)`, async () => {
+		it(`#extractThumbnail() returns undefined if there's no exif`, async () => {
 			let intput = buffers['cookiezen.jpg']
 			let parser = new ExifParser()
 			await parser.read(intput)
 			var output = await parser.extractThumbnail()
-			output = new Uint8Array(output)
-			assert.equal(output[0], 0xff)
-			assert.equal(output[1], 0xd8)
+			assert.isUndefined(output)
 		})
 
 		it(`#extractThumbnail() returns undefined if there's no thumbnail`, async () => {

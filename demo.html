@@ -302,25 +302,29 @@
 			let rawOutput = await parse(file, options)
 			let t2 = performance.now()
 			time.innerText = `parsed in ${(t2 - t1).toFixed(1)} ms`
-			cleanOutput(rawOutput)
-			outputNode.innerText = JSON.stringify(rawOutput, null, 2)
+			if (rawOutput) {
+				cleanOutput(rawOutput)
+				outputNode.innerText = JSON.stringify(rawOutput, null, 2)
+			} else {
+				outputNode.innerText = 'The file has no EXIF'
+			}
 
 			// now parse again for the nice boxes with clear information.
 			options.mergeOutput = false
 			options.postProcess = true
 			let parser = new ExifParser(options)
 			await parser.read(file)
-			let output = await parser.parse()
+			let output = await parser.parse() || {}
 			renderTable(parser, output, 'image',   ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software'])
 			renderTable(parser, output, 'exif',    ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'])
 			renderTable(parser, output, 'gps',     ['latitude', 'longitude'])
 			renderTable(parser, output, 'interop', ['InteropIndex', 'InteropVersion'])
 			renderTable(parser, output, 'iptc',    ['headline', 'caption', 'source', 'country'])
 			renderTable(parser, output, 'xmp')
+			renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
 			if (parser.thumbnail) {
 				let arrayBuffer = await parser.extractThumbnail()
 				let blob = new Blob([arrayBuffer])
-				renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
 				thumbImg.src = URL.createObjectURL(blob)
 				thumbImg.style.display = ''
 			} else {

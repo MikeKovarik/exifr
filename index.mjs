@@ -18,6 +18,8 @@ export async function thumbnailBuffer(arg, options = {}) {
 
 export async function thumbnailUrl(...args) {
 	let arrayBuffer = await thumbnailBuffer(...args)
-	let blob = new Blob([arrayBuffer])
-	return URL.createObjectURL(blob)
+	if (arrayBuffer !== undefined) {
+		let blob = new Blob([arrayBuffer])
+		return URL.createObjectURL(blob)
+	}
 }
