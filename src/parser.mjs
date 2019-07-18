@@ -41,10 +41,10 @@ const IFD_GPS      = 'GPSInfoIFDPointer'
 // Takes chunk of file and tries to find EXIF (it usually starts inside the chunk, but is much larger).
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
-function findAppSegment(buffer, appN, condition, callback) {
+function findAppSegment(buffer, appN, condition, callback, offset = 0) {
 	let length = (buffer.length || buffer.byteLength) - 10
 	let nMarkerByte = 0xE0 | appN
-	for (let offset = 0; offset < length; offset++) {
+	for (; offset < length; offset++) {
 		if (getUint8(buffer, offset) === 0xFF
 		 && getUint8(buffer, offset + 1) === nMarkerByte
 		 && condition(buffer, offset)) {
