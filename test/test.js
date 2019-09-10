@@ -206,6 +206,7 @@ describe('parser (exif data)', () => {
 			'002.tiff',
 			'exif-js-issue-124.tiff',
 			'noexif.jpg',
+			//'61326971-34cc5a80-a818-11e9-8f29-0d860749a14a.jpg',
 		]
 		for (let name of images) {
 			if (isNode)
@@ -356,7 +357,20 @@ describe('parser (exif data)', () => {
 			var exif = await parse(buffers['002.tiff'], options)
 			assert.exists(exif.gps)
 		})
-
+/*
+		// TODO
+		it(`#3 - app1 completeness`, async () => {
+			let options = {
+				tiff: true,
+				exif: true,
+				xmp: true,
+				mergeOutput: false,
+			}
+			var exif = await parse(buffers['61326971-34cc5a80-a818-11e9-8f29-0d860749a14a.jpg'], options)
+			console.log(exif)
+			assert.exists(exif.gps)
+		})
+*/
 		it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
 			var exif = await parse(buffers['fast-exif-issue-2.jpg'], true)
 			assert.exists(exif, `exif doesn't exist`)
