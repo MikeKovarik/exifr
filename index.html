@@ -8,7 +8,7 @@
 			box-sizing: border-box;
 		}
 		body {
-			font-family: Segoe UI, Roboto;
+			font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			font-size: 15px;
 			padding: 64px 32px 32px 32px;
 			background-color: rgb(234, 234, 234);
@@ -157,6 +157,11 @@
 
 		<div id="output-head">
 			<h2>Output</h2>
+			<!-- TODO -->
+			<!--div>
+				<input type="checkbox" checked>
+				Display only interresting data
+			</div-->
 			<div id="time"></div>
 		</div>
 
@@ -348,7 +353,7 @@
 			let data = output[name]
 			if (data) {
 				if (props) {
-					let rows = props.map(prop => `<td>${prop}</td><td>${data[prop]}</td>`)
+					let rows = props.map(prop => `<td>${splitTag(prop)}</td><td>${data[prop]}</td>`)
 					node.innerHTML = '<tr>' + rows.join('</tr><tr>') + '</tr>'
 				} else {
 					node.innerText = data
@@ -360,10 +365,23 @@
 			}
 		}
 
+
+		// ISO => ISO
+		// XMPToolkit => XMP Toolkit
+		// FNumber => F Number
 		// AbsoluteAltitude => Absolute Altitude
 		// FlightRollDegree => Flight Roll Degree
 		// imageWidth => Image Width
+		// latitude => Latitude
+		function splitTag(string) {
+			return string.match(matchRegex).map(capitalize).join(' ')
+		}
 
+		function capitalize(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1)
+		}
+
+		var matchRegex = /([A-Z]+(?=[A-Z][a-z]))|([A-Z][a-z]+)|([0-9]+)|([a-z]+)|([A-Z]+)/g
 
 	</script>
 
