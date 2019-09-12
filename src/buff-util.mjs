@@ -1,5 +1,6 @@
 export var hasBuffer = typeof Buffer !== 'undefined'
 export var isBrowser = typeof navigator !== 'undefined'
+export var isWorker = isBrowser && typeof HTMLImageElement === 'undefined'
 export var isNode = typeof global !== 'undefined' && typeof process !== 'undefined' && process.versions && process.versions.node
 
 // Web Browser's binary data are stored in ArrayBuffer. To access it we can use
