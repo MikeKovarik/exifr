@@ -55,6 +55,15 @@ function getUrl(filepath) {
 		.replace(/\\/g, '/')
 }
 
+function createWorker(input) {
+	return new Promise((resolve, reject) => {
+		let worker = new Worker('worker.js')
+		worker.postMessage(input)
+		worker.onmessage = e => resolve(e.data)
+		worker.onerror = reject
+	})
+}
+
 async function createObjectUrl(url) {
 	return URL.createObjectURL(await createBlob(url))
 }
@@ -77,58 +86,70 @@ async function createBase64Url(url) {
 
 describe('reader (input formats)', () => {
 
-	isNode && it(`Buffer`, async () => {
+	isNode && it(`Node: Buffer`, async () => {
 		var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(buffer)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`ArrayBuffer`, async () => {
+	isBrowser && it(`Browser: ArrayBuffer`, async () => {
 		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(arrayBuffer)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`Blob`, async () => {
+	isBrowser && it(`Browser: Blob`, async () => {
 		var blob = await createBlob(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isNode && it(`string file path`, async () => {
+	isNode && it(`Node: string file path`, async () => {
 		let path = getPath('IMG_20180725_163423.jpg')
 		var exif = await parse(path)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`string URL`, async () => {
+	isBrowser && it(`Browser: string URL`, async () => {
 		let url = getUrl('IMG_20180725_163423.jpg')
 		var exif = await parse(url)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`Object URL`, async () => {
+	isBrowser && it(`Browser: Object URL`, async () => {
 		var blob = await createObjectUrl(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	it(`base64 URL`, async () => {
+	it(`Browser & Node: base64 URL`, async () => {
 		var blob = await createBase64Url(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`<img> element with normal URL`, async () => {
+	isBrowser && it(`Browser: <img> element with normal URL`, async () => {
 		var img = createImg(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(img)
 		assert.exists(exif, `exif doesn't exist`)
 	})
 
-	isBrowser && it(`<img> element with Object URL`, async () => {
+	isBrowser && it(`Browser: <img> element with Object URL`, async () => {
 		var img = createImg(await createObjectUrl(getPath('IMG_20180725_163423.jpg')))
 		var exif = await parse(img)
 		assert.exists(exif, `exif doesn't exist`)
+	})
+
+	isBrowser && it(`WebWorker: string URL`, async () => {
+		let url = getUrl('IMG_20180725_163423.jpg')
+		let exif = await createWorker(url)
+		assert.isObject(exif, `exif doesn't exist`)
+	})
+
+	isBrowser && it(`WebWorker: ArrayBuffer`, async () => {
+		let arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+		let exif = await createWorker(arrayBuffer)
+		assert.isObject(exif, `exif doesn't exist`)
 	})
 
 	//isBrowser && it(`<img> element with base64 URL`, async () => {
