@@ -1,16 +1,20 @@
 import {findTiff} from './parser.mjs'
 import {hasBuffer, isBrowser, isNode} from './buff-util.mjs'
 import {processOptions} from './options.mjs'
-// Sigh... Ugly, ugly, ugly. FS Promises are experimental plus this code needs to be isomorphic
-// and work without fs altogether.
-import _fs from 'fs'
-var fs = typeof _fs !== 'undefined' ? _fs.promises : undefined
+if (isNode) {
+	if (typeof require === 'function')
+		var fsPromise = Promise.resolve(require('fs').promises)
+	else
+		var fsPromise = import('fs').then(module => module.promises)
+}
 
 
 // TODO: - minified UMD bundle
 // TODO: - offer two UMD bundles (with tags.mjs dictionary and without)
 // TODO: - API for including 3rd party XML parser
 // TODO: - better code & file structure
+// TODO: - JFIF: it usually only has 4 props with no practical use. but for completence
+// TODO: - ICC profile
 
 
 export default class Reader {
@@ -162,6 +166,7 @@ class ChunkedReader {
 class FsReader extends ChunkedReader {
 
 	async readWhole() {
+		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
 		let tiffPosition = findTiff(buffer)
 		return [buffer, tiffPosition]
@@ -174,6 +179,7 @@ class FsReader extends ChunkedReader {
 	}
 
 	async readChunked() {
+		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
 		try {
 			var seekChunk = Buffer.allocUnsafe(this.options.seekChunkSize)
