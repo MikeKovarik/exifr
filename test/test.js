@@ -89,67 +89,67 @@ describe('reader (input formats)', () => {
 	isNode && it(`Node: Buffer`, async () => {
 		var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(buffer)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: ArrayBuffer`, async () => {
 		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(arrayBuffer)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: Blob`, async () => {
 		var blob = await createBlob(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isNode && it(`Node: string file path`, async () => {
 		let path = getPath('IMG_20180725_163423.jpg')
 		var exif = await parse(path)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: string URL`, async () => {
 		let url = getUrl('IMG_20180725_163423.jpg')
 		var exif = await parse(url)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: Object URL`, async () => {
 		var blob = await createObjectUrl(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	it(`Browser & Node: base64 URL`, async () => {
 		var blob = await createBase64Url(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(blob)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: <img> element with normal URL`, async () => {
 		var img = createImg(getPath('IMG_20180725_163423.jpg'))
 		var exif = await parse(img)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`Browser: <img> element with Object URL`, async () => {
 		var img = createImg(await createObjectUrl(getPath('IMG_20180725_163423.jpg')))
 		var exif = await parse(img)
-		assert.exists(exif, `exif doesn't exist`)
+		assert.exists(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`WebWorker: string URL`, async () => {
 		let url = getUrl('IMG_20180725_163423.jpg')
 		let exif = await createWorker(url)
-		assert.isObject(exif, `exif doesn't exist`)
+		assert.isObject(exif, `output is undefined`)
 	})
 
 	isBrowser && it(`WebWorker: ArrayBuffer`, async () => {
 		let arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
 		let exif = await createWorker(arrayBuffer)
-		assert.isObject(exif, `exif doesn't exist`)
+		assert.isObject(exif, `output is undefined`)
 	})
 
 	//isBrowser && it(`<img> element with base64 URL`, async () => {
@@ -253,45 +253,45 @@ describe('parser (exif data)', () => {
 
 		it(`should contain IFD0 block (as exif.image)`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.image.Make, 'Google')
 			assert.equal(exif.image.Model, 'Pixel')
 		})
 
-		it(`should contain Exif block (as exif.exif)`, async () => {
+		it(`should contain Exif block (as output.exif)`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-			assert.exists(exif, `exif doesn't exist`)
-			assert.equal(exif.exif.ExposureTime, 0.000376)
+			assert.exists(exif, `output is undefined`)
+			assert.equal(output.exif.ExposureTime, 0.000376)
 		})
 
 		it(`should contain GPS block (as exif.gps)`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.gps.GPSLatitude.length, 3)
 			assert.equal(exif.gps.GPSLongitude.length, 3)
 		})
 
 		it(`should contain interop if requested`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, interop: true})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.interop.InteropIndex, 'R98')
 		})
 
 		it(`should contain thumbnail (IFD1) if requested`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, thumbnail: true})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.thumbnail.ImageHeight, 189)
 		})
 
 		it(`should contain GPS block (as exif.gps) and processing method`, async () => {
 			var exif = await parse(buffers['PANO_20180725_162444.jpg'], {mergeOutput: false})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.gps.GPSProcessingMethod, 'fused', `exif doesn't contain gps`)
 		})
 
-		it(`should contain Exif block (as exif.exif) if requested`, async () => {
+		it(`should contain Exif block (as output.exif) if requested`, async () => {
 			var exif = await parse(buffers['img_1771.jpg'])
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.ApertureValue, 4.65625)
 		})
 
@@ -301,18 +301,26 @@ describe('parser (exif data)', () => {
 
 		it(`should contain XMP segment (if whole file buffer is provided and options.xmp is enabled)`, async () => {
 			var exif = await parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: true})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.typeOf(exif.xmp, 'string', `exif doesn't contain xmp`)
 		})
 
-		it(`should contain IPTC segment (as exif.iptc) if requested`, async () => {
-			var exif = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true})
-			assert.exists(exif, `exif doesn't exist`)
-			assert.typeOf(exif.iptc.caption, 'string')
-			assert.equal(exif.iptc.credit, 'AP')
-			assert.equal(exif.iptc.headline, 'BUSH')
+		it(`should contain IPTC segment (as output.iptc) if requested`, async () => {
+			var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true, exif: false})
+			assert.exists(output, `output is undefined`)
+			assert.typeOf(output.iptc.caption, 'string')
+			assert.equal(output.iptc.credit, 'AP')
+			assert.equal(output.iptc.headline, 'BUSH')
 		})
-
+/*
+		// TODO
+		it(`should only contain IPTC segment (as output.iptc) if only IPTC is forced`, async () => {
+			var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true, exif: false}) // TODO: better options to forcce disable everything else
+			console.log('output', output)
+			assert.equal(output.exif, undefined, `output.exif shouldnt be included`)
+			assert.exists(output.iptc, `output.iptc doesn't exist`)
+		})
+*/
 		//it(`should contain ICC segment (as exif.icc) if requested`, async () => {
 		//	var exif = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, icc: true})
 		//	assert.exists(exif.icc)
@@ -324,7 +332,7 @@ describe('parser (exif data)', () => {
 
 		it(`should merge all segments by default`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'])
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.Make, 'Google')
 			assert.equal(exif.ExposureTime, 0.000376)
 			assert.equal(exif.GPSLongitude.length, 3)
@@ -332,27 +340,27 @@ describe('parser (exif data)', () => {
 
 		it(`should translate values to string by default`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'])
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.Contrast, 'Normal')
 			assert.equal(exif.MeteringMode, 'CenterWeightedAverage')
 		})
 
 		it(`should not translate values to string if options.postProcess = false`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.Contrast, 0)
 			assert.equal(exif.MeteringMode, 2)
 		})
 
 		it(`should revive dates as Date instance by default`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'])
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.instanceOf(exif.DateTimeOriginal, Date)
 		})
 
 		it(`should not revive dates as Date instance if options.postProcess = false`, async () => {
 			var exif = await parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.DateTimeOriginal, '2018:07:25 16:34:23')
 		})
 
@@ -362,7 +370,7 @@ describe('parser (exif data)', () => {
 
 		it(`#2 - 001.tif starting with 49 49`, async () => {
 			var exif = await parse(buffers['001.tif'])
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.Make, 'DJI')
 			assert.equal(exif.ImageWidth, '640')
 			//assert.equal(exif.ImageHeight, '512')
@@ -390,28 +398,37 @@ describe('parser (exif data)', () => {
 			console.log(exif)
 			assert.exists(exif.gps)
 		})
-
+*/
 		it(`#4`, async () => {
-			var exif = await parse(getPath('exifr-issue-4.jpg'), options)
+			var exif = await parse(getPath('exifr-issue-4.jpg'), {xmp: true, jfif: true})
+			assert.isObject(exif, `output is undefined`)
+			assert.exists(exif.xmp, `xmp doesn't exist on exif`)
+			//console.log(exif)
 			// not sure what to do with this yet
 		})
-*/
+
+		it(`jfif`, async () => {
+			var exif = await parse(getPath('exifr-issue-4.jpg'), {jfif: true})
+			console.log(exif)
+			// not sure what to do with this yet
+		})
+
 		it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
 			var exif = await parse(buffers['fast-exif-issue-2.jpg'], true)
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.ApertureValue, 5.655638)
 			assert.equal(exif.LensModel, '24.0-70.0 mm f/2.8')
 		})
 
 		it(`node-exif #58 - should properly detect EXIF`, async () => {
 			var exif = await parse(buffers['node-exif-issue-58.jpg'], true)
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.exists(exif.xmp)
 		})
 
 		it(`exif-js #124`, async () => {
 			var exif = await parse(buffers['exif-js-issue-124.tiff'], true)
-			assert.exists(exif, `exif doesn't exist`)
+			assert.exists(exif, `output is undefined`)
 			assert.equal(exif.Make, 'FLIR')
 		})
 
