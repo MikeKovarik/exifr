@@ -398,7 +398,7 @@ describe('parser (exif data)', () => {
 			console.log(output)
 			assert.exists(output.gps)
 		})
-*/
+
 		it(`#4`, async () => {
 			var output = await parse(getPath('exifr-issue-4.jpg'), {xmp: true, jfif: true})
 			assert.isObject(output, `output is undefined`)
@@ -411,7 +411,7 @@ describe('parser (exif data)', () => {
 			var output = await parse(getPath('exifr-issue-4.jpg'), {jfif: true})
 			// not sure what to do with this yet
 		})
-
+*/
 		it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
 			var output = await parse(buffers['fast-exif-issue-2.jpg'], true)
 			assert.exists(output, `output is undefined`)
