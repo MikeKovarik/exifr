@@ -5,7 +5,7 @@ if (isNode) {
 	if (typeof require === 'function')
 		var fsPromise = Promise.resolve(require('fs').promises)
 	else
-		var fsPromise = import('fs').then(module => module.promises)
+		var fsPromise = import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
 }
 
 

@@ -251,6 +251,25 @@ If parsing file known to have EXIF fails try:
 * `options.mergeOutput` `number` default: `true`
 <br>Changes output format by merging all segments and blocks into a single object.
 
+## Usage with Webpack, Parcel, Rollup and other bundlers.
+
+Out of the box the library comes in:
+1) **index.mjs** - the modern **ES Module** format
+<br>*Not bundled, index.mjs further imports few other files from src/ folder*
+<br>*You may want to bundle & treeshake this yourself*
+2) **index.js** - **UMD bundle** which
+<br>*combines the classic Node.js CommonJS `require('exifr')` with AMD/Require.js as well as browser-friendly `<script src="node_modules/exifr/index.js">`*
+<br>*All in one file*
+<br>*Prebundled with Rollup*
+
+Under the hood `exifr` dynamically imports Node.js `fs` module, but only ran under Node.js. The import is obviously not triggered in browser. Your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
+
+Parcel works out of the box and Webpack should too because we added the ignore magic comment to the library's source code `import(/* webpackIgnore: true */ 'fs')`.
+
+If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config.
+
+Or try adding similar settings to your bundler of choice.
+
 ## Note on performance
 
 As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
