@@ -1,11 +1,10 @@
 import {ExifParser} from './src/parser.mjs'
-export {ExifParser}
+export * from './src/parser.mjs'
 export {defaultOptions} from './src/options.mjs'
 
 export async function parse(arg, options) {
 	let parser = new ExifParser(options)
 	await parser.read(arg)
-	if (parser.tiffPosition === undefined) return
 	return parser.parse()
 }
 

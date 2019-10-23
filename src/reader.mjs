@@ -1,5 +1,4 @@
-import {findTiff} from './parser.mjs'
-import {hasBuffer, isBrowser, isNode, isWorker} from './buff-util.mjs'
+import {hasBuffer, isBrowser, isNode, isWorker, toString} from './buff-util.mjs'
 import {processOptions} from './options.mjs'
 if (isNode) {
 	if (typeof require === 'function')
@@ -9,13 +8,16 @@ if (isNode) {
 }
 
 
+function findTiff() {
+	throw new Error('findTiff in reader is no longer legal')
+}
+
 // TODO: - minified UMD bundle
 // TODO: - offer two UMD bundles (with tags.mjs dictionary and without)
 // TODO: - API for including 3rd party XML parser
 // TODO: - better code & file structure
 // TODO: - JFIF: it usually only has 4 props with no practical use. but for completence
 // TODO: - ICC profile
-
 
 export default class Reader {
 
@@ -62,9 +64,7 @@ export default class Reader {
 	}
 
 	readBuffer(buffer) {
-		let tiffPosition = findTiff(buffer)
-		if (tiffPosition === undefined) return
-		return [buffer, tiffPosition]
+		return buffer
 	}
 
 	async readBlob(blob) {
@@ -168,8 +168,7 @@ class FsReader extends ChunkedReader {
 	async readWhole() {
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
-		let tiffPosition = findTiff(buffer)
-		return [buffer, tiffPosition]
+		return buffer
 	}
 
 	async readChunk({start, size}) {
@@ -220,8 +219,7 @@ class WebReader extends ChunkedReader {
 
 	async readWhole() {
 		let view = await this.readChunk()
-		let tiffPosition = findTiff(view)
-		return [view, tiffPosition]
+		return view
 	}
 
 	async readChunked(size) {

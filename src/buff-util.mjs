@@ -24,16 +24,16 @@ export function getUint16(buffer, offset, littleEndian = false) {
 	else					return buffer.readUInt16BE(offset)
 }
 
-export function getUint32(buffer, offset, littleEndian = false) {
-	if (buffer.getUint32)	return buffer.getUint32(offset, littleEndian)
-	else if (littleEndian)	return buffer.readUInt32LE(offset)
-	else					return buffer.readUInt32BE(offset)
-}
-
 export function getInt16(buffer, offset, littleEndian = false) {
 	if (buffer.getInt16)	return buffer.getInt16(offset, littleEndian)
 	else if (littleEndian)	return buffer.readInt16LE(offset)
 	else					return buffer.readInt16BE(offset)
+}
+
+export function getUint32(buffer, offset, littleEndian = false) {
+	if (buffer.getUint32)	return buffer.getUint32(offset, littleEndian)
+	else if (littleEndian)	return buffer.readUInt32LE(offset)
+	else					return buffer.readUInt32BE(offset)
 }
 
 export function getInt32(buffer, offset, littleEndian = false) {
@@ -71,4 +71,57 @@ export function toString(buffer, start, end) {
 	} else {
 		return buffer.toString('ascii', start, end)
 	}
+}
+
+export class BufferCursor {
+
+	constructor(buffer, offset, littleEndian) {
+		this.buffer = buffer
+		this.offset = offset || 0
+		this.littleEndian = littleEndian
+	}
+
+	getUint(bytes) {
+		switch (bytes) {
+			case 1: return this.getUint8()
+			case 2: return this.getUint16()
+			case 4: return this.getUint32()
+		}
+	}
+
+	getUint8() {
+		let result = getUint8(this.buffer, this.offset)
+		this.offset += 1
+		return result
+	}
+
+	getUint16() {
+		let result = getUint16(this.buffer, this.offset, this.littleEndian)
+		this.offset += 2
+		return result
+	}
+
+	getUint32() {
+		let result = getUint32(this.buffer, this.offset, this.littleEndian)
+		this.offset += 4
+		return result
+	}
+
+}
+
+export class VirtualFile {
+
+	constructor(buffer, size) {
+		this.chunks = []
+	}
+
+	async readChunk({start, size}) {
+		//this.chunks.filter(chunk => chunk.end > start)
+		let buffer = Buffer.allocUnsafe(size)
+		await this.fh.read(buffer, 0, size, start)
+		let end = start + size
+		let chunkDesc = {start, size, end, buffer}
+		this.chunks.push(chunkDesc)
+	}
+
 }

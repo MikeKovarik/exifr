@@ -29,6 +29,8 @@ export const defaultOptions = {
 
 	// PARSED SEGMENTS
 
+	// APP0
+	jfif: false,
 	// APP1 - TIFF - The basic EXIF tags (image, exif, gps)
 	tiff: true,
 	// APP1 - XMP = XML based extension, often used by editors like Photoshop.
