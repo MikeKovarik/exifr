@@ -96,7 +96,8 @@ export class Jfif extends AppSegment {
 			Xthumbnail: this.bc.getUint8(),
 			Ythumbnail: this.bc.getUint8(),
 		}
-		return {jfif}
+		this.output = this.options.mergeOutput ? {jfif} : jfif
+		return this.output
 	}
 
 	static prettify(jfif) {
@@ -117,7 +118,7 @@ Jfif.headerLength = 9 // todo: fix this when rollup support class properties
 export class Iptc extends AppSegment {
 
 	parse() {
-		let output = {}
+		let iptc = {}
 		var offset = this.start
 		for (var offset = 0; offset < this.end; offset++) {
 			// reading Uint8 and then another to prevent unnecessarry read of two subsequent bytes, when iterating
@@ -126,10 +127,11 @@ export class Iptc extends AppSegment {
 				let tag = getUint8(this.buffer, offset + 2)
 				let key = tags.iptc[tag] || tag // TODO: translate tags on demand
 				let val = toString(this.buffer, offset + 5, offset + 5 + size)
-				output[key] = this.setValueOrArrayOfValues(val, output[key])
+				iptc[key] = this.setValueOrArrayOfValues(val, iptc[key])
 			}
 		}
-		return output
+		this.output = this.options.mergeOutput ? {iptc} : iptc
+		return this.output
 	}
 
 	setValueOrArrayOfValues(newValue, existingValue) {
@@ -220,7 +222,10 @@ class Xmp extends AppSegment {
 			// offer user to supply custom xml parser
 			if (this.parseXml) return this.parseXml(string)
 		}
-		return string
+		// TO BE FURTHER DEVELOPED IF/WHEN XMP/XML PARSER IS IMPLEMENTED
+		//this.output = this.options.mergeOutput ? {xmp} : xmp
+		this.output = {xmp: string}
+		return this.output
 	}
 
 	//parseXml() {}
@@ -355,13 +360,12 @@ export class Exif extends Tiff {
 		if (this.options.gps)       await this.parseGpsBlock()       // APP1 - GPS IFD
 		if (this.options.interop)   await this.parseInteropBlock()   // APP1 - Interop IFD
 		if (this.options.thumbnail) await this.parseThumbnailBlock() // APP1 - IFD1
-		return {
-			image: this.image,
-			exif: this.exif,
-			gps: this.gps,
-			interop: this.interop,
-			thumbnail: this.thumbnail,
-		}
+		let {image, exif, gps, interop, thumbnail} = this
+		if (this.options.mergeOutput)
+			this.output = Object.assign({}, image, exif, gps, interop, thumbnail)
+		else
+			this.output = {image, exif, gps, interop, thumbnail}
+		return this.output
 	}
 
 	async parseIfd0Block() {
@@ -477,7 +481,7 @@ export class Exif extends Tiff {
 				})
 			return Object.fromEntries(entries)
 		}
-		return raw
+		return raw hovinko je fuj.
 	}
 
 }
@@ -490,11 +494,11 @@ Exif.headerLength = 10 // todo: fix this when rollup support class properties
 // Takes chunk of file and tries to find EXIF (it usually starts inside the chunk, but is much larger).
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
-let parsersClasses = [Jfif, Exif, Xmp, Iptc]
+let allParserClasses = [Jfif, Exif, Xmp, Iptc]
 
-for (let Parser of parsersClasses) {
+for (let Parser of allParserClasses) {
 	Parser.type = Parser.name.toLowerCase()
-	parsersClasses[Parser.type] = Parser
+	allParserClasses[Parser.type] = Parser
 }
 
 /*
@@ -529,18 +533,43 @@ end    = end of the content (as well as the appN segment)
 // - 0th IFD + value
 // - 1th IFD + value
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
-export class ExifParser extends Reader {
+export class Exifr extends Reader {
 
 	constructor(...args) {
+		console.log('ExifParser')
 		super(...args)
 		this.pos = {}
+
+		this.requiredParsers = allParserClasses.filter(Parser => !!this.options[Parser.type])
+		console.log('allParserClasses', allParserClasses)
+		console.log('requiredParsers', this.requiredParsers)
+		console.log('options', this.options)
+	}
+
+	// TODO: Some images don't have any exif but they do have XMP burried somewhere
+	// TODO: Add API to allow this. something like bruteForce: false
+	async read(arg) {
+		console.log('read 1', arg)
+		//console.log('ExifParser read', arg)
+		console.log('read 2')
+		this.buffer = await super.read(arg)
+		console.log('read 3')
+		console.log('this.buffer', this.buffer)
+		if (this.buffer === undefined) {
+			throw new Error('buffer is undefined, not enough file read? maybe file wasnt read at all')
+		}
+		console.log('read 4')
+		this.findAppSegments()
+		console.log('read 5')
 	}
 
 	findAppSegments(offset = 0) {
+		console.log('findAppSegments')
 		let buffer = this.buffer
 		let length = (buffer.length || buffer.byteLength) - 10
 		this.segments = []
 		this.unknownSegments = []
+		console.log('length', length)
 		
 		var marker = getUint16(buffer, 0)
 		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN) {
@@ -560,7 +589,7 @@ export class ExifParser extends Reader {
 				if (type) {
 					// known and parseable segment found
 					//console.log('type', type)
-					let Parser = parsersClasses[type]
+					let Parser = allParserClasses[type]
 					let position = Parser.parsePosition(buffer, offset)
 					position.type = type
 					this.segments.push(position)
@@ -574,28 +603,16 @@ export class ExifParser extends Reader {
 					this.unknownSegments.push(position)
 				}
 			}
-
-			//console.log('segments', this.segments)
-			//console.log('unknownSegments', this.unknownSegments)
-
 		}
+
+		console.log('segments', this.segments)
+		console.log('unknownSegments', this.unknownSegments)
 	}
 
 	getSegmentType(buffer, offset) {
-		for (let Parser of parsersClasses) {
+		for (let Parser of allParserClasses) {
 			if (Parser.canHandle(buffer, offset)) return Parser.type
 		}
-	}
-
-	// TODO: Some images don't have any exif but they do have XMP burried somewhere
-	// TODO: Add API to allow this. something like bruteForce: false
-	async read(arg) {
-		//console.log('ExifParser read', arg)
-		this.buffer = await super.read(arg)
-		if (this.buffer === undefined) {
-			throw new Error('buffer is undefined, not enough file read? maybe file wasnt read at all')
-		}
-		this.findAppSegments()
 	}
 
 	async parse() {
@@ -604,36 +621,62 @@ export class ExifParser extends Reader {
 
 		let output = {}
 
-		//console.log(this.segments)
-		let promises = this.segments.map(async segment => {
-			//console.log('---------------------------------------------------------')
-			var full = this.buffer.slice(segment.offset, segment.end)
-			//console.log(segment.type)
-			//console.log('full   ', full.length.toString().padStart(2, ' '), full)
-			//console.log('partial', partial.length.toString().padStart(2, ' '), partial)
-			//let string = toString(this.buffer, segment.start, segment.end)
-			//console.log('string', string)
-			let Parser = parsersClasses[segment.type]
-			//console.log('Parser.type', Parser.type)
-			let parser = new Parser(this.buffer, segment, this.options)
-			this.parsers[segment.type] = parser
-
-			let out = await parser.parse()
-			//console.log('out', out)
-
-			if (!this.options.mergeOutput || typeof out === 'string')
-				output[segment.type] = out
-			else
-				Object.assign(output, out)
-		})
-
-		//console.log('before')
+		let promises = this.segments
+			.filter(segment => !!this.options[segment.type])
+			.map(async segment => {
+				//console.log('---------------------------------------------------------')
+				//console.log(segment.type)
+				//var full = this.buffer.slice(segment.offset, segment.end)
+				//console.log('full   ', full.length.toString().padStart(2, ' '), full)
+				//let string = toString(this.buffer, segment.start, segment.end)
+				//console.log('string', string)
+				let Parser = allParserClasses[segment.type]
+				let parser = new Parser(this.buffer, segment, this.options)
+				this.parsers[segment.type] = parser
+				await parser.parse()
+				if (!this.options.mergeOutput || typeof parser.output === 'string')
+					output[segment.type] = parser.output
+				else
+					Object.assign(output, parser.output)
+			})
 		await Promise.all(promises)
-		//console.log('after')
-
-		//console.log(output)
 		return output
 	}
+
+	// THUMBNAIL buffer of TIFF of APP1 segment
+	async extractThumbnail() {
+		// return undefined if file has no exif
+		if (this.pos.tiff === undefined) return
+		if (!this.tiffParsed) await this.parseTiff()
+		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
+		if (this.thumbnail === undefined) return 
+		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
+		let offset = this.thumbnail[THUMB_OFFSET] + this.pos.tiff.start
+		let length = this.thumbnail[THUMB_LENGTH]
+		let arrayBuffer = this.buffer.buffer
+		let slice = arrayBuffer.slice(offset, offset + length)
+		if (typeof Buffer !== 'undefined')
+			return Buffer.from(slice)
+		else
+			return slice
+	}
+
+	// .tif files do no have any APPn segments. and usually start right with TIFF header
+	// .jpg files can have multiple APPn segments. They always have APP1 whic is a wrapper for TIFF.
+	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
+
+	// APP1 HEADER:
+	// - FF E1 - segment marker
+	// - 2Bytes - segment length
+	// - 45 78 69 66 00 00 - string 'Exif\0\0'
+	// APP1 CONTENT:
+	// - TIFF HEADER (2b byte order, 2b tiff id, 4b offset of ifd1)
+	// - IFD0
+	// - Exif IFD
+	// - Interop IFD
+	// - GPS IFD
+	// - IFD1
+
 /*
 	async parse() {
 		try {
@@ -675,42 +718,7 @@ export class ExifParser extends Reader {
 		this.tiffParser = new Exif(this.buffer, this.pos.tiff)
 		return this.tiff = this.tiffParser.parse()
 	}
-
-	// THUMBNAIL buffer of TIFF of APP1 segment
-	async extractThumbnail() {
-		// return undefined if file has no exif
-		if (this.pos.tiff === undefined) return
-		if (!this.tiffParsed) await this.parseTiff()
-		if (!this.thumbnailParsed) await this.parseThumbnailBlock(true)
-		if (this.thumbnail === undefined) return 
-		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
-		let offset = this.thumbnail[THUMB_OFFSET] + this.pos.tiff.start
-		let length = this.thumbnail[THUMB_LENGTH]
-		let arrayBuffer = this.buffer.buffer
-		let slice = arrayBuffer.slice(offset, offset + length)
-		if (typeof Buffer !== 'undefined')
-			return Buffer.from(slice)
-		else
-			return slice
-	}
-
-	// .tif files do no have any APPn segments. and usually start right with TIFF header
-	// .jpg files can have multiple APPn segments. They always have APP1 whic is a wrapper for TIFF.
-	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
-
-	// APP1 HEADER:
-	// - FF E1 - segment marker
-	// - 2Bytes - segment length
-	// - 45 78 69 66 00 00 - string 'Exif\0\0'
-	// APP1 CONTENT:
-	// - TIFF HEADER (2b byte order, 2b tiff id, 4b offset of ifd1)
-	// - IFD0
-	// - Exif IFD
-	// - Interop IFD
-	// - GPS IFD
-	// - IFD1
-
-
+/*
 	parseXmpSegment() {
 		let position = this.pos.xmp
 		this.xmpParser = new Xmp(this.buffer, position, this.options)
@@ -732,9 +740,10 @@ export class ExifParser extends Reader {
 		this.iptcParser = new Iptc(this.buffer, position, this.options)
 		return this.iptc = this.iptcParser.parse()
 	}
-
+*/
 }
 
+export var ExifParser = Exifr
 
 // Converts date string to Date instances, replaces enums with string descriptions
 // and fixes values that are incorrectly treated as buffers.

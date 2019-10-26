@@ -3,8 +3,11 @@ export * from './src/parser.mjs'
 export {defaultOptions} from './src/options.mjs'
 
 export async function parse(arg, options) {
+	console.log('a')
 	let parser = new ExifParser(options)
+	console.log('b')
 	await parser.read(arg)
+	console.log('c')
 	return parser.parse()
 }
 

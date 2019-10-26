@@ -7,19 +7,32 @@
 	<!-- testing framework -->
 	<link href="https://unpkg.com/mocha@6.1.4/mocha.css" rel="stylesheet" />
 	<script src="https://unpkg.com/mocha@6.1.4/mocha.js"></script>
+	<!--
+		chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
+		in browser we need to use Require.js version which adds it as global to window object.
+	-->
 	<script src="https://unpkg.com/chai@4.2.0/chai.js"></script>
 
 </head>
 <body>
 
+	These tests are written using bleeding edge specs (es modules & import maps). Make sure you use latest Chrome and have all the proper flags enabled.
+
 	<div id="mocha"></div>
 
 	<div id="temp" style="opacity: 0; width: 0; height: 0; overflow: hidden;"></div>
 
-	<!-- libary -->
-	<script src="../index.js"></script>
-	<!-- tests -->
-	<script src="test.js"></script>
+	<script type="importmap">
+	{
+		"imports": {
+			"chai": "./empty.js",
+			"path": "./empty.js",
+			"fs": "./empty.js"
+		}
+	}
+	</script>
+
+	<script type="module" src="./test.mjs"></script>
 
 </body>
 </html>

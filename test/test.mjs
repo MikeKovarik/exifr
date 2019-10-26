@@ -1,6 +1,6 @@
-	import chai from 'chai'
-	import path from 'path'
-	import {promises as fs} from 'fs'
+import chai from 'chai'
+import path from 'path'
+import {promises as fs} from 'fs'
 var isBrowser = typeof navigator === 'object'
 var isNode = typeof process === 'object' && process.versions && process.versions.node
 
@@ -10,7 +10,9 @@ if (isBrowser) {
 } else {
 }
 import {ExifParser, parse, thumbnailBuffer, thumbnailUrl} from '../index.mjs'
-var assert = chai.assert
+// chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
+// in browser we need to use Require.js version which adds it as global to window object.
+var assert = chai.assert || window.chai.assert
 
 function createImg(url) {
 	var img = document.createElement('img')
@@ -59,6 +61,7 @@ function getUrl(filepath) {
 }
 
 function createWorker(input) {
+	console.log('createWorker', input)
 	return new Promise((resolve, reject) => {
 		let worker = new Worker('worker.js')
 		worker.postMessage(input)
@@ -168,6 +171,7 @@ describe('reader (input formats)', () => {
 	it(`simple file, read/fetch whole file - should succeed`, async () => {
 		let options = {wholeFile: true}
 		var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+		console.log('output', output)
 		assert.equal(output.Make, 'Google')
 	})
 
@@ -308,7 +312,25 @@ describe('parser (exif data)', () => {
 			it(`is not included by default`, async () => {
 				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
-				assert.isUndefined(output.xmp, `xmp shouldnt be included`)
+				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
+			})
+
+			it(`is not included when {xmp: false}`, async () => {
+				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: false})
+				assert.exists(output, `output is undefined`)
+				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
+			})
+
+			it(`is included when {xmp: true}`, async () => {
+				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: true})
+				assert.exists(output, `output is undefined`)
+				assert.isDefined(output.xmp, `xmp should be included`)
+			})
+
+			it(`is undefined undefined if no xmp was found`, async () => {
+				var output = await parse(buffers['img_1771_no_exif.jpg'])
+				assert.exists(output, `output is undefined`)
+				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
 			})
 
 			//it(`XMP - if whole file buffer is provided and options.xmp is enabled`, async () => {
@@ -323,7 +345,13 @@ describe('parser (exif data)', () => {
 				assert.isObject(output, `output is undefined`)
 				assert.exists(output.xmp, `xmp doesn't exist on exif`)
 			})
-
+/*
+			it(`issue 13`, async () => {
+				var output = await parse(getPath('exifr-issue-13.jpg'), {xmp: true, mergeOutput: false, wholeFile: true})
+				assert.isObject(output, `output is undefined`)
+				assert.exists(output.xmp, `xmp doesn't exist on exif`)
+			})
+*/
 		})
 
 		it(`IPTC - as output.iptc if requested with options.iptc`, async () => {
@@ -355,7 +383,7 @@ describe('parser (exif data)', () => {
 		it(`should only contain IPTC segment (as output.iptc) if only IPTC is forced`, async () => {
 			var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true, exif: false}) // TODO: better options to forcce disable everything else
 			console.log('output', output)
-			assert.equal(output.exif, undefined, `output.exif shouldnt be included`)
+			assert.equal(output.exif, undefined, `output.exif shouldn't be included`)
 			assert.exists(output.iptc, `output.iptc doesn't exist`)
 		})
 */
@@ -443,6 +471,12 @@ describe('parser (exif data)', () => {
 			assert.isObject(output, `output is undefined`)
 			assert.exists(output.xmp, `xmp doesn't exist on exif`)
 			// not sure what to do with this yet
+		})
+
+		it(`#13 - properly read big XMP out of the box`, async () => {
+			var output = await parse(getPath('exifr-issue-13.jpg'))
+			assert.isObject(output, `output is undefined`)
+			assert.exists(output.xmp, `xmp doesn't exist on exif`)
 		})
 
 		it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
