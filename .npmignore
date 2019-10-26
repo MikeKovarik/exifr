@@ -2,4 +2,8 @@
 .*
 !index.js
 !index.mjs
+!index.umd.js
+!index.esm.js
+!index-legacy.umd.js
+!index-legacy.esm.js
 !src/*
