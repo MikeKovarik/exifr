@@ -153,6 +153,8 @@
 					"input      app1-ifd0    app1-thumb   output     "
 					"input      app1-exif    app1-thumb   output     "
 					"input      app1-gps     app1-interop output     "
+					"input      app1-iptc    .            output     "
+					"input      marker-notes .            output     "
 					"input      .            .            output     "
 					"input      .            .            output     "
 			}
@@ -164,10 +166,10 @@
 			#app1-gps     {grid-area: app1-gps}
 			#app1-interop {grid-area: app1-interop}
 			#app1-thumb   {grid-area: app1-thumb}
+			#marker-notes {grid-area: marker-notes}
 			#output       {grid-area: output}
 			#output-head  {grid-area: output-head}
 		}
-
 		#output-head {
 			display: flex;
 			align-items: center;
@@ -293,6 +295,11 @@
 			<pre></pre>
 		</div>
 
+		<div id="marker-notes">
+			<h3>Maker Notes</h3>
+			<pre></pre>
+		</div>
+
 		<div id="output">
 			<h3>
 				Raw output
@@ -372,6 +379,7 @@
 			let rawOutput = await parse(file, options)
 			let t2 = performance.now()
 			time.innerText = `parsed in ${(t2 - t1).toFixed(1)} ms`
+
 			if (rawOutput) {
 				cleanOutput(rawOutput)
 				outputNode.innerText = JSON.stringify(rawOutput, null, 2)
@@ -392,6 +400,13 @@
 			renderTable(parser, output, 'iptc',    ['headline', 'caption', 'source', 'country'])
 			renderTable(parser, output, 'xmp')
 			renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
+
+			if (output.exif.MakerNote) {
+				console.log(output.exif.MakerNote)
+				var makerNote = new TextDecoder('utf-8').decode(output.exif.MakerNote)
+				console.log(makerNote)
+			}
+
 			if (parser.thumbnail) {
 				let arrayBuffer = await parser.extractThumbnail()
 				let blob = new Blob([arrayBuffer])
