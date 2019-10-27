@@ -46,6 +46,15 @@ const IFD_GPS      = 0x8825
 const TIFF_LITTLE_ENDIAN = 0x4949
 const TIFF_BIG_ENDIAN =	0x4D4D
 
+
+
+/*
+offset = where FF En starts
+length = size of the appN header (FF En, lentgth, signature) + content size. i.e. from offset till end
+start  = start of the content
+size   = size of the content. i.e. from start till end
+end    = end of the content (as well as the appN segment)
+*/
 class AppSegment {
 
 	//static headerLength = 4 // todo: fix this when rollup support class properties
@@ -339,12 +348,27 @@ export class Tiff extends AppSegment {
 
 
 
+/*
+Exif App1 segment wraps tiff structure inside.
+JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
+Whereas .tif file format starts with the TIFF structure right away.
 
-// Exif App1 segment wraps tiff structure inside.
-// JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF
-// .tif file format starts with the TIFF structure right away
+APP1 HEADER (only in JPEG)
+- FF E1 - segment marker
+- 2Bytes - segment length
+- 45 78 69 66 00 00 - string 'Exif\0\0'
+
+APP1 CONTENT
+- TIFF HEADER (2b byte order, 2b tiff id, 4b offset of ifd1)
+- IFD0
+- Exif IFD
+- Interop IFD
+- GPS IFD
+- IFD1
+*/
 export class Exif extends Tiff {
 
+	//static id = 'tiff'
 	//static headerLength = 10 // todo: fix this when rollup support class properties
 
 	static canHandle(buffer, offset) {
@@ -481,7 +505,7 @@ export class Exif extends Tiff {
 				})
 			return Object.fromEntries(entries)
 		}
-		return raw hovinko je fuj.
+		return raw
 	}
 
 }
@@ -501,13 +525,6 @@ for (let Parser of allParserClasses) {
 	allParserClasses[Parser.type] = Parser
 }
 
-/*
-offset = where FF En starts
-length = size of the appN header (FF En, lentgth, signature) + content size. i.e. from offset till end
-start  = start of the content
-size   = size of the content. i.e. from start till end
-end    = end of the content (as well as the appN segment)
-*/
 
 
 
@@ -665,49 +682,6 @@ export class Exifr extends Reader {
 	// .jpg files can have multiple APPn segments. They always have APP1 whic is a wrapper for TIFF.
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 
-	// APP1 HEADER:
-	// - FF E1 - segment marker
-	// - 2Bytes - segment length
-	// - 45 78 69 66 00 00 - string 'Exif\0\0'
-	// APP1 CONTENT:
-	// - TIFF HEADER (2b byte order, 2b tiff id, 4b offset of ifd1)
-	// - IFD0
-	// - Exif IFD
-	// - Interop IFD
-	// - GPS IFD
-	// - IFD1
-
-/*
-	async parse() {
-		try {
-			// Some images don't have any exif but they do have XMP burried somewhere
-			// TODO: Add API to allow this. somethign like bruteForce: false
-			// return undefined if file has no exif
-			if (this.options.tiff && this.pos.tiff) await this.parseTiff() // The basic EXIF tags (image, exif, gps)
-			if (this.options.xmp)  this.parseXmpSegment()  // Additional XML data (in XML)
-			if (this.options.iptc) this.parseIptcSegment() // Captions and copyrights
-			if (this.options.jfif) this.parseJfifSegment() // TODO
-			//if (this.options.icc)  this.parseIccSegment()  // Image profile
-		} catch (err) {
-			console.error('Parsing failed', err)
-		}
-		// close FS file handle just in case it's still open
-		if (this.reader) this.reader.destroy()
-
-		let {image, exif, gps, interop, thumbnail, iptc, jfif} = this
-		if (this.options.mergeOutput)
-			var output = Object.assign({}, image, exif, gps, interop, thumbnail, iptc, jfif)
-		else
-			var output = {image, exif, gps, interop, thumbnail, iptc, jfif}
-		if (this.xmp) output.xmp = this.xmp
-		// Return undefined rather than empty object if there's no data.
-		for (let key in output)
-			if (output[key] === undefined)
-				delete output[key]
-		if (Object.keys(output).length === 0) return
-		return output
-	}
-*/
 	// We support both jpg and tiff so we're not looking for app1 segment but directly for tiff
 	// because app1 in jpg is only container for tiff.
 	async parseTiff() {
@@ -718,29 +692,7 @@ export class Exifr extends Reader {
 		this.tiffParser = new Exif(this.buffer, this.pos.tiff)
 		return this.tiff = this.tiffParser.parse()
 	}
-/*
-	parseXmpSegment() {
-		let position = this.pos.xmp
-		this.xmpParser = new Xmp(this.buffer, position, this.options)
-		return this.xmp = this.xmpParser.parse()
-	}
 
-	parseJfifSegment() {
-		let position = this.pos.jfif
-		this.jfifParser = new Jfif(this.buffer, position, this.options)
-		return this.jfif = this.jfifParser.parse()
-	}
-
-	// NOTE: This only works with single segment IPTC data.
-	// TODO: Implement multi-segment parsing.
-	parseIptcSegment() {
-		let position = this.pos.iptc
-		let validPosition = position.start && position.end
-		if (!validPosition) return
-		this.iptcParser = new Iptc(this.buffer, position, this.options)
-		return this.iptc = this.iptcParser.parse()
-	}
-*/
 }
 
 export var ExifParser = Exifr

@@ -43,41 +43,41 @@ const babelLegacy = Object.assign({}, babelShared, {
 	],
 })
 
-export default [
-	{
-		input: 'src/index.mjs',
-		plugins: [notify(), babel(babelModern)],
+function createEsmBundle(inputPath, outputPath, babelConfig) {
+	return {
+		input: inputPath,
+		plugins: [notify(), babel(babelConfig)],
 		external,
 		output: {
-			file: `index.mjs`,
+			file: outputPath,
 			format: 'esm',
 			globals,
 		},
-	},
-	{
-		input: 'src/index.mjs',
-		plugins: [notify(), babel(babelModern)],
+	}
+}
+
+function createUmdBundle(inputPath, outputPath, babelConfig) {
+	return {
+		input: inputPath,
+		plugins: [notify(), babel(babelConfig)],
 		external,
 		output: {
-			file: `index.js`,
+			file: outputPath,
 			format: 'umd',
 			name,
 			amd,
 			globals,
 		},
-	},
-	{
-		input: 'src/index.mjs',
-		plugins: [notify(), babel(babelLegacy)],
-		external,
-		output: {
-			file: `index.legacy.js`,
-			format: 'umd',
-			name,
-			amd,
-			globals,
-		},
-	},
+	}
+}
+
+export default [
+	createEsmBundle('src/index.mjs',       'index.mjs',             babelModern),
+	createUmdBundle('src/index.mjs',       'index.js',              babelModern),
+	createUmdBundle('src/index.mjs',       'index.legacy.js',       babelLegacy),
+	createEsmBundle('src/lightweight.mjs', 'lightweight.mjs',       babelModern),
+	createUmdBundle('src/lightweight.mjs', 'lightweight.js',        babelModern),
+	createUmdBundle('src/lightweight.mjs', 'lightweight.legacy.js', babelLegacy),
 ]
 
 function objectFromArray(modules) {

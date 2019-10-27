@@ -78,6 +78,20 @@
 			background-color: currentColor;
 		}
 
+		h3 {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+		}
+			h3 span {
+				font-weight: 400;
+				font-size: 12px;
+			}
+			h3 span:hover {
+				text-decoration: underline;
+				cursor: pointer;
+			}
+
 		#dropzone {
 			position: relative;
 			width: 220px;
@@ -222,44 +236,68 @@
 		</div>
 
 		<div id="app1-thumb">
-			<h3>APP1 - Thumbnail</h3>
+			<h3>
+				APP1 - Thumbnail
+				<span>Show all</span>
+			</h3>
 			<table></table>
 			<br>
 			<img>
 		</div>
 
 		<div id="app1-ifd0">
-			<h3>APP1 - IFD0</h3>
+			<h3>
+				APP1 - IFD0
+				<span>Show all</span>
+			</h3>
 			<table></table>
 		</div>
 
 		<div id="app1-exif">
-			<h3>APP1 - EXIF</h3>
+			<h3>
+				APP1 - EXIF
+				<span>Show all</span>
+			</h3>
 			<table></table>
 		</div>
 
 		<div id="app1-gps">
-			<h3>APP1 - GPS</h3>
+			<h3>
+				APP1 - GPS
+				<span>Show all</span>
+			</h3>
 			<table></table>
 		</div>
 
 		<div id="app1-interop">
-			<h3>APP1 - Interop</h3>
+			<h3>
+				APP1 - Interop
+				<span>Show all</span>
+			</h3>
 			<table></table>
 		</div>
 
 		<div id="app1-iptc">
-			<h3>APP1 - IPTC</h3>
+			<h3>
+				APP1 - IPTC
+				<span>Show all</span>
+			</h3>
 			<table></table>
 		</div>
 
 		<div id="app1-xmp">
-			<h3>APP1 - XMP</h3>
+			<h3>
+				APP1 - XMP
+				<span>Show all</span>
+			</h3>
 			<pre></pre>
 		</div>
 
 		<div id="output">
-			<h3>Raw output</h3>
+			<h3>
+				Raw output
+				<span>Show all</span>
+			</h3>
 			<pre></pre>
 		</div>
 
@@ -282,7 +320,7 @@
 
 	<script src="./index.js"></script>
 	<script>
-		var {ExifParser, defaultOptions, parse} = window['exifr']
+		var {ExifParser, defaultOptions, parse} = window.exifr
 
 		let lastFile
 

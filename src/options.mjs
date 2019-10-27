@@ -27,29 +27,38 @@ export const defaultOptions = {
 	// NOTE: Causes loss of thumbnail EXIF data.
 	mergeOutput: true,
 
-	// PARSED SEGMENTS
-
-	// APP0
+	// APP0 segment
 	jfif: false,
-	// APP1 - TIFF - The basic EXIF tags (image, exif, gps)
+	// APP1 TIFF segment - The basic EXIF tags (image, exif, gps)
 	tiff: true,
-	// APP1 - XMP = XML based extension, often used by editors like Photoshop.
+	// APP1 TIFF segment - Exif IFD block.
+	exif: true,
+	// APP1 TIFF segment - GPS IFD block - GPS latitue and longitude data.
+	gps: true,
+	// APP1 TIFF segment - Interop IFD block - This is a thing too.
+	interop: false,
+	// APP1 TIFF segment - IFD1 block - Size and other information about embeded thumbnail.
+	thumbnail: false,
+	// APP1 XMP segment - XML based extension, often used by editors like Photoshop.
 	xmp: false,
-	// APP2 - ICC - Not implemented yet
+	// APP2 ICC segment - Not implemented yet
 	icc: false,
-	// APP13 - IPTC - Captions and copyrights
+	// APP13 IPTC segment - Captions and copyrights
 	iptc: false,
 
-	// TIFF BLOCKS
-	// APP1 - Exif IFD.
-	exif: true,
-	// APP1 - GPS IFD - GPS latitue and longitude data.
-	gps: true,
-	// APP1 - Interop IFD - This is a thing too.
-	interop: false,
-	// APP1 - IFD1 - Size and other information about embeded thumbnail.
-	thumbnail: false,
+	makerNote: false,
+	userComment: false,
 
+	ignore: [],
+	pick: [],
+
+}
+
+const TAG_MAKERNOTE = 0x927C
+const TAG_USERCOMMENT = 0x9286
+
+function unique(array) {
+	return Array.from(new Set(array))
 }
 
 export function processOptions(userOptions = {}) {
@@ -62,5 +71,10 @@ export function processOptions(userOptions = {}) {
 		Object.assign(options, userOptions)
 	}
 	if (options.mergeOutput) options.thumbnail = false
+	options.ignore = options.ignore || []
+	if (options.makerNote) options.ignore.push(TAG_MAKERNOTE)
+	if (options.userComment) options.ignore.push(TAG_USERCOMMENT)
+	options.ignore = options.ignore.map(tag => typeof tag === 'string' ? 'TODO TRANSLATE TAG' : tag)
+	options.ignore = unique(options.ignore)
 	return options
 }

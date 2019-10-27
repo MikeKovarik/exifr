@@ -136,7 +136,7 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 ## Distributions
 
-Need to cut down on file size? Try using lightweight. It's suitable when only certain tags are needed (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
+Need to cut down on file size? Try using lightweight build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
 
 Need to support older browsers? Use legacy build along with polyfills.
 
