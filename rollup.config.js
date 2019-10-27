@@ -7,6 +7,9 @@ var nodeCoreModules = require('repl')._builtinLibs
 var external = [...nodeCoreModules, ...Object.keys(pkg.dependencies || {})]
 var globals = objectFromArray(external)
 
+var name = pkg.name
+var amd = {id: pkg.name}
+
 const babelShared = {
 	plugins: [
 		'@babel/plugin-proposal-class-properties',
@@ -16,14 +19,17 @@ const babelShared = {
 const babelModern = Object.assign({}, babelShared, {
 	presets: [
 		[
-			'@babel/preset-env',
-			{targets: '>1%, not dead, not ie 10-11'}
+			'@babel/preset-env', {
+				targets: '>1%, not dead, not ie 10-11'
+			}
 		],
-		['minify', {
-			builtIns: false,
-			//evaluate: false,
-			//mangle: false,
-		}]
+		/*
+		[
+			'minify', {
+				builtIns: false,
+			}
+		]
+		*/
 	],
 	"comments": false
 })
@@ -39,41 +45,39 @@ const babelLegacy = Object.assign({}, babelShared, {
 
 export default [
 	{
-		input: 'index.mjs',
+		input: 'src/index.mjs',
 		plugins: [notify(), babel(babelModern)],
 		external,
 		output: {
-			file: `index.esm.js`,
+			file: `index.mjs`,
 			format: 'esm',
 			globals,
 		},
 	},
 	{
-		input: 'index.mjs',
+		input: 'src/index.mjs',
 		plugins: [notify(), babel(babelModern)],
 		external,
 		output: {
-			file: `index.umd.js`,
+			file: `index.js`,
 			format: 'umd',
-			name: pkg.name,
-			amd: {id: pkg.name},
+			name,
+			amd,
 			globals,
 		},
 	},
-	/*
 	{
-		input: 'index.mjs',
+		input: 'src/index.mjs',
 		plugins: [notify(), babel(babelLegacy)],
 		external,
 		output: {
-			file: `index-legacy.umd.js`,
+			file: `index.legacy.js`,
 			format: 'umd',
-			name: pkg.name,
-			amd: {id: pkg.name},
+			name,
+			amd,
 			globals,
 		},
 	},
-	*/
 ]
 
 function objectFromArray(modules) {

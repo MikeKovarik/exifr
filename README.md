@@ -82,9 +82,9 @@ UMD in Browser
 <img src="./myimage.jpg">
 <script src="./node_modules/exifr/index.js"></script>
 <script>
-  // UMD module exposed on global window.exifr object
-  exifr.parse(document.querySelector('img'))
-    .then(exif => console.log('Exposure:', exif.ExposureTime))
+  // UMD module exposed as window.exifr
+  let img = document.querySelector('img')
+  exifr.parse(img).then(exif => console.log('Exposure:', exif.ExposureTime))
 </script>
 ```
 
@@ -132,6 +132,75 @@ worker.onmessage = e => console.log(e.data)
 importScripts('./node_modules/exifr/index.js')
 let exifr = self.exifr // UMD
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
+```
+
+## Distributions
+
+Need to cut down on file size? Try using lightweight. It's suitable when only certain tags are needed (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
+
+Need to support older browsers? Use legacy build along with polyfills.
+
+### By size
+
+* **Default** (with tag dictionary)
+<br>Includes both parser and the tag dictionary (additional ~16 Kb).
+<br>Values are accessed by tag name: `output.exif.ExposureTime`
+* **Lightweight**
+<br>Only includes parser. Tags are not translated using dictionary.
+<br>Values are accessed by tag code: `output.exif[0x829A]`
+
+### By module / bundle
+
+* **ESM**
+<br>The new ES Module using the new syntax `import {parse} from 'exifr'`
+* **UMD**
+<br>The classic javascript that can be used with AMD (RequireJS), CJS (Node.js `require()`), or simply `<script>`ed in browsers.
+
+### By supported target
+
+* **Modern**
+<br>Supports latest few versions of not dead browsers.
+<br>Uses new syntax and features like classes and async/await.
+<br>The output is lightweight, without any polyfills.
+* **Legacy**
+<br>Supports older browsers including IE 11.
+<br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
+<br>You still need to provide polyfill for Array.from, Set, and other ES6+ features
+
+### Distributions chart
+
+| Distributions                               | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
+|---------------------------------------------|-------------------|-------------------|-------------------------|
+| **Full** *(with tags dictionary)*           | `index.mjs`       | `index.js`        | `index.legacy.js`       |
+| **Lightweight** *(without tags dictionary)* | `lightweight.mjs` | `lightweight.js`  | `lightweight.legacy.js` |
+
+### Examples
+
+```html
+<script type="module">
+import {parse} from './node_modules/exifr/index.mjs'
+</script>
+```
+
+IE and old browsers
+
+```html
+<script src="my-polyfills.js"></script>
+<script src="./node_modules/exifr/index.legacy.js"></script>
+```
+
+Node.js
+
+```js
+import * as exifr from 'exifr' // imports index.mjs
+```
+
+```js
+var exifr = require('exifr') // imports index.js
+```
+
+```js
+var exifr = require('exifr/index.legacy.js') // imports index.legacy.js
 ```
 
 ## API

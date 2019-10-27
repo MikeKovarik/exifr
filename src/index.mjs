@@ -1,13 +1,10 @@
-import {ExifParser} from './src/parser.mjs'
-export * from './src/parser.mjs'
-export {defaultOptions} from './src/options.mjs'
+import {ExifParser} from './parser.mjs'
+export * from './parser.mjs'
+export {defaultOptions} from './options.mjs'
 
 export async function parse(arg, options) {
-	console.log('a')
 	let parser = new ExifParser(options)
-	console.log('b')
 	await parser.read(arg)
-	console.log('c')
 	return parser.parse()
 }
 

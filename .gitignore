@@ -63,3 +63,4 @@ typings/
 package-lock.json
 index.js
 /index.esm.js
+/index.mjs
