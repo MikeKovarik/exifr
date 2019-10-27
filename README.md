@@ -136,7 +136,7 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 ## Distributions
 
-Need to cut down on file size? Try using lightweight build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
+Need to cut down on file size? Try using lite build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
 
 Need to support older browsers? Use legacy build along with polyfills.
 
@@ -145,7 +145,7 @@ Need to support older browsers? Use legacy build along with polyfills.
 * **Default** (with tag dictionary)
 <br>Includes both parser and the tag dictionary (additional ~16 Kb).
 <br>Values are accessed by tag name: `output.exif.ExposureTime`
-* **Lightweight**
+* **Lite**
 <br>Only includes parser. Tags are not translated using dictionary.
 <br>Values are accessed by tag code: `output.exif[0x829A]`
 
@@ -169,10 +169,10 @@ Need to support older browsers? Use legacy build along with polyfills.
 
 ### Distributions chart
 
-| Distributions                               | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
-|---------------------------------------------|-------------------|-------------------|-------------------------|
-| **Full** *(with tags dictionary)*           | `index.mjs`       | `index.js`        | `index.legacy.js`       |
-| **Lightweight** *(without tags dictionary)* | `lightweight.mjs` | `lightweight.js`  | `lightweight.legacy.js` |
+| Distributions                        | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
+|--------------------------------------|-------------------|-------------------|-------------------------|
+| **Full** *(with tags dictionary)*    | `index.mjs`       | `index.js`        | `index.legacy.js`       |
+| **Lite** *(without tags dictionary)* | `lite.mjs`        | `lite.js`         | `lite.legacy.js`        |
 
 ### Examples
 

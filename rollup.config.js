@@ -72,12 +72,12 @@ function createUmdBundle(inputPath, outputPath, babelConfig) {
 }
 
 export default [
-	createEsmBundle('src/index.mjs',       'index.mjs',             babelModern),
-	createUmdBundle('src/index.mjs',       'index.js',              babelModern),
-	createUmdBundle('src/index.mjs',       'index.legacy.js',       babelLegacy),
-	createEsmBundle('src/lightweight.mjs', 'lightweight.mjs',       babelModern),
-	createUmdBundle('src/lightweight.mjs', 'lightweight.js',        babelModern),
-	createUmdBundle('src/lightweight.mjs', 'lightweight.legacy.js', babelLegacy),
+	createEsmBundle('src/index-full.mjs', 'index.mjs',       babelModern),
+	createUmdBundle('src/index-full.mjs', 'index.js',        babelModern),
+	createUmdBundle('src/index-full.mjs', 'index.legacy.js', babelLegacy),
+	createEsmBundle('src/index-lite.mjs', 'lite.mjs',        babelModern),
+	createUmdBundle('src/index-lite.mjs', 'lite.js',         babelModern),
+	createUmdBundle('src/index-lite.mjs', 'lite.legacy.js',  babelLegacy),
 ]
 
 function objectFromArray(modules) {

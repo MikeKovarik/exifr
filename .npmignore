@@ -3,7 +3,7 @@
 !index.mjs
 !index.js
 !index.legacy.js
-!lightweight.mjs
-!lightweight.js
-!lightweight.legacy.js
+!lite.mjs
+!lite.js
+!lite.legacy.js
 !src/*

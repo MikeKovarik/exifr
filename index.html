@@ -92,22 +92,29 @@
 				cursor: pointer;
 			}
 
+
+		@media only screen and (min-width: 600px) {
+			#dropzone {
+				width: 220px;
+			}
+		}
 		#dropzone {
 			position: relative;
-			width: 220px;
 			height: 120px;
-			border: 2px dashed rgba(0, 0, 0, 0.1);
-			color: rgba(0, 0, 0, 0.3);
+			border: 2px dashed rgba(50, 80, 144, 0.2);
+			border-radius: 5px;
+			color: rgba(50, 80, 144, 0.5);
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			text-align: center;
 		}
 		#dropzone:hover {
-			border: 2px dashed rgba(0, 0, 0, 0.2);
-			color: rgba(0, 0, 0, 0.5);
+			border: 2px dashed rgba(50, 80, 144, 0.4);
+			color: rgba(50, 80, 144, 0.8);
 		}
 			#picker {
+				cursor: pointer;
 				position: absolute;
 				left: 0;
 				top: 0;
@@ -146,11 +153,58 @@
 			display: grid;
 			gap: 32px;
 		}
-		@media only screen and (min-width: 900px) {
+
+		@media only screen and (min-width: 500px) {
+			#input-head   {grid-area: input-head}
+			#input        {grid-area: input}
+			#output       {grid-area: output}
+			#output-head  {grid-area: output-head}
+			#app1-thumb   {
+				grid-row: auto / span 2;
+			}
+		}
+		@media only screen and (min-width: 500px) and (max-width: 749px) {
 			#grid {
 				grid-template-columns: 220px auto;
 				grid-template-areas:
-					"input-head output-head  output-head output-head"
+					"input-head output-head"
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"input      .          "
+					"output     output     "
+			}
+		}
+		@media only screen and (min-width: 750px) and (max-width: 999px) {
+			#grid {
+				grid-template-columns: 220px auto;
+				grid-template-areas:
+					"input-head output-head output-head"
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+					"input      .           output     "
+			}
+		}
+		@media only screen and (min-width: 1000px) {
+			#grid {
+				grid-template-columns: 220px auto;
+				grid-template-areas:
+					"input-head output-head  output-head  output-head"
 					"input      app1-ifd0    app1-thumb   output     "
 					"input      app1-exif    app1-thumb   output     "
 					"input      app1-gps     app1-interop output     "
@@ -159,17 +213,6 @@
 					"input      .            .            output     "
 					"input      .            .            output     "
 			}
-			#input-head   {grid-area: input-head}
-			#input        {grid-area: input}
-			#options      {grid-area: options}
-			#app1-ifd0    {grid-area: app1-ifd0}
-			#app1-exif    {grid-area: app1-exif}
-			#app1-gps     {grid-area: app1-gps}
-			#app1-interop {grid-area: app1-interop}
-			#app1-thumb   {grid-area: app1-thumb}
-			#marker-notes {grid-area: marker-notes}
-			#output       {grid-area: output}
-			#output-head  {grid-area: output-head}
 		}
 		#output-head {
 			display: flex;
@@ -378,6 +421,8 @@
 			renderTable(parser, output, 'xmp')
 			renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
 
+			console.log('output.exif', output.exif)
+
 			if (output.exif.MakerNote) {
 				console.log(output.exif.MakerNote)
 				var makerNote = new TextDecoder('utf-8').decode(output.exif.MakerNote)
@@ -395,6 +440,8 @@
 		}
 
 		function cleanOutput(exif) {
+			console.log('exif', exif)
+			console.log('exif.exif', exif.exif)
 			if (exif === undefined) return {}
 			if (exif.exif) exif = exif.exif
 			if (exif.MakerNote) exif.MakerNote = '[... OMITTED ...]'
