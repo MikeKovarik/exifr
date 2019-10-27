@@ -61,6 +61,9 @@ typings/
 .next
 
 package-lock.json
-index.js
-/index.esm.js
 /index.mjs
+/index.js
+/index.legacy.js
+/lightweight.mjs
+/lightweight.js
+/lightweight.legacy.js
