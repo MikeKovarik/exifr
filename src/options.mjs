@@ -1,3 +1,7 @@
+import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.mjs'
+import {tags, findTag} from './tags.mjs'
+
+
 export const defaultOptions = {
 
 	// READING & PARSING
@@ -49,13 +53,17 @@ export const defaultOptions = {
 	makerNote: false,
 	userComment: false,
 
-	ignore: [],
-	pick: [],
+	// Array of tags that will be excluded when parsing.
+	// Saves performance because the tags aren't read at all and thus not further processed.
+	// Cannot be used along with 'pickTags' array.
+	skipTags: [],
+	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
+	// Extremely saves performance because only selected few tags are processed.
+	// Useful for extracting few informations from a batch of many photos.
+	// Cannot be used along with 'skipTags' array.
+	pickTags: [],
 
 }
-
-const TAG_MAKERNOTE = 0x927C
-const TAG_USERCOMMENT = 0x9286
 
 function unique(array) {
 	return Array.from(new Set(array))
@@ -72,9 +80,9 @@ export function processOptions(userOptions = {}) {
 	}
 	if (options.mergeOutput) options.thumbnail = false
 	options.ignore = options.ignore || []
-	if (options.makerNote) options.ignore.push(TAG_MAKERNOTE)
+	if (options.makerNote)   options.ignore.push(TAG_MAKERNOTE)
 	if (options.userComment) options.ignore.push(TAG_USERCOMMENT)
-	options.ignore = options.ignore.map(tag => typeof tag === 'string' ? 'TODO TRANSLATE TAG' : tag)
+	options.ignore = options.ignore.map(tag => typeof tag === 'string' ? findTag(tag) : tag)
 	options.ignore = unique(options.ignore)
 	return options
 }

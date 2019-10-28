@@ -1,5 +1,5 @@
 import Reader from './reader.mjs'
-import * as tags from './tags.mjs'
+import {tags} from './tags.mjs'
 import {
 	getUint8,
 	getUint16,
@@ -11,6 +11,12 @@ import {
 	toString,
 	BufferCursor
 } from './buff-util.mjs'
+import {translateValue, reviveDate, ConvertDMSToDD} from './tags-translation.mjs'
+import {AppSegment, parsers} from './parsers/core.mjs'
+import './parsers/jfif.mjs'
+import './parsers/icc.mjs'
+import './parsers/xmp.mjs'
+
 
 const SIZE_LOOKUP = {
 	1: 1, // BYTE      - 8-bit unsigned integer
@@ -32,92 +38,19 @@ const SIZE_LOOKUP = {
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
 
-const THUMB_OFFSET = 0x0201
-const THUMB_LENGTH = 0x0202
-const IFD_EXIF     = 0x8769
-const IFD_INTEROP  = 0xA005
-const IFD_GPS      = 0x8825
-//const THUMB_OFFSET = 'ThumbnailOffset'
-//const THUMB_LENGTH = 'ThumbnailLength'
-//const IFD_EXIF     = 'ExifIFDPointer'
-//const IFD_INTEROP  = 'InteroperabilityIFDPointer'
-//const IFD_GPS      = 'GPSInfoIFDPointer'
+const THUMB_OFFSET  = 0x0201
+const THUMB_LENGTH  = 0x0202
+const IFD_EXIF      = 0x8769
+const IFD_INTEROP   = 0xA005
+const IFD_GPS       = 0x8825
 
 const TIFF_LITTLE_ENDIAN = 0x4949
 const TIFF_BIG_ENDIAN =	0x4D4D
 
 
 
-/*
-offset = where FF En starts
-length = size of the appN header (FF En, lentgth, signature) + content size. i.e. from offset till end
-start  = start of the content
-size   = size of the content. i.e. from start till end
-end    = end of the content (as well as the appN segment)
-*/
-class AppSegment {
-
-	//static headerLength = 4 // todo: fix this when rollup support class properties
-
-	static canHandle() {return false}
-
-	constructor(buffer, position, options) {
-		Object.assign(this, position)
-		this.buffer = buffer
-		this.options = options
-	}
-
-	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.
-	// start  + size   === end  |  begining and end of parseable content
-	static parsePosition(buffer, offset) {
-		// length at offset+2 is the size of appN content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
-		var length = getUint16(buffer, offset + 2) + 2
-		var start = offset + this.headerLength
-		var size = length - this.headerLength
-		var end = start + size
-		return {offset, length, start, size, end}
-	}
-
-}
-AppSegment.headerLength = 4 // todo: fix this when rollup support class properties
 
 
-
-
-
-export class Jfif extends AppSegment {
-
-	//static headerLength = 9 // todo: fix this when rollup support class properties
-
-	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE0
-			&& getUint32(buffer, offset + 4) === 0x4A464946 // 'JFIF'
-			&& getUint8(buffer, offset + 8) === 0x00       // followed by '\0'
-	}
-
-	parse() {
-		this.bc = new BufferCursor(this.buffer, this.start)
-		let jfif = {
-			version:    this.bc.getUint16(),
-			units:      this.bc.getUint8(),
-			Xdensity:   this.bc.getUint16(),
-			Ydensity:   this.bc.getUint16(),
-			Xthumbnail: this.bc.getUint8(),
-			Ythumbnail: this.bc.getUint8(),
-		}
-		this.output = this.options.mergeOutput ? {jfif} : jfif
-		return this.output
-	}
-
-	static prettify(jfif) {
-		let versionInt = jfif.version
-		jfif.version = ((versionInt & 0xFF00) >> 8).toString(16) + '.' + (versionInt & 0x00FF).toString(16).padStart(2, '0')
-		jfif.units = jfif.units === 2 ? 'cm' : jfif.units === 1 ? 'inches' : jfif.units
-		return jfif
-	}
-
-}
-Jfif.headerLength = 9 // todo: fix this when rollup support class properties
 
 
 
@@ -127,6 +60,7 @@ Jfif.headerLength = 9 // todo: fix this when rollup support class properties
 export class Iptc extends AppSegment {
 
 	parse() {
+		let dictionary = tags.iptc
 		let iptc = {}
 		var offset = this.start
 		for (var offset = 0; offset < this.end; offset++) {
@@ -134,7 +68,7 @@ export class Iptc extends AppSegment {
 			if (getUint8(this.buffer, offset) === 0x1C && getUint8(this.buffer, offset + 1) === 0x02) {
 				let size = getInt16(this.buffer, offset + 3)
 				let tag = getUint8(this.buffer, offset + 2)
-				let key = tags.iptc[tag] || tag // TODO: translate tags on demand
+				let key = dictionary[tag] || tag // TODO: translate tags on demand
 				let val = toString(this.buffer, offset + 5, offset + 5 + size)
 				iptc[key] = this.setValueOrArrayOfValues(val, iptc[key])
 			}
@@ -191,54 +125,6 @@ export class Iptc extends AppSegment {
 			&& getUint8(buffer, offset + 5) === 0x04
 	}
 */
-}
-
-
-
-//<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>
-// XMPToolkit
-class Xmp extends AppSegment {
-
-	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE1
-			&& getUint32(buffer, offset + 4) === 0x68747470 // 'http'
-	}
-/*
-	// TODO: check & calculate the values are correct
-	static parsePosition(buffer, offset) {
-		var length = getUint16(buffer, offset + 2)
-		var start = offset + 4
-		var size = getUint16(buffer, offset + 2) - 2
-		var end = start + size
-		return {offset, start, size, end}
-	}
-*/
-	constructor(buffer, position, options) {
-		super()
-		Object.assign(this, position)
-		this.buffer = buffer
-		this.options = options
-	}
-
-	parse() {
-		// Read XMP segment as string. We're not parsing the XML.
-		let string = toString(this.buffer, this.start, this.end)
-		// Trims the mess around.
-		if (this.options.postProcess || this.parseXml) {
-			let start = string.indexOf('<x:xmpmeta')
-			let end = string.indexOf('x:xmpmeta>') + 10
-			string = string.slice(start, end)
-			// offer user to supply custom xml parser
-			if (this.parseXml) return this.parseXml(string)
-		}
-		// TO BE FURTHER DEVELOPED IF/WHEN XMP/XML PARSER IS IMPLEMENTED
-		//this.output = this.options.mergeOutput ? {xmp} : xmp
-		this.output = {xmp: string}
-		return this.output
-	}
-
-	//parseXml() {}
-
 }
 
 
@@ -368,8 +254,8 @@ APP1 CONTENT
 */
 export class Exif extends Tiff {
 
-	//static id = 'tiff'
-	//static headerLength = 10 // todo: fix this when rollup support class properties
+	static id = 'tiff'
+	static headerLength = 10 // todo: fix this when rollup support class properties
 
 	static canHandle(buffer, offset) {
 		return getUint8(buffer, offset + 1) === 0xE1
@@ -491,25 +377,23 @@ export class Exif extends Tiff {
 		return super.parseTags(chunk, offset)
 	}
 
-	translateBlock(raw, tagNames) {
+	translateBlock(raw, dictionary) {
 		if (this.options.postProcess || this.options.translateTags) {
 			// TODO: do two passes of transforming.
 			// 1) manipulate value
 			// 2) use string key instead of tag number.
 			// add translateTags option,
 			// rename postProcess to postProcess
-			let entries = Object.entries(raw)
-				.map(([tag, val]) => {
-					var key = tagNames[tag] || tag
-					return [key, translateValue(key, val)]
-				})
+			let entries = Object.entries(raw).map(([tag, val]) => {
+				var key = dictionary[tag] || tag
+				return [key, translateValue(key, val)]
+			})
 			return Object.fromEntries(entries)
 		}
 		return raw
 	}
 
 }
-Exif.headerLength = 10 // todo: fix this when rollup support class properties
 
 
 
@@ -518,12 +402,8 @@ Exif.headerLength = 10 // todo: fix this when rollup support class properties
 // Takes chunk of file and tries to find EXIF (it usually starts inside the chunk, but is much larger).
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
-let allParserClasses = [Jfif, Exif, Xmp, Iptc]
-
-for (let Parser of allParserClasses) {
-	Parser.type = Parser.name.toLowerCase()
-	allParserClasses[Parser.type] = Parser
-}
+parsers.exif = Exif
+parsers.iptc = Iptc
 
 
 
@@ -553,40 +433,40 @@ for (let Parser of allParserClasses) {
 export class Exifr extends Reader {
 
 	constructor(...args) {
-		console.log('ExifParser')
+		//console.log('ExifParser')
 		super(...args)
 		this.pos = {}
 
-		this.requiredParsers = allParserClasses.filter(Parser => !!this.options[Parser.type])
-		console.log('allParserClasses', allParserClasses)
-		console.log('requiredParsers', this.requiredParsers)
-		console.log('options', this.options)
+		this.requiredParsers = Object.values(parsers).filter(Parser => !!this.options[Parser.type])
+		//console.log('parsers', parsers)
+		//console.log('requiredParsers', this.requiredParsers)
+		//console.log('options', this.options)
 	}
 
 	// TODO: Some images don't have any exif but they do have XMP burried somewhere
 	// TODO: Add API to allow this. something like bruteForce: false
 	async read(arg) {
-		console.log('read 1', arg)
+		//console.log('read 1', arg)
 		//console.log('ExifParser read', arg)
-		console.log('read 2')
+		//console.log('read 2')
 		this.buffer = await super.read(arg)
-		console.log('read 3')
-		console.log('this.buffer', this.buffer)
+		//console.log('read 3')
+		//console.log('this.buffer', this.buffer)
 		if (this.buffer === undefined) {
 			throw new Error('buffer is undefined, not enough file read? maybe file wasnt read at all')
 		}
-		console.log('read 4')
+		//console.log('read 4')
 		this.findAppSegments()
-		console.log('read 5')
+		//console.log('read 5')
 	}
 
 	findAppSegments(offset = 0) {
-		console.log('findAppSegments')
+		//console.log('findAppSegments')
 		let buffer = this.buffer
 		let length = (buffer.length || buffer.byteLength) - 10
 		this.segments = []
 		this.unknownSegments = []
-		console.log('length', length)
+		//console.log('length', length)
 		
 		var marker = getUint16(buffer, 0)
 		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN) {
@@ -606,7 +486,7 @@ export class Exifr extends Reader {
 				if (type) {
 					// known and parseable segment found
 					//console.log('type', type)
-					let Parser = allParserClasses[type]
+					let Parser = parsers[type]
 					let position = Parser.parsePosition(buffer, offset)
 					position.type = type
 					this.segments.push(position)
@@ -622,14 +502,13 @@ export class Exifr extends Reader {
 			}
 		}
 
-		console.log('segments', this.segments)
-		console.log('unknownSegments', this.unknownSegments)
+		//console.log('segments', this.segments)
+		//console.log('unknownSegments', this.unknownSegments)
 	}
 
 	getSegmentType(buffer, offset) {
-		for (let Parser of allParserClasses) {
-			if (Parser.canHandle(buffer, offset)) return Parser.type
-		}
+		for (let [name, Parser] of Object.entries(parsers))
+			if (Parser.canHandle(buffer, offset)) return name
 	}
 
 	async parse() {
@@ -647,7 +526,7 @@ export class Exifr extends Reader {
 				//console.log('full   ', full.length.toString().padStart(2, ' '), full)
 				//let string = toString(this.buffer, segment.start, segment.end)
 				//console.log('string', string)
-				let Parser = allParserClasses[segment.type]
+				let Parser = parsers[segment.type]
 				let parser = new Parser(this.buffer, segment, this.options)
 				this.parsers[segment.type] = parser
 				await parser.parse()
@@ -696,49 +575,3 @@ export class Exifr extends Reader {
 }
 
 export var ExifParser = Exifr
-
-// Converts date string to Date instances, replaces enums with string descriptions
-// and fixes values that are incorrectly treated as buffers.
-function translateValue(key, val) {
-	if (val === undefined || val === null)
-		return undefined
-	if (tags.dates.includes(key))
-		return reviveDate(val)
-	if (key === 'SceneType')
-		return Array.from(val).map(v => tags.valueString.SceneType[v]).join(', ')
-	if (key === 'ComponentsConfiguration')
-		return Array.from(val).map(v => tags.valueString.Components[v]).join(', ')
-	if (tags.valueString[key] !== undefined)
-		return tags.valueString[key][val] || val
-	if (key === 'FlashpixVersion' || key === 'ExifVersion')
-		return toString(val)
-	if (key === 'GPSVersionID')
-		return Array.from(val).join('.')
-	if (key === 'GPSTimeStamp')
-		return Array.from(val).join(':')
-	return val
-}
-
-function reviveDate(string) {
-	if (typeof string !== 'string')
-		return null
-	string = string.trim()
-	var [dateString, timeString] = string.split(' ')
-	var [year, month, day] = dateString.split(':').map(Number)
-	var date = new Date(year, month - 1, day)
-	if (timeString) {
-		var [hours, minutes, seconds] = timeString.split(':').map(Number)
-		date.setHours(hours)
-		date.setMinutes(minutes)
-		date.setSeconds(seconds)
-	}
-	return date
-}
-
-function ConvertDMSToDD(degrees, minutes, seconds, direction) {
-	var dd = degrees + (minutes / 60) + (seconds / (60*60))
-	// Don't do anything for N or E
-	if (direction == 'S' || direction == 'W')
-		dd *= -1
-	return dd
-}

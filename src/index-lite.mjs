@@ -1,6 +1,8 @@
+import './util-debug.mjs'
 import {ExifParser} from './parser.mjs'
 export * from './parser.mjs'
 export {defaultOptions} from './options.mjs'
+export {tags} from './tags.mjs'
 
 export async function parse(arg, options) {
 	let parser = new ExifParser(options)

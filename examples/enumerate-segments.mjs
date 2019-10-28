@@ -1,5 +1,5 @@
 // node --experimental-modules enumerate-segments.mjs
-import {ExifParser} from '../index.mjs'
+import {ExifParser} from '../src/index-full.mjs'
 import {promises as fs} from 'fs'
 import path from 'path'
 
@@ -12,18 +12,21 @@ import path from 'path'
 		let parser = new ExifParser({wholeFile: true, mergeOutput: false})
 		await parser.read(fileBuffer)
 		parser.parse()
-		console.log('-----------------')
-		console.log(filePath)
-		console.log(fileBuffer.length, kb(fileBuffer.length))
+		console.log('----------------------------------------------------')
+		console.log('file name', filePath)
+		console.log('file size', fileBuffer.length, kb(fileBuffer.length))
 		let segments = [...parser.segments, ...parser.unknownSegments]
 		for (let segment of segments) {
+			//console.log(segment)
 			console.log(
 				'-',
+				/*
 				segment.offset, segment.end,
-				'|',
-				percentage(segment.offset, fileBuffer.length), percentage(segment.end, fileBuffer.length),
+				*/
 				'|',
 				kb(segment.offset), kb(segment.end),
+				'|',
+				percentage(segment.offset, fileBuffer.length), percentage(segment.end, fileBuffer.length),
 				'|',
 				segment.type || fileBuffer.slice(segment.offset, segment.offset + 20).toString(),
 				fileBuffer.slice(segment.offset, segment.offset + 20)

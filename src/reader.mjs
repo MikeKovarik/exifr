@@ -22,7 +22,7 @@ function findTiff() {
 export default class Reader {
 
 	constructor(options) {
-		console.log('Reader')
+		//console.log('Reader')
 		this.options = processOptions(options)
 	}
 
@@ -74,7 +74,7 @@ export default class Reader {
 	}
 
 	async readUrl(url) {
-		console.log('readUrl()', url)
+		//console.log('readUrl()', url)
 		this.reader = new UrlFetcher(url, this.options)
 		return this.reader.read(this.options.parseChunkSize)
 	}
@@ -125,13 +125,13 @@ export default class Reader {
 class ChunkedReader {
 	
 	constructor(input, options) {
-		console.log('ChunkedReader')
+		//console.log('ChunkedReader')
 		this.input = input
 		this.options = options
 	}
 
 	async read(size) {
-		console.log('ChunkedReader.read()', size)
+		//console.log('ChunkedReader.read()', size)
 		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
 		// Chunked reading is only available for simple exif (APP1) FTD0
 		if (this.forceWholeFile) return this.readWhole()
@@ -170,21 +170,21 @@ class ChunkedReader {
 class FsReader extends ChunkedReader {
 
 	async readWhole() {
-		console.log('FsReader.readWhole()')
+		//console.log('FsReader.readWhole()')
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
 		return buffer
 	}
 
 	async readChunk({start, size}) {
-		console.log('FsReader.readChunk()', start, size)
+		//console.log('FsReader.readChunk()', start, size)
 		let chunk = Buffer.allocUnsafe(size)
 		await this.fh.read(chunk, 0, size, start)
 		return chunk
 	}
 
 	async readChunked() {
-		console.log('FsReader.readChunked()')
+		//console.log('FsReader.readChunked()')
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
 		try {
@@ -225,17 +225,17 @@ class FsReader extends ChunkedReader {
 class WebReader extends ChunkedReader {
 
 	async readWhole() {
-		console.log('WebReader.readWhole()')
+		//console.log('WebReader.readWhole()')
 		let view = await this.readChunk()
 		return view
 	}
 
 	async readChunked(size) {
-		console.log('WebReader.readChunked()', size)
+		//console.log('WebReader.readChunked()', size)
 		let start = 0
 		let end = size
 		let view = await this.readChunk({start, end, size})
-		console.log('view', view)
+		//console.log('view', view)
 		/*
 		let tiffPosition = findTiff(view)
 		if (tiffPosition !== undefined) {
@@ -280,7 +280,7 @@ class Base64Reader extends WebReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
 	readChunk(position) {
-		console.log('Base64Reader.readChunk()', position)
+		//console.log('Base64Reader.readChunk()', position)
 		let {start, end} = sanitizePosition(position)
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
 		let base64 = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
@@ -326,17 +326,17 @@ class Base64Reader extends WebReader {
 class UrlFetcher extends WebReader {
 
 	async readChunk(position) {
-		console.log('UrlFetcher.readChunk()', position)
+		//console.log('UrlFetcher.readChunk()', position)
 		let {start, end} = sanitizePosition(position)
-		console.log('start, end', start, end)
+		//console.log('start, end', start, end)
 		let url = this.input
 		let headers = {}
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
-		console.log('headers.range', headers.range)
+		//console.log('headers.range', headers.range)
 		let res = await fetch(url, {headers})
-		console.log('res', res)
+		//console.log('res', res)
 		let chunk = new DataView(await res.arrayBuffer())
-		console.log('chunk', chunk)
+		//console.log('chunk', chunk)
 		return chunk
 	}
 
@@ -345,7 +345,7 @@ class UrlFetcher extends WebReader {
 class BlobReader extends WebReader {
 
 	readChunk(position) {
-		console.log('BlobReader.readChunk()', position)
+		//console.log('BlobReader.readChunk()', position)
 		let {start, end} = sanitizePosition(position)
 		let blob = this.input
 		if (end) blob = blob.slice(start, end)
