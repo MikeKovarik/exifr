@@ -58,16 +58,23 @@ export function slice(buffer, start, end) {
 
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
 //       we can safely use it along with TextDecoder API.
-export function toString(buffer, start, end) {
+export function toString(buffer, start = 0, end) {
 	if (buffer instanceof DataView) {
+		/*
 		if (hasBuffer) {
+			// warning: small buffers are shared in one big arraybuffer pool. creating node buffer from buffer.buffer arraybuffer can lead to unexpected outputs if not handled with buffer.byteOffset
 			return Buffer.from(buffer.buffer)
+				//.slice(buffer.byteOffset, buffer.byteLength)
 				.slice(start, end)
 				.toString('ascii', start, end)
 		} else {
+		*/
 			var decoder = new TextDecoder('utf-8')
-			return decoder.decode(slice(buffer, start, end))
-		}
+			if (start && end)
+				return decoder.decode(slice(buffer, start, end))
+			else
+				return decoder.decode(buffer)
+		//}
 	} else {
 		return buffer.toString('ascii', start, end)
 	}
@@ -109,19 +116,119 @@ export class BufferCursor {
 
 }
 
-export class VirtualFile {
 
-	constructor(buffer, size) {
-		this.chunks = []
+
+
+
+const utf8  = new TextDecoder('utf-8')
+const utf16 = new TextDecoder('utf-16')
+
+export class BufferView {
+
+	static from(arg, offset = 0, length) {
+		if (arg instanceof ArrayBuffer)
+			var view = new DataView(arg, offset, length)
+		else if (offset > 0 || arg instanceof Uint8Array)
+			var view = new DataView(arg.buffer, arg.byteOffset + offset, length)
+		else if (arg instanceof DataView)
+			var view = arg
+		return new this(view)
 	}
 
-	async readChunk({start, size}) {
-		//this.chunks.filter(chunk => chunk.end > start)
-		let buffer = Buffer.allocUnsafe(size)
-		await this.fh.read(buffer, 0, size, start)
-		let end = start + size
-		let chunkDesc = {start, size, end, buffer}
-		this.chunks.push(chunkDesc)
+	constructor(arg, littleEndian) {
+		this.changeBuffer(arg)
+		this.le = littleEndian
+	}
+
+	changeBuffer(arg) {
+		if (arg instanceof DataView)
+			this.view = arg
+		else if (arg instanceof ArrayBuffer)
+			this.view = new DataView(arg)
+		else if (arg instanceof Uint8Array)
+			this.view = new DataView(arg.buffer, arg.byteOffset, arg.byteLength)
+			// Node.js Buffer is also instance of Uint8Array
+		// Make this object seem similar to DataView
+		this.buffer = this.view.buffer
+		this.byteOffset = this.view.byteOffset
+		this.byteLength = this.view.byteLength
+	}
+
+	getUint8(offset) {
+		return this.view.getUint8(offset)
+	}
+
+	getUint16(offset, le = this.le) {
+		return this.view.getUint16(offset, le)
+	}
+
+	getUint32(offset, le = this.le) {
+		return this.view.getUint32(offset, le)
+	}
+
+	getString(offset = 0, length = this.view.byteLength) {
+		let arr = new Uint8Array(this.view.buffer, this.view.byteOffset + offset, length)
+		return utf8.decode(arr)
+	}
+
+	// TODO: refactor
+	getUnicodeString(offset = 0, length = this.view.byteLength) {
+		// cannot use Uint16Array because it uses the other fucking endian order.
+		const chars = []
+		let view = this.view
+		for (let i = 0; i < length && offset + i < view.byteLength; i += 2)
+			chars.push(view.getUint16(offset + i))
+		return chars.map(charCode => String.fromCharCode(charCode)).join('')
+	}
+
+	toString() {
+		return this.view.toString()
+	}
+
+}
+
+export class BufferCursor2 extends BufferView {
+
+	constructor(arg, offset, littleEndian) {
+		super(arg, offset, littleEndian)
+		this.offset = offset || 0
+	}
+
+	changeBuffer(arg) {
+		super.changeBuffer(arg)
+		this.offset = 0
+	}
+
+	getUint(bytes) {
+		switch (bytes) {
+			case 1: return this.getUint8()
+			case 2: return this.getUint16()
+			case 4: return this.getUint32()
+		}
+	}
+
+	getUint8() {
+		let result = super.getUint8(this.offset)
+		this.offset += 1
+		return result
+	}
+
+	getUint16() {
+		let result = super.getUint16(this.offset)
+		this.offset += 2
+		return result
+	}
+
+	getUint32() {
+		let result = super.getUint32(this.offset)
+		this.offset += 4
+		return result
+	}
+
+	getString(size) {
+		let result = super.getString(this.offset, size)
+		this.offset += size
+		return result
 	}
 
 }
