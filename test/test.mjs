@@ -1,94 +1,10 @@
-import chai from 'chai'
-import path from 'path'
-import {promises as fs} from 'fs'
-var isBrowser = typeof navigator === 'object'
-var isNode = typeof process === 'object' && process.versions && process.versions.node
-
-if (isBrowser) {
-	mocha.setup('bdd')
-	setTimeout(() => mocha.run(), 100)
-} else {
-}
 import {ExifParser, parse, thumbnailBuffer, thumbnailUrl} from '../index.mjs'
-// chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
-// in browser we need to use Require.js version which adds it as global to window object.
-var assert = chai.assert || window.chai.assert
+import {assert, isBrowser, isNode} from './test-util.mjs'
+import {createImg, createArrayBuffer, createBlob, getPath, getUrl, createWorker, createObjectUrl, createBase64Url, getFile} from './test-util.mjs'
+import {promises as fs} from 'fs'
 
-function createImg(url) {
-	var img = document.createElement('img')
-	img.src = url
-	document.querySelector('#temp')
-		.append(img)
-	return img
-}
-/*
-function createBufferOrArrayBuffer(url) {
-	if (isNode)
-		return fs.readFile(url)
-	else
-		return createArrayBuffer(url)
-}
-*/
-function createArrayBuffer(url) {
-	return fetch(url).then(res => res.arrayBuffer())
-}
 
-function createBlob(url) {
-	return fetch(url).then(res => res.blob())
-}
-
-if (isNode) {
-	if (typeof __dirname !== 'undefined')
-		var dirname = __dirname
-	else
-		var dirname = path.dirname(import.meta.url.replace('file:///', ''))
-}
-
-function getPath(filepath) {
-	if (isNode)
-		return path.join(dirname, filepath)
-	else
-		return filepath
-}
-
-function getUrl(filepath) {
-	return location.href
-		.split('/')
-		.slice(0, -1)
-		.concat(filepath)
-		.join('/')
-		.replace(/\\/g, '/')
-}
-
-function createWorker(input) {
-	console.log('createWorker', input)
-	return new Promise((resolve, reject) => {
-		let worker = new Worker('worker.js')
-		worker.postMessage(input)
-		worker.onmessage = e => resolve(e.data)
-		worker.onerror = reject
-	})
-}
-
-async function createObjectUrl(url) {
-	return URL.createObjectURL(await createBlob(url))
-}
-
-async function createBase64Url(url) {
-	if (isBrowser) {
-		return new Promise(async (resolve, reject) => {
-			var blob = await createBlob(url)
-			var reader = new FileReader()
-			reader.onloadend = () => resolve(reader.result)
-			reader.onerror = reject
-			reader.readAsDataURL(blob) 
-		})
-	} else if (isNode) {
-		var buffer = await fs.readFile(url)
-		return 'data:image/jpeg;base64,' + buffer.toString('base64')
-	}
-}
-
+import './icc.mjs'
 
 describe('reader (input formats)', () => {
 
@@ -217,9 +133,8 @@ TODO: rewrite chunked reader for 3.0.0
 
 
 describe('parser (exif data)', () => {
-
-	let buffers = {}
-
+/*
+	// preload files
 	before(async () => {
 		let images = [
 			'IMG_20180725_163423.jpg',
@@ -235,22 +150,17 @@ describe('parser (exif data)', () => {
 			'exif-js-issue-124.tiff',
 			'noexif.jpg',
 		]
-		for (let name of images) {
-			if (isNode)
-				buffers[name] = await fs.readFile(getPath(name))
-			else
-				buffers[name] = await fetch(getPath(name)).then(res => res.arrayBuffer())
-		}
+		for (let name of images) await getFile(name)
 	})
-
+*/
 	it(`should return undefined if no exif was found`, async () => {
-		var output = await parse(buffers['img_1771_no_exif.jpg'])
+		var output = await parse(await getFile('img_1771_no_exif.jpg'))
 		console.log('output', output)
 		assert.equal(output, undefined)
 	})
 
 	it(`should return undefined if no exif was found (internal .parse() method)`, async () => {
-		let intput = buffers['noexif.jpg']
+		let intput = await getFile('noexif.jpg')
 		let parser = new ExifParser()
 		await parser.parse(intput)
 		let output = await parser.parse()
@@ -262,45 +172,45 @@ describe('parser (exif data)', () => {
 		describe('TIFF', () => {
 
 			it(`should contain IFD0 block (as output.image)`, async () => {
-				var output = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+				var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.image.Make, 'Google')
 				assert.equal(output.image.Model, 'Pixel')
 			})
 
 			it(`should contain Exif block (as output.exif)`, async () => {
-				var output = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+				var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.exif.ExposureTime, 0.000376)
 			})
 
 			it(`should contain GPS block (as output.gps)`, async () => {
-				var output = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false})
+				var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.gps.GPSLatitude.length, 3)
 				assert.equal(output.gps.GPSLongitude.length, 3)
 			})
 
 			it(`should contain interop if requested`, async () => {
-				var output = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, interop: true})
+				var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false, interop: true})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.interop.InteropIndex, 'R98')
 			})
 
 			it(`should contain thumbnail (IFD1) if requested`, async () => {
-				var output = await parse(buffers['IMG_20180725_163423.jpg'], {mergeOutput: false, thumbnail: true})
+				var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false, thumbnail: true})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.thumbnail.ImageHeight, 189)
 			})
 
 			it(`should contain GPS block (as output.gps) and processing method`, async () => {
-				var output = await parse(buffers['PANO_20180725_162444.jpg'], {mergeOutput: false})
+				var output = await parse(await getFile('PANO_20180725_162444.jpg'), {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.gps.GPSProcessingMethod, 'fused', `output doesn't contain gps`)
 			})
 
 			it(`should contain Exif block (as output.exif) if requested`, async () => {
-				var output = await parse(buffers['img_1771.jpg'])
+				var output = await parse(await getFile('img_1771.jpg'))
 				assert.exists(output, `output is undefined`)
 				assert.equal(output.ApertureValue, 4.65625)
 			})
@@ -310,32 +220,32 @@ describe('parser (exif data)', () => {
 		describe('XMP', () => {
 
 			it(`is not included by default`, async () => {
-				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false})
+				var output = await parse(await getFile('cookiezen.jpg'), {mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
 			})
 
 			it(`is not included when {xmp: false}`, async () => {
-				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: false})
+				var output = await parse(await getFile('cookiezen.jpg'), {mergeOutput: false, xmp: false})
 				assert.exists(output, `output is undefined`)
 				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
 			})
 
 			it(`is included when {xmp: true}`, async () => {
-				var output = await parse(buffers['cookiezen.jpg'], {mergeOutput: false, xmp: true})
+				var output = await parse(await getFile('cookiezen.jpg'), {mergeOutput: false, xmp: true})
 				assert.exists(output, `output is undefined`)
 				assert.isDefined(output.xmp, `xmp should be included`)
 			})
 
 			it(`is undefined undefined if no xmp was found`, async () => {
-				var output = await parse(buffers['img_1771_no_exif.jpg'])
+				var output = await parse(await getFile('img_1771_no_exif.jpg'))
 				assert.exists(output, `output is undefined`)
 				assert.isUndefined(output.xmp, `xmp shouldn't be included`)
 			})
 
 			//it(`XMP - if whole file buffer is provided and options.xmp is enabled`, async () => {
 			it(`available as output.xmp if requested with options.xmp`, async () => {
-				var output = await parse(buffers['cookiezen.jpg'], {xmp: true, mergeOutput: false})
+				var output = await parse(await getFile('cookiezen.jpg'), {xmp: true, mergeOutput: false})
 				assert.exists(output, `output is undefined`)
 				assert.typeOf(output.xmp, 'string', `output doesn't contain xmp`)
 			})
@@ -355,7 +265,7 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`IPTC - as output.iptc if requested with options.iptc`, async () => {
-			var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true, exif: false})
+			var output = await parse(await getFile('Bush-dog.jpg'), {mergeOutput: false, iptc: true, exif: false})
 			assert.isObject(output, `output is undefined`)
 			assert.isObject(output.iptc, `output does not contain iptc`)
 			assert.typeOf(output.iptc.caption, 'string')
@@ -381,14 +291,14 @@ describe('parser (exif data)', () => {
 /*
 		// TODO
 		it(`should only contain IPTC segment (as output.iptc) if only IPTC is forced`, async () => {
-			var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, iptc: true, exif: false}) // TODO: better options to forcce disable everything else
+			var output = await parse(await getFile('Bush-dog.jpg'), {mergeOutput: false, iptc: true, exif: false}) // TODO: better options to forcce disable everything else
 			console.log('output', output)
 			assert.equal(output.exif, undefined, `output.exif shouldn't be included`)
 			assert.exists(output.iptc, `output.iptc doesn't exist`)
 		})
 */
 		//it(`should contain ICC segment (as output.icc) if requested`, async () => {
-		//	var output = await parse(buffers['Bush-dog.jpg'], {mergeOutput: false, icc: true})
+		//	var output = await parse(await getFile('Bush-dog.jpg'), {mergeOutput: false, icc: true})
 		//	assert.exists(output.icc)
 		//})
 
@@ -397,7 +307,7 @@ describe('parser (exif data)', () => {
 	describe('output', () => {
 
 		it(`should merge all segments by default`, async () => {
-			var output = await parse(buffers['IMG_20180725_163423.jpg'])
+			var output = await parse(await getFile('IMG_20180725_163423.jpg'))
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.Make, 'Google')
 			assert.equal(output.ExposureTime, 0.000376)
@@ -405,27 +315,27 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`should translate values to string by default`, async () => {
-			var output = await parse(buffers['IMG_20180725_163423.jpg'])
+			var output = await parse(await getFile('IMG_20180725_163423.jpg'))
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.Contrast, 'Normal')
 			assert.equal(output.MeteringMode, 'CenterWeightedAverage')
 		})
 
 		it(`should not translate values to string if options.postProcess = false`, async () => {
-			var output = await parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
+			var output = await parse(await getFile('IMG_20180725_163423.jpg'), {postProcess: false})
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.Contrast, 0)
 			assert.equal(output.MeteringMode, 2)
 		})
 
 		it(`should revive dates as Date instance by default`, async () => {
-			var output = await parse(buffers['IMG_20180725_163423.jpg'])
+			var output = await parse(await getFile('IMG_20180725_163423.jpg'))
 			assert.exists(output, `output is undefined`)
 			assert.instanceOf(output.DateTimeOriginal, Date)
 		})
 
 		it(`should not revive dates as Date instance if options.postProcess = false`, async () => {
-			var output = await parse(buffers['IMG_20180725_163423.jpg'], {postProcess: false})
+			var output = await parse(await getFile('IMG_20180725_163423.jpg'), {postProcess: false})
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
 		})
@@ -435,7 +345,7 @@ describe('parser (exif data)', () => {
 	describe('issues (special cases)', () => {
 
 		it(`#2 - 001.tif starting with 49 49`, async () => {
-			var output = await parse(buffers['001.tif'])
+			var output = await parse(await getFile('001.tif'))
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.Make, 'DJI')
 			assert.equal(output.ImageWidth, '640')
@@ -448,7 +358,7 @@ describe('parser (exif data)', () => {
 				gps: true,
 				mergeOutput: false,
 			}
-			var output = await parse(buffers['002.tiff'], options)
+			var output = await parse(await getFile('002.tiff'), options)
 			assert.exists(output.gps)
 		})
 /*
@@ -480,20 +390,20 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
-			var output = await parse(buffers['fast-exif-issue-2.jpg'], true)
+			var output = await parse(await getFile('fast-exif-issue-2.jpg'), true)
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.ApertureValue, 5.655638)
 			assert.equal(output.LensModel, '24.0-70.0 mm f/2.8')
 		})
 
 		it(`node-exif #58 - should properly detect EXIF`, async () => {
-			var output = await parse(buffers['node-exif-issue-58.jpg'], true)
+			var output = await parse(await getFile('node-exif-issue-58.jpg'), true)
 			assert.exists(output, `output is undefined`)
 			assert.exists(output.xmp)
 		})
 
 		it(`exif-js #124`, async () => {
-			var output = await parse(buffers['exif-js-issue-124.tiff'], true)
+			var output = await parse(await getFile('exif-js-issue-124.tiff'), true)
 			assert.exists(output, `output is undefined`)
 			assert.equal(output.Make, 'FLIR')
 		})
@@ -508,7 +418,7 @@ describe('parser (exif data)', () => {
 		}
 
 		it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail`, async () => {
-			let intput = buffers['IMG_20180725_163423.jpg']
+			let intput = await getFile('IMG_20180725_163423.jpg')
 			let parser = new ExifParser(options)
 			await parser.read(intput)
 			var output = await parser.extractThumbnail()
@@ -518,7 +428,7 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)`, async () => {
-			let intput = buffers['IMG_20180725_163423.jpg']
+			let intput = await getFile('IMG_20180725_163423.jpg')
 			let parser = new ExifParser(true)
 			await parser.read(intput)
 			var output = await parser.extractThumbnail()
@@ -528,7 +438,7 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (default)`, async () => {
-			let intput = buffers['IMG_20180725_163423.jpg']
+			let intput = await getFile('IMG_20180725_163423.jpg')
 			let parser = new ExifParser()
 			await parser.read(intput)
 			var output = await parser.extractThumbnail()
@@ -538,7 +448,7 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`#extractThumbnail() returns undefined if there's no exif`, async () => {
-			let intput = buffers['cookiezen.jpg']
+			let intput = await getFile('cookiezen.jpg')
 			let parser = new ExifParser()
 			await parser.read(intput)
 			var output = await parser.extractThumbnail()
@@ -546,14 +456,14 @@ describe('parser (exif data)', () => {
 		})
 
 		it(`#extractThumbnail() returns undefined if there's no thumbnail`, async () => {
-			let intput = buffers['noexif.jpg']
+			let intput = await getFile('noexif.jpg')
 			let parser = new ExifParser(options)
 			await parser.read(intput)
 			assert.isUndefined(await parser.extractThumbnail())
 		})
 
 		it(`thumbnailBuffer()`, async () => {
-			let intput = buffers['IMG_20180725_163423.jpg']
+			let intput = await getFile('IMG_20180725_163423.jpg')
 			var output = await thumbnailBuffer(intput, options)
 			// Buffer in Node, ArrayBuffer in browser
 			output = new Uint8Array(output)
@@ -562,7 +472,7 @@ describe('parser (exif data)', () => {
 		})
 
 		isBrowser && it(`thumbnailUrl()`, async () => {
-			let intput = buffers['IMG_20180725_163423.jpg']
+			let intput = await getFile('IMG_20180725_163423.jpg')
 			var url = await thumbnailUrl(intput, options)
 			assert.typeOf(url, 'string')
 		})
