@@ -7,7 +7,7 @@ var fs = require('fs').promises
 // and jumps straight to XMP segment. Ignores GPS, Thumbnail info, IPTC, etc...
 let options = {xmp: true}
 // Read the file from disk and feed the buffer into exifr with given options.
-fs.readFile('../test/cookiezen.jpg')
+fs.readFile('../test/fixtures/cookiezen.jpg')
 	.then(buffer => parse(buffer, options))
 	// NOTE ABOUT XMP: XML string is returned because exifr doesn't include XML parsing.
 	// You can use XML parser of your choice to post process XMP data.

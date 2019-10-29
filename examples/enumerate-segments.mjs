@@ -4,10 +4,10 @@ import {promises as fs} from 'fs'
 import path from 'path'
 
 (async function() {
-	let allFiles = await fs.readdir('../test/')
+	let allFiles = await fs.readdir('../test/fixtures/')
 	let imageFiles = allFiles.filter(name => name.endsWith('.jpg') || name.endsWith('.tiff') || name.endsWith('.tif'))
 	for (let fileName of imageFiles) {
-		let filePath = path.join('../test/', fileName)
+		let filePath = path.join('../test/fixtures/', fileName)
 		let fileBuffer = await fs.readFile(filePath)
 		let parser = new ExifParser({wholeFile: true, mergeOutput: false})
 		await parser.read(fileBuffer)

@@ -9,7 +9,7 @@ if (isBrowser) {
 }
 
 
-var imageUrl = '../test/IMG_20180725_163423.jpg'
+var imageUrl = '../test/fixtures/IMG_20180725_163423.jpg'
 
 var options = {
 	thumbnail: false,
