@@ -1,20 +1,86 @@
 import {parse} from '../index.mjs'
 import {assert, isBrowser, isNode} from './test-util.mjs'
-import {createImg, createArrayBuffer, createBlob, getPath, getUrl, createWorker, createObjectUrl, createBase64Url, getFile} from './test-util.mjs'
+import {getPath, getUrl, getFile} from './test-util.mjs'
 import {promises as fs} from 'fs'
 
 
+export function createImg(url) {
+	var img = document.createElement('img')
+	img.src = url
+	document.querySelector('#temp')
+		.append(img)
+	return img
+}
+
+export function fetchArrayBuffer(url) {
+	return fetch(url).then(res => res.arrayBuffer())
+}
+
+export async function createArrayBuffer(urlOrPath) {
+	if (isBrowser)
+		return fetchArrayBuffer(urlOrPath)
+	else if (isNode)
+		return (await fs.readFile(urlOrPath)).buffer
+}
+
+export function createBlob(url) {
+	return fetch(url).then(res => res.blob())
+}
+
+export async function createObjectUrl(url) {
+	return URL.createObjectURL(await createBlob(url))
+}
+
+export async function createBase64Url(url) {
+	if (isBrowser) {
+		return new Promise(async (resolve, reject) => {
+			var blob = await createBlob(url)
+			var reader = new FileReader()
+			reader.onloadend = () => resolve(reader.result)
+			reader.onerror = reject
+			reader.readAsDataURL(blob) 
+		})
+	} else if (isNode) {
+		var buffer = await fs.readFile(url)
+		return 'data:image/jpeg;base64,' + buffer.toString('base64')
+	}
+}
+
+export function createWorker(input) {
+	console.log('createWorker', input)
+	return new Promise((resolve, reject) => {
+		let worker = new Worker('worker.js')
+		worker.postMessage(input)
+		worker.onmessage = e => resolve(e.data)
+		worker.onerror = reject
+	})
+}
+
 describe('reader (input formats)', () => {
+
+	it(`ArrayBuffer`, async () => {
+		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+		var output = await parse(arrayBuffer)
+		assert.exists(output, `output is undefined`)
+	})
+
+	it(`DataView`, async () => {
+		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+		let dataView = new DataView(arrayBuffer)
+		var output = await parse(dataView)
+		assert.exists(output, `output is undefined`)
+	})
+
+	it(`Uint8Array`, async () => {
+		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+		let uint8Array = new Uint8Array(arrayBuffer)
+		var output = await parse(uint8Array)
+		assert.exists(output, `output is undefined`)
+	})
 
 	isNode && it(`Node: Buffer`, async () => {
 		var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
 		var output = await parse(buffer)
-		assert.exists(output, `output is undefined`)
-	})
-
-	isBrowser && it(`Browser: ArrayBuffer`, async () => {
-		var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
-		var output = await parse(arrayBuffer)
 		assert.exists(output, `output is undefined`)
 	})
 

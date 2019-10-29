@@ -14,29 +14,6 @@ if (isBrowser) {
 // in browser we need to use Require.js version which adds it as global to window object.
 export var assert = chai.assert || window.chai.assert
 
-export function createImg(url) {
-	var img = document.createElement('img')
-	img.src = url
-	document.querySelector('#temp')
-		.append(img)
-	return img
-}
-/*
-export function createBufferOrArrayBuffer(url) {
-	if (isNode)
-		return fs.readFile(url)
-	else
-		return createArrayBuffer(url)
-}
-*/
-export function createArrayBuffer(url) {
-	return fetch(url).then(res => res.arrayBuffer())
-}
-
-export function createBlob(url) {
-	return fetch(url).then(res => res.blob())
-}
-
 if (isNode) {
 	if (typeof __dirname !== 'undefined')
 		var dirname = __dirname
@@ -52,6 +29,7 @@ export function getPath(filepath) {
 		return filepath
 }
 
+// TODO: need to include 'fixtures/'
 export function getUrl(filepath) {
 	return location.href
 		.split('/')
@@ -61,38 +39,7 @@ export function getUrl(filepath) {
 		.replace(/\\/g, '/')
 }
 
-export function createWorker(input) {
-	console.log('createWorker', input)
-	return new Promise((resolve, reject) => {
-		let worker = new Worker('worker.js')
-		worker.postMessage(input)
-		worker.onmessage = e => resolve(e.data)
-		worker.onerror = reject
-	})
-}
-
-export async function createObjectUrl(url) {
-	return URL.createObjectURL(await createBlob(url))
-}
-
-export async function createBase64Url(url) {
-	if (isBrowser) {
-		return new Promise(async (resolve, reject) => {
-			var blob = await createBlob(url)
-			var reader = new FileReader()
-			reader.onloadend = () => resolve(reader.result)
-			reader.onerror = reject
-			reader.readAsDataURL(blob) 
-		})
-	} else if (isNode) {
-		var buffer = await fs.readFile(url)
-		return 'data:image/jpeg;base64,' + buffer.toString('base64')
-	}
-}
-
-let cachedFiles = {
-
-}
+let cachedFiles = {}
 
 export async function getFile(urlOrPath) {
 	let fullPath = getPath(urlOrPath)
