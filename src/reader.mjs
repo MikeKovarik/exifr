@@ -1,4 +1,4 @@
-import {hasBuffer, isBrowser, isNode, isWorker, toString} from './buff-util.mjs'
+import {hasBuffer, isBrowser, isNode, isWorker, BufferView} from './buff-util.mjs'
 import {processOptions} from './options.mjs'
 if (isNode) {
 	if (typeof require === 'function')
@@ -31,14 +31,12 @@ export default class Reader {
 			return this.readString(arg)
 		else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)
 			return this.readString(arg.src)
-		else if (hasBuffer && Buffer.isBuffer(arg))
-			return this.readBuffer(arg)
 		else if (arg instanceof Uint8Array)
-			return this.readUint8Array(arg)
+			return new BufferView(arg)
 		else if (arg instanceof ArrayBuffer)
-			return this.readArrayBuffer(arg)
+			return new BufferView(arg)
 		else if (arg instanceof DataView)
-			return this.readBuffer(arg)
+			return new BufferView(arg)
 		else if (isBrowser && arg instanceof Blob)
 			return this.readBlob(arg)
 		else
@@ -56,25 +54,12 @@ export default class Reader {
 			throw new Error('Invalid input argument')
 	}
 
-	readUint8Array(uint8arr) {
-		return this.readArrayBuffer(uint8arr.buffer)
-	}
-
-	readArrayBuffer(arrayBuffer) {
-		return this.readBuffer(new DataView(arrayBuffer))
-	}
-
-	readBuffer(buffer) {
-		return buffer
-	}
-
 	async readBlob(blob) {
 		this.reader = new BlobReader(blob, this.options)
 		return this.reader.read(this.options.parseChunkSize)
 	}
 
 	async readUrl(url) {
-		//console.log('readUrl()', url)
 		this.reader = new UrlFetcher(url, this.options)
 		return this.reader.read(this.options.parseChunkSize)
 	}
@@ -318,7 +303,7 @@ class Base64Reader extends WebReader {
 			for (var i = 0; i < targetSize; i++)
 				uint8arr[i] = binary.charCodeAt(offset + i)
 		}
-		return new DataView(arrayBuffer)
+		return new BufferView(arrayBuffer)
 	}
 
 }
@@ -335,9 +320,7 @@ class UrlFetcher extends WebReader {
 		//console.log('headers.range', headers.range)
 		let res = await fetch(url, {headers})
 		//console.log('res', res)
-		let chunk = new DataView(await res.arrayBuffer())
-		//console.log('chunk', chunk)
-		return chunk
+		return new BufferView(await res.arrayBuffer())
 	}
 
 }
@@ -351,7 +334,7 @@ class BlobReader extends WebReader {
 		if (end) blob = blob.slice(start, end)
 		return new Promise((resolve, reject) => {
 			let reader = new FileReader()
-			reader.onloadend = () => resolve(new DataView(reader.result || new ArrayBuffer(0)))
+			reader.onloadend = () => resolve(new BufferView(reader.result || new ArrayBuffer(0)))
 			reader.onerror = reject
 			reader.readAsArrayBuffer(blob)
 		})
