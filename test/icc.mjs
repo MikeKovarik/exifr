@@ -1,18 +1,16 @@
-import IccParser from '../src/parsers/icc.mjs'
 import {parse} from '../index.mjs'
-import {assert, isBrowser, isNode} from './test-util.mjs'
+import {assert} from './test-util.mjs'
 import {getFile} from './test-util.mjs'
-import {promises as fs} from 'fs'
+import IccParser from '../src/parsers/icc.mjs'
 
 
-describe('icc', () => {
+describe('ICC', () => {
 /*
 	describe('IccParser', () => {
 
 		it(`parsing .icc fixture 1`, async () => {
 			var buffer = await getFile('./fixtures/D65_XYZ.icc')
-			let parser = new IccParser(buffer)
-			var output = await parse(buffer)
+			var output = await IccParser.parse(buffer)
 			console.log(output)
 			assert.exists(output, `output is undefined`)
 		})
@@ -26,7 +24,7 @@ describe('icc', () => {
 			var options = {mergeOutput: false, icc: true}
 			var output = await parse(file, options)
 			assert.exists(output.icc, `output is undefined`)
-			console.log(output.icc)
+			//console.log(output.icc)
 			for (let [key, val] of Object.entries(results)) {
 				assert.equal(output.icc[key], val)
 			}
@@ -34,14 +32,16 @@ describe('icc', () => {
 	}
 
 	testFile('./IMG_20180725_163423.jpg', {
-		version: '4.0',
+		cmm: undefined, // we intentionally do not include empty \u0000 values
+		version: '4.0.0',
 		intent: 'Perceptual',
 		colorSpace: 'RGB',
 		creator: 'GOOG',
 	})
+
 /*
 	testFile('./Bush-dog.jpg', {
-		version: '2.1',
+		version: '2.1.0',
 		intent: 'Perceptual',
 		cmm: 'Lino',
 		deviceClass: 'Monitor',
@@ -53,7 +53,6 @@ describe('icc', () => {
 		creator: 'HP',
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
-
 	testFile('./exifr-issue-13', {})
 */
 
@@ -61,6 +60,8 @@ describe('icc', () => {
 		// TEXT tag
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 		// SIG tag
-		technology: 'CRT '
+		technology: 'CRT',
+		//
+		conditionsDescription: 'Reference Viewing Condition in IEC61966-2.1',
 	})
 })

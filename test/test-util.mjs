@@ -45,6 +45,7 @@ if (isNode) {
 }
 
 export function getPath(filepath) {
+	filepath = 'fixtures/' + filepath
 	if (isNode)
 		return path.join(dirname, filepath)
 	else
