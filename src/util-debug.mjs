@@ -2,7 +2,7 @@ const DEFAULT_SIZE = 16
 
 // TODO: delete me before releasing.
 // This is for debugging only
-DataView.prototype.toString = function(size = DEFAULT_SIZE, name = 'DataView') {
+DataView.prototype.toString = function(size = DEFAULT_SIZE, name = this.constructor.name) {
 	if (typeof size !== 'number') size = DEFAULT_SIZE
 	size = Math.min(size, this.byteLength)
 	let values = (new Array(size))

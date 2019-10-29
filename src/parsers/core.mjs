@@ -7,7 +7,7 @@ import {
 	getInt32,
 	slice,
 	toString,
-	BufferCursor
+	BufferView
 } from '../buff-util.mjs'
 
 
@@ -24,10 +24,19 @@ export class AppSegment {
 
 	static canHandle = () => false
 
+	static parse(buffer, start, options) {
+		let view = new BufferView(buffer, start)
+		let instance = new this(view, undefined, options)
+		return instance.parse()
+	}
+
 	constructor(buffer, position, options) {
 		Object.assign(this, position)
-		this.buffer = buffer
+		this.buffer = buffer // todo: deprecate
+		this.mainView = new BufferView(buffer)
 		this.options = options
+		//this.view = new BufferView(buffer)
+		//this.view.crop(start, ednd)
 	}
 
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.

@@ -3,7 +3,7 @@ import {
 	getUint8,
 	getUint16,
 	getUint32,
-	BufferCursor
+	CursorView
 } from '../buff-util.mjs'
 
 parsers.jfif = class Jfif extends AppSegment {
@@ -17,14 +17,14 @@ parsers.jfif = class Jfif extends AppSegment {
 	}
 
 	parse() {
-		this.bc = new BufferCursor(this.buffer, this.start)
+		this.view = new CursorView(this.buffer, this.start)
 		let jfif = {
-			version:    this.bc.getUint16(),
-			units:      this.bc.getUint8(),
-			Xdensity:   this.bc.getUint16(),
-			Ydensity:   this.bc.getUint16(),
-			Xthumbnail: this.bc.getUint8(),
-			Ythumbnail: this.bc.getUint8(),
+			version:    this.view.getUint16(),
+			units:      this.view.getUint8(),
+			Xdensity:   this.view.getUint16(),
+			Ydensity:   this.view.getUint16(),
+			Xthumbnail: this.view.getUint8(),
+			Ythumbnail: this.view.getUint8(),
 		}
 		this.output = this.options.mergeOutput ? {jfif} : jfif
 		return this.output

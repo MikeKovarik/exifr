@@ -117,86 +117,35 @@ export class BufferCursor {
 }
 
 
-
-
-
 const utf8  = new TextDecoder('utf-8')
-const utf16 = new TextDecoder('utf-16')
+//const utf16 = new TextDecoder('utf-16')
 
-export class BufferView {
+export class BufferView extends DataView {
 
-	static from(arg, offset = 0, length) {
-		if (arg instanceof ArrayBuffer)
-			var view = new DataView(arg, offset, length)
-		else if (offset > 0 || arg instanceof Uint8Array)
-			var view = new DataView(arg.buffer, arg.byteOffset + offset, length)
-		else if (arg instanceof DataView)
-			var view = arg
-		return new this(view)
+	constructor(arg, offset = 0, length) {
+		if (arg instanceof ArrayBuffer) {
+			super(arg, offset, length)
+		} else if (arg instanceof Uint8Array || arg instanceof DataView) {
+			// Node.js Buffer is also instance of Uint8Array, but small ones are backed
+			// by single large ArrayBuffer pool, so we always need to check for arg.byteOffset.
+			offset += arg.byteOffset
+			length = length !== undefined ? length : arg.byteLength - offset
+			super(arg.buffer, offset, length)
+		}
 	}
 
-	constructor(arg, littleEndian) {
-		this.changeBuffer(arg)
-		this.le = littleEndian
-	}
-
-	changeBuffer(arg) {
-		if (arg instanceof DataView)
-			this.view = arg
-		else if (arg instanceof ArrayBuffer)
-			this.view = new DataView(arg)
-		else if (arg instanceof Uint8Array)
-			this.view = new DataView(arg.buffer, arg.byteOffset, arg.byteLength)
-			// Node.js Buffer is also instance of Uint8Array
-		// Make this object seem similar to DataView
-		this.buffer = this.view.buffer
-		this.byteOffset = this.view.byteOffset
-		this.byteLength = this.view.byteLength
-	}
-
-	getUint8(offset) {
-		return this.view.getUint8(offset)
-	}
-
-	getUint16(offset, le = this.le) {
-		return this.view.getUint16(offset, le)
-	}
-
-	getUint32(offset, le = this.le) {
-		return this.view.getUint32(offset, le)
-	}
-
-	getString(offset = 0, length = this.view.byteLength) {
-		let arr = new Uint8Array(this.view.buffer, this.view.byteOffset + offset, length)
+	getString(offset = 0, length = this.byteLength) {
+		let arr = new Uint8Array(this.buffer, this.byteOffset + offset, length)
 		return utf8.decode(arr)
 	}
 
 	// TODO: refactor
-	getUnicodeString(offset = 0, length = this.view.byteLength) {
+	getUnicodeString(offset = 0, length = this.byteLength) {
 		// cannot use Uint16Array because it uses the other fucking endian order.
 		const chars = []
-		let view = this.view
-		for (let i = 0; i < length && offset + i < view.byteLength; i += 2)
-			chars.push(view.getUint16(offset + i))
+		for (let i = 0; i < length && offset + i < this.byteLength; i += 2)
+			chars.push(this.getUint16(offset + i))
 		return chars.map(charCode => String.fromCharCode(charCode)).join('')
-	}
-
-	toString() {
-		return this.view.toString()
-	}
-
-}
-
-export class BufferCursor2 extends BufferView {
-
-	constructor(arg, offset, littleEndian) {
-		super(arg, offset, littleEndian)
-		this.offset = offset || 0
-	}
-
-	changeBuffer(arg) {
-		super.changeBuffer(arg)
-		this.offset = 0
 	}
 
 	getUint(bytes) {
@@ -205,6 +154,15 @@ export class BufferCursor2 extends BufferView {
 			case 2: return this.getUint16()
 			case 4: return this.getUint32()
 		}
+	}
+
+}
+
+export class CursorView extends BufferView {
+
+	constructor(...args) {
+		super(...args)
+		this.offset = 0
 	}
 
 	getUint8() {

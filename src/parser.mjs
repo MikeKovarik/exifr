@@ -9,6 +9,7 @@ import {
 	getInt32,
 	slice,
 	toString,
+	BufferView,
 	BufferCursor
 } from './buff-util.mjs'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tags-translation.mjs'
@@ -463,6 +464,8 @@ export class Exifr extends Reader {
 	findAppSegments(offset = 0) {
 		//console.log('findAppSegments')
 		let buffer = this.buffer
+		let view = this.view = new BufferView(this.buffer)
+		// No need to parse through till the end of the buffer.
 		let length = (buffer.length || buffer.byteLength) - 10
 		this.segments = []
 		this.unknownSegments = []
@@ -516,6 +519,10 @@ export class Exifr extends Reader {
 		this.parsers = {}
 
 		let output = {}
+
+		if (this.options.icc && !parsers.icc)   throw new Error('ICC Parser was not loaded, try using full build of exifr.')
+		if (this.options.xmp && !parsers.xmp)   throw new Error('ICC Parser was not loaded, try using full build of exifr.')
+		if (this.options.iptc && !parsers.iptc) throw new Error('ICC Parser was not loaded, try using full build of exifr.')
 
 		let promises = this.segments
 			.filter(segment => !!this.options[segment.type])
