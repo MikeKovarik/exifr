@@ -7,8 +7,7 @@ import {
 	getInt16,
 	getInt32,
 	slice,
-	toString,
-	BufferCursor
+	toString
 } from '../buff-util.mjs'
 
 

@@ -107,7 +107,7 @@ export default class Reader {
 // If the EXIF is not found within the first 512 Bytes. the range can be adjusted by user,
 // or it falls back to reading the whole file if enabled with options.allowWholeFile.
 
-class ChunkedReader {
+export class ChunkedReader {
 	
 	constructor(input, options) {
 		//console.log('ChunkedReader')
@@ -152,39 +152,34 @@ class ChunkedReader {
 
 
 
-class FsReader extends ChunkedReader {
+export class FsReader extends ChunkedReader {
 
 	async readWhole() {
 		//console.log('FsReader.readWhole()')
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
-		return buffer
+		return new BufferView(buffer)
 	}
 
 	async readChunk({start, size}) {
 		//console.log('FsReader.readChunk()', start, size)
 		let chunk = Buffer.allocUnsafe(size)
 		await this.fh.read(chunk, 0, size, start)
-		return chunk
+		return new BufferView(chunk)
 	}
 
 	async readChunked() {
+		this.view = new BufferView()
 		//console.log('FsReader.readChunked()')
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
 		try {
 			var seekChunk = Buffer.allocUnsafe(this.options.seekChunkSize)
-			var {bytesRead} = await this.fh.read(seekChunk, 0, seekChunk.length, null)
+			var {bytesRead} = await this.fh.read(seekChunk, 0, seekChunk.length, 0)
+			console.log('bytesRead', bytesRead)
 			if (!bytesRead) return this.destroy()
-			// Try to search for beginning of exif within the first 512 bytes.
-			var tiffPosition = findTiff(seekChunk)
-			if (tiffPosition && tiffPosition.start && tiffPosition.size) {
-				// Exif was found. Allocate appropriately sized buffer and read the whole exif into the buffer.
-				// NOTE: does not load the whole file, just exif.
-				var tiffChunk = await this.readChunk(tiffPosition)
-				//await this.destroy()
-				return [tiffChunk, {start: 0}]
-			}
+			this.view = new BufferView(seekChunk)
+			return this.view
 			// Close FD/FileHandle since we're using lower-level APIs.
 			//await this.destroy()
 		} catch(err) {
@@ -207,7 +202,7 @@ class FsReader extends ChunkedReader {
 
 
 
-class WebReader extends ChunkedReader {
+export class WebReader extends ChunkedReader {
 
 	async readWhole() {
 		//console.log('WebReader.readWhole()')
@@ -221,34 +216,45 @@ class WebReader extends ChunkedReader {
 		let end = size
 		let view = await this.readChunk({start, end, size})
 		//console.log('view', view)
-		/*
-		let tiffPosition = findTiff(view)
-		if (tiffPosition !== undefined) {
-			// Exif was found.
-			if (tiffPosition.end > view.byteLength) {
-				// Exif was found outside the buffer we alread have.
-				// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
-				view = await this.readChunk(tiffPosition)
-				return [view, {start: 0}]
-			} else {
-				return [view, tiffPosition]
-			}
-		}
-		*/
-		/*
-			if (position.end > view.byteLength) {
-				// Exif was found outside the buffer we alread have.
-				// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
-				view = await this.readChunk(position)
-				return [view, {start: 0}]
-			} else {
-				return [view, position]
-			}
-			*/
 	}
 
 }
 
+	/*
+	// Try to search for beginning of exif within the first 512 bytes.
+	var tiffPosition = findTiff(seekChunk)
+	if (tiffPosition && tiffPosition.start && tiffPosition.size) {
+		// Exif was found. Allocate appropriately sized buffer and read the whole exif into the buffer.
+		// NOTE: does not load the whole file, just exif.
+		var tiffChunk = await this.readChunk(tiffPosition)
+		//await this.destroy()
+		return [tiffChunk, {start: 0}]
+	}
+	*/
+/*
+let tiffPosition = findTiff(view)
+if (tiffPosition !== undefined) {
+	// Exif was found.
+	if (tiffPosition.end > view.byteLength) {
+		// Exif was found outside the buffer we alread have.
+		// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
+		view = await this.readChunk(tiffPosition)
+		return [view, {start: 0}]
+	} else {
+		return [view, tiffPosition]
+	}
+}
+*/
+/*
+	if (position.end > view.byteLength) {
+		// Exif was found outside the buffer we alread have.
+		// We need to do additional fetch to get the whole exif at the location we found from the first chunk.
+		view = await this.readChunk(position)
+		return [view, {start: 0}]
+	} else {
+		return [view, position]
+	}
+	*/
 
 function sanitizePosition(position = {}) {
 	let {start, size, end} = position
@@ -261,7 +267,7 @@ function sanitizePosition(position = {}) {
 
 }
 
-class Base64Reader extends WebReader {
+export class Base64Reader extends WebReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
 	readChunk(position) {
@@ -308,7 +314,7 @@ class Base64Reader extends WebReader {
 
 }
 
-class UrlFetcher extends WebReader {
+export class UrlFetcher extends WebReader {
 
 	async readChunk(position) {
 		//console.log('UrlFetcher.readChunk()', position)
@@ -325,7 +331,7 @@ class UrlFetcher extends WebReader {
 
 }
 
-class BlobReader extends WebReader {
+export class BlobReader extends WebReader {
 
 	readChunk(position) {
 		//console.log('BlobReader.readChunk()', position)

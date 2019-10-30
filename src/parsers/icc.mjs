@@ -4,8 +4,7 @@ import {
 	getUint16,
 	getUint32,
 	toString,
-	BufferView,
-	BufferCursor
+	BufferView
 } from '../buff-util.mjs'
 
 

@@ -9,8 +9,7 @@ import {
 	getInt32,
 	slice,
 	toString,
-	BufferView,
-	BufferCursor
+	BufferView
 } from './buff-util.mjs'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tags-translation.mjs'
 import {AppSegment, parsers} from './parsers/core.mjs'
