@@ -1,4 +1,4 @@
-import {parse} from '../index.mjs'
+import {parse, Exifr} from '../index.mjs'
 import {ChunkedReader, FsReader} from '../src/reader.mjs'
 import {BufferView} from '../src/buff-util.mjs'
 import {assert, isBrowser, isNode} from './test-util.mjs'
@@ -212,12 +212,12 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(2), 5)
 		})
 
-		isNode && it(`new (<5>, 2, 4) size outside of range should throw`, async () => {
-			let uint8 = new Uint8Array(5)
-			assert.throws(() => new BufferView(uint8, 2, 4))
+		it(`new (number) creates new view`, async () => {
+			let view = new BufferView(3)
+			assert.equal(view.byteLength, 3)
 		})
 
-		isNode && it(`new (Buffer) allocUnsafe`, async () => {
+		isNode && it(`new (Buffer.allocUnsafe) creates new view`, async () => {
 			let buffer = Buffer.allocUnsafe(3)
 			let val0 = buffer[0]
 			let val1 = buffer[1]
@@ -229,7 +229,7 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(2), val2)
 		})
 
-		isNode && it(`new (Buffer, 0, 3) allocUnsafe`, async () => {
+		isNode && it(`new (Buffer.allocUnsafe, 0, 3) creates subview`, async () => {
 			let buffer = Buffer.allocUnsafe(5)
 			let val0 = buffer[0]
 			let val1 = buffer[1]
@@ -241,7 +241,7 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(2), val2)
 		})
 
-		isNode && it(`new (Buffer, 1, 3) allocUnsafe`, async () => {
+		isNode && it(`new (Buffer.allocUnsafe, 1, 3) creates subview`, async () => {
 			let buffer = Buffer.allocUnsafe(5)
 			let val1 = buffer[1]
 			let val2 = buffer[2]
@@ -253,7 +253,7 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(2), val3)
 		})
 
-		isNode && it(`new (Buffer, 2, 3) allocUnsafe`, async () => {
+		isNode && it(`new (Buffer.allocUnsafe, 2, 3) creates subview`, async () => {
 			let buffer = Buffer.allocUnsafe(5)
 			let val2 = buffer[2]
 			let val3 = buffer[3]
@@ -265,24 +265,12 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(2), val4)
 		})
 
-		it(`create from number`, async () => {
-			let view = new BufferView(3)
-			assert.equal(view.byteLength, 3)
+		isNode && it(`trying to create subview with offset/length outside of range throw`, async () => {
+			let uint8 = new Uint8Array(5)
+			assert.throws(() => new BufferView(uint8, 2, 10))
 		})
 
-		it(`append()`, async () => {
-			let firstChunk = Uint8Array.from([0,1,2])
-			let view = new BufferView(firstChunk)
-			assert.equal(view.byteLength, 3)
-			let nextChunk = Uint8Array.from([3,4,5])
-			view.append(nextChunk)
-			assert.equal(view.byteLength, 6)
-			assert.equal(view.getUint8(2), 2)
-			assert.equal(view.getUint8(3), 3)
-			assert.equal(view.getUint8(5), 5)
-		})
-
-		it(`subarray()`, async () => {
+		it(`.subarray() creates new view on top of original memory`, async () => {
 			let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
 			let subView = view.subarray(1, 4)
 			assert.equal(subView.byteLength, 4)
@@ -307,14 +295,215 @@ TODO: rewrite chunked reader for 3.0.0
 
 	})
 
-	describe('ChunkedReader', () => {
+	describe('DynamicBufferView', () => {
 
-		it(`FsReader`, async () => {
-			let path = getPath('IMG_20180725_163423.jpg')
-			let options = {wholeFile: false}
-			let reader = new FsReader(path, options)
+		it(`.append() extends the view`, async () => {
+			let firstChunk = Uint8Array.from([0,1,2])
+			let view = new BufferView(firstChunk)
+			assert.equal(view.byteLength, 3)
+			let nextChunk = Uint8Array.from([3,4,5])
+			view.append(nextChunk)
+			assert.equal(view.byteLength, 6)
+			assert.equal(view.getUint8(2), 2)
+			assert.equal(view.getUint8(3), 3)
+			assert.equal(view.getUint8(5), 5)
 		})
 
+		describe('.ranges array', () => {
+
+			it(`by default contains only has one range spanning input's whole size`, async () => {
+				let view = new BufferView(5)
+				assert.isArray(view.ranges)
+				assert.equal(view.ranges.length, 1)
+				assert.equal(view.ranges[0].offset, 0)
+				assert.equal(view.ranges[0].length, 5)
+				assert.equal(view.ranges[0].end, 5)
+			})
+
+			it(`chunk overlapping from start extends initial range`, async () => {
+				let view = new BufferView(5)
+				view.subarray(0, 10, true)
+				assert.equal(view.ranges.length, 1)
+				assert.equal(view.ranges[0].offset, 0)
+				assert.equal(view.ranges[0].length, 10)
+				assert.equal(view.ranges[0].end, 10)
+			})
+
+			it(`chunk overlapping from middle extends initial range`, async () => {
+				let view = new BufferView(5)
+				view.subarray(3, 10, true)
+				assert.equal(view.ranges.length, 1)
+				assert.equal(view.ranges[0].offset, 0)
+				assert.equal(view.ranges[0].length, 13)
+				assert.equal(view.ranges[0].end, 13)
+			})
+
+			it(`adjacent chunk extends initial range`, async () => {
+				let view = new BufferView(5)
+				view.subarray(5, 10, true)
+				assert.equal(view.ranges.length, 1)
+				assert.equal(view.ranges[0].offset, 0)
+				assert.equal(view.ranges[0].length, 15)
+				assert.equal(view.ranges[0].end, 15)
+			})
+
+			it(`distant chunk is described by second range`, async () => {
+				let view = new BufferView(5)
+				view.subarray(10, 10, true)
+				assert.equal(view.ranges.length, 2)
+				assert.equal(view.ranges[0].offset, 0)
+				assert.equal(view.ranges[0].length, 5)
+				assert.equal(view.ranges[0].end, 5)
+				assert.equal(view.ranges[1].offset, 10)
+				assert.equal(view.ranges[1].length, 10)
+				assert.equal(view.ranges[1].end, 20)
+			})
+
+		})
+
+		describe('.isRangeRead()', () => {
+
+			it(`5 / 1-4 => true`, () => {
+				let view = new BufferView(5)
+				assert.isTrue(view.isRangeRead(1, 4))
+			})
+
+			it(`5 / 0-3 => true`, () => {
+				let view = new BufferView(5)
+				assert.isTrue(view.isRangeRead(0, 3))
+			})
+
+			it(`5 / 2-5 => true`, () => {
+				let view = new BufferView(5)
+				assert.isTrue(view.isRangeRead(2, 5))
+			})
+
+			it(`5 / 0-5 => true`, () => {
+				let view = new BufferView(5)
+				assert.isTrue(view.isRangeRead(0, 5))
+			})
+
+			it(`5 / 0-6 => false`, () => {
+				let view = new BufferView(5)
+				assert.isFalse(view.isRangeRead(0, 6))
+			})
+
+			it(`5 / 4-8 => false`, () => {
+				let view = new BufferView(5)
+				assert.isFalse(view.isRangeRead(4, 8))
+			})
+
+			it(`5 / 5-7 => false`, () => {
+				let view = new BufferView(5)
+				assert.isFalse(view.isRangeRead(5, 7))
+			})
+
+			it(`5 / 7-9 => false`, () => {
+				let view = new BufferView(5)
+				assert.isFalse(view.isRangeRead(7, 9))
+			})
+
+		})
+
+	})
+
+
+	describe('parser', () => {
+		// todo: move to another file
+
+		it(`segments`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			console.log('input', input)
+			let exifr = new Exifr(true)
+			await exifr.read(input)
+			exifr.findAppSegments()
+			let jfifSegment = exifr.segments.find(segment => segment.type === 'jfif')
+			assert.isDefined(jfifSegment)
+			assert.equal(jfifSegment.offset, 25388)
+			assert.equal(jfifSegment.length, 18)
+			assert.equal(jfifSegment.start, 25397)
+			assert.equal(jfifSegment.size, 9)
+			assert.equal(jfifSegment.end, 25406)
+		})
+
+	})
+
+	describe('ChunkedReader', () => {
+
+		const tiffOffset = 2
+		const tiffLength = 25386
+		const tiffEnd    = tiffOffset + tiffLength
+
+		const jfifOffset = 25388
+		const jfifLength = 18
+		const jfifEnd    = jfifOffset + jfifLength
+
+		const seekChunkSize = 10
+
+		let path = getPath('IMG_20180725_163423.jpg')
+		let options = {wholeFile: false, seekChunkSize}
+
+		it(`reads initial chunk`, async () => {
+			let reader = new FsReader(path, {seekChunkSize})
+			await reader.readChunked()
+			let {view} = reader
+			assert.equal(view.byteLength, seekChunkSize)
+			assert.equal(view.getUint8(0), 0xFF)
+			assert.equal(view.getUint8(1), 0xD8)
+		})
+
+		it(`reading additional chunks keeps extending original view`, async () => {
+			let reader = new FsReader(path, options)
+			await reader.readChunked()
+			let tiffChunk = await reader.readChunk({
+				start: tiffOffset,
+				size: tiffLength
+			})
+			assert.equal(tiffChunk.byteLength, tiffLength)
+			assert.equal(reader.view.byteLength, tiffEnd)
+			let jfifChunk = await reader.readChunk({
+				start: jfifOffset,
+				size: jfifLength
+			})
+			assert.equal(jfifChunk.byteLength, jfifLength)
+			assert.equal(reader.view.byteLength, jfifEnd)
+		})
+
+		it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
+			let reader = new FsReader(path, options)
+			await reader.readChunked()
+			assert.equal(reader.view.getUint8(0), 0xFF)
+			assert.equal(reader.view.getUint8(1), 0xD8)
+			assert.equal(reader.view.getUint8(2), 0xFF)
+			assert.equal(reader.view.getUint8(3), 0xE1)
+			let tiffChunk = await reader.readChunk({
+				start: tiffOffset,
+				size: tiffLength
+			})
+			assert.equal(reader.view.getUint8(0), 0xFF)
+			assert.equal(reader.view.getUint8(1), 0xD8)
+			assert.equal(reader.view.getUint8(2), 0xFF)
+			assert.equal(reader.view.getUint8(3), 0xE1)
+			assert.equal(reader.view.getUint8(13), 0x49)
+			assert.equal(reader.view.getUint8(14), 0x2a)
+			assert.equal(tiffChunk.getUint8(0), 0xFF)
+			assert.equal(tiffChunk.getUint8(1), 0xE1)
+			assert.equal(tiffChunk.getUint8(11), 0x49)
+			assert.equal(tiffChunk.getUint8(12), 0x2a)
+		})
+/*
+		it(`reading distant chunk extends original buffer but leaves`, async () => {
+			let reader = new FsReader(path, options)
+			await reader.readChunked()
+			assert.equal(tiffChunk.byteLength, tiffLength)
+			let jfifChunk = await reader.readChunk({
+				start: jfifOffset,
+				size: jfifLength
+			})
+			assert.equal(jfifChunk.byteLength, jfifLength)
+			assert.equal(reader.view.byteLength, jfifEnd)
+		})
+*/
 	})
 
 

@@ -92,35 +92,32 @@ export function toString(buffer, start = 0, end) {
 const utf8  = new TextDecoder('utf-8')
 //const utf16 = new TextDecoder('utf-16')
 
-export class BufferView {
+export class BufferViewCore {
 
 	constructor(arg, offset = 0, length) {
 		if (arg instanceof ArrayBuffer) {
-			this.dataView = new DataView(arg, offset, length)
+			let dataView = new DataView(arg, offset, length)
+			this._applyDataViewProps(dataView)
 		} else if (arg instanceof Uint8Array || arg instanceof DataView || arg instanceof BufferView) {
 			// Node.js Buffer is also instance of Uint8Array, but small ones are backed
 			// by single large ArrayBuffer pool, so we always need to check for arg.byteOffset.
 			let {byteOffset, byteLength} = arg
 			if (length === undefined) length = byteLength - offset
 			offset += byteOffset
-			//console.log('offset', offset)
-			//console.log('length', length)
-			//console.log('byteOffset', byteOffset)
-			//console.log('byteLength', byteLength)
-			//console.log('offset + length', offset + length)
-			//console.log('byteOffset + byteLength', byteOffset + byteLength)
 			if (offset + length > byteOffset + byteLength)
 				throw new Error('Creating view outside of available memory in ArrayBuffer')
-			this.dataView = new DataView(arg.buffer, offset, length)
+			let dataView = new DataView(arg.buffer, offset, length)
+			this._applyDataViewProps(dataView)
 		} else if (typeof arg === 'number') {
-			this.dataView = new DataView(new ArrayBuffer(arg))
+			let dataView = new DataView(new ArrayBuffer(arg))
+			this._applyDataViewProps(dataView)
 		} else {
 			throw new Error('Invalid input argument for BufferView: ' + arg)
 		}
-		this._applyDataViewProps()
 	}
 
-	_applyDataViewProps() {
+	_applyDataViewProps(dataView) {
+		this.dataView   = dataView
 		this.buffer     = this.dataView.buffer
 		this.byteOffset = this.dataView.byteOffset
 		this.byteLength = this.dataView.byteLength
@@ -167,18 +164,79 @@ export class BufferView {
 		return this.dataView.toString(arg, this.constructor.name)
 	}
 
-	append(view2) {
-		if (view2 instanceof DataView || view2 instanceof BufferView)
-			view2 = new Uint8Array(view2.buffer, view2.byteOffset, view2.byteLength)
-		let view1 = new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
-		var mergedView = new Uint8Array(view1.byteLength + view2.byteLength)
-		mergedView.set(view1, 0)
-		mergedView.set(view2, view1.byteLength)
-		this.dataView = new DataView(mergedView.buffer, mergedView.byteOffset, mergedView.byteLength)
-		this._applyDataViewProps()
+}
+
+
+function isBetween(min, val, max) {
+	return min <= val && val <= max
+}
+
+export class BufferView extends BufferViewCore {
+
+	bytesRead = 0
+
+	ranges = []
+
+	constructor(...args) {
+		super(...args)
+		this._registerRange(0, this.byteLength)
+	}
+
+	_extend(newLength, unsafe = true) {
+		if (hasBuffer && unsafe)
+			var uintView = Buffer.allocUnsafe(newLength)
+		else
+			var uintView = new Uint8Array(newLength)
+		let dataView = new DataView(uintView.buffer, uintView.byteOffset, uintView.byteLength)
+		uintView.set(new Uint8Array(this.buffer, this.byteOffset, this.byteLength), 0)
+		return {uintView, dataView}
+	}
+
+	append(chunk) {
+		if (chunk instanceof DataView || chunk instanceof BufferView)
+			chunk = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
+		else if ((!chunk instanceof Uint8Array))
+			throw new Error('Invalid chunk type to extend with')
+		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
+		uintView.set(chunk, this.byteLength)
+		this._applyDataViewProps(dataView)
+	}
+
+	subarray(offset, length, canExtend = false) {
+		let end = offset + length
+		if (end > this.byteLength && canExtend) {
+			let {dataView} = this._extend(end)
+			this._applyDataViewProps(dataView)
+		}
+		this._registerRange(offset, length)
+		return super.subarray(offset, length)
+	}
+
+	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
+	// or if its so far only allocated & unitialized memory ready to be written into.
+	isRangeRead(offset, length) {
+		return this.ranges.some(range => range.offset <= offset && length <= range.length)
+	}
+
+	_registerRange(offset, length) {
+		let end = offset + length
+		let within = this.ranges.filter(range => isBetween(offset, range.offset, end) || isBetween(offset, range.end, end))
+		if (within.length > 0) {
+			offset = Math.min(offset, ...within.map(range => range.offset))
+			end    = Math.max(end,    ...within.map(range => range.end))
+			length = end - offset
+			let range = within.shift()
+			range.offset = offset
+			range.length = length
+			range.end    = end
+			this.ranges = this.ranges.filter(range => !within.includes(range))
+		} else {
+			this.ranges.push({offset, length, end})
+		}
 	}
 
 }
+
 
 export class CursorView extends BufferView {
 
