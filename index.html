@@ -23,7 +23,7 @@
 		}
 		@media only screen and (min-width: 600px) {
 			body {
-				padding: 64px 32px 32px 32px;
+				padding: 40px;
 			}
 		}
 
@@ -34,19 +34,14 @@
 		[accent] {
 			color: rgb(50, 80, 144);
 		}
-		img {
-			width: 200px;
-		}
-		h1 {
-			font-weight: 500;
-			font-size: 40px;
-		}
 		h2 {
 			font-weight: 500;
-			font-size: 24px;
+			font-size: 28px;
 		}
-
-		h1,
+		h3 {
+			font-weight: 700;
+			font-size: 16px;
+		}
 		h2,
 		h3 {
 			position: relative;
@@ -59,6 +54,35 @@
 		* + h3 {
 			margin-top: 24px;
 		}
+
+		
+		header h1 {
+			width: 167px;
+			height: 89px;
+			background-position: center;
+			background-repeat: no-repeat;
+			background-size: contain;
+			background-image: url('./logo/blue-small.png');
+			font-size: 0;
+			margin-bottom: 32px;
+		}
+		header div {
+			margin-bottom: 40px;
+		}
+		@media only screen and (min-width: 740px) {
+			header {
+				display: flex;
+			}
+				header div {
+					margin-top: 23px;
+					margin-left: 56px;
+				}
+		}
+
+		img {
+			width: 200px;
+		}
+
 		#picker,
 		#dropzone,
 		pre,
@@ -67,30 +91,25 @@
 			margin-bottom: 8px;
 		}
 
-		h1::after,
-		h2::after {
-			content: '';
-			position: absolute;
-			left: 0;
-			top: -0.3em;
-			height: 4px;
-			width: 120px;
-			background-color: currentColor;
-		}
-
 		h3 {
 			display: flex;
 			align-items: baseline;
 			justify-content: space-between;
 		}
-			h3 span {
-				font-weight: 400;
-				font-size: 12px;
-			}
 			h3 span:hover {
 				text-decoration: underline;
 				cursor: pointer;
 			}
+
+		#input-head,
+		#output-head {
+			margin: 0;
+		}
+		h2 span,
+		h3 span {
+			font-weight: 400;
+			font-size: 12px;
+		}
 
 
 		@media only screen and (min-width: 600px) {
@@ -214,11 +233,6 @@
 					"input      .            .            output     "
 			}
 		}
-		#output-head {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-		}
 	</style>
 </head>
 <body>
@@ -229,26 +243,27 @@
 	TODO: display parsed xmp (using the new API to inject XML parser into library)
 	-->
 
-	<h1>Exifr</h1>
-	<p>📑 The fastest and most versatile JavaScript EXIF reading library.</p>
-	<p>For docs and more information check out the <a href="https://github.com/MikeKovarik/exifr">GitHub repository</a></p>
-
-	<br>
-	<br>
+	<header>
+		<h1>Exifr</h1>
+		<div>
+			<p>The fastest and most versatile JavaScript EXIF reading library.</p>
+			<p>Check out the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a> for docs and more information.</p>
+		</div>
+	</header>
 
 	<div id="grid">
 
 		<h2 id="input-head">Input</h2>
 
-		<div id="output-head">
-			<h2>Output</h2>
+		<h2 id="output-head">
+			Output
+			<span id="time"></span>
 			<!-- TODO -->
 			<!--div>
 				<input type="checkbox" checked>
 				Display only interresting data
 			</div-->
-			<div id="time"></div>
-		</div>
+		</h2>
 
 		<div id="input">
 
