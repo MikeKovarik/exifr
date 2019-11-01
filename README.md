@@ -1,4 +1,6 @@
-# exifr
+<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/black-small.png" width="140">
+
+📑 The fastest and most versatile JavaScript EXIF reading library.
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg)](https://travis-ci.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
@@ -6,9 +8,41 @@
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![devDependency Status](https://david-dm.org/MikeKovarik/exifr/dev-status.svg)](https://david-dm.org/MikeKovarik/exifr#info=devDependencies)
 
-📑 The fastest and most versatile JavaScript EXIF reading library.
+
 
 Try it yourself - [demo page](https://exifr.netlify.com/).
+
+## Features
+
+Works everywhere and accepts pretty much everything you throw at it.
+
+* **Isomorphic**.
+<br> *Works in Node.js and Browsers.*
+* **Wide range of inputs**
+<br> *`ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
+* **Blazing Fast**.
+<br> *Like really fast. Like 1-2ms fast.*
+* **Efficient**.
+<br> *Only reads first few bytes instead of the whole file.*
+* **Configurable small builds**.
+<br> *Comes in many variants so you import only the code you really need.*
+* **Fine grained parsing**
+<br> *Only need GPS coords? It'll only parse GPS IFD, not the whole TIFF.*
+* **Comes as both UMD & ESM Module**
+<br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
+* **Simple output, translated values**
+<br> *Meaningful descriptive strings instead of enum values, dates converted to Date instances, etc...*
+* **Promise based**
+<br> *Uses Node.js 10 Promise FS API*
+* **No dependencies**
+
+### Supports
+
+* JPEG files
+* TIFF files
+* XMP Segments - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
+* IPTC Segments - Captions & copyrights
+* Embedded thumbnail extraction
 
 ## Installation
 
@@ -21,35 +55,6 @@ also availabe as UMD bundle transpiled for ES5
 ```
 https://unpkg.com/exifr
 ```
-
-## Features
-
-Works everywhere and accepts pretty much everything you throw at it.
-
-* **Isomorphic**.
-<br> *Works in both Node and Browsers.*
-* **Wide range of inputs**
-<br> *`ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
-* **Blazing Fast**.
-<br> *Like really fast. Like 1-2ms fast.*
-* **Efficient**.
-<br> *Only reads first few bytes of the file.*
-* Fine grained parsing
-<br> *only need GPS coords? No need to parse the whole exif*
-* Promise based
-<br> *Uses Node.js 10.x experimental Promise FS API*
-* Comes as UMD module (along with ESM source).
-<br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
-* Simple output
-<br> *meaningful descriptive strings instead of enum values, dates converted to Date instances, etc...*
-* **No dependencies**
-
-### Supports
-
-* Basic TIFF/EXIF support
-* XMP Segments - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
-* IPTC Segments - Captions & copyrights
-* Embedded thumbnail extraction
 
 ## Usage
 
@@ -130,7 +135,6 @@ worker.onmessage = e => console.log(e.data)
 ```js
 // worker.js
 importScripts('./node_modules/exifr/index.js')
-let exifr = self.exifr // UMD
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
@@ -165,7 +169,11 @@ Need to support older browsers? Use legacy build along with polyfills.
 * **Legacy**
 <br>Supports older browsers including IE 11.
 <br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
-<br>You still need to provide polyfill for Array.from, Set, and other ES6+ features
+<br>You still need to provide polyfill for Array.from, Set, TextEncoder, Object.entries and other ES6+ features
+
+### ~~By included parsers~~
+
+TODO: to be implemented
 
 ### Distributions chart
 
