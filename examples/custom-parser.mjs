@@ -1,6 +1,6 @@
 // node --experimental-modules enumerate-segments.mjs
 import {ExifParser, Tiff} from '../index.mjs'
-import {getUint8, getUint32} from '../src/buff-util.mjs'
+import {getUint8, getUint32} from '../src/util/BufferView.mjs'
 import {promises as fs} from 'fs'
 
 class Flir extends Tiff {

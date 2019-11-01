@@ -5,7 +5,7 @@ import {
 	getUint32,
 	toString,
 	BufferView
-} from '../buff-util.mjs'
+} from '../util/BufferView.mjs'
 
 
 const PROFILE_HEADER_LENGTH = 84

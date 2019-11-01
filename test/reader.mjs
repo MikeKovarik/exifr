@@ -1,6 +1,6 @@
 import {parse, Exifr} from '../index.mjs'
 import {ChunkedReader, FsReader} from '../src/reader.mjs'
-import {BufferView} from '../src/buff-util.mjs'
+import {BufferView} from '../src/util/BufferView.mjs'
 import {assert, isBrowser, isNode} from './test-util.mjs'
 import {getPath, getUrl, getFile} from './test-util.mjs'
 import {promises as fs} from 'fs'

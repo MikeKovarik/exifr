@@ -4,7 +4,7 @@ import {
 	getUint16,
 	getUint32,
 	CursorView
-} from '../buff-util.mjs'
+} from '../util/BufferView.mjs'
 
 parsers.jfif = class Jfif extends AppSegment {
 

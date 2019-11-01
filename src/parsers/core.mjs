@@ -8,7 +8,7 @@ import {
 	slice,
 	toString,
 	BufferView
-} from '../buff-util.mjs'
+} from '../util/BufferView.mjs'
 
 
 /*

@@ -1,4 +1,4 @@
-import {hasBuffer, isBrowser, isNode, isWorker, BufferView} from './buff-util.mjs'
+import {hasBuffer, isBrowser, isNode, isWorker, BufferView} from './util/BufferView.mjs'
 import {processOptions} from './options.mjs'
 if (isNode) {
 	if (typeof require === 'function')

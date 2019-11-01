@@ -10,7 +10,7 @@ import {
 	slice,
 	toString,
 	BufferView
-} from './buff-util.mjs'
+} from './util/BufferView.mjs'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tags-translation.mjs'
 import {AppSegment, parsers} from './parsers/core.mjs'
 import './parsers/jfif.mjs'

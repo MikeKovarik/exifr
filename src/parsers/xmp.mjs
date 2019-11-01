@@ -8,7 +8,7 @@ import {
 	getInt32,
 	slice,
 	toString
-} from '../buff-util.mjs'
+} from '../util/BufferView.mjs'
 
 
 //<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>
