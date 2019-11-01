@@ -199,6 +199,7 @@ export class BufferView extends BufferViewCore {
 			throw new Error('Invalid chunk type to extend with')
 		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
 		uintView.set(chunk, this.byteLength)
+		this._registerRange(this.byteLength, chunk.byteLength)
 		this._applyDataViewProps(dataView)
 	}
 
@@ -215,7 +216,8 @@ export class BufferView extends BufferViewCore {
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
 	// or if its so far only allocated & unitialized memory ready to be written into.
 	isRangeRead(offset, length) {
-		return this.ranges.some(range => range.offset <= offset && length <= range.length)
+		let end = offset + length
+		return this.ranges.some(range => range.offset <= offset && end <= range.end)
 	}
 
 	_registerRange(offset, length) {
