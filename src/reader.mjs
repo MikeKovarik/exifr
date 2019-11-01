@@ -154,7 +154,6 @@ export class ChunkedReader {
 export class FsReader extends ChunkedReader {
 
 	async readWhole() {
-		//this.mode = MODE_FULL
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
 		this.view = new BufferView(buffer)
@@ -170,19 +169,12 @@ export class FsReader extends ChunkedReader {
 	async readChunked() {
 		const {seekChunkSize} = this.options
 		this.view = new BufferView(seekChunkSize)
-		//console.log('FsReader.readChunked()')
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
-		try {
-			var {bytesRead} = await this.fh.read(this.view.dataView, 0, seekChunkSize, 0)
-			if (bytesRead === 0) return this.destroy()
-			return this.view
-			// Close FD/FileHandle since we're using lower-level APIs.
-			//await this.destroy()
-		} catch(err) {
-			// Try to close the FD/FileHandle in any case.
-			//await this.destroy()
-			throw err
+		var {bytesRead} = await this.fh.read(this.view.dataView, 0, seekChunkSize, 0)
+		if (bytesRead < seekChunkSize) {
+			// read less data then requested. that means we're at the end and there's no more data to read.
+			return this.destroy()
 		}
 	}
 
@@ -202,18 +194,15 @@ export class FsReader extends ChunkedReader {
 export class WebReader extends ChunkedReader {
 
 	async readWhole() {
-		//console.log('WebReader.readWhole()')
 		let start = 0
 		this.view = await this.readChunk({start})
 		return this.view
 	}
 
 	async readChunked(size) {
-		//console.log('WebReader.readChunked()', size)
 		let start = 0
 		let end = size
 		let view = await this.readChunk({start, end, size})
-		//console.log('view', view)
 	}
 
 }

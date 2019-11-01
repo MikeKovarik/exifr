@@ -5,16 +5,16 @@ export {defaultOptions} from './options.mjs'
 export {tags} from './tags.mjs'
 
 export async function parse(arg, options) {
-	let parser = new ExifParser(options)
-	await parser.read(arg)
-	return parser.parse()
+	let exifr = new ExifParser(options)
+	await exifr.read(arg)
+	return exifr.parse()
 }
 
 export async function thumbnailBuffer(arg, options = {}) {
-	let parser = new ExifParser(options)
-	await parser.read(arg)
-	if (parser.tiffPosition === undefined) return
-	return parser.extractThumbnail()
+	let exifr = new ExifParser(options)
+	await exifr.read(arg)
+	if (exifr.tiffPosition === undefined) return
+	return exifr.extractThumbnail()
 }
 
 export async function thumbnailUrl(...args) {

@@ -32,6 +32,7 @@ export default class IccParser extends AppSegment {
 	}
 
 	parse() {
+		//this.view = BufferView.from(arg)
 		this.view = new BufferView(this.buffer, this.start, this.size)
 		console.log(this.view.toString())
 		console.log(this.view.toString())

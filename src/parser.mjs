@@ -17,6 +17,7 @@ import './parsers/jfif.mjs'
 import './parsers/icc.mjs'
 import './parsers/xmp.mjs'
 
+const CHUNKED = 'chunked'
 
 const SIZE_LOOKUP = {
 	1: 1, // BYTE      - 8-bit unsigned integer
@@ -359,7 +360,7 @@ export class Exif extends Tiff {
 		// TODO: re-read file if portion of the exif is outside of read chunk
 		// (test/001.tif has tiff segment at the beggining plus at the end)
 		if (offset > this.buffer.byteLength) {
-			if (this.mode === 'chunked') {
+			if (this.mode === CHUNKED) {
 				var chunk = await this.reader.readChunk({
 					start: offset,
 					size: 10000,

@@ -92,12 +92,19 @@ export function toString(buffer, start = 0, end) {
 const utf8  = new TextDecoder('utf-8')
 //const utf16 = new TextDecoder('utf-16')
 
-export class BufferViewCore {
+export class BufferView {
+
+	static from(arg) {
+		if (arg instanceof this)
+			return arg
+		else
+			return new this(arg)
+	}
 
 	constructor(arg, offset = 0, length) {
 		if (arg instanceof ArrayBuffer) {
 			let dataView = new DataView(arg, offset, length)
-			this._applyDataViewProps(dataView)
+			this._swapDataView(dataView)
 		} else if (arg instanceof Uint8Array || arg instanceof DataView || arg instanceof BufferView) {
 			// Node.js Buffer is also instance of Uint8Array, but small ones are backed
 			// by single large ArrayBuffer pool, so we always need to check for arg.byteOffset.
@@ -107,24 +114,24 @@ export class BufferViewCore {
 			if (offset + length > byteOffset + byteLength)
 				throw new Error('Creating view outside of available memory in ArrayBuffer')
 			let dataView = new DataView(arg.buffer, offset, length)
-			this._applyDataViewProps(dataView)
+			this._swapDataView(dataView)
 		} else if (typeof arg === 'number') {
 			let dataView = new DataView(new ArrayBuffer(arg))
-			this._applyDataViewProps(dataView)
+			this._swapDataView(dataView)
 		} else {
 			throw new Error('Invalid input argument for BufferView: ' + arg)
 		}
 	}
 
-	_applyDataViewProps(dataView) {
+	_swapDataView(dataView) {
 		this.dataView   = dataView
 		this.buffer     = this.dataView.buffer
 		this.byteOffset = this.dataView.byteOffset
 		this.byteLength = this.dataView.byteLength
 	}
 
-	subarray(offset, length) {
-		return new this.constructor(this, offset, length)
+	subarray(offset, length, Class = this.constructor) {
+		return new Class(this, offset, length, BufferView)
 	}
 
 	//set(view, offset) {}
@@ -171,7 +178,7 @@ function isBetween(min, val, max) {
 	return min <= val && val <= max
 }
 
-export class BufferView extends BufferViewCore {
+export class DynamicBufferView extends BufferView {
 
 	bytesRead = 0
 
@@ -200,14 +207,14 @@ export class BufferView extends BufferViewCore {
 		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
 		uintView.set(chunk, this.byteLength)
 		this._registerRange(this.byteLength, chunk.byteLength)
-		this._applyDataViewProps(dataView)
+		this._swapDataView(dataView)
 	}
 
 	subarray(offset, length, canExtend = false) {
 		let end = offset + length
 		if (end > this.byteLength && canExtend) {
 			let {dataView} = this._extend(end)
-			this._applyDataViewProps(dataView)
+			this._swapDataView(dataView)
 		}
 		this._registerRange(offset, length)
 		return super.subarray(offset, length)
