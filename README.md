@@ -19,7 +19,7 @@ Works everywhere and accepts pretty much everything you throw at it.
 * **Isomorphic**.
 <br> *Works in Node.js and Browsers.*
 * **Wide range of inputs**
-<br> *`ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
+<br> *`Buffer`, `ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
 * **Blazing Fast**.
 <br> *Like really fast. Like 1-2ms fast.*
 * **Efficient**.
@@ -57,6 +57,21 @@ https://unpkg.com/exifr
 ```
 
 ## Usage
+
+* `parse(Buffer[, options])` Node.js only
+* `parse(ArrayBuffer[, options])`
+* `parse(Uint8Array[, options])`
+* `parse(DataView[, options])`
+* `parse(urlString[, options])` Browser only
+* `parse(objectUrlString[, options])` Browser only
+* `parse(filePathString[, options])` Node.js only
+* `parse(base64String[, options])`
+* `parse(HTMLImageElement[, options])` Browser only
+* `parse(File[, options])` Browser only
+* `parse(Blob[, options])` Browser only
+* `extractThumbnail(Blob)`
+
+## Examples
 
 ESM in Node.js
 
@@ -210,6 +225,16 @@ var exifr = require('exifr') // imports index.js
 ```js
 var exifr = require('exifr/index.legacy.js') // imports index.legacy.js
 ```
+
+TODO - work in progress
+
+
+|        | Supported inputs                                             | Chunked mode | parsers                               | size  |
+|--------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
+| full   | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
+| medium | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
+| lite   | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
+
 
 ## API
 

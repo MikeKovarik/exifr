@@ -1,6 +1,6 @@
 import {parse, Exifr} from '../index.mjs'
 import {ChunkedReader, FsReader} from '../src/reader.mjs'
-import {BufferView} from '../src/util/BufferView.mjs'
+import {BufferView, DynamicBufferView} from '../src/util/BufferView.mjs'
 import {assert, isBrowser, isNode} from './test-util.mjs'
 import {getPath, getUrl, getFile} from './test-util.mjs'
 import {promises as fs} from 'fs'
@@ -299,7 +299,7 @@ TODO: rewrite chunked reader for 3.0.0
 
 		it(`.append() extends the view`, async () => {
 			let firstChunk = Uint8Array.from([0,1,2])
-			let view = new BufferView(firstChunk)
+			let view = new DynamicBufferView(firstChunk)
 			assert.equal(view.byteLength, 3)
 			let nextChunk = Uint8Array.from([3,4,5])
 			view.append(nextChunk)
@@ -312,7 +312,7 @@ TODO: rewrite chunked reader for 3.0.0
 		describe('.ranges array', () => {
 
 			it(`by default contains only has one range spanning input's whole size`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isArray(view.ranges)
 				assert.equal(view.ranges.length, 1)
 				assert.equal(view.ranges[0].offset, 0)
@@ -321,7 +321,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 0-10] => [0-10] overlap extends existing range`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(0, 10, true)
 				assert.equal(view.ranges.length, 1)
 				assert.equal(view.ranges[0].offset, 0)
@@ -330,7 +330,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 3-10] => [0-13] overlap extends existing range`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(3, 10, true)
 				assert.equal(view.ranges.length, 1)
 				assert.equal(view.ranges[0].offset, 0)
@@ -339,7 +339,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 5-15] => [0-15] adjacing extends existing range`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(5, 10, true)
 				assert.equal(view.ranges.length, 1)
 				assert.equal(view.ranges[0].offset, 0)
@@ -348,7 +348,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 10-20] => [0-5, 10-20] distant chunk creates new range with gap between`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(10, 10, true)
 				assert.equal(view.ranges.length, 2)
 				assert.equal(view.ranges[0].offset, 0)
@@ -360,7 +360,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 10-20, 2-8] => [0-8, 10-20] overlap & distant chunk combined`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(10, 10, true)
 				view.subarray(2, 6, true)
 				assert.equal(view.ranges.length, 2)
@@ -373,7 +373,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 2-8, 10-20] => [0-8, 10-20] overlap & distant chunk combined`, async () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(2, 6, true)
 				view.subarray(10, 10, true)
 				assert.equal(view.ranges.length, 2)
@@ -386,7 +386,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 5-10, 10-15] => [0-15] removing gap combines adjacent ranges`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(5, 5, true)
 				view.subarray(10, 5, true)
 				assert.equal(view.ranges.length, 1)
@@ -396,7 +396,7 @@ TODO: rewrite chunked reader for 3.0.0
 			})
 
 			it(`[0-5, 10-15, 5-10] => [0-15] removing gap combines adjacent ranges`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(10, 5, true)
 				view.subarray(5, 5, true)
 				assert.equal(view.ranges.length, 1)
@@ -412,48 +412,48 @@ TODO: rewrite chunked reader for 3.0.0
 		describe('.isRangeRead()', () => {
 
 			it(`[0-5] / 1-4 => true`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isTrue(view.isRangeRead(1, 4))
 			})
 
 			it(`[0-5] / 0-3 => true`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isTrue(view.isRangeRead(0, 3))
 			})
 
 			it(`[0-5] / 2-5 => true`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isTrue(view.isRangeRead(2, 3))
 			})
 
 			it(`[0-5] / 0-5 => true`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isTrue(view.isRangeRead(0, 5))
 			})
 
 			it(`[0-5] / 0-6 => false`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isFalse(view.isRangeRead(0, 6))
 			})
 
 			it(`[0-5] / 4-8 => false`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isFalse(view.isRangeRead(4, 4))
 			})
 
 			it(`[0-5] / 5-7 => false`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				assert.isFalse(view.isRangeRead(5, 2))
 			})
 
 			it(`[0-5, 10-15] / 7-12 => false`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(10, 5, true)
 				assert.isFalse(view.isRangeRead(7, 5))
 			})
 
 			it(`[0-5, 5-10, 10-15] / 7-12 => true`, () => {
-				let view = new BufferView(5)
+				let view = new DynamicBufferView(5)
 				view.subarray(5, 5, true)
 				view.subarray(10, 5, true)
 				assert.isTrue(view.isRangeRead(7, 5))
