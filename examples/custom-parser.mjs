@@ -1,13 +1,12 @@
 // node --experimental-modules enumerate-segments.mjs
 import {ExifParser, Tiff} from '../index.mjs'
-import {getUint8, getUint32} from '../src/util/BufferView.mjs'
 import {promises as fs} from 'fs'
 
 class Flir extends Tiff {
 	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE1
-			&& getUint32(buffer, offset + 4) === 0x464c4952 // 'FLIR'
-			&& getUint8(buffer, offset + 8) === 0x00       // followed by '\0'
+		return buffer.getUint8(offset + 1) === 0xE1
+			&& buffer.getUint32(offset + 4) === 0x464c4952 // 'FLIR'
+			&& buffer.getUint8(offset + 8) === 0x00       // followed by '\0'
 	}
 }
 Flir.headerLength = 4 // todo: fix this when rollup support class properties

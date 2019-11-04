@@ -25,6 +25,12 @@ export const defaultOptions = {
 	// of additional loading and fetching.
 	parseChunkSize: 64 * 1024,
 
+	// Removes IFD pointers and other artifacts (useless for user) from output.
+	sanitize: true,
+	// TODO
+	reviveValues: true,
+	// TODO
+	translateTags: true,
 	// Translate enum values to strings, convert dates to Date instances, etc...
 	postProcess: true,
 	// Changes output format by merging all segments and blocks into single object.
