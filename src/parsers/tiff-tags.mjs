@@ -1,4 +1,4 @@
-import {tags, dates, valueString} from './tags.mjs'
+import {tags, dates, valueString} from '../tags.mjs'
 
 
 // Converts date string to Date instances, replaces enums with string descriptions
