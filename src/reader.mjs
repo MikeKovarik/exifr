@@ -1,4 +1,4 @@
-import {hasBuffer, isBrowser, isNode, isWorker, BufferView} from './util/BufferView.mjs'
+import {hasBuffer, isBrowser, isNode, isWorker, BufferView, DynamicBufferView} from './util/BufferView.mjs'
 import {processOptions} from './options.mjs'
 if (isNode) {
 	if (typeof require === 'function')
@@ -56,22 +56,22 @@ export default class Reader {
 
 	async readBlob(blob) {
 		this.reader = new BlobReader(blob, this.options)
-		return this.reader.read(this.options.parseChunkSize)
+		await this.reader.read(this.options.parseChunkSize)
 	}
 
 	async readUrl(url) {
 		this.reader = new UrlFetcher(url, this.options)
-		return this.reader.read(this.options.parseChunkSize)
+		await this.reader.read(this.options.parseChunkSize)
 	}
 
 	async readBase64(base64) {
 		this.reader = new Base64Reader(base64, this.options)
-		return this.reader.read(this.options.seekChunkSize)
+		await this.reader.read(this.options.seekChunkSize)
 	}
 
 	async readFileFromDisk(filePath) {
 		this.reader = new FsReader(filePath, this.options)
-		return this.reader.read()
+		await this.reader.read()
 	}
 
 	get mode() {
@@ -107,10 +107,11 @@ export default class Reader {
 // If the EXIF is not found within the first 512 Bytes. the range can be adjusted by user,
 // or it falls back to reading the whole file if enabled with options.allowWholeFile.
 
-export class ChunkedReader {
+export class ChunkedReader extends DynamicBufferView {
 	
 	constructor(input, options) {
 		//console.log('ChunkedReader')
+		super(0)
 		this.input = input
 		this.options = options
 	}
@@ -121,8 +122,7 @@ export class ChunkedReader {
 		// Chunked reading is only available for simple exif (APP1) FTD0
 		if (this.forceWholeFile) return this.readWhole()
 		// Read Chunk
-		let view = await this.readChunked(size)
-		if (view) return view
+		await this.readChunked(size)
 		// Seeking for the exif at the beginning of the file failed.
 		// Fall back to scanning throughout the whole file if allowed.
 		if (this.allowWholeFile) return this.readWhole()
@@ -156,26 +156,26 @@ export class FsReader extends ChunkedReader {
 	async readWhole() {
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
-		this.view = new BufferView(buffer)
-		return this.view
-	}
-
-	async readChunk({start, size}) {
-		var chunk = this.view.subarray(start, size, true)
-		await this.fh.read(chunk.dataView, 0, size, start)
-		return chunk
+		this._swapBuffer(buffer)
 	}
 
 	async readChunked() {
-		const {seekChunkSize} = this.options
-		this.view = new BufferView(seekChunkSize)
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
-		var {bytesRead} = await this.fh.read(this.view.dataView, 0, seekChunkSize, 0)
-		if (bytesRead < seekChunkSize) {
+		await this.readChunk({start: 0, size: this.options.seekChunkSize})
+	}
+
+	async readChunk({start, size}) {
+		console.log('readChunk', start, size)
+		var chunk = this.subarray(start, size, true)
+		console.log('chunk', chunk.toString())
+		var {bytesRead} = await this.fh.read(chunk, 0, size, start)
+		console.log('bytesRead', bytesRead, 'size', size)
+		if (bytesRead < size) {
 			// read less data then requested. that means we're at the end and there's no more data to read.
 			return this.destroy()
 		}
+		return chunk
 	}
 
 	// TODO: auto close file handle when reading and parsing is over
