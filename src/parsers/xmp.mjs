@@ -1,30 +1,23 @@
 import {AppSegment, parsers} from './core.mjs'
-import {
-	getUint8,
-	getUint16,
-	getUint32,
-	getInt8,
-	getInt16,
-	getInt32,
-	slice,
-	toString
-} from '../util/BufferView.mjs'
+import {BufferView} from '../util/BufferView.mjs'
 
 
 //<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>
 // XMPToolkit
 export default class Xmp extends AppSegment {
 
+	static id = 'xmp'
+
 	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE1
-			&& getUint32(buffer, offset + 4) === 0x68747470 // 'http'
+		return buffer.getUint8(offset + 1) === 0xE1
+			&& buffer.getUint32(offset + 4) === 0x68747470 // 'http'
 	}
 /*
 	// TODO: check & calculate the values are correct
 	static parsePosition(buffer, offset) {
-		var length = getUint16(buffer, offset + 2)
+		var length = buffer.getUint16(offset + 2)
 		var start = offset + 4
-		var size = getUint16(buffer, offset + 2) - 2
+		var size = buffer.getUint16(offset + 2) - 2
 		var end = start + size
 		return {offset, start, size, end}
 	}

@@ -1,19 +1,16 @@
 import {AppSegment, parsers} from './core.mjs'
-import {
-	getUint8,
-	getUint16,
-	getUint32,
-	CursorView
-} from '../util/BufferView.mjs'
+import {CursorView} from '../util/BufferView.mjs'
 
-parsers.jfif = class Jfif extends AppSegment {
 
+export default class Jfif extends AppSegment {
+
+	static id = 'jfif'
 	static headerLength = 9
 
 	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE0
-			&& getUint32(buffer, offset + 4) === 0x4A464946 // 'JFIF'
-			&& getUint8(buffer, offset + 8) === 0x00       // followed by '\0'
+		return buffer.getUint8(offset + 1) === 0xE0
+			&& buffer.getUint32(offset + 4) === 0x4A464946 // 'JFIF'
+			&& buffer.getUint8(offset + 8) === 0x00       // followed by '\0'
 	}
 
 	parse() {
@@ -38,3 +35,5 @@ parsers.jfif = class Jfif extends AppSegment {
 	}
 
 }
+
+parsers.jfif = Jfif

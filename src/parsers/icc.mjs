@@ -1,11 +1,5 @@
 import {AppSegment, parsers} from './core.mjs'
-import {
-	getUint8,
-	getUint16,
-	getUint32,
-	toString,
-	BufferView
-} from '../util/BufferView.mjs'
+import {BufferView} from '../util/BufferView.mjs'
 
 
 const PROFILE_HEADER_LENGTH = 84
@@ -21,13 +15,14 @@ var canTranslate = true // TODO: pass this through options
 
 export default class IccParser extends AppSegment {
 
+	static id = 'icc'
 	static headerLength = 18
 
 	static canHandle(buffer, offset) {
-		return getUint8(buffer, offset + 1) === 0xE2
+		return buffer.getUint8(offset + 1) === 0xE2
 		/*
-			&& getUint32(buffer, offset + 4) === 0x4A464946 // 'JFIF'
-			&& getUint8(buffer, offset + 8) === 0x00       // followed by '\0'
+			&& buffer.getUint32(offset + 4) === 0x4A464946 // 'JFIF'
+			&& buffer.getUint8(offset + 8) === 0x00       // followed by '\0'
 		*/
 	}
 

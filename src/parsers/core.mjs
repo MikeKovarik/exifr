@@ -1,14 +1,4 @@
-import {
-	getUint8,
-	getUint16,
-	getUint32,
-	getInt8,
-	getInt16,
-	getInt32,
-	slice,
-	toString,
-	BufferView
-} from '../util/BufferView.mjs'
+import {BufferView} from '../util/BufferView.mjs'
 
 
 /*
@@ -24,30 +14,31 @@ export class AppSegment {
 
 	static canHandle = () => false
 
-	static parse(buffer, start, options) {
-		let view = new BufferView(buffer, start)
-		let instance = new this(view, undefined, options)
-		return instance.parse()
-	}
-
-	constructor(buffer, position, options) {
-		Object.assign(this, position)
-		this.buffer = buffer // todo: deprecate
-		this.mainView = new BufferView(buffer)
-		this.options = options
-		//this.view = new BufferView(buffer)
-		//this.view.crop(start, ednd)
-	}
-
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.
 	// start  + size   === end  |  begining and end of parseable content
-	static parsePosition(buffer, offset) {
+	static findPosition(buffer, offset) {
 		// length at offset+2 is the size of appN content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
-		var length = getUint16(buffer, offset + 2) + 2
+		var length = buffer.getUint16(offset + 2) + 2
 		var start = offset + this.headerLength
 		var size = length - this.headerLength
 		var end = start + size
 		return {offset, length, start, size, end}
+	}
+
+	static parse(buffer, start, options) {
+		if (typeof start === 'object') {
+			options = start
+			start = undefined
+		}
+		let view = new BufferView(buffer, start)
+		let instance = new this(view, options)
+		return instance.parse()
+	}
+
+	constructor(view, options, reader) {
+		this.view = view
+		this.options = options
+		this.reader = reader
 	}
 
 }
