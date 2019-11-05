@@ -69,12 +69,8 @@ export class Exifr extends Reader {
 		// JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
 		// Whereas .tif file format starts with the TIFF structure right away.
 		var marker = view.getUint16(0)
-		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN) {
-			this.segments.push({
-				start: 0,
-				type: 'exif',
-			})
-		}
+		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN)
+			this.segments.push({start: 0, type: 'tiff'})
 
 		let offset = 0
 		let length = view.byteLength - 10 // No need to parse through till the end of the buffer.

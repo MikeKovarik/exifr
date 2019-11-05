@@ -79,7 +79,6 @@ export class BufferView {
 	}
 
 	_swapBuffer(uint8) {
-		console.log('_swapBuffer', uint8)
 		let dataView = new DataView(uint8.buffer, uint8.byteOffset, uint8.byteLength)
 		this._swapDataView(dataView)
 	}

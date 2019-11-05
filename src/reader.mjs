@@ -25,26 +25,26 @@ export default class Reader {
 		this.options = processOptions(options)
 	}
 
-	read(arg) {
+	async read(arg) {
 		if (typeof arg === 'string')
-			this.readString(arg)
+			await this.readString(arg)
 		else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)
-			this.readString(arg.src)
+			await this.readString(arg.src)
 		else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 			this.view = new BufferView(arg)
 		else if (isBrowser && arg instanceof Blob)
-			this.readBlob(arg)
+			await this.readBlob(arg)
 		else
 			throw new Error('Invalid input argument')
 	}
 
-	readString(string) {
+	async readString(string) {
 		if (isBase64Url(string))
-			this.readBase64(string)
+			await this.readBase64(string)
 		else if (isBrowser)
-			this.readUrl(string)
+			await this.readUrl(string)
 		else if (isNode)
-			this.readFileFromDisk(string)
+			await this.readFileFromDisk(string)
 		else
 			throw new Error('Invalid input argument')
 	}
@@ -110,23 +110,24 @@ export class ChunkedReader extends DynamicBufferView {
 	}
 
 	async readWhole() {
+		this.chunked = false
 		await this.readChunk(0)
 	}
 
 	async readChunked(size) {
+		this.chunked = true
 		await this.readChunk(0, size)
 	}
 
 	async read(size) {
-		//console.log('ChunkedReader.read()', size)
 		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
 		// Chunked reading is only available for simple exif (APP1) FTD0
-		if (this.forceWholeFile) return this.readWhole()
+		if (this.forceWholeFile) return await this.readWhole()
 		// Read Chunk
 		await this.readChunked(size)
 		// Seeking for the exif at the beginning of the file failed.
 		// Fall back to scanning throughout the whole file if allowed.
-		if (this.allowWholeFile) return this.readWhole()
+		if (this.allowWholeFile) return await this.readWhole()
 	}
 
 	get allowWholeFile() {
@@ -154,23 +155,22 @@ export class ChunkedReader extends DynamicBufferView {
 export class FsReader extends ChunkedReader {
 
 	async readWhole() {
+		this.chunked = false
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
 		this._swapBuffer(buffer)
 	}
 
 	async readChunked() {
+		this.chunked = true
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
 		await this.readChunk(0, this.options.seekChunkSize)
 	}
 
 	async readChunk(start, size) {
-		console.log('readChunk', start, size)
 		var chunk = this.subarray(start, size, true)
-		console.log('chunk', chunk.toString())
 		var {bytesRead} = await this.fh.read(chunk, 0, size, start)
-		console.log('bytesRead', bytesRead, 'size', size)
 		// read less data then requested. that means we're at the end and there's no more data to read.
 		if (bytesRead < size) return this.destroy()
 		return chunk

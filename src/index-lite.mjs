@@ -7,7 +7,7 @@ import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.mjs'
 
 export async function parse(arg, options) {
 	let exifr = new ExifParser(options)
-	await exifr.read(arg)
+	let res = await exifr.read(arg)
 	return exifr.parse()
 }
 

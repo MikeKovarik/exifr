@@ -154,33 +154,37 @@ describe('reader', () => {
 	// file with short exif where all segments are together at the
 	// start of the file, within single chunk
 
-	it(`simple file, read/fetch whole file - should succeed`, async () => {
-		let options = {wholeFile: true}
-		var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
-		console.log('output', output)
-		assert.equal(output.Make, 'Google')
-	})
+	describe('options.wholeFile', () => {
 
-	it(`simple file, chunked mode, allow additional chunks - should succeed`, async () => {
-		let options = {wholeFile: undefined}
-		var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
-		assert.equal(output.Make, 'Google')
-	})
+		it(`simple file, read/fetch whole file - should succeed`, async () => {
+			let options = {wholeFile: true}
+			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			console.log('output', output)
+			assert.equal(output.Make, 'Google')
+		})
 
-	it(`simple file, chunked mode, no additional chunks - should succeed`, async () => {
-		let options = {wholeFile: false}
-		var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
-		assert.equal(output.Make, 'Google')
-	})
+		it(`simple file, chunked mode, allow additional chunks - should succeed`, async () => {
+			let options = {wholeFile: undefined}
+			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			assert.equal(output.Make, 'Google')
+		})
 
-	// Exif is scattered throughout the file.
-	// Header at the beginning of file, data at the end.
-	// tiff offset at 0; ID0 offset at 677442
+		it(`simple file, chunked mode, no additional chunks - should succeed`, async () => {
+			let options = {wholeFile: false}
+			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			assert.equal(output.Make, 'Google')
+		})
 
-	it(`scattered file, read/fetch whole file - should succeed`, async () => {
-		let options = {wholeFile: true}
-		var output = await parse(getPath('001.tif'), options)
-		assert.equal(output.Make, 'DJI')
+		// Exif is scattered throughout the file.
+		// Header at the beginning of file, data at the end.
+		// tiff offset at 0; ID0 offset at 677442
+
+		it(`scattered file, read/fetch whole file - should succeed`, async () => {
+			let options = {wholeFile: true}
+			var output = await parse(getPath('001.tif'), options)
+			assert.equal(output.Make, 'DJI')
+		})
+
 	})
 
 /*
