@@ -1,5 +1,6 @@
 import {AppSegment, parsers} from './core.mjs'
 import {BufferView} from '../util/BufferView.mjs'
+import {tagKeys, tagValues} from '../tags.mjs'
 
 
 const PROFILE_HEADER_LENGTH = 84
@@ -15,7 +16,7 @@ var canTranslate = true // TODO: pass this through options
 
 export default class IccParser extends AppSegment {
 
-	static id = 'icc'
+	static type = 'icc'
 	static headerLength = 18
 
 	static canHandle(buffer, offset) {
@@ -28,7 +29,7 @@ export default class IccParser extends AppSegment {
 
 	parse() {
 		//this.view = BufferView.from(arg)
-		this.view = new BufferView(this.buffer, this.start, this.size)
+		//this.view = new BufferView(this.buffer, this.start, this.size)
 		console.log(this.view.toString())
 		console.log(this.view.toString())
 
@@ -121,7 +122,7 @@ export default class IccParser extends AppSegment {
 	}
 
 	translateTags() {
-		let entries = Object.entries(this.output).map(([tag, value]) => [iccTags[tag] || tag, value])
+		let entries = Object.entries(this.output).map(([tag, value]) => [tagKeys.icc[tag] || tag, value])
 		this.output = Object.fromEntries(entries)
 	}
 
@@ -136,51 +137,6 @@ export default class IccParser extends AppSegment {
 
 
 
-
-const valueMap = {
-	// Device
-	scnr: 'Scanner',
-	mntr: 'Monitor',
-	prtr: 'Printer',
-	link: 'Link',
-	abst: 'Abstract',
-	spac: 'Space',
-	nmcl: 'Named color',
-}
-
-// Platform
-const companyMap = {
-	appl: 'Apple',
-	adbe: 'Adobe',
-	msft: 'Microsoft',
-	sunw: 'Sun Microsystems',
-	sgi:  'Silicon Graphics',
-	tgnt: 'Taligent'
-}
-
-const iccTags = {
-	desc: 'description',
-	cprt: 'copyright',
-	dmdd: 'modelDescription',
-	vued: 'conditionsDescription',
-	dmnd: 'manufacturerForDisplay',
-	tech: 'technology',
-}
-
-export const profileTags = {
-	4:  'cmm',
-	8:  'version',
-	12: 'deviceClass',
-	16: 'colorSpace',
-	20: 'connectionSpace',
-	24: 'date',
-	36: 'signature',
-	40: 'platform',
-	48: 'manufacturer',
-	52: 'model',
-	64: 'intent',
-	80: 'creator',
-}
 
 export const headerParsers = {
 	4: parseString,
@@ -197,84 +153,58 @@ export const headerParsers = {
 	80: parseString
 }
 
-export const iccTranslations = {
-	4: companyMap,
-	12: {
-		'scnr': 'Input Device profile',
-		'mntr': 'Display Device profile',
-		'prtr': 'Output Device profile',
-		'link': 'DeviceLink profile',
-		'abst': 'Abstract profile',
-		'spac': 'ColorSpace profile',
-		'nmcl': 'NamedColor profile',
-		'cenc': 'ColorEncodingSpace profile',
-		'mid ': 'MultiplexIdentification profile',
-		'mlnk': 'MultiplexLink profile',
-		'mvis': 'MultiplexVisualization profile',
-	},
-	40: companyMap,
-	48: companyMap,
-	64: {
-		0: 'Perceptual',
-		1: 'Relative Colorimetric',
-		2: 'Saturation',
-		3: 'Absolute Colorimetric',
-	},
-}
-
-
 export const iccProfile = {
 	4: {
-		'name': profileTags[4],
+		'name': tagKeys.icc[4],
 		'value': headerParsers[4],
-		'description': (value) => iccTranslations[4][value],
+		'description': (value) => tagValues.icc[4][value],
 	},
 	8: {
-		'name': profileTags[8],
+		'name': tagKeys.icc[8],
 		'value': headerParsers[8],
 	},
 	12: {
-		'name': profileTags[12],
+		'name': tagKeys.icc[12],
 		'value': headerParsers[12],
-		'description': (value) => iccTranslations[12][value],
+		'description': (value) => tagValues.icc[12][value],
 	},
 	16: {
-		'name': profileTags[16],
+		'name': tagKeys.icc[16],
 		'value': headerParsers[16],
 	},
 	20: {
-		'name': profileTags[20],
+		'name': tagKeys.icc[20],
 		'value': headerParsers[20],
 	},
 	24: {
-		'name': profileTags[24],
+		'name': tagKeys.icc[24],
 		'value': headerParsers[24],
 	},
 	36: {
-		'name': profileTags[36],
+		'name': tagKeys.icc[36],
 		'value': headerParsers[36],
 	},
 	40: {
-		'name': profileTags[40],
+		'name': tagKeys.icc[40],
 		'value': headerParsers[40],
-		'description': (value) => iccTranslations[40][value],
+		'description': (value) => tagValues.icc[40][value],
 	},
 	48: {
-		'name': profileTags[48],
+		'name': tagKeys.icc[48],
 		'value': headerParsers[48],
-		'description': (value) => iccTranslations[48][value],
+		'description': (value) => tagValues.icc[48][value],
 	},
 	52: {
-		'name': profileTags[52],
+		'name': tagKeys.icc[52],
 		'value': headerParsers[52],
 	},
 	64: {
-		'name': profileTags[64],
+		'name': tagKeys.icc[64],
 		'value': headerParsers[64],
-		'description': (value) => iccTranslations[64][value],
+		'description': (value) => tagValues.icc[64][value],
 	},
 	80: {
-		'name': profileTags[80],
+		'name': tagKeys.icc[80],
 		'value': headerParsers[80]
 	},
 }
