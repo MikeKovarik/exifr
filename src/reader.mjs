@@ -169,7 +169,7 @@ export class FsReader extends ChunkedReader {
 
 	async readChunk(start, size) {
 		var chunk = this.subarray(start, size, true)
-		var {bytesRead} = await this.fh.read(chunk, 0, size, start)
+		var {bytesRead} = await this.fh.read(chunk.dataView, 0, size, start)
 		// read less data then requested. that means we're at the end and there's no more data to read.
 		if (bytesRead < size) return this.destroy()
 		return chunk

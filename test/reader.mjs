@@ -159,7 +159,6 @@ describe('reader', () => {
 		it(`simple file, read/fetch whole file - should succeed`, async () => {
 			let options = {wholeFile: true}
 			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
-			console.log('output', output)
 			assert.equal(output.Make, 'Google')
 		})
 

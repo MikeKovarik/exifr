@@ -130,7 +130,9 @@ export class Exifr extends Reader {
 						throw new Error(`Couldn't read segment ${segment.type} at ${segment.offset}/${segment.size}. ${err.message}`)
 					}
 				}
-			} else if (this.view.byteLength < start + size) {
+			} else if (this.view.byteLength > start + size) {
+				segment.chunk = this.view.subarray(start, size)
+			} else {
 				throw new Error(`Segment ${segment.type} at ${segment.offset}/${segment.size} is unreachable ` + JSON.stringify(segment))
 			}
 		})
@@ -150,10 +152,9 @@ export class Exifr extends Reader {
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
 		this.parsers = this.parsers || {}
 
-		for (let position of this.segments) {
-			let type = position.type
+		for (let segment of this.segments) {
+			let {type, chunk} = segment
 			if (this.options[type] !== true) continue
-			let chunk = this.view.subarray(position.start, position.size)
 			let parser = this.parsers[type]
 			if (parser && parser.append) {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
