@@ -1,15 +1,12 @@
 import {AppSegment, parsers} from './core.mjs'
 import {tags} from '../tags.mjs'
+import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from '../tags.mjs'
 import {slice, BufferView} from '../util/BufferView.mjs'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.mjs'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949
 export const TIFF_BIG_ENDIAN    = 0x4D4D
-
-const IFD_EXIF      = 0x8769
-const IFD_INTEROP   = 0xA005
-const IFD_GPS       = 0x8825
 
 const SIZE_LOOKUP = {
 	1: 1, // BYTE      - 8-bit unsigned integer
@@ -28,6 +25,8 @@ const SIZE_LOOKUP = {
 	13: 4 // IFD (sometimes used instead of 4 LONG)
 }
 
+
+const blockKeys = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
 // jpg wraps tiff into app1 segment.
 export class TiffCore extends AppSegment {
@@ -51,11 +50,14 @@ export class TiffCore extends AppSegment {
 	parseTags(offset) {
 		let entriesCount = this.view.getUint16(offset)
 		offset += 2
+		let {pickTags, skipTags} = this.options
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.view.getUint16(offset)
-			let val = this.parseTag(offset)
-			output[tag] = val
+			if (pickTags.includes(tag) || !skipTags.includes(tag)) {
+				let val = this.parseTag(offset)
+				output[tag] = val
+			}
 			offset += 12
 		}
 		return output
@@ -147,8 +149,9 @@ APP1 CONTENT
 */
 export class Tiff extends TiffCore {
 
-	static id = 'tiff'
-	static headerLength = 10 // todo: fix this when rollup support class properties
+	static type = 'tiff'
+	static mergeOutput = true
+	static headerLength = 10
 
 	// .tif files do no have any APPn segments. and usually start right with TIFF header
 	// .jpg files can have multiple APPn segments. They always have APP1 whic is a wrapper for TIFF.
@@ -165,19 +168,22 @@ export class Tiff extends TiffCore {
 		this.parseHeader()
 		this.parseIfd0Block()                                  // APP1 - IFD0
 		if (this.options.exif)      this.parseExifBlock()      // APP1 - EXIF IFD
-		/*
 		if (this.options.gps)       this.parseGpsBlock()       // APP1 - GPS IFD
 		if (this.options.interop)   this.parseInteropBlock()   // APP1 - Interop IFD
 		if (this.options.thumbnail) this.parseThumbnailBlock() // APP1 - IFD1
-		let {image, exif, gps, interop, thumbnail} = this
+		this.postProcess()
+		let {ifd0, exif, gps, interop, thumbnail} = this
 		if (this.options.mergeOutput)
-			this.output = Object.assign({}, image, exif, gps, interop, thumbnail)
-		else
-			this.output = {image, exif, gps, interop, thumbnail}
+			this.output = Object.assign({}, ifd0, exif, gps, interop, thumbnail)
+		else {
+			//this.output = {ifd0, exif, gps, interop, thumbnail}
+			this.output = {}
+			for (let key of blockKeys) {
+				let blockOutput = this[key]
+				if (blockOutput) this.output[key] = blockOutput
+			}
+		}
 		return this.output
-		*/
-		let output = {image: this.ifd0}
-		return output
 	}
 
 	parseIfd0Block() {
@@ -192,15 +198,15 @@ export class Tiff extends TiffCore {
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(this.ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
-		this.exifOffset    = this.ifd0[IFD_EXIF]
-		this.interopOffset = this.ifd0[IFD_INTEROP]
-		this.gpsOffset     = this.ifd0[IFD_GPS]
+		this.exifOffset    = this.ifd0[TAG_IFD_EXIF]
+		this.interopOffset = this.ifd0[TAG_IFD_INTEROP]
+		this.gpsOffset     = this.ifd0[TAG_IFD_GPS]
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.sanitize) {
-			delete this.ifd0[IFD_EXIF]
-			delete this.ifd0[IFD_INTEROP]
-			delete this.ifd0[IFD_GPS]
+			delete this.ifd0[TAG_IFD_EXIF]
+			delete this.ifd0[TAG_IFD_INTEROP]
+			delete this.ifd0[TAG_IFD_GPS]
 		}
 	}
 
@@ -224,7 +230,7 @@ export class Tiff extends TiffCore {
 	// 0xA005
 	parseInteropBlock() {
 		if (this.interop) return
-		this.interopOffset = this.interopOffset || (this.exif && this.exif[IFD_INTEROP])
+		this.interopOffset = this.interopOffset || (this.exif && this.exif[TAG_IFD_INTEROP])
 		if (this.interopOffset === undefined) return
 		this.interop = this.parseTags(this.interopOffset)
 	}
@@ -232,8 +238,8 @@ export class Tiff extends TiffCore {
 	// THUMBNAIL block of TIFF of APP1 segment
 	// returns boolean "does the file contain thumbnail"
 	parseThumbnailBlock(force = false) {
-		if (this.thumbnail) return
-		if (force === false && this.options.mergeOutput) return false
+		if (this.thumbnail || this.thumbnailParsed) return
+		if (this.options.mergeOutput && !force) return false
 		let ifd0Entries = this.view.getUint16(this.ifd0Offset)
 		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
 		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
@@ -244,21 +250,23 @@ export class Tiff extends TiffCore {
 		return true
 	}
 
-	// TODO: deprecate
-	translateBlock(raw, dictionary) {
-		if (this.options.postProcess || this.options.translateTags) {
-			// TODO: do two passes of transforming.
-			// 1) manipulate value
-			// 2) use string key instead of tag number.
-			// add translateTags option,
-			// rename postProcess to postProcess
-			let entries = Object.entries(raw).map(([tag, val]) => {
-				var key = dictionary[tag] || tag
-				return [key, translateValue(key, val)]
-			})
-			return Object.fromEntries(entries)
-		}
-		return raw
+	// THUMBNAIL buffer of TIFF of APP1 segment
+	extractThumbnail() {
+		// return undefined if file has no exif
+		/*
+		if (this.pos.tiff === undefined) return
+		if (!this.tiffParsed) await this.parseTiff()
+		*/
+		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
+		if (this.thumbnail === undefined) return 
+		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
+		let offset = this.thumbnail[THUMB_OFFSET]
+		let length = this.thumbnail[THUMB_LENGTH]
+		let subView = this.view.subarray(offset, length)
+		if (typeof Buffer !== 'undefined')
+			return Buffer.from(subView.buffer)
+		else
+			return subView.buffer
 	}
 
 	postProcess() {
@@ -271,7 +279,9 @@ export class Tiff extends TiffCore {
 		}
 		if (translateTags || reviveValues) {
 			for (let key of blockKeys) {
-				let dictionary = tags[key]
+				let dictionary = tags.tiff[key]
+				let rawTags = this[key]
+				if (rawTags === undefined) continue
 				let entries = Object.entries(this[key])
 				if (reviveValues)
 					entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
@@ -288,8 +298,6 @@ export const GPS_LATREF = 0x0001
 export const GPS_LAT    = 0x0002
 export const GPS_LONREF = 0x0003
 export const GPS_LON    = 0x0004
-
-const blockKeys = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
 
 parsers.tiff = Tiff
