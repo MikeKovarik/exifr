@@ -4,11 +4,15 @@
 
 ## [3.0.0]
 
+### Breaking changes
+- renamed IFD0 in the output object from `output.image` to `output.ifd0`
+
 ### Added
 - ICC Parser
 - Older browser support
 - multiple new output builds (so users can prevent importing unused code)
 - more granular options for what segments are parsed, what tags are translated, and what values are transformed
+- `exifr.getGps()` function
 
 ### Changed
 - major rewrite of a whole input reader pipeline
