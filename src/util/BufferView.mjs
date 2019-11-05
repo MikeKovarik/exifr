@@ -186,7 +186,7 @@ export class DynamicBufferView extends BufferView {
 
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
 	// or if its so far only allocated & unitialized memory ready to be written into.
-	isRangeRead(offset, length) {
+	isRangeAvailable(offset, length) {
 		let end = offset + length
 		return this.ranges.some(range => range.offset <= offset && end <= range.end)
 	}

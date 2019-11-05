@@ -409,54 +409,54 @@ TODO: rewrite chunked reader for 3.0.0
 
 		})
 
-		describe('.isRangeRead()', () => {
+		describe('.isRangeAvailable()', () => {
 
 			it(`[0-5] / 1-4 => true`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isTrue(view.isRangeRead(1, 4))
+				assert.isTrue(view.isRangeAvailable(1, 4))
 			})
 
 			it(`[0-5] / 0-3 => true`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isTrue(view.isRangeRead(0, 3))
+				assert.isTrue(view.isRangeAvailable(0, 3))
 			})
 
 			it(`[0-5] / 2-5 => true`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isTrue(view.isRangeRead(2, 3))
+				assert.isTrue(view.isRangeAvailable(2, 3))
 			})
 
 			it(`[0-5] / 0-5 => true`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isTrue(view.isRangeRead(0, 5))
+				assert.isTrue(view.isRangeAvailable(0, 5))
 			})
 
 			it(`[0-5] / 0-6 => false`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isFalse(view.isRangeRead(0, 6))
+				assert.isFalse(view.isRangeAvailable(0, 6))
 			})
 
 			it(`[0-5] / 4-8 => false`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isFalse(view.isRangeRead(4, 4))
+				assert.isFalse(view.isRangeAvailable(4, 4))
 			})
 
 			it(`[0-5] / 5-7 => false`, () => {
 				let view = new DynamicBufferView(5)
-				assert.isFalse(view.isRangeRead(5, 2))
+				assert.isFalse(view.isRangeAvailable(5, 2))
 			})
 
 			it(`[0-5, 10-15] / 7-12 => false`, () => {
 				let view = new DynamicBufferView(5)
 				view.subarray(10, 5, true)
-				assert.isFalse(view.isRangeRead(7, 5))
+				assert.isFalse(view.isRangeAvailable(7, 5))
 			})
 
 			it(`[0-5, 5-10, 10-15] / 7-12 => true`, () => {
 				let view = new DynamicBufferView(5)
 				view.subarray(5, 5, true)
 				view.subarray(10, 5, true)
-				assert.isTrue(view.isRangeRead(7, 5))
+				assert.isTrue(view.isRangeAvailable(7, 5))
 			})
 
 		})
