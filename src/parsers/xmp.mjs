@@ -6,7 +6,7 @@ import {BufferView} from '../util/BufferView.mjs'
 // XMPToolkit
 export default class Xmp extends AppSegment {
 
-	static id = 'xmp'
+	static type = 'xmp'
 
 	static canHandle(buffer, offset) {
 		return buffer.getUint8(offset + 1) === 0xE1

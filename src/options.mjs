@@ -1,4 +1,5 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.mjs'
+import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.mjs'
 import {tags, findTag} from './tags.mjs'
 
 
@@ -85,10 +86,16 @@ export function processOptions(userOptions = {}) {
 		Object.assign(options, userOptions)
 	}
 	if (options.mergeOutput) options.thumbnail = false
-	options.ignore = options.ignore || []
-	if (options.makerNote)   options.ignore.push(TAG_MAKERNOTE)
-	if (options.userComment) options.ignore.push(TAG_USERCOMMENT)
-	options.ignore = options.ignore.map(tag => typeof tag === 'string' ? findTag(tag) : tag)
-	options.ignore = unique(options.ignore)
+	options.skipTags = options.skipTags || []
+	options.pickTags = options.pickTags || []
+	if (options.pickTags.length) {
+		if (options.exif)    options.pickTags.push(TAG_IFD_EXIF)
+		if (options.gps)     options.pickTags.push(TAG_IFD_GPS)
+		if (options.interop) options.pickTags.push(TAG_IFD_INTEROP)
+	}
+	if (options.makerNote)   options.skipTags.push(TAG_MAKERNOTE)
+	if (options.userComment) options.skipTags.push(TAG_USERCOMMENT)
+	options.skipTags = options.skipTags.map(tag => typeof tag === 'string' ? findTag(tag) : tag)
+	options.skipTags = unique(options.skipTags)
 	return options
 }

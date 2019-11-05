@@ -12,6 +12,10 @@ export class AppSegment {
 
 	static headerLength = 4
 
+	// output is merged into library output or is assigned with parser id
+	static mergeOutput = false
+	static type = undefined
+
 	static canHandle = () => false
 
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.

@@ -4,7 +4,7 @@ import {CursorView} from '../util/BufferView.mjs'
 
 export default class Jfif extends AppSegment {
 
-	static id = 'jfif'
+	static type = 'jfif'
 	static headerLength = 9
 
 	static canHandle(buffer, offset) {
@@ -14,14 +14,14 @@ export default class Jfif extends AppSegment {
 	}
 
 	parse() {
-		this.view = new CursorView(this.buffer, this.start)
+		let cursorView = new CursorView(this.view, this.start)
 		let jfif = {
-			version:    this.view.getUint16(),
-			units:      this.view.getUint8(),
-			Xdensity:   this.view.getUint16(),
-			Ydensity:   this.view.getUint16(),
-			Xthumbnail: this.view.getUint8(),
-			Ythumbnail: this.view.getUint8(),
+			version:    cursorView.getUint16(),
+			units:      cursorView.getUint8(),
+			Xdensity:   cursorView.getUint16(),
+			Ydensity:   cursorView.getUint16(),
+			Xthumbnail: cursorView.getUint8(),
+			Ythumbnail: cursorView.getUint8(),
 		}
 		this.output = this.options.mergeOutput ? {jfif} : jfif
 		return this.output
