@@ -3,7 +3,8 @@ import {tags} from '../tags.mjs'
 
 // Comprehensive list of TIFF and Exif tags found on
 // http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/EXIF.html
-tags.exif = {
+tags.tiff = tags.tiff || {}
+tags.tiff.ifd0 = tags.tiff.exif = tags.tiff.interop = tags.tiff.thumbnail = {
 	0x0001: 'InteropIndex',
 	0x0002: 'InteropVersion',
 	0x000B: 'ProcessingSoftware',

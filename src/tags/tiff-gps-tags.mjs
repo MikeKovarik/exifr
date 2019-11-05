@@ -1,7 +1,8 @@
 import {tags} from '../tags.mjs'
 
 
-tags.gps = {
+tags.tiff = tags.tiff || {}
+tags.tiff.gps = {
 	0x0000: 'GPSVersionID',
 	0x0001: 'GPSLatitudeRef',
 	0x0002: 'GPSLatitude',

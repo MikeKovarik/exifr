@@ -1,7 +1,7 @@
 import {tags} from '../tags.mjs'
 
 
-//https://sno.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html
+// https://sno.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html
 tags.iptc = {
 	15: 'category',
 	25: 'keywords',
