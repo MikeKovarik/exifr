@@ -282,6 +282,13 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(subView.getUint8(3), 4)
 		})
 
+		it(`.subarray() returns instance of BufferView even if subclassed`, async () => {
+			class DerivedView extends BufferView {}
+			let view = new DerivedView(Uint8Array.from([0,1,2,3,4,5]))
+			let subView = view.subarray(1, 4)
+			assert.instanceOf(subView, BufferView)
+		})
+
 		isNode && it(`Node fs.read can read into sub view & changes propagate to dataview`, async () => {
 			let bytesToRead = 5
 			let view = new BufferView(2 * bytesToRead)

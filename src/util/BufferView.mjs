@@ -53,7 +53,7 @@ export class BufferView {
 		if (arg instanceof this)
 			return arg
 		else
-			return new this(arg)
+			return new BufferView(arg)
 	}
 
 	constructor(arg, offset = 0, length) {
@@ -90,7 +90,7 @@ export class BufferView {
 		this.byteLength = this.dataView.byteLength
 	}
 
-	subarray(offset, length, Class = this.constructor) {
+	subarray(offset, length, Class = BufferView) {
 		return new Class(this, offset, length, BufferView)
 	}
 
@@ -142,8 +142,6 @@ function isBetween(min, val, max) {
 }
 
 export class DynamicBufferView extends BufferView {
-
-	bytesRead = 0
 
 	ranges = []
 

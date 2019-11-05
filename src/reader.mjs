@@ -100,10 +100,7 @@ export default class Reader {
 
 export class ChunkedReader extends DynamicBufferView {
 
-	chunked = true
-	
 	constructor(input, options) {
-		//console.log('ChunkedReader')
 		super(0)
 		this.input = input
 		this.options = options
@@ -153,6 +150,8 @@ export class ChunkedReader extends DynamicBufferView {
 }
 
 export class FsReader extends ChunkedReader {
+
+	bytesRead = 0
 
 	async readWhole() {
 		this.chunked = false
