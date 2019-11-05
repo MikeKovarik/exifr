@@ -162,10 +162,10 @@ export class FsReader extends ChunkedReader {
 	async readChunked() {
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
-		await this.readChunk({start: 0, size: this.options.seekChunkSize})
+		await this.readChunk(0, this.options.seekChunkSize)
 	}
 
-	async readChunk({start, size}) {
+	async readChunk(start, size) {
 		console.log('readChunk', start, size)
 		var chunk = this.subarray(start, size, true)
 		console.log('chunk', chunk.toString())
@@ -194,27 +194,13 @@ export class FsReader extends ChunkedReader {
 export class WebReader extends ChunkedReader {
 
 	async readWhole() {
-		let start = 0
-		this.view = await this.readChunk({start})
+		this.view = await this.readChunk(0)
 		return this.view
 	}
 
 	async readChunked(size) {
-		let start = 0
-		let end = size
-		let view = await this.readChunk({start, end, size})
+		let view = await this.readChunk(0, size)
 	}
-
-}
-
-function sanitizePosition(position = {}) {
-	let {start, size, end} = position
-	if (start === undefined) return {start: 0}
-	if (size !== undefined)
-		end = start + size
-	else if (end !== undefined)
-		size = end - start
-	return {start, size, end}
 
 }
 
@@ -222,9 +208,8 @@ function sanitizePosition(position = {}) {
 export class Base64Reader extends WebReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
-	readChunk(position) {
-		//console.log('Base64Reader.readChunk()', position)
-		let {start, end} = sanitizePosition(position)
+	async readChunk(start, size) {
+		let end = size ? start + size : undefined
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
 		let base64 = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
 		if (hasBuffer) {
@@ -268,16 +253,12 @@ export class Base64Reader extends WebReader {
 
 export class UrlFetcher extends WebReader {
 
-	async readChunk(position) {
-		//console.log('UrlFetcher.readChunk()', position)
-		let {start, end} = sanitizePosition(position)
-		//console.log('start, end', start, end)
+	async readChunk(start, size) {
+		let end = size ? start + size : undefined
 		let url = this.input
 		let headers = {}
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
-		//console.log('headers.range', headers.range)
 		let res = await fetch(url, {headers})
-		//console.log('res', res)
 		return new BufferView(await res.arrayBuffer())
 	}
 
@@ -285,11 +266,9 @@ export class UrlFetcher extends WebReader {
 
 export class BlobReader extends WebReader {
 
-	readChunk(position) {
-		//console.log('BlobReader.readChunk()', position)
-		let {start, end} = sanitizePosition(position)
-		let blob = this.input
-		if (end) blob = blob.slice(start, end)
+	readChunk(start, size) {
+		let end = size ? start + size : undefined
+		let blob = this.input.slice(start, end)
 		return new Promise((resolve, reject) => {
 			let reader = new FileReader()
 			reader.onloadend = () => resolve(new BufferView(reader.result || new ArrayBuffer(0)))
