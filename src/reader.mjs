@@ -22,60 +22,51 @@ function findTiff() {
 export default class Reader {
 
 	constructor(options) {
-		//console.log('Reader')
 		this.options = processOptions(options)
 	}
 
-	async read(arg) {
+	read(arg) {
 		if (typeof arg === 'string')
-			return this.readString(arg)
+			this.readString(arg)
 		else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)
-			return this.readString(arg.src)
-		else if (arg instanceof Uint8Array)
-			return new BufferView(arg)
-		else if (arg instanceof ArrayBuffer)
-			return new BufferView(arg)
-		else if (arg instanceof DataView)
-			return new BufferView(arg)
+			this.readString(arg.src)
+		else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
+			this.view = new BufferView(arg)
 		else if (isBrowser && arg instanceof Blob)
-			return this.readBlob(arg)
+			this.readBlob(arg)
 		else
 			throw new Error('Invalid input argument')
 	}
 
 	readString(string) {
 		if (isBase64Url(string))
-			return this.readBase64(string)
+			this.readBase64(string)
 		else if (isBrowser)
-			return this.readUrl(string)
+			this.readUrl(string)
 		else if (isNode)
-			return this.readFileFromDisk(string)
+			this.readFileFromDisk(string)
 		else
 			throw new Error('Invalid input argument')
 	}
 
 	async readBlob(blob) {
-		this.reader = new BlobReader(blob, this.options)
-		await this.reader.read(this.options.parseChunkSize)
+		this.view = new BlobReader(blob, this.options)
+		await this.view.read(this.options.parseChunkSize)
 	}
 
 	async readUrl(url) {
-		this.reader = new UrlFetcher(url, this.options)
-		await this.reader.read(this.options.parseChunkSize)
+		this.view = new UrlFetcher(url, this.options)
+		await this.view.read(this.options.parseChunkSize)
 	}
 
 	async readBase64(base64) {
-		this.reader = new Base64Reader(base64, this.options)
-		await this.reader.read(this.options.seekChunkSize)
+		this.view = new Base64Reader(base64, this.options)
+		await this.view.read(this.options.seekChunkSize)
 	}
 
 	async readFileFromDisk(filePath) {
-		this.reader = new FsReader(filePath, this.options)
-		await this.reader.read()
-	}
-
-	get mode() {
-		return this.reader ? 'chunked' : 'whole'
+		this.view = new FsReader(filePath, this.options)
+		await this.view.read()
 	}
 
 }
@@ -108,12 +99,22 @@ export default class Reader {
 // or it falls back to reading the whole file if enabled with options.allowWholeFile.
 
 export class ChunkedReader extends DynamicBufferView {
+
+	chunked = true
 	
 	constructor(input, options) {
 		//console.log('ChunkedReader')
 		super(0)
 		this.input = input
 		this.options = options
+	}
+
+	async readWhole() {
+		await this.readChunk(0)
+	}
+
+	async readChunked(size) {
+		await this.readChunk(0, size)
 	}
 
 	async read(size) {
@@ -150,7 +151,6 @@ export class ChunkedReader extends DynamicBufferView {
 
 }
 
-
 export class FsReader extends ChunkedReader {
 
 	async readWhole() {
@@ -171,10 +171,8 @@ export class FsReader extends ChunkedReader {
 		console.log('chunk', chunk.toString())
 		var {bytesRead} = await this.fh.read(chunk, 0, size, start)
 		console.log('bytesRead', bytesRead, 'size', size)
-		if (bytesRead < size) {
-			// read less data then requested. that means we're at the end and there's no more data to read.
-			return this.destroy()
-		}
+		// read less data then requested. that means we're at the end and there's no more data to read.
+		if (bytesRead < size) return this.destroy()
 		return chunk
 	}
 
@@ -189,23 +187,8 @@ export class FsReader extends ChunkedReader {
 
 }
 
-
-
-export class WebReader extends ChunkedReader {
-
-	async readWhole() {
-		this.view = await this.readChunk(0)
-		return this.view
-	}
-
-	async readChunked(size) {
-		let view = await this.readChunk(0, size)
-	}
-
-}
-
 // TODO: make this optional. not everyone will ever use base64 inputs
-export class Base64Reader extends WebReader {
+export class Base64Reader extends ChunkedReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
 	async readChunk(start, size) {
@@ -251,7 +234,7 @@ export class Base64Reader extends WebReader {
 
 }
 
-export class UrlFetcher extends WebReader {
+export class UrlFetcher extends ChunkedReader {
 
 	async readChunk(start, size) {
 		let end = size ? start + size : undefined
@@ -264,7 +247,7 @@ export class UrlFetcher extends WebReader {
 
 }
 
-export class BlobReader extends WebReader {
+export class BlobReader extends ChunkedReader {
 
 	readChunk(start, size) {
 		let end = size ? start + size : undefined
