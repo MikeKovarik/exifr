@@ -5,11 +5,11 @@ import {getFile} from './test-util.mjs'
 
 describe('TIFF', () => {
 
-    it(`should contain IFD0 block (as output.image)`, async () => {
+    it(`should contain IFD0 block (as output.ifd0)`, async () => {
         var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
         assert.exists(output, `output is undefined`)
-        assert.equal(output.image.Make, 'Google')
-        assert.equal(output.image.Model, 'Pixel')
+        assert.equal(output.ifd0.Make, 'Google')
+        assert.equal(output.ifd0.Model, 'Pixel')
     })
 
     it(`should contain Exif block (as output.exif)`, async () => {

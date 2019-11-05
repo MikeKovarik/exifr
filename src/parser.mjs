@@ -65,7 +65,6 @@ export class Exifr extends Reader {
 		this.unknownSegments = []
 
 		let view = this.view
-		console.log('this.view', this.view.toString())
 		
 		// JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
 		// Whereas .tif file format starts with the TIFF structure right away.
@@ -112,14 +111,12 @@ export class Exifr extends Reader {
 		let libOutput = {}
 		let promises = Object.values(this.parsers).map(async parser => {
 			let parserOutput = await parser.parse()
-			if (!this.options.mergeOutput || !parser.constructor.mergeOutput || typeof parserOutput === 'string')
-				libOutput[parser.constructor.type] = parserOutput
-			else
+			if (this.options.mergeOutput || parser.constructor.mergeOutput || typeof parserOutput !== 'string')
 				Object.assign(libOutput, parserOutput)
-			//console.log('parserOutput', parser.constructor.type, parserOutput)
+			else
+				libOutput[parser.constructor.type] = parserOutput
 		})
 		await Promise.all(promises)
-		console.log('libOutput', libOutput)
 		return libOutput
 	}
 
@@ -159,10 +156,8 @@ export class Exifr extends Reader {
 
 		for (let position of this.segments) {
 			let type = position.type
-			console.log(type, position.start, position.size, this.options[type])
 			if (this.options[type] !== true) continue
 			let chunk = this.view.subarray(position.start, position.size)
-			console.log(type, chunk.toString())
 			let parser = this.parsers[type]
 			if (parser && parser.append) {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
