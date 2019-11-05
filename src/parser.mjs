@@ -8,8 +8,6 @@ import './parsers/icc.mjs'
 import './parsers/xmp.mjs'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.mjs'
 
-const CHUNKED = 'chunked'
-
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
 
@@ -107,13 +105,9 @@ export class Exifr extends Reader {
 		//console.log('unknownSegments', this.unknownSegments)
 	}
 
-	async read(arg) {
-		this.view = await super.read(arg)
-	}
-
 	async parse() {
 		this.findAppSegments()
-		this.readSegments()
+		await this.readSegments()
 		this.createParsers()
 		let libOutput = {}
 		let promises = Object.values(this.parsers).map(async parser => {
@@ -130,18 +124,22 @@ export class Exifr extends Reader {
 	}
 
 	async readSegments() {
-		let promises = this.segments.map(segment => {
+		let promises = this.segments.map(async segment => {
 			let {start, size} = segment
-			let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
-			let chunk
-			if (available) {
-				chunk = this.view.subarray(start, size)
-			} else if (this.view.readChunk) {
-				chunk = await this.view.readChunk({start, size: size || MAX_APP_SIZE)
-			} else {
-				throw new Error('')
+			if (this.view.chunked) {
+				let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
+				if (available) {
+					segment.chunk = this.view.subarray(start, size)
+				} else {
+					try {
+						segment.chunk = await this.view.readChunk(start, size || MAX_APP_SIZE)
+					} catch (err) {
+						throw new Error(`Couldn't read segment ${segment.type} at ${segment.offset}/${segment.size}. ${err.message}`)
+					}
+				}
+			} else if (this.view.byteLength < start + size) {
+				throw new Error(`Segment ${segment.type} at ${segment.offset}/${segment.size} is unreachable ` + JSON.stringify(segment))
 			}
-			segment.chunk = chunk
 		})
 		await Promise.all(promises)
 	}
@@ -179,25 +177,4 @@ export class Exifr extends Reader {
 
 }
 
-/*
-	async parseTags(offset) {
-		// TODO: re-read file if portion of the exif is outside of read chunk
-		// (test/001.tif has tiff segment at the beggining plus at the end)
-		if (offset > this.view.byteLength) {
-			if (this.view.isRangeAvailable(offset, 5000))
-			if (this.mode === CHUNKED) {
-				var chunk = await this.view.readChunk({
-					start: offset,
-					size: 10000,
-				})
-				offset = 0
-			} else {
-				throw new Error(`segment offset ${offset} is out of chunk size ${this.view.byteLength}`)
-			}
-		} else {
-			var chunk = this.view
-		}
-		return super.parseTags(chunk, offset)
-	}
-*/
 export var ExifParser = Exifr
