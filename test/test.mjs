@@ -1,9 +1,14 @@
+// reader
 import './reader.mjs'
-import './output-format.mjs'
+import './BufferView.mjs'
+import './ChunkedReader.mjs'
+// parser
 import './tiff.mjs'
 import './icc.mjs'
 import './xmp.mjs'
 import './other-segments.mjs'
 import './thumbnail.mjs'
-import './issues.mjs'
+// high level apis & issue
+import './output-format.mjs'
 import './highlevel.mjs'
+import './issues.mjs'

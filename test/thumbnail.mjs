@@ -10,52 +10,52 @@ describe('thumbnail', () => {
         mergeOutput: false,
     }
 
-    it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail`, async () => {
+    it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail`, async () => {
         let intput = await getFile('IMG_20180725_163423.jpg')
-        let parser = new ExifParser(options)
-        await parser.read(intput)
-        var output = await parser.extractThumbnail()
+        let exifr = new ExifParser(options)
+        await exifr.read(intput)
+        var output = await exifr.extractThumbnail()
+        output = new Uint8Array(output)
+        assert.equal(output[0], 0xff)
+        assert.equal(output[1], 0xd8)
+    })
+/*
+    it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)`, async () => {
+        let intput = await getFile('IMG_20180725_163423.jpg')
+        let exifr = new ExifParser(true)
+        await exifr.read(intput)
+        var output = await exifr.extractThumbnail()
         output = new Uint8Array(output)
         assert.equal(output[0], 0xff)
         assert.equal(output[1], 0xd8)
     })
 
-    it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)`, async () => {
+    it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (default)`, async () => {
         let intput = await getFile('IMG_20180725_163423.jpg')
-        let parser = new ExifParser(true)
-        await parser.read(intput)
-        var output = await parser.extractThumbnail()
+        let exifr = new ExifParser()
+        await exifr.read(intput)
+        var output = await exifr.extractThumbnail()
         output = new Uint8Array(output)
         assert.equal(output[0], 0xff)
         assert.equal(output[1], 0xd8)
     })
 
-    it(`#extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (default)`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
-        let parser = new ExifParser()
-        await parser.read(intput)
-        var output = await parser.extractThumbnail()
-        output = new Uint8Array(output)
-        assert.equal(output[0], 0xff)
-        assert.equal(output[1], 0xd8)
-    })
-
-    it(`#extractThumbnail() returns undefined if there's no exif`, async () => {
+    it(`tiffParser.extractThumbnail() returns undefined if there's no exif`, async () => {
         let intput = await getFile('cookiezen.jpg')
-        let parser = new ExifParser()
-        await parser.read(intput)
-        var output = await parser.extractThumbnail()
+        let exifr = new ExifParser()
+        await exifr.read(intput)
+        var output = await exifr.extractThumbnail()
         assert.isUndefined(output)
     })
 
-    it(`#extractThumbnail() returns undefined if there's no thumbnail`, async () => {
+    it(`tiffParser.extractThumbnail() returns undefined if there's no thumbnail`, async () => {
         let intput = await getFile('noexif.jpg')
-        let parser = new ExifParser(options)
-        await parser.read(intput)
-        assert.isUndefined(await parser.extractThumbnail())
+        let exifr = new ExifParser(options)
+        await exifr.read(intput)
+        assert.isUndefined(await exifr.extractThumbnail())
     })
 
-    it(`thumbnailBuffer()`, async () => {
+    it(`exifr.thumbnailBuffer()`, async () => {
         let intput = await getFile('IMG_20180725_163423.jpg')
         var output = await thumbnailBuffer(intput, options)
         // Buffer in Node, ArrayBuffer in browser
@@ -64,10 +64,10 @@ describe('thumbnail', () => {
         assert.equal(output[1], 0xd8)
     })
 
-    isBrowser && it(`thumbnailUrl()`, async () => {
+    isBrowser && it(`exifr.thumbnailUrl()`, async () => {
         let intput = await getFile('IMG_20180725_163423.jpg')
         var url = await thumbnailUrl(intput, options)
         assert.typeOf(url, 'string')
     })
-
+*/
 })

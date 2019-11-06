@@ -13,9 +13,9 @@ describe('output object', () => {
 
 	it(`should return undefined if no exif was found (internal .parse() method)`, async () => {
 		let intput = await getFile('noexif.jpg')
-		let parser = new ExifParser()
-		await parser.parse(intput)
-		let output = await parser.parse()
+		let exifr = new ExifParser()
+		await exifr.parse(intput)
+		let output = await exifr.parse()
 		assert.isUndefined(output)
 	})
 
