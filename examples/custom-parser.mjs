@@ -15,10 +15,10 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 	let filePath = '../test/fixtures/exifr-issue-3.jpg'
 	let fileBuffer = await fs.readFile(filePath)
 	let options = {wholeFile: true, mergeOutput: false, jfif: false, xmp: false, exif: false}
-	let parser = new ExifParser(options)
-	await parser.read(fileBuffer)
-	parser.parse()
-	let segments = [...parser.segments, ...parser.unknownSegments]
+	let exifr = new ExifParser(options)
+	await exifr.read(fileBuffer)
+	exifr.parse()
+	let segments = [...exifr.segments, ...exifr.unknownSegments]
 	for (let segment of segments) {
 		console.log('-----------------')
 		console.log(segment.offset, segment.end)
@@ -27,7 +27,7 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 			let isFlir = Flir.canHandle(fileBuffer, segment.offset)
 			console.log('isFlir', isFlir)
 			let parser = new Flir(fileBuffer, segment, options)
-			//parser.parseHeader()
+			//exifr.parseHeader()
 			//console.log(parser)
 		}
 		console.log(fileBuffer.slice(segment.offset, segment.offset + 10).toString().indexOf('FLIR'))

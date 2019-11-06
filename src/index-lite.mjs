@@ -38,9 +38,10 @@ export async function parseAppSegments(arg, options) {
 }
 
 export async function thumbnailBuffer(arg, options = {}) {
+	options.thumbnail = true
+	options.mergeOutput = true
 	let exifr = new ExifParser(options)
 	await exifr.read(arg)
-	if (exifr.tiffPosition === undefined) return
 	return exifr.extractThumbnail()
 }
 

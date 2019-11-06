@@ -49,6 +49,9 @@ const utf8  = new TextDecoder('utf-8')
 
 export class BufferView {
 
+	// Little endian by default. We're not savages.
+	le = true
+
 	static from(arg) {
 		if (arg instanceof this)
 			return arg

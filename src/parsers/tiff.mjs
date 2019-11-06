@@ -252,11 +252,7 @@ export class Tiff extends TiffCore {
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
-		// return undefined if file has no exif
-		/*
-		if (this.pos.tiff === undefined) return
-		if (!this.tiffParsed) await this.parseTiff()
-		*/
+		if (!this.ifd0) this.parseIfd0Block(true)
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)

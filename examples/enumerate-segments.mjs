@@ -9,13 +9,13 @@ import path from 'path'
 	for (let fileName of imageFiles) {
 		let filePath = path.join('../test/fixtures/', fileName)
 		let fileBuffer = await fs.readFile(filePath)
-		let parser = new ExifParser({wholeFile: true, mergeOutput: false})
-		await parser.read(fileBuffer)
-		parser.parse()
+		let exifr = new ExifParser({wholeFile: true, mergeOutput: false})
+		await exifr.read(fileBuffer)
+		exifr.parse()
 		console.log('----------------------------------------------------')
 		console.log('file name', filePath)
 		console.log('file size', fileBuffer.length, kb(fileBuffer.length))
-		let segments = [...parser.segments, ...parser.unknownSegments]
+		let segments = [...exifr.segments, ...exifr.unknownSegments]
 		for (let segment of segments) {
 			//console.log(segment)
 			console.log(

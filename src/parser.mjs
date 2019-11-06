@@ -60,9 +60,12 @@ function getSegmentType(buffer, offset) {
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
 export class Exifr extends Reader {
 
-	findAppSegments() {
+	parsers = {}
+
+	findAppSegments(offset = 0, wantedSegments = []) {
 		this.segments = []
 		this.unknownSegments = []
+		let wanted = new Set(wantedSegments)
 
 		let view = this.view
 		
@@ -72,7 +75,6 @@ export class Exifr extends Reader {
 		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN)
 			this.segments.push({start: 0, type: 'tiff'})
 
-		let offset = 0
 		let length = view.byteLength - 10 // No need to parse through till the end of the buffer.
 		for (; offset < length; offset++) {
 			if (view.getUint8(offset) === 0xFF
@@ -81,20 +83,29 @@ export class Exifr extends Reader {
 				if (type) {
 					// known and parseable segment found
 					let Parser = parserClasses[type]
-					let position = Parser.findPosition(view, offset)
-					position.type = type
-					this.segments.push(position)
-					if (position.end)
-						offset = position.end - 1
-					else if (position.length)
-						offset += position.length - 1
+					let seg = Parser.findPosition(view, offset)
+					seg.type = type
+					this.segments.push(seg)
+					if (seg.end)
+						offset = seg.end - 1
+					else if (seg.length)
+						offset += seg.length - 1
 				} else {
 					// either unknown/supported appN segment or just a noise.
-					let position = AppSegment.findPosition(view, offset)
-					this.unknownSegments.push(position)
+					let seg = AppSegment.findPosition(view, offset)
+					this.unknownSegments.push(seg)
+				}
+				if (wanted.size && wanted.has(type)) {
+					wanted.delete(type)
+					if (wanted.size === 0) break
 				}
 			}
 		}
+
+		if (wantedSegments.length)
+			return wantedSegments.map(type => this.segments.find(seg => seg.type === type))
+		//else
+		//	return [...this.segments, ...this.unknownSegments]
 
 		//console.log('segments', this.segments)
 		//console.log('unknownSegments', this.unknownSegments)
@@ -117,26 +128,29 @@ export class Exifr extends Reader {
 	}
 
 	async readSegments() {
-		let promises = this.segments.map(async segment => {
-			let {start, size} = segment
-			if (this.view.chunked) {
-				let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
-				if (available) {
-					segment.chunk = this.view.subarray(start, size)
-				} else {
-					try {
-						segment.chunk = await this.view.readChunk(start, size || MAX_APP_SIZE)
-					} catch (err) {
-						throw new Error(`Couldn't read segment ${segment.type} at ${segment.offset}/${segment.size}. ${err.message}`)
-					}
-				}
-			} else if (this.view.byteLength > start + size) {
-				segment.chunk = this.view.subarray(start, size)
-			} else {
-				throw new Error(`Segment ${segment.type} at ${segment.offset}/${segment.size} is unreachable ` + JSON.stringify(segment))
-			}
-		})
+		let promises = this.segments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
+	}
+
+	ensureSegmentChunk = async seg => {
+		let {start, size} = seg
+		if (this.view.chunked) {
+			let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
+			if (available) {
+				seg.chunk = this.view.subarray(start, size)
+			} else {
+				try {
+					seg.chunk = await this.view.readChunk(start, size || MAX_APP_SIZE)
+				} catch (err) {
+					throw new Error(`Couldn't read segment ${seg.type} at ${seg.offset}/${seg.size}. ${err.message}`)
+				}
+			}
+		} else if (this.view.byteLength > start + size) {
+			seg.chunk = this.view.subarray(start, size)
+		} else {
+			throw new Error(`Segment ${seg.type} at ${seg.offset}/${seg.size} is unreachable ` + JSON.stringify(seg))
+		}
+		return seg.chunk
 	}
 
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
@@ -150,8 +164,6 @@ export class Exifr extends Reader {
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
-		this.parsers = this.parsers || {}
-
 		for (let segment of this.segments) {
 			let {type, chunk} = segment
 			if (this.options[type] !== true) continue
@@ -165,6 +177,16 @@ export class Exifr extends Reader {
 				this.parsers[type] = parser
 			}
 		}
+	}
+
+	async extractThumbnail() {
+		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
+		let [seg] = this.findAppSegments(0, ['tiff'])
+		console.log(seg)
+		let chunk = await this.ensureSegmentChunk(seg)
+		console.log(chunk.toString())
+		this.parsers.tiff = new parserClasses.tiff(chunk, this.options)
+		return this.parsers.tiff.extractThumbnail()
 	}
 
 }
