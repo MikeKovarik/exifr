@@ -94,7 +94,18 @@ export class BufferView {
 		return new Class(this, offset, length, BufferView)
 	}
 
-	//set(view, offset) {}
+	getUintView() {
+		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
+	}
+
+	set(arg, offset) {
+		if (arg instanceof DataView || arg instanceof BufferView)
+			arg = new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
+		if (!(arg instanceof Uint8Array))
+			throw new Error(`BufferView.set(): Invalid data argument.`)
+		let uintView = this.getUintView()
+		uintView.set(arg, offset)
+	}
 
 	getString(offset = 0, length = this.byteLength) {
 		let arr = new Uint8Array(this.buffer, this.byteOffset + offset, length)
@@ -150,6 +161,14 @@ export class DynamicBufferView extends BufferView {
 		this._registerRange(0, this.byteLength)
 	}
 
+	_tryExtend(offset, length) {
+		let end = offset + length
+		if (end > this.byteLength) {
+			let {dataView} = this._extend(end)
+			this._swapDataView(dataView)
+		}
+	}
+
 	_extend(newLength, unsafe = true) {
 		if (hasBuffer && unsafe)
 			var uintView = Buffer.allocUnsafe(newLength)
@@ -172,13 +191,16 @@ export class DynamicBufferView extends BufferView {
 	}
 
 	subarray(offset, length, canExtend = false) {
-		let end = offset + length
-		if (end > this.byteLength && canExtend) {
-			let {dataView} = this._extend(end)
-			this._swapDataView(dataView)
-		}
+		if (canExtend) this._tryExtend(offset, length)
 		this._registerRange(offset, length)
 		return super.subarray(offset, length)
+	}
+
+	// TODO: write tests for extending .set()
+	set(arg, offset, canExtend = false) {
+		if (canExtend) this._tryExtend(offset, arg.byteLength)
+		super.set(arg, offset)
+		this._registerRange(offset, arg.byteLength)
 	}
 
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length

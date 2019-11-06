@@ -108,12 +108,18 @@ export class ChunkedReader extends DynamicBufferView {
 
 	async readWhole() {
 		this.chunked = false
-		await this.readChunk(0)
+		await this.readChunk(this.nextGapStart)
 	}
 
 	async readChunked(size) {
 		this.chunked = true
-		await this.readChunk(0, size)
+		await this.readChunk(this.nextGapStart, size)
+	}
+
+	get nextGapStart() {
+		let firstRange = this.ranges[0]
+		if (firstRange && firstRange.start === 0) return firstRange.length || 0
+		return 0
 	}
 
 	async read(size) {
@@ -179,7 +185,6 @@ export class FsReader extends ChunkedReader {
 	// (app can read more chunks after parsing the first)
 	async destroy() {
 		if (this.fh) {
-			await this.fh.close().catch(console.error)
 			this.fh = undefined
 		}
 	}
@@ -191,44 +196,44 @@ export class Base64Reader extends ChunkedReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
 	async readChunk(start, size) {
-		let end = size ? start + size : undefined
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
 		let base64 = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
-		if (hasBuffer) {
-			// TODO: Investigate. this might not work if bundled Buffer is used in browser.
-			// the slice/subarray shared memory viewed through DataView problem
-			var arrayBuffer = Buffer
-				.from(base64, 'base64')
-				.slice(start, end)
-				.buffer
-		} else {
-			var offset = 0
-			// NOTE: Each 4 character block of base64 string represents 3 bytes of data.
-			if (start !== undefined || end !== undefined) {
-				if (start === undefined) {
-					var blockStart = start = 0
-				} else {
-					var blockStart = Math.floor(start / 3) * 4
-					offset = start - ((blockStart / 4) * 3)
-				}
-				if (end === undefined) {
-					var blockEnd = base64.length
-					end = (blockEnd / 4) * 3
-				} else {
-					var blockEnd = Math.ceil(end / 3) * 4
-				}
-				base64 = base64.slice(blockStart, blockEnd)
-				var targetSize = end - start
+
+		let end = size ? start + size : undefined
+		let offset = 0
+		// NOTE: Each 4 character block of base64 string represents 3 bytes of data.
+		if (start !== undefined || end !== undefined) {
+			let blockStart
+			if (start === undefined) {
+				blockStart = start = 0
 			} else {
-				var targetSize = (base64.length / 4) * 3
+				blockStart = Math.floor(start / 3) * 4
+				offset = start - ((blockStart / 4) * 3)
 			}
-			var binary = atob(base64)
-			var arrayBuffer = new ArrayBuffer(targetSize)
-			var uint8arr = new Uint8Array(arrayBuffer)
-			for (var i = 0; i < targetSize; i++)
-				uint8arr[i] = binary.charCodeAt(offset + i)
+			let blockEnd
+			if (end === undefined) {
+				blockEnd = base64.length
+				end = (blockEnd / 4) * 3
+			} else {
+				blockEnd = Math.ceil(end / 3) * 4
+			}
+			base64 = base64.slice(blockStart, blockEnd)
+			//let targetSize = end - start
+		} else {
+			//let targetSize = (base64.length / 4) * 3
 		}
-		return new BufferView(arrayBuffer)
+
+		if (hasBuffer) {
+			let slice = Buffer.from(base64, 'base64').slice(offset, size)
+			return this.set(slice, start, true)
+		} else {
+			let chunk = this.subarray(start, size, true)
+			let binary = atob(base64)
+			let uint8view = chunk.getUintView()
+			for (let i = 0; i < size; i++)
+				uint8view[i] = binary.charCodeAt(offset + i)
+			return chunk
+		}
 	}
 
 }
@@ -241,6 +246,7 @@ export class UrlFetcher extends ChunkedReader {
 		let headers = {}
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
 		let res = await fetch(url, {headers})
+		// TODO: subarray or manually create ranges record
 		return new BufferView(await res.arrayBuffer())
 	}
 
@@ -255,6 +261,7 @@ export class BlobReader extends ChunkedReader {
 			let reader = new FileReader()
 			reader.onloadend = () => resolve(new BufferView(reader.result || new ArrayBuffer(0)))
 			reader.onerror = reject
+			// TODO: subarray or manually create ranges record
 			reader.readAsArrayBuffer(blob)
 		})
 	}

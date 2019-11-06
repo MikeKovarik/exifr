@@ -319,6 +319,16 @@ TODO: rewrite chunked reader for 3.0.0
 			assert.equal(view.getUint8(5), 5)
 		})
 
+		it(`.subarray() extends the buffer if needed`, async () => {
+			// TODO
+			assert.equal(true, false)
+		})
+
+		it(`.set() extends the buffer if needed`, async () => {
+			// TODO
+			assert.equal(true, false)
+		})
+
 		describe('.ranges array', () => {
 
 			it(`by default contains only has one range spanning input's whole size`, async () => {
