@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1"/>
 	<title>Exifr</title>
 	<style>
 		* {
@@ -18,7 +19,7 @@
 
 		@media only screen and (max-width: 599px) {
 			body {
-				padding: 32px 16px 16px 16px;
+				padding: 16px;
 			}
 		}
 		@media only screen and (min-width: 600px) {
@@ -56,26 +57,37 @@
 		}
 
 		
-		header h1 {
-			width: 167px;
-			height: 89px;
-			background-position: center;
-			background-repeat: no-repeat;
-			background-size: contain;
-			background-image: url('./logo/blue-small.png');
-			font-size: 0;
-			margin-bottom: 32px;
+		header {
+			position: relative;
+			margin-bottom: 16px;
 		}
-		header div {
-			margin-bottom: 40px;
+			header h1 {
+				width: 167px;
+				height: 89px;
+				background-position: center;
+				background-repeat: no-repeat;
+				background-size: contain;
+				background-image: url('./logo/blue-small.png');
+				font-size: 0;
+				margin-bottom: 32px;
+			}
+		@media only screen and (max-width: 739px) {
+			header .gh-icons {
+				margin: 16px 0;
+			}
 		}
 		@media only screen and (min-width: 740px) {
 			header {
 				display: flex;
 			}
-				header div {
+				header .description {
 					margin-top: 23px;
 					margin-left: 56px;
+				}
+				header .gh-icons {
+					position: absolute;
+					right: 0;
+					top: 0;
 				}
 		}
 
@@ -245,11 +257,20 @@
 
 	<header>
 		<h1>Exifr</h1>
-		<div>
+		<div class="description">
 			<p>The fastest and most versatile JavaScript EXIF reading library.</p>
 			<p>Check out the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a> for docs and more information.</p>
 		</div>
+		<div class="gh-icons">
+			<!--
+			<a class="github-button" href="https://github.com/sponsors/MikeKovarik" data-icon="octicon-heart" data-size="large" aria-label="Sponsor @MikeKovarik on GitHub">Sponsor</a>
+			-->
+			<a class="github-button" href="https://github.com/MikeKovarik/exifr/issues" data-icon="octicon-issue-opened" data-size="large" aria-label="Issue MikeKovarik/exifr on GitHub">Issue</a>
+			<a class="github-button" href="https://github.com/MikeKovarik/exifr" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star MikeKovarik/exifr on GitHub">Star</a>
+			<a class="github-button" href="https://github.com/MikeKovarik/exifr/fork" data-icon="octicon-repo-forked" data-size="large" aria-label="Fork MikeKovarik/exifr on GitHub">Fork</a>
+		</div>
 	</header>
+
 
 	<div id="grid">
 
@@ -360,6 +381,7 @@
 	<h2>License</h2>
 	<p>MIT, Mike Kovařík</p>
 
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
 	<script src="./index.js"></script>
 	<script>
 		var {ExifParser, defaultOptions, parse} = window.exifr
