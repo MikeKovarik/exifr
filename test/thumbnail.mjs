@@ -19,7 +19,7 @@ describe('thumbnail', () => {
         assert.equal(output[0], 0xff)
         assert.equal(output[1], 0xd8)
     })
-/*
+
     it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)`, async () => {
         let intput = await getFile('IMG_20180725_163423.jpg')
         let exifr = new ExifParser(true)
@@ -69,5 +69,5 @@ describe('thumbnail', () => {
         var url = await thumbnailUrl(intput, options)
         assert.typeOf(url, 'string')
     })
-*/
+
 })

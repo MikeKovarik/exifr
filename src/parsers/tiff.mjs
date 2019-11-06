@@ -8,6 +8,9 @@ import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.mjs'
 export const TIFF_LITTLE_ENDIAN = 0x4949
 export const TIFF_BIG_ENDIAN    = 0x4D4D
 
+const THUMB_OFFSET  = 0x0201
+const THUMB_LENGTH  = 0x0202
+
 const SIZE_LOOKUP = {
 	1: 1, // BYTE      - 8-bit unsigned integer
 	2: 1, // ASCII     - 8-bit bytes w/ last byte null
@@ -252,6 +255,7 @@ export class Tiff extends TiffCore {
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
+		this.parseHeader()
 		if (!this.ifd0) this.parseIfd0Block(true)
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 

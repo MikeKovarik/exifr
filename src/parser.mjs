@@ -11,9 +11,6 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.mjs'
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
 
-const THUMB_OFFSET  = 0x0201
-const THUMB_LENGTH  = 0x0202
-
 const MAX_APP_SIZE = 65536 // 64kb
 
 
@@ -80,6 +77,7 @@ export class Exifr extends Reader {
 			if (view.getUint8(offset) === 0xFF
 			&& (view.getUint8(offset + 1) & 0xF0) === 0xE0) {
 				let type = getSegmentType(view, offset)
+				//console.log(view.subarray(offset, 50).getString())
 				if (type) {
 					// known and parseable segment found
 					let Parser = parserClasses[type]
@@ -95,20 +93,20 @@ export class Exifr extends Reader {
 					let seg = AppSegment.findPosition(view, offset)
 					this.unknownSegments.push(seg)
 				}
+				/*
 				if (wanted.size && wanted.has(type)) {
 					wanted.delete(type)
 					if (wanted.size === 0) break
 				}
+				*/
 			}
 		}
+
 
 		if (wantedSegments.length)
 			return wantedSegments.map(type => this.segments.find(seg => seg.type === type))
 		//else
 		//	return [...this.segments, ...this.unknownSegments]
-
-		//console.log('segments', this.segments)
-		//console.log('unknownSegments', this.unknownSegments)
 	}
 
 	async parse() {
@@ -182,9 +180,7 @@ export class Exifr extends Reader {
 	async extractThumbnail() {
 		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
 		let [seg] = this.findAppSegments(0, ['tiff'])
-		console.log(seg)
 		let chunk = await this.ensureSegmentChunk(seg)
-		console.log(chunk.toString())
 		this.parsers.tiff = new parserClasses.tiff(chunk, this.options)
 		return this.parsers.tiff.extractThumbnail()
 	}
