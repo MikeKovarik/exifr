@@ -29,28 +29,19 @@ export default class IccParser extends AppSegment {
 		this.output = {}
 		this.parseHeader()
 		this.parseTags()
-		this.translateValues()
-		this.translateTags()
+		if (this.options.translateValues) this.translateValues()
+		if (this.options.translateTags) this.translateTags()
 		return this.output
 	}
 
 	parseHeader() {
 		if (this.view.byteLength < PROFILE_HEADER_LENGTH)
 			throw new Error('ICC header is too short')
-		let {translateTags, translateValues} = this.options
-		let iccKeys = tagKeys.icc
-		let iccVals = tagValues.icc
 		for (let [offset, psrser] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = psrser(this.view, offset)
 			if (val === VALU_EMPTY) continue
-			let key = offset
-			if (translateTags) key = iccKeys[key] || key
-			if (translateValues) {
-				let valDic = iccVals[offset]
-				if (valDic) val = valDic[val] || val
-			}
-			this.output[key] = val
+			this.output[offset] = val
 		}
 	}
 
@@ -118,8 +109,18 @@ export default class IccParser extends AppSegment {
 
 	// TODO
 	translateTags() {
-		let entries = Object.entries(this.output).map(([tag, value]) => [tagKeys.icc[tag] || tag, value])
+		let iccKeys = tagKeys.icc
+		let entries = Object.entries(this.output).map(([key, val]) => [iccKeys[key] || key, val])
+		console.log(entries)
 		this.output = Object.fromEntries(entries)
+		/*
+		let iccVals = tagValues.icc
+		if (translateTags) key = iccKeys[key] || key
+		if (translateValues) {
+			let valDic = iccVals[offset]
+			if (valDic) val = valDic[val] || val
+		}
+		*/
 	}
 
 	translateValues() {
