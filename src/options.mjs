@@ -32,6 +32,8 @@ export const defaultOptions = {
 	reviveValues: true,
 	// TODO
 	translateTags: true,
+	// TODO
+	translateValues: true,
 	// Translate enum values to strings, convert dates to Date instances, etc...
 	postProcess: true,
 	// Changes output format by merging all segments and blocks into single object.

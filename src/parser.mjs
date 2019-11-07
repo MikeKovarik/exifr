@@ -4,6 +4,7 @@ import {BufferView} from './util/BufferView.mjs'
 import {AppSegment, parsers as parserClasses} from './parsers/core.mjs'
 import './parsers/tiff.mjs'
 import './parsers/jfif.mjs'
+import './parsers/iptc.mjs'
 import './parsers/icc.mjs'
 import './parsers/xmp.mjs'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.mjs'
@@ -113,7 +114,8 @@ export class Exifr extends Reader {
 		let libOutput = {}
 		let promises = Object.values(this.parsers).map(async parser => {
 			let parserOutput = await parser.parse()
-			if (this.options.mergeOutput || parser.constructor.mergeOutput || typeof parserOutput !== 'string')
+			//if (this.options.mergeOutput || parser.constructor.mergeOutput || typeof parserOutput !== 'string')
+			if (this.options.mergeOutput || parser.constructor.mergeOutput)
 				Object.assign(libOutput, parserOutput)
 			else
 				libOutput[parser.constructor.type] = parserOutput

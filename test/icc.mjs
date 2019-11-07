@@ -39,7 +39,6 @@ describe('ICC', () => {
 		creator: 'GOOG',
 	})
 
-/*
 	testFile('./Bush-dog.jpg', {
 		version: '2.1.0',
 		intent: 'Perceptual',
@@ -53,8 +52,8 @@ describe('ICC', () => {
 		creator: 'HP',
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
+
 	testFile('./exifr-issue-13', {})
-*/
 
 	testFile('./fast-exif-issue-2.jpg', {
 		// TEXT tag

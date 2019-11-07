@@ -12,8 +12,6 @@ const TAG_TYPE_SIG  = 'sig '
 
 const VALU_EMPTY = '\x00\x00\x00\x00'
 
-var canTranslate = true // TODO: pass this through options
-
 export default class IccParser extends AppSegment {
 
 	static type = 'icc'
@@ -28,11 +26,6 @@ export default class IccParser extends AppSegment {
 	}
 
 	parse() {
-		//this.view = BufferView.from(arg)
-		//this.view = new BufferView(this.buffer, this.start, this.size)
-		console.log(this.view.toString())
-		console.log(this.view.toString())
-
 		this.output = {}
 		this.parseHeader()
 		this.parseTags()
@@ -44,18 +37,20 @@ export default class IccParser extends AppSegment {
 	parseHeader() {
 		if (this.view.byteLength < PROFILE_HEADER_LENGTH)
 			throw new Error('ICC header is too short')
-		for (const [offset, entry] of Object.entries(iccProfile)) {
-			/*
-			let value
-			if (headerParsers[offset])
-				value = headerParsers[offset](this.view, offset)
-			else
-				value = this.view.getString(offset, 4)
-			console.log(offset, parser.toString())
-			*/
-			let value = entry.value(this.view, parseInt(offset, 10))
-			if (canTranslate && entry.description) value = entry.description(value) || value
-			this.output[entry.name] = value
+		let {translateTags, translateValues} = this.options
+		let iccKeys = tagKeys.icc
+		let iccVals = tagValues.icc
+		for (let [offset, psrser] of Object.entries(headerParsers)) {
+			offset = parseInt(offset, 10)
+			let val = psrser(this.view, offset)
+			if (val === VALU_EMPTY) continue
+			let key = offset
+			if (translateTags) key = iccKeys[key] || key
+			if (translateValues) {
+				let valDic = iccVals[offset]
+				if (valDic) val = valDic[val] || val
+			}
+			this.output[key] = val
 		}
 	}
 
@@ -121,6 +116,7 @@ export default class IccParser extends AppSegment {
 			return values
 	}
 
+	// TODO
 	translateTags() {
 		let entries = Object.entries(this.output).map(([tag, value]) => [tagKeys.icc[tag] || tag, value])
 		this.output = Object.fromEntries(entries)
@@ -132,11 +128,6 @@ export default class IccParser extends AppSegment {
 	}
 
 }
-
-
-
-
-
 
 export const headerParsers = {
 	4: parseString,
@@ -151,62 +142,6 @@ export const headerParsers = {
 	52: parseString,
 	64: (view, offset) => view.getUint32(offset),
 	80: parseString
-}
-
-export const iccProfile = {
-	4: {
-		'name': tagKeys.icc[4],
-		'value': headerParsers[4],
-		'description': (value) => tagValues.icc[4][value],
-	},
-	8: {
-		'name': tagKeys.icc[8],
-		'value': headerParsers[8],
-	},
-	12: {
-		'name': tagKeys.icc[12],
-		'value': headerParsers[12],
-		'description': (value) => tagValues.icc[12][value],
-	},
-	16: {
-		'name': tagKeys.icc[16],
-		'value': headerParsers[16],
-	},
-	20: {
-		'name': tagKeys.icc[20],
-		'value': headerParsers[20],
-	},
-	24: {
-		'name': tagKeys.icc[24],
-		'value': headerParsers[24],
-	},
-	36: {
-		'name': tagKeys.icc[36],
-		'value': headerParsers[36],
-	},
-	40: {
-		'name': tagKeys.icc[40],
-		'value': headerParsers[40],
-		'description': (value) => tagValues.icc[40][value],
-	},
-	48: {
-		'name': tagKeys.icc[48],
-		'value': headerParsers[48],
-		'description': (value) => tagValues.icc[48][value],
-	},
-	52: {
-		'name': tagKeys.icc[52],
-		'value': headerParsers[52],
-	},
-	64: {
-		'name': tagKeys.icc[64],
-		'value': headerParsers[64],
-		'description': (value) => tagValues.icc[64][value],
-	},
-	80: {
-		'name': tagKeys.icc[80],
-		'value': headerParsers[80]
-	},
 }
 
 function parseString(view, offset) {

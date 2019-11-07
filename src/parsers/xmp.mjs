@@ -35,8 +35,7 @@ export default class Xmp extends AppSegment {
 		}
 		// TO BE FURTHER DEVELOPED IF/WHEN XMP/XML PARSER IS IMPLEMENTED
 		//this.output = this.options.mergeOutput ? {xmp} : xmp
-		this.output = {xmp: string}
-		return this.output
+		return string
 	}
 
 	//parseXml() {}
