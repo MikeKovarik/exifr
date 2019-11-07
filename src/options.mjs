@@ -79,7 +79,11 @@ function unique(array) {
 export function processOptions(userOptions = {}) {
 	let options = Object.assign({}, defaultOptions)
 	if (userOptions === true || userOptions === false) {
-		for (let key in options) options[key] = userOptions
+		for (let [key, val] of Object.entries(options)) {
+			if (val === undefined || typeof val === 'boolean') {
+				options[key] = userOptions
+			}
+		}
 		options.mergeOutput = defaultOptions.mergeOutput
 		options.postProcess = defaultOptions.postProcess
 	} else {
