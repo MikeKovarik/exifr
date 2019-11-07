@@ -11,7 +11,7 @@ describe('thumbnail', () => {
     }
 
     it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
+        let intput = await getFile('img_1771.jpg')
         let exifr = new ExifParser(options)
         await exifr.read(intput)
         var output = await exifr.extractThumbnail()
@@ -20,8 +20,8 @@ describe('thumbnail', () => {
         assert.equal(output[1], 0xd8)
     })
 
-    it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after with mergeOutput)`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
+    it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (forced after mergeOutput)`, async () => {
+        let intput = await getFile('img_1771.jpg')
         let exifr = new ExifParser(true)
         await exifr.read(intput)
         var output = await exifr.extractThumbnail()
@@ -31,7 +31,7 @@ describe('thumbnail', () => {
     })
 
     it(`tiffParser.extractThumbnail() returns Buffer or ArrayBuffer of thumbnail (default)`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
+        let intput = await getFile('img_1771.jpg')
         let exifr = new ExifParser()
         await exifr.read(intput)
         var output = await exifr.extractThumbnail()
@@ -41,7 +41,15 @@ describe('thumbnail', () => {
     })
 
     it(`tiffParser.extractThumbnail() returns undefined if there's no exif`, async () => {
-        let intput = await getFile('cookiezen.jpg')
+        let intput = await getFile('img_1771_no_exif.jpg')
+        let exifr = new ExifParser()
+        await exifr.read(intput)
+        var output = await exifr.extractThumbnail()
+        assert.isUndefined(output)
+    })
+
+    it(`tiffParser.extractThumbnail() returns undefined if there's no exif 2`, async () => {
+        let intput = await getFile('noexif.jpg')
         let exifr = new ExifParser()
         await exifr.read(intput)
         var output = await exifr.extractThumbnail()
@@ -49,14 +57,15 @@ describe('thumbnail', () => {
     })
 
     it(`tiffParser.extractThumbnail() returns undefined if there's no thumbnail`, async () => {
-        let intput = await getFile('noexif.jpg')
-        let exifr = new ExifParser(options)
+        let intput = await getFile('PANO_20180725_162444.jpg')
+        let exifr = new ExifParser()
         await exifr.read(intput)
-        assert.isUndefined(await exifr.extractThumbnail())
+        var output = await exifr.extractThumbnail()
+        assert.isUndefined(output)
     })
 
     it(`exifr.thumbnailBuffer()`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
+        let intput = await getFile('img_1771.jpg')
         var output = await thumbnailBuffer(intput, options)
         // Buffer in Node, ArrayBuffer in browser
         output = new Uint8Array(output)
@@ -65,7 +74,7 @@ describe('thumbnail', () => {
     })
 
     isBrowser && it(`exifr.thumbnailUrl()`, async () => {
-        let intput = await getFile('IMG_20180725_163423.jpg')
+        let intput = await getFile('img_1771.jpg')
         var url = await thumbnailUrl(intput, options)
         assert.typeOf(url, 'string')
     })

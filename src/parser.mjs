@@ -58,10 +58,11 @@ function getSegmentType(buffer, offset) {
 export class Exifr extends Reader {
 
 	parsers = {}
+	segments = []
+	unknownSegments = []
 
 	findAppSegments(offset = 0, wantedSegments = []) {
-		this.segments = []
-		this.unknownSegments = []
+		//console.log('findAppSegments', wantedSegments)
 		let wanted = new Set(wantedSegments)
 
 		let view = this.view
@@ -83,7 +84,13 @@ export class Exifr extends Reader {
 					let Parser = parserClasses[type]
 					let seg = Parser.findPosition(view, offset)
 					seg.type = type
-					this.segments.push(seg)
+					if (wanted.size === 0) {
+						this.segments.push(seg)
+					} else if (wanted.size > 0 && wanted.has(type)) {
+						this.segments.push(seg)
+						wanted.delete(type)
+						if (wanted.size === 0) break
+					}
 					if (seg.end)
 						offset = seg.end - 1
 					else if (seg.length)
@@ -93,20 +100,10 @@ export class Exifr extends Reader {
 					let seg = AppSegment.findPosition(view, offset)
 					this.unknownSegments.push(seg)
 				}
-				/*
-				if (wanted.size && wanted.has(type)) {
-					wanted.delete(type)
-					if (wanted.size === 0) break
-				}
-				*/
 			}
 		}
 
-
-		if (wantedSegments.length)
-			return wantedSegments.map(type => this.segments.find(seg => seg.type === type))
-		//else
-		//	return [...this.segments, ...this.unknownSegments]
+		//console.log('this.segments', this.segments)
 	}
 
 	async parse() {
@@ -126,11 +123,14 @@ export class Exifr extends Reader {
 	}
 
 	async readSegments() {
+		//console.log('readSegments')
+		//console.log('this.segments', this.segments)
 		let promises = this.segments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
 	}
 
 	ensureSegmentChunk = async seg => {
+		//console.log('ensureSegmentChunk', seg)
 		let {start, size} = seg
 		if (this.view.chunked) {
 			let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
@@ -177,12 +177,27 @@ export class Exifr extends Reader {
 		}
 	}
 
+	getSegment(type) {
+		return this.segments.find(seg => seg.type === type)
+	}
+
+	getOrFindSegment(type) {
+		let seg = this.getSegment(type)
+		if (seg === undefined) {
+			this.findAppSegments(0, [type])
+			seg = this.getSegment(type)
+		}
+		return seg
+	}
+
 	async extractThumbnail() {
 		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
-		let [seg] = this.findAppSegments(0, ['tiff'])
-		let chunk = await this.ensureSegmentChunk(seg)
-		this.parsers.tiff = new parserClasses.tiff(chunk, this.options)
-		return this.parsers.tiff.extractThumbnail()
+		let seg = this.getOrFindSegment('tiff')
+		if (seg !== undefined) {
+			let chunk = await this.ensureSegmentChunk(seg)
+			this.parsers.tiff = new parserClasses.tiff(chunk, this.options)
+			return this.parsers.tiff.extractThumbnail()
+		}
 	}
 
 }
