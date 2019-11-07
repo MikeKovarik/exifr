@@ -24,7 +24,7 @@ export default class Xmp extends AppSegment {
 */
 	parse() {
 		// Read XMP segment as string. We're not parsing the XML.
-		let string = this.mainView.getString(this.start, this.end)
+		let string = this.view.getString()
 		// Trims the mess around.
 		if (this.options.postProcess || this.parseXml) {
 			let start = string.indexOf('<x:xmpmeta')
