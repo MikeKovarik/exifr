@@ -85,7 +85,7 @@ export class Exifr extends Reader {
 		// JPEG's exif is based on TIFF structure from .tif files.
 		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
 		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
-		var marker = this.view.getUint16(0)
+		var marker = this.file.getUint16(0)
 		this.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
 		//this.isJpeg = marker === JPEG_SOI
 	}
@@ -94,7 +94,7 @@ export class Exifr extends Reader {
 		//console.log('findAppSegments', wantedSegments)
 		let wanted = new Set(wantedSegments)
 
-		let view = this.view
+		let file = this.file
 		
 		if (this.isTiff) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
@@ -104,22 +104,22 @@ export class Exifr extends Reader {
 		// NOTE: we're not immediatelly checking for this.isJpeg because we want to enable reading from any offset in the file
 		// and be able to even insert malformed JPEG file.
 
-		let bytes = view.byteLength - 10 // No need to parse through till the end of the buffer.
+		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
 		for (; offset < bytes; offset++) {
-			if (view.getUint8(offset) === MARKER_1) {
+			if (file.getUint8(offset) === MARKER_1) {
 				// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
-				let marker2 = view.getUint8(offset + 1)
+				let marker2 = file.getUint8(offset + 1)
 				let isAppSegment = isAppMarker(marker2)
 				let isJpgSegment = isJpgMarker(marker2)
 				// All JPG 
 				if (isAppSegment || isJpgSegment) {
-					let length = view.getUint16(offset + 2)
+					let length = file.getUint16(offset + 2)
 					if (isAppSegment) {
-						let type = getSegmentType(view, offset)
+						let type = getSegmentType(file, offset)
 						if (type) {
 							// known and parseable segment found
 							let Parser = parserClasses[type]
-							let seg = Parser.findPosition(view, offset)
+							let seg = Parser.findPosition(file, offset)
 							seg.type = type
 							if (wanted.size === 0) {
 								this.appSegments.push(seg)
@@ -130,7 +130,7 @@ export class Exifr extends Reader {
 							}
 						} else {
 							// either unknown/supported appN segment or just a noise.
-							let seg = AppSegment.findPosition(view, offset)
+							let seg = AppSegment.findPosition(file, offset)
 							this.unknownSegments.push(seg)
 						}
 					} else if (isJpgSegment) {
@@ -170,19 +170,19 @@ export class Exifr extends Reader {
 	ensureSegmentChunk = async seg => {
 		let start = seg.start
 		let size = seg.size || MAX_APP_SIZE
-		if (this.view.chunked) {
-			let available = this.view.isRangeAvailable(start, size)
+		if (this.file.chunked) {
+			let available = this.file.isRangeAvailable(start, size)
 			if (available) {
-				seg.chunk = this.view.subarray(start, size)
+				seg.chunk = this.file.subarray(start, size)
 			} else {
 				try {
-					seg.chunk = await this.view.readChunk(start, size)
+					seg.chunk = await this.file.readChunk(start, size)
 				} catch (err) {
 					throw new Error(`Couldn't read segment ${seg.type} at ${seg.offset}/${seg.size}. ${err.message}`)
 				}
 			}
-		} else if (this.view.byteLength > start + size) {
-			seg.chunk = this.view.subarray(start, size)
+		} else if (this.file.byteLength > start + size) {
+			seg.chunk = this.file.subarray(start, size)
 		} else {
 			throw new Error(`Segment ${seg.type} at ${seg.offset}/${seg.size} is unreachable ` + JSON.stringify(seg))
 		}
@@ -209,7 +209,7 @@ export class Exifr extends Reader {
 				parser.append(chunk)
 			} else if (!parser) {
 				let Parser = parserClasses[type]
-				let parser = new Parser(chunk, this.options)
+				let parser = new Parser(chunk, this.options, this.file)
 				this.parsers[type] = parser
 			}
 		}
@@ -233,7 +233,7 @@ export class Exifr extends Reader {
 		let seg = this.getOrFindSegment('tiff')
 		if (seg !== undefined) {
 			let chunk = await this.ensureSegmentChunk(seg)
-			this.parsers.tiff = new parserClasses.tiff(chunk, this.options)
+			this.parsers.tiff = new parserClasses.tiff(chunk, this.options, this.file)
 			return this.parsers.tiff.extractThumbnail()
 		}
 	}

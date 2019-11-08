@@ -23,7 +23,7 @@ export default class Reader {
 		else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)
 			await this.readString(arg.src)
 		else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
-			this.view = new BufferView(arg)
+			this.file = new BufferView(arg)
 		else if (isBrowser && arg instanceof Blob)
 			await this.readBlob(arg)
 		else
@@ -42,23 +42,23 @@ export default class Reader {
 	}
 
 	async readBlob(blob) {
-		this.view = new BlobReader(blob, this.options)
-		await this.view.read(this.options.parseChunkSize)
+		this.file = new BlobReader(blob, this.options)
+		await this.file.read(this.options.parseChunkSize)
 	}
 
 	async readUrl(url) {
-		this.view = new UrlFetcher(url, this.options)
-		await this.view.read(this.options.parseChunkSize)
+		this.file = new UrlFetcher(url, this.options)
+		await this.file.read(this.options.parseChunkSize)
 	}
 
 	async readBase64(base64) {
-		this.view = new Base64Reader(base64, this.options)
-		await this.view.read(this.options.seekChunkSize)
+		this.file = new Base64Reader(base64, this.options)
+		await this.file.read(this.options.seekChunkSize)
 	}
 
 	async readFileFromDisk(filePath) {
-		this.view = new FsReader(filePath, this.options)
-		await this.view.read()
+		this.file = new FsReader(filePath, this.options)
+		await this.file.read()
 	}
 
 }
@@ -152,17 +152,13 @@ export class FsReader extends ChunkedReader {
 	bytesRead = 0
 
 	async readWhole() {
-		console.log('FsReader.readWhole()')
 		this.chunked = false
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
-		console.log('buffer', buffer)
-		console.log('buffer.length', buffer.length)
 		this._swapBuffer(buffer)
 	}
 
 	async readChunked() {
-		console.log('FsReader.readChunked()')
 		this.chunked = true
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')

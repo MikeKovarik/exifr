@@ -10,11 +10,11 @@ export default class Iptc extends AppSegment {
 		var offset = this.start
 		for (var offset = 0; offset < this.end; offset++) {
 			// reading Uint8 and then another to prevent unnecessarry read of two subsequent bytes, when iterating
-			if (this.buffer.getUint8(offset) === 0x1C && this.buffer.getUint8(offset + 1) === 0x02) {
-				let size = this.buffer.getUint16(offset + 3)
-				let tag = this.buffer.getUint8(offset + 2)
+			if (this.chunk.getUint8(offset) === 0x1C && this.chunk.getUint8(offset + 1) === 0x02) {
+				let size = this.chunk.getUint16(offset + 3)
+				let tag = this.chunk.getUint8(offset + 2)
 				let key = dictionary[tag] || tag // TODO: translate tags on demand
-				let val = this.buffer.getString(offset + 5, size)
+				let val = this.chunk.getString(offset + 5, size)
 				iptc[key] = this.setValueOrArrayOfValues(val, iptc[key])
 			}
 		}

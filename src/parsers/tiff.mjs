@@ -36,27 +36,27 @@ export class TiffCore extends AppSegment {
 	parseHeader() {
 		//console.log('this.ifd0Offset', this.ifd0Offset, this.ifd0Offset.toString(16))
 		// Detect endian 11th byte of TIFF (1st after header)
-		var byteOrder = this.view.getUint16()
+		var byteOrder = this.chunk.getUint16()
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
 			this.le = true // little endian
 		else if (byteOrder === TIFF_BIG_ENDIAN)
 			this.le = false // big endian
 		else
 			throw new Error('Invalid EXIF data: expected byte order marker (0x4949 or 0x4D4D).')
-		this.view.le = this.le
+		this.chunk.le = this.le
 
 		// Bytes 8 & 9 are expected to be 00 2A.
-		if (this.view.getUint16(2) !== 0x002A)
+		if (this.chunk.getUint16(2) !== 0x002A)
 			throw new Error('Invalid EXIF data: expected 0x002A.')
 	}
 
 	parseTags(offset) {
-		let entriesCount = this.view.getUint16(offset)
+		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
 		let {pickTags, skipTags} = this.options
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
-			let tag = this.view.getUint16(offset)
+			let tag = this.chunk.getUint16(offset)
 			if (pickTags.includes(tag) || !skipTags.includes(tag)) {
 				let val = this.parseTag(offset)
 				output[tag] = val
@@ -67,20 +67,20 @@ export class TiffCore extends AppSegment {
 	}
 
 	parseTag(offset) {
-		let type = this.view.getUint16(offset + 2)
-		let valuesCount = this.view.getUint32(offset + 4)
+		let type = this.chunk.getUint16(offset + 2)
+		let valuesCount = this.chunk.getUint32(offset + 4)
 		let valueByteSize = SIZE_LOOKUP[type]
 		if (valueByteSize * valuesCount <= 4)
 			var valueOffset = offset + 8
 		else
-			var valueOffset = this.view.getUint32(offset + 8)
+			var valueOffset = this.chunk.getUint32(offset + 8)
 
-		if (valueOffset > this.view.buffer.byteLength)
-			throw new Error(`tiff value offset ${valueOffset} is out of chunk size ${this.view.buffer.byteLength}`)
+		if (valueOffset > this.chunk.buffer.byteLength)
+			throw new Error(`tiff value offset ${valueOffset} is out of chunk size ${this.chunk.buffer.byteLength}`)
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === 2) {
-			let string = this.view.getString(valueOffset, valuesCount)
+			let string = this.chunk.getString(valueOffset, valuesCount)
 			// remove null terminator
 			while (string.endsWith('\0')) string = string.slice(0, -1)
 			return string
@@ -88,7 +88,7 @@ export class TiffCore extends AppSegment {
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === 7)
-			return slice(this.view, valueOffset, valueOffset + valuesCount)
+			return slice(this.chunk, valueOffset, valueOffset + valuesCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
 		if (valuesCount === 1) {
@@ -107,17 +107,17 @@ export class TiffCore extends AppSegment {
 
 	parseTagValue(type, offset) {
 		switch (type) {
-			case 1:  return this.view.getUint8(offset)
-			case 3:  return this.view.getUint16(offset)
-			case 4:  return this.view.getUint32(offset)
-			case 5:  return this.view.getUint32(offset) / this.view.getUint32(offset + 4)
-			case 6:  return this.view.getInt8(offset)
-			case 8:  return this.view.getInt16(offset)
-			case 9:  return this.view.getInt32(offset)
-			case 10: return this.view.getInt32(offset) / this.view.getInt32(offset + 4)
-			case 11: return this.view.getFloat(offset)
-			case 12: return this.view.getDouble(offset)
-			case 13: return this.view.getUint32(offset)
+			case 1:  return this.chunk.getUint8(offset)
+			case 3:  return this.chunk.getUint16(offset)
+			case 4:  return this.chunk.getUint32(offset)
+			case 5:  return this.chunk.getUint32(offset) / this.chunk.getUint32(offset + 4)
+			case 6:  return this.chunk.getInt8(offset)
+			case 8:  return this.chunk.getInt16(offset)
+			case 9:  return this.chunk.getInt32(offset)
+			case 10: return this.chunk.getInt32(offset) / this.chunk.getInt32(offset + 4)
+			case 11: return this.chunk.getFloat(offset)
+			case 12: return this.chunk.getDouble(offset)
+			case 13: return this.chunk.getUint32(offset)
 			default: throw new Error(`Invalid tiff type ${type}`)
 		}
 	}
@@ -194,26 +194,19 @@ export class TiffExif extends TiffCore {
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
-		this.ifd0Offset = this.view.getUint32(4)
-		console.log('ifd0Offset', this.ifd0Offset)
-		console.log('view.byteLength', this.view.byteLength)
-		console.log('view.chunked', this.view.chunked)
+		this.ifd0Offset = this.chunk.getUint32(4)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
-		if (this.ifd0Offset > this.view.byteLength)
-			throw new Error(`IFD0 offset points to outside of ${this.view.chunked ? 'currently loaded bytes' : 'file'}. ifd0Offset: ${this.ifd0Offset}, view.byteLength: ${this.view.byteLength}`)
+		if (this.ifd0Offset > this.chunk.byteLength)
+			throw new Error(`IFD0 offset points to outside of ${this.chunk.chunked ? 'currently loaded bytes' : 'file'}. ifd0Offset: ${this.ifd0Offset}, view.byteLength: ${this.chunk.byteLength}`)
 		// Parse IFD0 block.
 		this.ifd0 = this.parseTags(this.ifd0Offset)
-		console.log('this.ifd0', this.ifd0)
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(this.ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
 		this.exifOffset    = this.ifd0[TAG_IFD_EXIF]
 		this.interopOffset = this.ifd0[TAG_IFD_INTEROP]
 		this.gpsOffset     = this.ifd0[TAG_IFD_GPS]
-		console.log('exifOffset', this.exifOffset)
-		console.log('interopOffset', this.interopOffset)
-		console.log('gpsOffset', this.gpsOffset)
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.sanitize) {
@@ -253,10 +246,10 @@ export class TiffExif extends TiffCore {
 	parseThumbnailBlock(force = false) {
 		if (this.thumbnail || this.thumbnailParsed) return
 		if (this.options.mergeOutput && !force) return false
-		let ifd0Entries = this.view.getUint16(this.ifd0Offset)
+		let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
 		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
 		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
-		this.ifd1Offset = this.view.getUint32(temp)
+		this.ifd1Offset = this.chunk.getUint32(temp)
 		if (this.ifd1Offset === 0) return false
 		this.thumbnail = this.parseTags(this.ifd1Offset)
 		this.thumbnailParsed = true
@@ -272,7 +265,7 @@ export class TiffExif extends TiffCore {
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.thumbnail[THUMB_OFFSET]
 		let length = this.thumbnail[THUMB_LENGTH]
-		let subView = this.view.subarray(offset, length)
+		let subView = this.chunk.subarray(offset, length)
 		if (typeof Buffer !== 'undefined')
 			return Buffer.from(subView.buffer)
 		else

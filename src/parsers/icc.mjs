@@ -34,21 +34,21 @@ export default class IccParser extends AppSegment {
 	}
 
 	parseHeader() {
-		if (this.view.byteLength < PROFILE_HEADER_LENGTH)
+		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
 			throw new Error('ICC header is too short')
 		for (let [offset, psrser] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
-			let val = psrser(this.view, offset)
+			let val = psrser(this.chunk, offset)
 			if (val === EMPTY_VALUE) continue
 			this.output[offset] = val
 		}
 	}
 
 	parseTags() {
-		let tagCount = this.view.getUint32(128)
+		let tagCount = this.chunk.getUint32(128)
 		let offset = 132
 		while (tagCount--) {
-			let code = this.view.getString(offset, 4)
+			let code = this.chunk.getString(offset, 4)
 			let value = this.parseTag(offset)
 			// Not all the type parsers are implemented.
 			if (value !== undefined && value !== EMPTY_VALUE) this.output[code] = value
@@ -57,9 +57,9 @@ export default class IccParser extends AppSegment {
 	}
 
 	parseTag(cursor) {
-		let offset = this.view.getUint32(cursor + 4)
-		let size   = this.view.getUint32(cursor + 8)
-		let type   = this.view.getString(offset, 4)
+		let offset = this.chunk.getUint32(cursor + 4)
+		let size   = this.chunk.getUint32(cursor + 8)
+		let type   = this.chunk.getString(offset, 4)
 		switch (type) {
 			case TAG_TYPE_DESC: return this.parseDesc(offset)
 			case TAG_TYPE_MLUC: return this.parseMluc(offset)
@@ -71,17 +71,17 @@ export default class IccParser extends AppSegment {
 	}
 
 	parseDesc(offset) {
-		let size  = this.view.getUint32(offset + 8) - 1 // last byte is null termination
-		return this.view.getString(offset + 12, size).trim()
+		let size  = this.chunk.getUint32(offset + 8) - 1 // last byte is null termination
+		return this.chunk.getString(offset + 12, size).trim()
 	}
 
 	parseText(offset, size) {
-		return this.view.getString(offset + 8, size - 15).trim()
+		return this.chunk.getString(offset + 8, size - 15).trim()
 	}
 
 	// NOTE: some tags end with empty space. TODO: investigate. maybe add .trim() 
 	parseSig(offset) {
-		return this.view.getString(offset + 8, 4).trim()
+		return this.chunk.getString(offset + 8, 4).trim()
 	}
 
 	// Multi Localized Unicode Type

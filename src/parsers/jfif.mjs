@@ -14,7 +14,7 @@ export default class Jfif extends AppSegment {
 	}
 
 	parse() {
-		let cursorView = new CursorView(this.view, this.start)
+		let cursorView = new CursorView(this.chunk, this.start)
 		let jfif = {
 			version:    cursorView.getUint16(),
 			units:      cursorView.getUint8(),

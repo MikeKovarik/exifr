@@ -41,9 +41,11 @@ export class AppSegment {
 	}
 
 	constructor(view, options, reader) {
-		this.view = view
+		this.view = view // todo: deprecate
+		this.chunk = view
 		this.options = options
-		this.reader = reader
+		this.reader = reader // todo: deprecate
+		this.file = reader
 	}
 
 }
