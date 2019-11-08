@@ -5,6 +5,7 @@ import {getFile, getPath} from './test-util.mjs'
 
 describe('issues (special cases)', () => {
 
+    // TODO: maybe move this test to input (reader) test file and rename it to .tif file support
     it(`#2 - 001.tif starting with 49 49`, async () => {
         var output = await parse(await getFile('001.tif'))
         assert.exists(output, `output is undefined`)

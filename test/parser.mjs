@@ -14,7 +14,7 @@ describe('parser', () => {
         let exifr = new Exifr(true)
         await exifr.read(input)
         exifr.findAppSegments()
-        let jfifSegment = exifr.segments.find(segment => segment.type === 'jfif')
+        let jfifSegment = exifr.appSegments.find(segment => segment.type === 'jfif')
         assert.isDefined(jfifSegment)
         assert.equal(jfifSegment.offset, 25388)
         assert.equal(jfifSegment.length, 18)
