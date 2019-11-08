@@ -28,13 +28,13 @@ const SIZE_LOOKUP = {
 	13: 4 // IFD (sometimes used instead of 4 LONG)
 }
 
-
 const blockKeys = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
 // jpg wraps tiff into app1 segment.
 export class TiffCore extends AppSegment {
 
 	parseHeader() {
+		//console.log('this.ifd0Offset', this.ifd0Offset, this.ifd0Offset.toString(16))
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.view.getUint16()
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
@@ -150,7 +150,7 @@ APP1 CONTENT
 - GPS IFD
 - IFD1
 */
-export class Tiff extends TiffCore {
+export class TiffExif extends TiffCore {
 
 	static type = 'tiff'
 	static mergeOutput = true
@@ -175,6 +175,7 @@ export class Tiff extends TiffCore {
 		if (this.options.interop)   this.parseInteropBlock()   // APP1 - Interop IFD
 		if (this.options.thumbnail) this.parseThumbnailBlock() // APP1 - IFD1
 		this.postProcess()
+		this.translate()
 		let {ifd0, exif, gps, interop, thumbnail} = this
 		if (this.options.mergeOutput)
 			this.output = Object.assign({}, ifd0, exif, gps, interop, thumbnail)
@@ -194,16 +195,25 @@ export class Tiff extends TiffCore {
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		this.ifd0Offset = this.view.getUint32(4)
+		console.log('ifd0Offset', this.ifd0Offset)
+		console.log('view.byteLength', this.view.byteLength)
+		console.log('view.chunked', this.view.chunked)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
+		if (this.ifd0Offset > this.view.byteLength)
+			throw new Error(`IFD0 offset points to outside of ${this.view.chunked ? 'currently loaded bytes' : 'file'}. ifd0Offset: ${this.ifd0Offset}, view.byteLength: ${this.view.byteLength}`)
 		// Parse IFD0 block.
 		this.ifd0 = this.parseTags(this.ifd0Offset)
+		console.log('this.ifd0', this.ifd0)
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(this.ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
 		this.exifOffset    = this.ifd0[TAG_IFD_EXIF]
 		this.interopOffset = this.ifd0[TAG_IFD_INTEROP]
 		this.gpsOffset     = this.ifd0[TAG_IFD_GPS]
+		console.log('exifOffset', this.exifOffset)
+		console.log('interopOffset', this.interopOffset)
+		console.log('gpsOffset', this.gpsOffset)
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.sanitize) {
@@ -270,13 +280,17 @@ export class Tiff extends TiffCore {
 	}
 
 	postProcess() {
-		let {postProcess, translateTags, reviveValues} = this.options
-		if (!postProcess) return
-		let gps = this.gps
-		if (gps && gps[GPS_LAT] && gps[GPS_LON]) {
-			gps.latitude  = ConvertDMSToDD(...gps[GPS_LAT], gps[GPS_LATREF])
-			gps.longitude = ConvertDMSToDD(...gps[GPS_LON], gps[GPS_LONREF])
+		if (this.options.postProcess) {
+			let gps = this.gps
+			if (gps && gps[GPS_LAT] && gps[GPS_LON]) {
+				gps.latitude  = ConvertDMSToDD(...gps[GPS_LAT], gps[GPS_LATREF])
+				gps.longitude = ConvertDMSToDD(...gps[GPS_LON], gps[GPS_LONREF])
+			}
 		}
+	}
+
+	translate() {
+		let {translateTags, reviveValues} = this.options
 		if (translateTags || reviveValues) {
 			for (let key of blockKeys) {
 				let dictionary = tags.tiff[key]
@@ -300,4 +314,4 @@ export const GPS_LONREF = 0x0003
 export const GPS_LON    = 0x0004
 
 
-parsers.tiff = Tiff
+parsers.tiff = TiffExif

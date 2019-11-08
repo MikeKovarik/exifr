@@ -14,15 +14,33 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.mjs'
 
 const MAX_APP_SIZE = 65536 // 64kb
 
+const JPEG_SOI = 0xffd8
 
+const MARKER_1         = 0xff
+const MARKER_2_APP0    = 0xe0 // ff e0
+const MARKER_2_APP15   = 0xef // ff ef
+const MARKER_2_SOF0    = 0xc0 // ff c0
+const MARKER_2_SOF2    = 0xc2 // ff c2
+const MARKER_2_DHT     = 0xc4 // ff c4
+const MARKER_2_DQT     = 0xdb // ff db
+const MARKER_2_DRI     = 0xdd // ff dd
+const MARKER_2_SOS     = 0xda // ff da
+const MARKER_2_COMMENT = 0xfe // ff fe
 
+function isJpgMarker(marker2) {
+	return marker2 === MARKER_2_SOF0
+		|| marker2 === MARKER_2_SOF2
+		|| marker2 === MARKER_2_DHT
+		|| marker2 === MARKER_2_DQT
+		|| marker2 === MARKER_2_DRI
+		|| marker2 === MARKER_2_SOS
+		|| marker2 === MARKER_2_COMMENT
+}
 
-
-
-
-
-
-
+function isAppMarker(marker2) {
+    return marker2 >= MARKER_2_APP0
+		&& marker2 <= MARKER_2_APP15
+}
 
 function getSegmentType(buffer, offset) {
 	for (let Parser of Object.values(parserClasses))
@@ -59,8 +77,18 @@ function getSegmentType(buffer, offset) {
 export class Exifr extends Reader {
 
 	parsers = {}
-	segments = []
+	appSegments = []
+	jpgSegments = []
 	unknownSegments = []
+
+	init() {
+		// JPEG's exif is based on TIFF structure from .tif files.
+		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
+		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
+		var marker = this.view.getUint16(0)
+		this.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
+		//this.isJpeg = marker === JPEG_SOI
+	}
 
 	findAppSegments(offset = 0, wantedSegments = []) {
 		//console.log('findAppSegments', wantedSegments)
@@ -68,46 +96,54 @@ export class Exifr extends Reader {
 
 		let view = this.view
 		
-		// JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
-		// Whereas .tif file format starts with the TIFF structure right away.
-		var marker = view.getUint16(0)
-		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN)
-			this.segments.push({start: 0, type: 'tiff'})
+		if (this.isTiff) {
+			// The file starts with TIFF structure (instead of JPEGs FF D8)
+			this.appSegments.push({start: 0, type: 'tiff'})
+			//return // nejde preskocit. TIFF porad muze obsahovat XMP a dalsi (001.tif)
+		}
+		// NOTE: we're not immediatelly checking for this.isJpeg because we want to enable reading from any offset in the file
+		// and be able to even insert malformed JPEG file.
 
-		let length = view.byteLength - 10 // No need to parse through till the end of the buffer.
-		for (; offset < length; offset++) {
-			if (view.getUint8(offset) === 0xFF
-			&& (view.getUint8(offset + 1) & 0xF0) === 0xE0) {
-				let type = getSegmentType(view, offset)
-				//console.log(view.subarray(offset, 50).getString())
-				if (type) {
-					// known and parseable segment found
-					let Parser = parserClasses[type]
-					let seg = Parser.findPosition(view, offset)
-					seg.type = type
-					if (wanted.size === 0) {
-						this.segments.push(seg)
-					} else if (wanted.size > 0 && wanted.has(type)) {
-						this.segments.push(seg)
-						wanted.delete(type)
-						if (wanted.size === 0) break
+		let bytes = view.byteLength - 10 // No need to parse through till the end of the buffer.
+		for (; offset < bytes; offset++) {
+			if (view.getUint8(offset) === MARKER_1) {
+				// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
+				let marker2 = view.getUint8(offset + 1)
+				let isAppSegment = isAppMarker(marker2)
+				let isJpgSegment = isJpgMarker(marker2)
+				// All JPG 
+				if (isAppSegment || isJpgSegment) {
+					let length = view.getUint16(offset + 2)
+					if (isAppSegment) {
+						let type = getSegmentType(view, offset)
+						if (type) {
+							// known and parseable segment found
+							let Parser = parserClasses[type]
+							let seg = Parser.findPosition(view, offset)
+							seg.type = type
+							if (wanted.size === 0) {
+								this.appSegments.push(seg)
+							} else if (wanted.size > 0 && wanted.has(type)) {
+								this.appSegments.push(seg)
+								wanted.delete(type)
+								if (wanted.size === 0) break
+							}
+						} else {
+							// either unknown/supported appN segment or just a noise.
+							let seg = AppSegment.findPosition(view, offset)
+							this.unknownSegments.push(seg)
+						}
+					} else if (isJpgSegment) {
+						this.jpgSegments.push({offset, length})
 					}
-					if (seg.end)
-						offset = seg.end - 1
-					else if (seg.length)
-						offset += seg.length - 1
-				} else {
-					// either unknown/supported appN segment or just a noise.
-					let seg = AppSegment.findPosition(view, offset)
-					this.unknownSegments.push(seg)
+					offset += length + 1
 				}
 			}
 		}
-
-		//console.log('this.segments', this.segments)
 	}
 
 	async parse() {
+		this.init()
 		this.findAppSegments()
 		await this.readSegments()
 		this.createParsers()
@@ -126,21 +162,21 @@ export class Exifr extends Reader {
 
 	async readSegments() {
 		//console.log('readSegments')
-		//console.log('this.segments', this.segments)
-		let promises = this.segments.map(this.ensureSegmentChunk)
+		//console.log('this.appSegments', this.appSegments)
+		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
 	}
 
 	ensureSegmentChunk = async seg => {
-		//console.log('ensureSegmentChunk', seg)
-		let {start, size} = seg
+		let start = seg.start
+		let size = seg.size || MAX_APP_SIZE
 		if (this.view.chunked) {
-			let available = this.view.isRangeAvailable(start, size || MAX_APP_SIZE)
+			let available = this.view.isRangeAvailable(start, size)
 			if (available) {
 				seg.chunk = this.view.subarray(start, size)
 			} else {
 				try {
-					seg.chunk = await this.view.readChunk(start, size || MAX_APP_SIZE)
+					seg.chunk = await this.view.readChunk(start, size)
 				} catch (err) {
 					throw new Error(`Couldn't read segment ${seg.type} at ${seg.offset}/${seg.size}. ${err.message}`)
 				}
@@ -164,7 +200,7 @@ export class Exifr extends Reader {
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
-		for (let segment of this.segments) {
+		for (let segment of this.appSegments) {
 			let {type, chunk} = segment
 			if (this.options[type] !== true) continue
 			let parser = this.parsers[type]
@@ -180,7 +216,7 @@ export class Exifr extends Reader {
 	}
 
 	getSegment(type) {
-		return this.segments.find(seg => seg.type === type)
+		return this.appSegments.find(seg => seg.type === type)
 	}
 
 	getOrFindSegment(type) {

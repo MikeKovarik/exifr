@@ -3,7 +3,7 @@ import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.mjs'
 import {tags, findTag} from './tags.mjs'
 
 
-export const defaultOptions = {
+const defaultOptions = {
 
 	// READING & PARSING
 
@@ -54,7 +54,7 @@ export const defaultOptions = {
 	thumbnail: false,
 	// APP1 XMP segment - XML based extension, often used by editors like Photoshop.
 	xmp: false,
-	// APP2 ICC segment - Not implemented yet
+	// APP2 ICC segment
 	icc: false,
 	// APP13 IPTC segment - Captions and copyrights
 	iptc: false,
@@ -74,11 +74,21 @@ export const defaultOptions = {
 
 }
 
+export default function optionsFactory(userOptions) {
+	if (userOptions)
+		return processOptions(userOptions)
+	else {
+		// TODO: protect non primite values because assign passes them as reference
+		// i.e. skipTags & pickTags
+		return Object.assign({}, defaultOptions)
+	}
+}
+
 function unique(array) {
 	return Array.from(new Set(array))
 }
 
-export function processOptions(userOptions = {}) {
+function processOptions(userOptions = {}) {
 	let options = Object.assign({}, defaultOptions)
 	if (userOptions === true || userOptions === false) {
 		for (let [key, val] of Object.entries(options)) {

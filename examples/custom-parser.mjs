@@ -18,7 +18,7 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 	let exifr = new ExifParser(options)
 	await exifr.read(fileBuffer)
 	exifr.parse()
-	let segments = [...exifr.segments, ...exifr.unknownSegments]
+	let segments = [...exifr.appSegments, ...exifr.unknownSegments]
 	for (let segment of segments) {
 		console.log('-----------------')
 		console.log(segment.offset, segment.end)

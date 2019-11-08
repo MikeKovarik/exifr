@@ -15,7 +15,7 @@ import path from 'path'
 		console.log('----------------------------------------------------')
 		console.log('file name', filePath)
 		console.log('file size', fileBuffer.length, kb(fileBuffer.length))
-		let segments = [...exifr.segments, ...exifr.unknownSegments]
+		let segments = [...exifr.appSegments, ...exifr.unknownSegments]
 		for (let segment of segments) {
 			//console.log(segment)
 			console.log(

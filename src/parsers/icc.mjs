@@ -10,7 +10,7 @@ const TAG_TYPE_MLUC = 'mluc'
 const TAG_TYPE_TEXT = 'text'
 const TAG_TYPE_SIG  = 'sig '
 
-const VALU_EMPTY = '\x00\x00\x00\x00'
+const EMPTY_VALUE = '\x00\x00\x00\x00'
 
 export default class IccParser extends AppSegment {
 
@@ -39,7 +39,7 @@ export default class IccParser extends AppSegment {
 		for (let [offset, psrser] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = psrser(this.view, offset)
-			if (val === VALU_EMPTY) continue
+			if (val === EMPTY_VALUE) continue
 			this.output[offset] = val
 		}
 	}
@@ -51,7 +51,7 @@ export default class IccParser extends AppSegment {
 			let code = this.view.getString(offset, 4)
 			let value = this.parseTag(offset)
 			// Not all the type parsers are implemented.
-			if (value !== undefined && value !== VALU_EMPTY) this.output[code] = value
+			if (value !== undefined && value !== EMPTY_VALUE) this.output[code] = value
 			offset += 12
 		}
 	}

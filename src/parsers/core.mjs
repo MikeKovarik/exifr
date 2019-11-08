@@ -1,4 +1,5 @@
 import {BufferView} from '../util/BufferView.mjs'
+import createOptions from '../options.mjs'
 
 
 /*
@@ -35,7 +36,7 @@ export class AppSegment {
 			start = undefined
 		}
 		let view = new BufferView(buffer, start)
-		let instance = new this(view, options)
+		let instance = new this(view, createOptions(options))
 		return instance.parse()
 	}
 

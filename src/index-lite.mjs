@@ -1,7 +1,7 @@
 import './util/debug.mjs'
 import {ExifParser} from './parser.mjs'
 export * from './parser.mjs'
-export {defaultOptions} from './options.mjs'
+//export defaultOptions from './options.mjs'
 export {tags} from './tags.mjs'
 import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.mjs'
 

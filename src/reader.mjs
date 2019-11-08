@@ -1,5 +1,7 @@
 import {hasBuffer, isBrowser, isNode, isWorker, BufferView, DynamicBufferView} from './util/BufferView.mjs'
-import {processOptions} from './options.mjs'
+import createOptions from './options.mjs'
+
+
 if (isNode) {
 	if (typeof require === 'function')
 		var fsPromise = Promise.resolve(require('fs').promises)
@@ -7,22 +9,12 @@ if (isNode) {
 		var fsPromise = import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
 }
 
-
-function findTiff() {
-	throw new Error('findTiff in reader is no longer legal')
-}
-
-// TODO: - minified UMD bundle
-// TODO: - offer two UMD bundles (with tags.mjs dictionary and without)
 // TODO: - API for including 3rd party XML parser
-// TODO: - better code & file structure
-// TODO: - JFIF: it usually only has 4 props with no practical use. but for completence
-// TODO: - ICC profile
 
 export default class Reader {
 
 	constructor(options) {
-		this.options = processOptions(options)
+		this.options = createOptions(options)
 	}
 
 	async read(arg) {
@@ -160,13 +152,17 @@ export class FsReader extends ChunkedReader {
 	bytesRead = 0
 
 	async readWhole() {
+		console.log('FsReader.readWhole()')
 		this.chunked = false
 		let fs = await fsPromise
 		let buffer = await fs.readFile(this.input)
+		console.log('buffer', buffer)
+		console.log('buffer.length', buffer.length)
 		this._swapBuffer(buffer)
 	}
 
 	async readChunked() {
+		console.log('FsReader.readChunked()')
 		this.chunked = true
 		let fs = await fsPromise
 		this.fh = await fs.open(this.input, 'r')
