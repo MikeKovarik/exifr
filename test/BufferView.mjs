@@ -75,12 +75,21 @@ describe('BufferView', () => {
 		assert.throws(() => new BufferView(uint8, 2, 10))
 	})
 
-	it(`.subarray() creates new view on top of original memory`, async () => {
+	it(`.subarray(offset, length) creates new view on top of original memory at given offset and length`, async () => {
 		let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
 		let subView = view.subarray(1, 4)
 		assert.equal(subView.byteLength, 4)
 		assert.equal(subView.getUint8(0), 1)
 		assert.equal(subView.getUint8(3), 4)
+	})
+
+	it(`.subarray(offset) creates new view on top of original memory from given offset until end`, async () => {
+		let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
+		let subView = view.subarray(3)
+		assert.equal(subView.byteLength, 3)
+		assert.equal(subView.getUint8(0), 3)
+		assert.equal(subView.getUint8(1), 4)
+		assert.equal(subView.getUint8(2), 5)
 	})
 
 	it(`.subarray() returns instance of BufferView even if subclassed`, async () => {

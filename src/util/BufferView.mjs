@@ -90,7 +90,12 @@ export class BufferView {
 		this.byteLength = this.dataView.byteLength
 	}
 
+	_sizeTillEnd(offset) {
+		return this.byteLength - offset
+	}
+
 	subarray(offset, length, Class = BufferView) {
+		length = length || this._sizeTillEnd(offset)
 		return new Class(this, offset, length, BufferView)
 	}
 
@@ -191,6 +196,7 @@ export class DynamicBufferView extends BufferView {
 	}
 
 	subarray(offset, length, canExtend = false) {
+		length = length || this._sizeTillEnd(offset)
 		if (canExtend) this._tryExtend(offset, length)
 		this._registerRange(offset, length)
 		return super.subarray(offset, length)
