@@ -65,4 +65,10 @@ describe('TIFF', () => {
         assert.equal(output.ApertureValue, 4.65625)
     })
 
+	it(`should handle .tif with scattered TIFF - IFD0 pointing to the end of file`, async () => {
+		let input = await getFile('001.tif')
+		var output = await parse(input)
+		assert.equal(output.Make, 'DJI')
+	})
+
 })

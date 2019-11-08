@@ -177,27 +177,21 @@ describe('reader', () => {
 		// Header at the beginning of file, data at the end.
 		// tiff offset at 0; ID0 offset at 677442
 
-		it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
+		it(`scattered file, read/fetch whole file - should succeed`, async () => {
 			let options = {wholeFile: true}
 			let input = getPath('001.tif')
-			var output = await parse(input, options)
-			assert.equal(output.Make, 'DJI')
-		})
-/*
-		it(`scattered file, read/fetch whole file - should succeed 2`, async () => {
-			let options = {wholeFile: true}
-			let input = await getFile('001.tif')
 			var output = await parse(input, options)
 			assert.equal(output.Make, 'DJI')
 		})
 
 		it(`scattered file, chunked mode, allow additional chunks - should succeed`, async () => {
+			console.log('test me properly & move to ChunkedReader tests file')
 			let options = {wholeFile: undefined}
 			let input = getPath('001.tif')
 			var output = await parse(input, options)
 			assert.equal(output.Make, 'DJI')
 		})
-*/
+
 	})
 
 	/*

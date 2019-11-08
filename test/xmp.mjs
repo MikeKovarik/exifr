@@ -52,4 +52,13 @@ describe('XMP', () => {
         assert.exists(output.xmp, `xmp doesn't exist on exif`)
     })
 */
+
+	it(`.tif file with scattered data segments should contain XMP`, async () => {
+		let options = {xmp: true, mergeOutput: false}
+		let input = await getFile('001.tif')
+		var output = await parse(input, options)
+		assert.isDefined(output.xmp)
+	})
+
+
 })
