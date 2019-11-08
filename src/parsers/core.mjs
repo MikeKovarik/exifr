@@ -40,12 +40,10 @@ export class AppSegment {
 		return instance.parse()
 	}
 
-	constructor(view, options, reader) {
-		this.view = view // todo: deprecate
-		this.chunk = view
+	constructor(chunk, options, file) {
+		this.chunk = chunk
 		this.options = options
-		this.reader = reader // todo: deprecate
-		this.file = reader
+		this.file = file
 	}
 
 }

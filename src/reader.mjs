@@ -251,7 +251,7 @@ export class BlobReader extends ChunkedReader {
 		let blob = this.input.slice(start, end)
 		return new Promise((resolve, reject) => {
 			let reader = new FileReader()
-			reader.onloadend = () => resolve(new BufferView(reader.result || new ArrayBuffer(0)))
+			reader.onloadend = () => resolve(new BufferView(reader.result || 0))
 			reader.onerror = reject
 			// TODO: subarray or manually create ranges record
 			reader.readAsArrayBuffer(blob)

@@ -49,14 +49,15 @@ const utf8  = new TextDecoder('utf-8')
 
 export class BufferView {
 
-	static from(arg) {
-		if (arg instanceof this)
+	static from(arg, le) {
+		if (arg instanceof this && arg.le === le)
 			return arg
 		else
-			return new BufferView(arg)
+			return new BufferView(arg, undefined, undefined, le)
 	}
 
-	constructor(arg, offset = 0, length) {
+	constructor(arg, offset = 0, length, le) {
+		this.le = le
 		if (arg instanceof ArrayBuffer) {
 			let dataView = new DataView(arg, offset, length)
 			this._swapDataView(dataView)

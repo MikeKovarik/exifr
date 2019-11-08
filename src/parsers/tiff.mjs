@@ -57,10 +57,8 @@ export class TiffCore extends AppSegment {
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
-			if (pickTags.includes(tag) || !skipTags.includes(tag)) {
-				let val = this.parseTag(offset)
-				output[tag] = val
-			}
+			if (pickTags.includes(tag) || !skipTags.includes(tag))
+				output[tag] = this.parseTag(offset)
 			offset += 12
 		}
 		return output
@@ -68,19 +66,20 @@ export class TiffCore extends AppSegment {
 
 	parseTag(offset) {
 		let type = this.chunk.getUint16(offset + 2)
-		let valuesCount = this.chunk.getUint32(offset + 4)
-		let valueByteSize = SIZE_LOOKUP[type]
-		if (valueByteSize * valuesCount <= 4)
-			var valueOffset = offset + 8
+		let valueCount = this.chunk.getUint32(offset + 4)
+		let valueSize = SIZE_LOOKUP[type]
+		let totalSize = valueSize * valueCount
+		if (totalSize <= 4)
+			offset = offset + 8
 		else
-			var valueOffset = this.chunk.getUint32(offset + 8)
+			offset = this.chunk.getUint32(offset + 8)
 
-		if (valueOffset > this.chunk.buffer.byteLength)
-			throw new Error(`tiff value offset ${valueOffset} is out of chunk size ${this.chunk.buffer.byteLength}`)
+		if (offset > this.chunk.byteLength)
+			throw new Error(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === 2) {
-			let string = this.chunk.getString(valueOffset, valuesCount)
+			let string = this.chunk.getString(offset, valueCount)
 			// remove null terminator
 			while (string.endsWith('\0')) string = string.slice(0, -1)
 			return string
@@ -88,18 +87,18 @@ export class TiffCore extends AppSegment {
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === 7)
-			return slice(this.chunk, valueOffset, valueOffset + valuesCount)
+			return slice(this.chunk, offset, offset + valueCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
-		if (valuesCount === 1) {
+		if (valueCount === 1) {
 			// Return single value.
-			return this.parseTagValue(type, valueOffset)
+			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
 			let res = []
-			for (let i = 0; i < valuesCount; i++) {
-				res.push(this.parseTagValue(type, valueOffset))
-				valueOffset += valueByteSize
+			for (let i = 0; i < valueCount; i++) {
+				res.push(this.parseTagValue(type, offset))
+				offset += valueSize
 			}
 			return res
 		}
@@ -197,8 +196,24 @@ export class TiffExif extends TiffCore {
 		this.ifd0Offset = this.chunk.getUint32(4)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
-		if (this.ifd0Offset > this.chunk.byteLength)
-			throw new Error(`IFD0 offset points to outside of ${this.chunk.chunked ? 'currently loaded bytes' : 'file'}. ifd0Offset: ${this.ifd0Offset}, view.byteLength: ${this.chunk.byteLength}`)
+		if (this.ifd0Offset > this.file.byteLength && !this.file.chunked)
+			throw new Error(`IFD0 offset points to outside of file. ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
+		if (this.ifd0Offset > this.chunk.byteLength) {
+			// WARNING: this is unusual case in jpeg files, but happens in tiff files.
+			// tiff files start with TIFF structure header which contains pointer to IFD0. But the actual IFD0 data can be
+			// at the end of the file. Since we only received chunk of max size of 64kb, we need to step outside of the chunk
+			// and work with the whole file because all other pointers are absolute values from start of the file.
+			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
+			if (this.file.chunked) {
+				// TODO: fetch/read
+				throw new Error(`IFD0 offset points to outside of currently loaded bytes. ifd0Offset: ${this.ifd0Offset}, chunk.byteLength: ${this.chunk.byteLength}`)
+				// TODO: await read the chunk
+				this.chunk = BufferView.from(this.file, this.le)
+			} else {
+				// WARNING: We cannot just replace chunk by file (as in this.chunk=this.file).
+				this.chunk = BufferView.from(this.file, this.le)
+			}
+		}
 		// Parse IFD0 block.
 		this.ifd0 = this.parseTags(this.ifd0Offset)
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
