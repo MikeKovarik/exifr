@@ -49,11 +49,11 @@ describe('ICC', () => {
 		platform: 'Microsoft',
 		manufacturer: 'IEC',
 		model: 'sRGB',
-		creator: 'HP',
+		creator: 'Hewlett-Packard',
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
 
-	testFile('./exifr-issue-13', {})
+	//testFile('./exifr-issue-13.jpg', {})
 
 	testFile('./fast-exif-issue-2.jpg', {
 		// TEXT tag
@@ -63,4 +63,12 @@ describe('ICC', () => {
 		//
 		conditionsDescription: 'Reference Viewing Condition in IEC61966-2.1',
 	})
+/*
+	it(`output.icc is undefined if the file doesn't contain ICC`, async () => {
+		var file = await getFile('./exifr-issue-13.jpg')
+		var options = {mergeOutput: false, icc: true}
+		var output = await parse(file, options)
+		assert.isUndefined(output.icc)
+	})
+*/
 })

@@ -7,7 +7,8 @@ const companies = {
 	msft: 'Microsoft',
 	sunw: 'Sun Microsystems',
 	sgi:  'Silicon Graphics',
-	tgnt: 'Taligent'
+	tgnt: 'Taligent',
+	hp:   'Hewlett-Packard',
 }
 
 const devices = {
@@ -40,10 +41,11 @@ const devices = {
 }
 */
 tagValues.icc = {
-	4: companies,
+	//4: companies,
 	12: devices,
-	40: companies,
+	40: Object.assign({}, companies, devices),
 	48: companies,
+	80: companies,
 	64: {
 		0: 'Perceptual',
 		1: 'Relative Colorimetric',

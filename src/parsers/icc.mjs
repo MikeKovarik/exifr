@@ -29,8 +29,7 @@ export default class IccParser extends AppSegment {
 		this.output = {}
 		this.parseHeader()
 		this.parseTags()
-		if (this.options.translateValues) this.translateValues()
-		if (this.options.translateTags) this.translateTags()
+		this.translate()
 		return this.output
 	}
 
@@ -88,10 +87,10 @@ export default class IccParser extends AppSegment {
 	// Multi Localized Unicode Type
 	parseMluc(tagOffset) {
 		let {view} = this
-		let entryCount = view.getUint32(tagOffset + 8)
-		let entrySize  = view.getUint32(tagOffset + 12)
+		let entryCount  = view.getUint32(tagOffset + 8)
+		let entrySize   = view.getUint32(tagOffset + 12)
 		let entryOffset = tagOffset + 16
-		let values = []
+		let values      = []
 		for (let i = 0; i < entryCount; i++) {
 			let lang    = view.getString(entryOffset + 0, 2)
 			let country = view.getString(entryOffset + 2, 2)
@@ -108,24 +107,21 @@ export default class IccParser extends AppSegment {
 	}
 
 	// TODO
-	translateTags() {
+	translate() {
+		let {translateValues, translateTags} = this.options
+		if (!translateValues && !translateTags) return
 		let iccKeys = tagKeys.icc
-		let entries = Object.entries(this.output).map(([key, val]) => [iccKeys[key] || key, val])
-		console.log(entries)
-		this.output = Object.fromEntries(entries)
-		/*
 		let iccVals = tagValues.icc
-		if (translateTags) key = iccKeys[key] || key
-		if (translateValues) {
-			let valDic = iccVals[offset]
-			if (valDic) val = valDic[val] || val
-		}
-		*/
-	}
-
-	translateValues() {
-		// TODO
-		// MSFT => Microsoft
+		let entries = Object.entries(this.output)
+		entries = entries.map(([key, val]) => {
+			if (translateValues) {
+				let dict = iccVals[key]
+				if (dict) val = dict[typeof val === 'string' ? val.toLowerCase() : val] || val
+			}
+			key = iccKeys[key] || key
+			return [key, val]
+		})
+		this.output = Object.fromEntries(entries)
 	}
 
 }
