@@ -19,7 +19,7 @@
     "buffer",
     "uint8array"
   ],
-  "homepage": "https://exifr.netlify.com",
+  "homepage": "https://mutiny.cz/exifr/",
   "bugs": "https://github.com/MikeKovarik/exifr/issues",
   "repository": {
     "type": "git",
