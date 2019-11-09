@@ -170,6 +170,7 @@
 		}
 			table td {
 				padding: 1px 0;
+				vertical-align: baseline;
 			}
 			table td + td {
 				padding-left: 12px;
@@ -180,13 +181,16 @@
 		}
 
 
-		#grid {
-			display: grid;
+		.wrap {
+			white-space: normal;
+		}
+		.nowrap {
 			white-space: nowrap;
 		}
-			#output {
-				white-space: normal;
-			}
+
+		#grid {
+			display: grid;
+		}
 
 		@media only screen and (max-width: 499px) {
 			#grid {
@@ -286,7 +290,7 @@
 	</header>
 
 
-	<div id="grid">
+	<div id="grid" class="nowrap">
 
 		<h2 id="input-head">Input</h2>
 
@@ -358,7 +362,7 @@
 			<table></table>
 		</div>
 
-		<div id="app1-iptc">
+		<div id="app1-iptc" class="wrap">
 			<h3>APP1 - IPTC</h3>
 			<table></table>
 		</div>
@@ -368,7 +372,7 @@
 			<pre></pre>
 		</div>
 
-		<div id="output">
+		<div id="output" class="wrap">
 			<h3>Raw output</h3>
 			<pre></pre>
 		</div>
