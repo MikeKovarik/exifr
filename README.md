@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/black-small.png" width="140">
 
-📑 The fastest and most versatile JavaScript EXIF reading library.
+📷 The fastest and most versatile JavaScript EXIF reading library.
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg)](https://travis-ci.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
