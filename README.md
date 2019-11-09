@@ -12,7 +12,7 @@
 
 📑 The fastest and most versatile JavaScript EXIF reading library.
 
-Try it yourself - [demo page](https://exifr.netlify.com/).
+Try it yourself - [demo page](https://mutiny.cz/exifr/).
 
 ## Installation
 
