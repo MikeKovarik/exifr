@@ -182,7 +182,21 @@
 
 		#grid {
 			display: grid;
-			gap: 32px;
+			white-space: nowrap;
+		}
+			#output {
+				white-space: normal;
+			}
+
+		@media only screen and (max-width: 499px) {
+			#grid {
+				gap: 32px;
+			}
+		}
+		@media only screen and (min-width: 500px) {
+			#grid {
+				gap: 24px 56px;
+			}
 		}
 
 		@media only screen and (min-width: 500px) {
@@ -215,7 +229,7 @@
 		}
 		@media only screen and (min-width: 750px) and (max-width: 999px) {
 			#grid {
-				grid-template-columns: 220px auto;
+				grid-template-columns: 220px min-content auto;
 				grid-template-areas:
 					"input-head output-head output-head"
 					"input      .           output     "
@@ -233,7 +247,7 @@
 		}
 		@media only screen and (min-width: 1000px) {
 			#grid {
-				grid-template-columns: 220px auto;
+				grid-template-columns: 220px min-content min-content auto;
 				grid-template-areas:
 					"input-head output-head  output-head  output-head"
 					"input      app1-ifd0    app1-thumb   output     "
