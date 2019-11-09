@@ -170,6 +170,7 @@
 		}
 			table td {
 				padding: 1px 0;
+				vertical-align: baseline;
 			}
 			table td + td {
 				padding-left: 12px;
@@ -180,9 +181,26 @@
 		}
 
 
+		.wrap {
+			white-space: normal;
+		}
+		.nowrap {
+			white-space: nowrap;
+		}
+
 		#grid {
 			display: grid;
-			gap: 32px;
+		}
+
+		@media only screen and (max-width: 499px) {
+			#grid {
+				gap: 32px;
+			}
+		}
+		@media only screen and (min-width: 500px) {
+			#grid {
+				gap: 24px 56px;
+			}
 		}
 
 		@media only screen and (min-width: 500px) {
@@ -215,7 +233,7 @@
 		}
 		@media only screen and (min-width: 750px) and (max-width: 999px) {
 			#grid {
-				grid-template-columns: 220px auto;
+				grid-template-columns: 220px min-content auto;
 				grid-template-areas:
 					"input-head output-head output-head"
 					"input      .           output     "
@@ -233,7 +251,7 @@
 		}
 		@media only screen and (min-width: 1000px) {
 			#grid {
-				grid-template-columns: 220px auto;
+				grid-template-columns: 220px min-content min-content auto;
 				grid-template-areas:
 					"input-head output-head  output-head  output-head"
 					"input      app1-ifd0    app1-thumb   output     "
@@ -272,7 +290,7 @@
 	</header>
 
 
-	<div id="grid">
+	<div id="grid" class="nowrap">
 
 		<h2 id="input-head">Input</h2>
 
@@ -344,7 +362,7 @@
 			<table></table>
 		</div>
 
-		<div id="app1-iptc">
+		<div id="app1-iptc" class="wrap">
 			<h3>IPTC<span>Show all</span></h3>
 			<table></table>
 		</div>
@@ -359,7 +377,7 @@
 			<pre></pre>
 		</div>
 
-		<div id="output">
+		<div id="output" class="wrap">
 			<h3>Raw output</h3>
 			<pre></pre>
 		</div>

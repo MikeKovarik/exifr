@@ -1,16 +1,16 @@
+<h1>
 <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/black-small.png" width="140">
+</h1>
 
 📷 The fastest and most versatile JavaScript EXIF reading library.
 
-[![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg)](https://travis-ci.org/MikeKovarik/exifr)
+[![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 [![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![devDependency Status](https://david-dm.org/MikeKovarik/exifr/dev-status.svg)](https://david-dm.org/MikeKovarik/exifr#info=devDependencies)
 
-
-
-Try it yourself - [demo page](https://exifr.netlify.com/).
+Try it yourself - [demo page](https://mutiny.cz/exifr/).
 
 ## Features
 
@@ -434,23 +434,6 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
 * Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
 
-## TODOs and Future ideas
-The library is already production ready and battle-tested, but there's always room for improvement
-
-* [ ] API for providing custom XML parser 
-* [ ] modularizing the library
-  * [ ] by parsers (minimalistic with TIFF only, default with IPTC, ICC & XMP parsing)
-  * [ ] with & without 
-  * [ ] minified / default (with and without tag dictionary, minified for the web)
-* [ ] Parsing ICC
-* [ ] Parsing readernotes. 
-<br> [node-exif](https://github.com/gomfunkel/node-exif/tree/master/lib/exif/makernotes) module already has a few great implementations and [PRs](https://github.com/gomfunkel/node-exif/issues/25) ([Canon makernote](https://gist.github.com/redaktor/bae0ef2377ab70bc5276)).
-* [ ] WebP image support
-* [x] tidy up file reader / loader code
-* [x] .tif & .tiff image support
-* [x] Thumbnail extraction
-
-Probably as an additional opt-in extension file to keep the core as light as possible.
 ## Licence
 
 MIT, Mike Kovařík, Mutiny.cz

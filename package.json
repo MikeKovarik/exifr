@@ -1,6 +1,6 @@
 {
   "name": "exifr",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "📷 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "buffer",
     "uint8array"
   ],
-  "homepage": "https://exifr.netlify.com",
+  "homepage": "https://mutiny.cz/exifr/",
   "bugs": "https://github.com/MikeKovarik/exifr/issues",
   "repository": {
     "type": "git",
