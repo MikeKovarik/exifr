@@ -1,0 +1,36 @@
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="DJI Meta Data"
+    xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
+    xmlns:exif="http://ns.adobe.com/exif/1.0/"
+    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+    xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
+    xmlns:drone-dji="http://www.dji.com/drone-dji/1.0/"
+    xmlns:GPano="http://ns.google.com/photos/1.0/panorama/"
+   xmp:ModifyDate="1970-01-01"
+   xmp:CreateDate="1970-01-01"
+   tiff:Make="DJI"
+   tiff:Model="Test_Pro"
+   dc:format="image/jpg"
+   drone-dji:GpsLatitude="+47.3541841"
+   drone-dji:GpsLongitude="+10.1913155"
+   drone-dji:AbsoluteAltitude="+1252.12"
+   drone-dji:RelativeAltitude="+125.30"
+   drone-dji:GimbalRollDegree="+0.00"
+   drone-dji:GimbalYawDegree="-127.10"
+   drone-dji:GimbalPitchDegree="+1.00"
+   drone-dji:FlightRollDegree="+0.00"
+   drone-dji:FlightYawDegree="-97.00"
+   drone-dji:FlightPitchDegree="+0.90"
+   drone-dji:CamReverse="0"
+   drone-dji:GimbalReverse="0"
+   drone-dji:SelfData="Self data"
+   crs:Version="7.0"
+   crs:HasSettings="False"
+   crs:HasCrop="False"
+   crs:AlreadyApplied="False">
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
