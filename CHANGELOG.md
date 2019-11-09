@@ -2,7 +2,33 @@
 
 ## [Unreleased]
 
-## [2.0.0]
+## [2.1.2] - 2019-11-09
+
+### Changed
+- added project logo
+- tweaked demo page UI
+- moved demo page to custom domain mutiny.cz & changed links to reflect that
+
+## [2.1.1] - 2019-09-18
+
+### Added
+- tests for IPTC
+- magic comments for webpack
+
+### Changed
+- normalized old tests
+
+## [2.1.0] - 2019-09-12
+
+### Added
+- tests for webworker
+
+### Fixed
+- webworker bug
+- removed dependency on Nodes fs module
+- various bugfixes
+
+## [2.0.0] - 2019-07-05
 
 ### Breaking changes
 - default export is not longer `getExif()` function. It's available as named export `parse()`along few new ones.
@@ -27,8 +53,11 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/2.0.0...HEAD
-[2.0.0]: https://github.com/MikeKovarik/exifr/compare/1.2.0...2.0.0
-[1.2.0]: https://github.com/MikeKovarik/exifr/compare/1.1.0...1.2.0
-[1.1.0]: https://github.com/MikeKovarik/exifr/compare/1.0.0...1.1.0
-[1.0.0]: https://github.com/MikeKovarik/exifr/releases/tag/1.0.0
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v2.1.2...HEAD
+[2.1.2]: https://github.com/MikeKovarik/exifr/compare/v2.1.1...v2.1.2
+[2.1.1]: https://github.com/MikeKovarik/exifr/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/MikeKovarik/exifr/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/MikeKovarik/exifr/compare/v1.2.0...v2.0.0
+[1.2.0]: https://github.com/MikeKovarik/exifr/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/MikeKovarik/exifr/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/MikeKovarik/exifr/releases/tag/v1.0.0
