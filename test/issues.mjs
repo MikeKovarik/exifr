@@ -45,12 +45,6 @@ describe('issues (special cases)', () => {
         assert.equal(output.LensModel, '24.0-70.0 mm f/2.8')
     })
 
-    it(`node-exif #58 - should properly detect EXIF`, async () => {
-        var output = await parse(await getFile('node-exif-issue-58.jpg'), true)
-        assert.exists(output, `output is undefined`)
-        assert.exists(output.xmp)
-    })
-
     it(`exif-js #124`, async () => {
         var output = await parse(await getFile('exif-js-issue-124.tiff'), true)
         assert.exists(output, `output is undefined`)

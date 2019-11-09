@@ -57,10 +57,8 @@ export class BufferView {
 	}
 
 	constructor(arg, offset = 0, length, le) {
-		this.le = le
-		if (Array.isArray(arg)) {
-			arg = new Uint8Array(arg)
-		}
+		if (typeof le === 'boolean') this.le = le
+		if (Array.isArray(arg)) arg = new Uint8Array(arg)
 		if (arg instanceof ArrayBuffer) {
 			let dataView = new DataView(arg, offset, length)
 			this._swapDataView(dataView)
@@ -100,7 +98,7 @@ export class BufferView {
 
 	subarray(offset, length, Class = BufferView) {
 		length = length || this._sizeTillEnd(offset)
-		return new Class(this, offset, length, BufferView)
+		return new Class(this, offset, length)
 	}
 
 	getUintView() {

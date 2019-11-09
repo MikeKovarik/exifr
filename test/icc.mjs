@@ -10,7 +10,6 @@ function testImage(filePath, results = {}) {
 		var options = {mergeOutput: false, icc: true}
 		var output = await parse(file, options)
 		assert.exists(output.icc, `output is undefined`)
-		//console.log(output.icc)
 		for (let [key, val] of Object.entries(results)) {
 			assert.equal(output.icc[key], val)
 		}
@@ -22,7 +21,6 @@ function testProfile(filePath, results = {}) {
 		var buffer = await getFile(filePath)
 		var output = await IccParser.parse(buffer)
 		assert.exists(output, `output is undefined`)
-		//console.log(output)
 		for (let [key, val] of Object.entries(results)) {
 			assert.equal(output[key], val)
 		}
@@ -30,6 +28,35 @@ function testProfile(filePath, results = {}) {
 }
 
 describe('ICC', () => {
+
+	it(`output.icc is undefined by default`, async () => {
+		var options = {mergeOutput: false}
+		var file = await getFile('./exifr-issue-13.jpg')
+		var output = await parse(file, options)
+		assert.isUndefined(output.icc)
+	})
+
+	it(`output.icc is undefined when {icc: false}`, async () => {
+		var options = {mergeOutput: false, icc: false}
+		var file = await getFile('./exifr-issue-13.jpg')
+		var output = await parse(file, options)
+		assert.isUndefined(output.icc)
+	})
+
+	it(`output.icc is object when {icc: true}`, async () => {
+		var options = {mergeOutput: false, icc: true}
+		var file = await getFile('./IMG_20180725_163423.jpg')
+		var output = await parse(file, options)
+		assert.isObject(output.icc)
+	})
+
+	it(`output.icc is undefined if the file doesn't contain ICC`, async () => {
+		var options = {mergeOutput: false, icc: true}
+		var file = await getFile('./exifr-issue-3.jpg')
+		var output = await parse(file, options)
+		assert.isUndefined(output.icc)
+	})
+
 
 	describe('IccParser class', () => {
 
@@ -118,7 +145,9 @@ describe('ICC', () => {
 		version: '4.0.0',
 		intent: 'Perceptual',
 		colorSpace: 'RGB',
-		creator: 'GOOG',
+		creator: 'Google',
+		description: 'sRGB IEC61966-2.1\u0000',
+		copyright: 'Copyright (c) 2016 Google Inc.\u0000',
 	})
 
 	testImage('Bush-dog.jpg', {
@@ -135,8 +164,6 @@ describe('ICC', () => {
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
 
-	//testImage('exifr-issue-13.jpg', {})
-
 	testImage('fast-exif-issue-2.jpg', {
 		// TEXT tag
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
@@ -145,12 +172,5 @@ describe('ICC', () => {
 		//
 		conditionsDescription: 'Reference Viewing Condition in IEC61966-2.1',
 	})
-/*
-	it(`output.icc is undefined if the file doesn't contain ICC`, async () => {
-		var file = await getFile('./exifr-issue-13.jpg')
-		var options = {mergeOutput: false, icc: true}
-		var output = await parse(file, options)
-		assert.isUndefined(output.icc)
-	})
-*/
+
 })

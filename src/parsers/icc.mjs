@@ -86,17 +86,17 @@ export default class IccParser extends AppSegment {
 
 	// Multi Localized Unicode Type
 	parseMluc(tagOffset) {
-		let {view} = this
-		let entryCount  = view.getUint32(tagOffset + 8)
-		let entrySize   = view.getUint32(tagOffset + 12)
+		let {chunk} = this
+		let entryCount  = chunk.getUint32(tagOffset + 8)
+		let entrySize   = chunk.getUint32(tagOffset + 12)
 		let entryOffset = tagOffset + 16
 		let values      = []
 		for (let i = 0; i < entryCount; i++) {
-			let lang    = view.getString(entryOffset + 0, 2)
-			let country = view.getString(entryOffset + 2, 2)
-			let length  = view.getUint32(entryOffset + 4)
-			let offset  = view.getUint32(entryOffset + 8) + tagOffset
-			let text = view.getUnicodeString(offset, length)
+			let lang    = chunk.getString(entryOffset + 0, 2)
+			let country = chunk.getString(entryOffset + 2, 2)
+			let length  = chunk.getUint32(entryOffset + 4)
+			let offset  = chunk.getUint32(entryOffset + 8) + tagOffset
+			let text = chunk.getUnicodeString(offset, length)
 			values.push({lang, country, text})
 			entryOffset += entrySize
 		}
@@ -118,6 +118,7 @@ export default class IccParser extends AppSegment {
 				let dict = iccVals[key]
 				if (dict) val = dict[typeof val === 'string' ? val.toLowerCase() : val] || val
 			}
+			//while (val.endsWith('\0')) val = val.slice(0, -1)
 			key = iccKeys[key] || key
 			return [key, val]
 		})

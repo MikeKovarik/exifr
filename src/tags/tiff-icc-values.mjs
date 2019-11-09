@@ -9,6 +9,7 @@ const companies = {
 	sgi:  'Silicon Graphics',
 	tgnt: 'Taligent',
 	hp:   'Hewlett-Packard',
+	goog: 'Google',
 }
 
 const devices = {

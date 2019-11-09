@@ -38,7 +38,7 @@ describe('XMP', () => {
         assert.isString(output.xmp, `output doesn't contain xmp`)
     })
 
-    it(`output.xmp is undefined if the file doesn't containt XMP`, async () => {
+    it(`output.xmp is undefined if the file doesn't contain XMP`, async () => {
         let input = await getFile('img_1771_no_exif.jpg')
         let output = await parse(input)
         assert.isObject(output, `output is undefined`)
