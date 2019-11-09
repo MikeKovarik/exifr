@@ -184,7 +184,7 @@ describe('reader', () => {
 			assert.equal(output.Make, 'DJI')
 		})
 
-		it(`scattered file, chunked mode, allow additional chunks - should succeed`, async () => {
+		it(`scattered file, chunked mode - should load & parse TIFF chunk at the end of file`, async () => {
 			console.log('test me properly & move to ChunkedReader tests file')
 			let options = {wholeFile: undefined}
 			let input = getPath('001.tif')

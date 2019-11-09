@@ -48,12 +48,13 @@ export class TiffCore extends AppSegment {
 		// Bytes 8 & 9 are expected to be 00 2A.
 		if (this.chunk.getUint16(2) !== 0x002A)
 			throw new Error('Invalid EXIF data: expected 0x002A.')
+
+		this.headerParsed = true
 	}
 
-	parseTags(offset) {
+	parseTags(offset, pickTags = [], skipTags = []) {
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
-		let {pickTags, skipTags} = this.options
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
@@ -167,7 +168,6 @@ export class TiffExif extends TiffCore {
 
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 	async parse() {
-		this.parseHeader()
 		this.parseIfd0Block()                                  // APP1 - IFD0
 		if (this.options.exif)      this.parseExifBlock()      // APP1 - EXIF IFD
 		if (this.options.gps)       this.parseGpsBlock()       // APP1 - GPS IFD
@@ -175,10 +175,11 @@ export class TiffExif extends TiffCore {
 		if (this.options.thumbnail) this.parseThumbnailBlock() // APP1 - IFD1
 		this.postProcess()
 		this.translate()
-		let {ifd0, exif, gps, interop, thumbnail} = this
-		if (this.options.mergeOutput)
-			this.output = Object.assign({}, ifd0, exif, gps, interop, thumbnail)
-		else {
+		if (this.options.mergeOutput) {
+			// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
+			let {ifd0, exif, gps, interop} = this
+			this.output = Object.assign({}, ifd0, exif, gps, interop)
+		} else {
 			//this.output = {ifd0, exif, gps, interop, thumbnail}
 			this.output = {}
 			for (let key of blockKeys) {
@@ -190,6 +191,7 @@ export class TiffExif extends TiffCore {
 	}
 
 	parseIfd0Block() {
+		if (!this.headerParsed) this.parseHeader()
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
@@ -215,7 +217,7 @@ export class TiffExif extends TiffCore {
 			}
 		}
 		// Parse IFD0 block.
-		this.ifd0 = this.parseTags(this.ifd0Offset)
+		this.ifd0 = this.parseTags(this.ifd0Offset, ...this._getPickSkipTags('exif'))
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(this.ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
@@ -229,52 +231,63 @@ export class TiffExif extends TiffCore {
 			delete this.ifd0[TAG_IFD_INTEROP]
 			delete this.ifd0[TAG_IFD_GPS]
 		}
+		return this.ifd0
+	}
+
+	_getPickSkipTags(blockName) {
+		let pickTags = this.options[blockName].pickTags || this.options.tiff.pickTags || this.options.pickTags
+		let skipTags = this.options[blockName].skipTags || this.options.tiff.skipTags || this.options.skipTags
+		return [pickTags, skipTags]
 	}
 
 	// EXIF block of TIFF of APP1 segment
 	// 0x8769
 	parseExifBlock() {
 		if (this.exif) return
+		if (!this.ifd0) this.parseIfd0Block()
 		if (this.exifOffset === undefined) return
-		this.exif = this.parseTags(this.exifOffset)
+		return this.exif = this.parseTags(this.exifOffset, ...this._getPickSkipTags('exif'))
 	}
 
 	// GPS block of TIFF of APP1 segment
 	// 0x8825
 	parseGpsBlock() {
 		if (this.gps) return
+		if (!this.ifd0) this.parseIfd0Block()
 		if (this.gpsOffset === undefined) return
-		this.gps = this.parseTags(this.gpsOffset)
+		return this.gps = this.parseTags(this.gpsOffset, ...this._getPickSkipTags('gps'))
 	}
 
 	// INTEROP block of TIFF of APP1 segment
 	// 0xA005
 	parseInteropBlock() {
 		if (this.interop) return
+		if (!this.ifd0) this.parseIfd0Block()
 		this.interopOffset = this.interopOffset || (this.exif && this.exif[TAG_IFD_INTEROP])
 		if (this.interopOffset === undefined) return
-		this.interop = this.parseTags(this.interopOffset)
+		return this.interop = this.parseTags(this.interopOffset, ...this._getPickSkipTags('interop'))
 	}
 
 	// THUMBNAIL block of TIFF of APP1 segment
-	// returns boolean "does the file contain thumbnail"
+	// parsing this block is skipped when mergeOutput is true because thumbnail block contains with the same tags like ifd0 block
+	// and one would override the other. 
 	parseThumbnailBlock(force = false) {
 		if (this.thumbnail || this.thumbnailParsed) return
-		if (this.options.mergeOutput && !force) return false
+		if (this.options.mergeOutput && !force) return
+		if (!this.ifd0) this.parseIfd0Block()
 		let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
 		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
 		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
 		this.ifd1Offset = this.chunk.getUint32(temp)
-		if (this.ifd1Offset === 0) return false
-		this.thumbnail = this.parseTags(this.ifd1Offset)
-		this.thumbnailParsed = true
-		return true
+		if (this.ifd1Offset > 0) {
+			this.thumbnail = this.parseTags(this.ifd1Offset, ...this._getPickSkipTags('thumbnail'))
+			this.thumbnailParsed = true
+		}
+		return this.thumbnail
 	}
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
-		this.parseHeader()
-		if (!this.ifd0) this.parseIfd0Block(true)
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)

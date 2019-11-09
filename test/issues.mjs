@@ -38,20 +38,6 @@ describe('issues (special cases)', () => {
     })
 */
 
-    it(`#4`, async () => {
-        let options = {xmp: true, wholeFile: true, mergeOutput: false}
-        var output = await parse(getPath('exifr-issue-4.jpg'), options)
-        assert.isObject(output, `output is undefined`)
-        assert.exists(output.xmp, `xmp doesn't exist on exif`)
-        // not sure what to do with this yet
-    })
-
-    it(`#13 - properly read big XMP out of the box`, async () => {
-        var output = await parse(getPath('exifr-issue-13.jpg'))
-        assert.isObject(output, `output is undefined`)
-        assert.exists(output.xmp, `xmp doesn't exist on exif`)
-    })
-
     it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
         var output = await parse(await getFile('fast-exif-issue-2.jpg'), true)
         assert.exists(output, `output is undefined`)
@@ -71,4 +57,26 @@ describe('issues (special cases)', () => {
         assert.equal(output.Make, 'FLIR')
     })
 
+	/*
+	TODO
+	https://github.com/drewnoakes/metadata-extractor/issues/151
+	metadata-extractor-issue-152.jpg
+	metadata-extractor-issue-152.tif
+	*/
+
+	// TODO: implement
+    it(`metadata-extractor #152 jpg`, async () => {
+		let input = await getFile('metadata-extractor-issue-152.jpg')
+        var output = await parse(input, true)
+        assert.equal(true, false)
+    })
+
+	// TODO: implement
+    it(`metadata-extractor #152 tif`, async () => {
+		let input = await getFile('metadata-extractor-issue-152.jpg')
+        var output = await parse(input, true)
+        assert.equal(true, false)
+    })
+
 })
+

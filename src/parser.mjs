@@ -1,5 +1,5 @@
 import Reader from './reader.mjs'
-import {tags} from './tags.mjs'
+import {tags, TAG_APPNOTES} from './tags.mjs'
 import {BufferView} from './util/BufferView.mjs'
 import {AppSegment, parsers as parserClasses} from './parsers/core.mjs'
 import './parsers/tiff.mjs'
@@ -90,68 +90,97 @@ export class Exifr extends Reader {
 		//this.isJpeg = marker === JPEG_SOI
 	}
 
-	findAppSegments(offset = 0, wantedSegments = []) {
-		//console.log('findAppSegments', wantedSegments)
-		let wanted = new Set(wantedSegments)
+	async parseTiffFile() {
 
-		let file = this.file
-		
 		if (this.isTiff) {
-			// The file starts with TIFF structure (instead of JPEGs FF D8)
-			this.appSegments.push({start: 0, type: 'tiff'})
-			//return // nejde preskocit. TIFF porad muze obsahovat XMP a dalsi (001.tif)
+			if (this.options.xmp && (!this.options.tiff || !this.options.ifd0)) {
+				// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
+				// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
+				this.options.tiff = true
+				this.options.ifd0 = [TAG_APPNOTES]
+			}
 		}
-		// NOTE: we're not immediatelly checking for this.isJpeg because we want to enable reading from any offset in the file
-		// and be able to even insert malformed JPEG file.
 
+		if (this.options.tiff) {
+			// The file starts with TIFF structure (instead of JPEGs FF D8)
+			let seg = {start: 0, type: 'tiff'}
+			this.appSegments.push(seg)
+			let chunk = await this.ensureSegmentChunk(seg)
+			this.createParser('tiff', chunk)
+		}
+		if (this.options.xmp) {
+			let ifd0 = this.parsers.tiff.parseIfd0Block()
+			let data = ifd0[TAG_APPNOTES]
+			let chunk = BufferView.from(data)
+			this.createParser('xmp', chunk)
+		}
+	}
+
+	createParser(type, chunk) {
+		let Parser = parserClasses[type]
+		let parser = new Parser(chunk, this.options, this.file)
+		return this.parsers[type] = parser
+	}
+
+	findJpgAppSegments(offset = 0, wantedSegments = []) {
+		let wanted = new Set(wantedSegments)
+		let file = this.file
 		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
 		for (; offset < bytes; offset++) {
-			if (file.getUint8(offset) === MARKER_1) {
-				// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
-				let marker2 = file.getUint8(offset + 1)
-				let isAppSegment = isAppMarker(marker2)
-				let isJpgSegment = isJpgMarker(marker2)
-				// All JPG 
-				if (isAppSegment || isJpgSegment) {
-					let length = file.getUint16(offset + 2)
-					if (isAppSegment) {
-						let type = getSegmentType(file, offset)
-						if (type) {
-							// known and parseable segment found
-							let Parser = parserClasses[type]
-							let seg = Parser.findPosition(file, offset)
-							seg.type = type
-							if (wanted.size === 0) {
-								this.appSegments.push(seg)
-							} else if (wanted.size > 0 && wanted.has(type)) {
-								this.appSegments.push(seg)
-								wanted.delete(type)
-								if (wanted.size === 0) break
-							}
-						} else {
-							// either unknown/supported appN segment or just a noise.
-							let seg = AppSegment.findPosition(file, offset)
-							this.unknownSegments.push(seg)
-						}
-					} else if (isJpgSegment) {
-						this.jpgSegments.push({offset, length})
+			if (file.getUint8(offset) !== MARKER_1) continue
+			// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
+			let marker2 = file.getUint8(offset + 1)
+			let isAppSegment = isAppMarker(marker2)
+			let isJpgSegment = isJpgMarker(marker2)
+			// All JPG 
+			if (!isAppSegment && !isJpgSegment) continue
+			let length = file.getUint16(offset + 2)
+			if (isAppSegment) {
+				let type = getSegmentType(file, offset)
+				if (type) {
+					// known and parseable segment found
+					let Parser = parserClasses[type]
+					let seg = Parser.findPosition(file, offset)
+					seg.type = type
+					if (wanted.size === 0) {
+						this.appSegments.push(seg)
+					} else if (wanted.size > 0 && wanted.has(type)) {
+						this.appSegments.push(seg)
+						wanted.delete(type)
+						if (wanted.size === 0) break
 					}
-					offset += length + 1
+				} else {
+					// either unknown/supported appN segment or just a noise.
+					let seg = AppSegment.findPosition(file, offset)
+					this.unknownSegments.push(seg)
 				}
+			} else if (isJpgSegment) {
+				this.jpgSegments.push({offset, length})
 			}
+			offset += length + 1
 		}
 	}
 
 	async parse() {
 		this.init()
-		this.findAppSegments()
+		if (this.isTiff)
+			await this.parseTiffFile()
+		else
+			await this.parseJpegFile()
+		return this.createOutput()
+	}
+
+	async parseJpegFile() {
+		this.findJpgAppSegments()
 		await this.readSegments()
 		this.createParsers()
+	}
+
+	async createOutput() {
 		let libOutput = {}
 		let promises = Object.values(this.parsers).map(async parser => {
 			let parserOutput = await parser.parse()
-			//if (this.options.mergeOutput || parser.constructor.mergeOutput || typeof parserOutput !== 'string')
-			if (this.options.mergeOutput || parser.constructor.mergeOutput)
+			if ((this.options.mergeOutput || parser.constructor.mergeOutput) && typeof parserOutput !== 'string')
 				Object.assign(libOutput, parserOutput)
 			else
 				libOutput[parser.constructor.type] = parserOutput
@@ -161,8 +190,6 @@ export class Exifr extends Reader {
 	}
 
 	async readSegments() {
-		//console.log('readSegments')
-		//console.log('this.appSegments', this.appSegments)
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
 	}
@@ -192,6 +219,7 @@ export class Exifr extends Reader {
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
 	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
 	async createParsers() {
+		if (this.options.jfif && !parserClasses.jfif) throw new Error('JFIF Parser was not loaded, try using full build of exifr.')
 		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
 		if (this.options.iptc && !parserClasses.iptc) throw new Error('IPTC Parser was not loaded, try using full build of exifr.')
 		if (this.options.icc  && !parserClasses.icc)  throw new Error('ICC Parser was not loaded, try using full build of exifr.')
@@ -222,7 +250,7 @@ export class Exifr extends Reader {
 	getOrFindSegment(type) {
 		let seg = this.getSegment(type)
 		if (seg === undefined) {
-			this.findAppSegments(0, [type])
+			this.findJpgAppSegments(0, [type])
 			seg = this.getSegment(type)
 		}
 		return seg
