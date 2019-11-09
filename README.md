@@ -153,88 +153,6 @@ importScripts('./node_modules/exifr/index.js')
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
-## Distributions
-
-Need to cut down on file size? Try using lite build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
-
-Need to support older browsers? Use legacy build along with polyfills.
-
-### By size
-
-* **Default** (with tag dictionary)
-<br>Includes both parser and the tag dictionary (additional ~16 Kb).
-<br>Values are accessed by tag name: `output.exif.ExposureTime`
-* **Lite**
-<br>Only includes parser. Tags are not translated using dictionary.
-<br>Values are accessed by tag code: `output.exif[0x829A]`
-
-### By module / bundle
-
-* **ESM**
-<br>The new ES Module using the new syntax `import {parse} from 'exifr'`
-* **UMD**
-<br>The classic javascript that can be used with AMD (RequireJS), CJS (Node.js `require()`), or simply `<script>`ed in browsers.
-
-### By supported target
-
-* **Modern**
-<br>Supports latest few versions of not dead browsers.
-<br>Uses new syntax and features like classes and async/await.
-<br>The output is lightweight, without any polyfills.
-* **Legacy**
-<br>Supports older browsers including IE 11.
-<br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
-<br>You still need to provide polyfill for Array.from, Set, TextEncoder, Object.entries and other ES6+ features
-
-### ~~By included parsers~~
-
-TODO: to be implemented
-
-### Distributions chart
-
-| Distributions                        | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
-|--------------------------------------|-------------------|-------------------|-------------------------|
-| **Full** *(with tags dictionary)*    | `index.mjs`       | `index.js`        | `index.legacy.js`       |
-| **Lite** *(without tags dictionary)* | `lite.mjs`        | `lite.js`         | `lite.legacy.js`        |
-
-### Examples
-
-```html
-<script type="module">
-import {parse} from './node_modules/exifr/index.mjs'
-</script>
-```
-
-IE and old browsers
-
-```html
-<script src="my-polyfills.js"></script>
-<script src="./node_modules/exifr/index.legacy.js"></script>
-```
-
-Node.js
-
-```js
-import * as exifr from 'exifr' // imports index.mjs
-```
-
-```js
-var exifr = require('exifr') // imports index.js
-```
-
-```js
-var exifr = require('exifr/index.legacy.js') // imports index.legacy.js
-```
-
-TODO - work in progress
-
-
-|        | Supported inputs                                             | Chunked mode | parsers                               | size  |
-|--------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
-| full   | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
-| medium | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
-| lite   | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
-
 
 ## API
 
@@ -329,7 +247,7 @@ If parsing file known to have EXIF fails try:
 * Increasing `parseChunkSize` in the browser if file URL is used as input.
 * Disabling chunked mode (read whole file)
 
-#### Segments & Blocks
+#### APP Segments & IFD Blocks
 
 * `options.tiff: true` - APP1 - TIFF
 <br>The basic EXIF tags (image, exif, gps)
@@ -340,8 +258,8 @@ If parsing file known to have EXIF fails try:
   * `options.interop: false` - This is a thing too.
 * `options.xmp: false` - APP1 - XMP
 <br>XML based extension, often used by editors like Photoshop.
-* ~~`options.icc: false` - APP2 - ICC~~
-<br>~~Not implemented yet~~
+* `options.icc: false` - APP2 - ICC
+<br>TODO
 * `options.iptc: false` - APP13 - IPTC
 <br>Captions and copyrights
 
@@ -352,6 +270,134 @@ If parsing file known to have EXIF fails try:
 
 * `options.mergeOutput` `number` default: `true`
 <br>Changes output format by merging all segments and blocks into a single object.
+
+<table><tr><td>
+Default
+</td><td>
+Merged
+</td></tr><tr><td><pre>
+{
+  Make: 'Google',
+  Model: 'Pixel',
+}
+</pre></td><td><pre>
+{
+  exif: {
+    Make: 'Google',
+    Model: 'Pixel',
+  },
+  gps: {
+  }
+}
+</pre></td></tr></table>
+
+
+## Modular distributions
+
+Exifr is modular so you can pick and choose from many builds and prevent downloading unused code. It's a good idea to start development with full version and then scale down to a lighter build of exifr with just the bare minimum of functionality, parsers and dictionary your app needs.
+
+### Parsers
+
+* TIFF
+  * IFD0 aka image
+  * EXIF
+  * GPS
+  * Interop
+* XMP
+* ICC
+* IPTC
+
+### Dictionaries
+
+Exif stores data as numerical tags and enums. To translate them into meaningful output we need dictionaries.
+Dictionaries take a good portion of the exifr's size. But you may not even need most of it.
+Tag dictionaries 
+
+<table><tr><td>
+Raw
+</td><td>
+Translated tags
+</td><td>
+Translated values
+</td><td>
+Fully translated
+</td></tr><tr><td><pre>
+{42: 1}
+</pre></td><td><pre>
+{Sharpness: 1}
+</pre></td><td><pre>
+{42: 'Strong'}
+</pre></td><td><pre>
+{Sharpness: 'Strong'}
+</pre></td></tr></table>
+
+## Distributions
+
+Need to cut down on file size? Try using lite build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
+
+Need to support older browsers? Use legacy build along with polyfills.
+
+### By size
+
+* **Default** (with tag dictionary)
+<br>Includes both parser and the tag dictionary (additional ~16 Kb).
+<br>Values are accessed by tag name: `output.exif.ExposureTime`
+* **Lite**
+<br>Only includes parser. Tags are not translated using dictionary.
+<br>Values are accessed by tag code: `output.exif[0x829A]`
+
+### By module / bundle
+
+* **ESM**
+<br>The new ES Module using the new syntax `import {parse} from 'exifr'`
+* **UMD**
+<br>The classic javascript that can be used with AMD (RequireJS), CJS (Node.js `require()`), or simply `<script>`ed in browsers.
+
+### By supported target
+
+* **Modern**
+<br>Supports latest few versions of not dead browsers.
+<br>Uses new syntax and features like classes and async/await.
+<br>The output is lightweight, without any polyfills.
+* **Legacy**
+<br>Supports older browsers including IE 11.
+<br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
+<br>You still need to provide polyfill for Array.from, Set, TextEncoder, Object.entries and other ES6+ features
+
+### ~~By included parsers~~
+
+TODO: to be implemented
+
+### Distributions chart
+
+| Distributions                        | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
+|--------------------------------------|-------------------|-------------------|-------------------------|
+| **Full** *(with tags dictionary)*    | `index.mjs`       | `index.js`        | `index.legacy.js`       |
+| **Lite** *(without tags dictionary)* | `lite.mjs`        | `lite.js`         | `lite.legacy.js`        |
+
+### Examples
+
+```js
+import {parse} from './node_modules/exifr/index.mjs'
+```
+```html
+<script src="./node_modules/exifr/index.legacy.js"></script>
+```
+```js
+require('exifr') // imports index.js
+```
+```js
+require('exifr/index.legacy.js') // imports index.legacy.js
+```
+
+TODO - work in progress
+
+
+|        | Supported inputs                                             | Chunked mode | parsers                               | size  |
+|--------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
+| full   | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
+| medium | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
+| lite   | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 
