@@ -5,6 +5,8 @@ import {tagKeys, tagValues} from '../tags.js'
 
 const PROFILE_HEADER_LENGTH = 84
 
+const IDENTIFIER = 'ICC_PROFILE\0';
+
 const TAG_TYPE_DESC = 'desc'
 const TAG_TYPE_MLUC = 'mluc'
 const TAG_TYPE_TEXT = 'text'
@@ -17,12 +19,10 @@ export default class IccParser extends AppSegment {
 	static type = 'icc'
 	static headerLength = 18
 
-	static canHandle(buffer, offset) {
-		return buffer.getUint8(offset + 1) === 0xE2
-		/*
-			&& buffer.getUint32(offset + 4) === 0x4A464946 // 'JFIF'
-			&& buffer.getUint8(offset + 8) === 0x00       // followed by '\0'
-		*/
+	static canHandle(chunk, offset) {
+		return chunk.getUint8(offset + 1) === 0xE2
+			&& chunk.getUint32(offset + 4) === 0x4943435f // ICC_
+			// ICC_PROFILE
 	}
 
 	parse() {
