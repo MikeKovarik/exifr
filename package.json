@@ -27,6 +27,7 @@
   },
   "scripts": {
     "test": "mocha test/test.js",
+    "coverage": "nyc mocha test/test.js",
     "build": "rollup -c rollup.config.prod.js",
     "dev": "rollup -c rollup.config.dev.js -w"
   },
