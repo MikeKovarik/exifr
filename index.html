@@ -61,6 +61,14 @@
 			position: relative;
 			margin-bottom: 16px;
 		}
+			header .badges {
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			header .badges > *:not(:last-child) {
+				margin-right: 8px;
+			}
 			header h1 {
 				width: 167px;
 				height: 89px;
@@ -72,7 +80,7 @@
 				margin-bottom: 32px;
 			}
 		@media only screen and (max-width: 739px) {
-			header .gh-icons {
+			header .badges {
 				margin: 16px 0;
 			}
 		}
@@ -84,14 +92,15 @@
 					margin-top: 23px;
 					margin-left: 56px;
 				}
-				header .gh-icons {
+				header .badges {
 					position: absolute;
 					right: 0;
 					top: 0;
 				}
 		}
 
-		img {
+		#app1-thumb img,
+		#thumb img {
 			width: 200px;
 		}
 
@@ -279,7 +288,9 @@
 			<p>The fastest and most versatile JavaScript EXIF reading library.</p>
 			<p>Check out the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a> for docs and more information.</p>
 		</div>
-		<div class="gh-icons">
+		<div class="badges">
+			<a href="https://travis-ci.org/MikeKovarik/exifr"><img src="https://travis-ci.org/MikeKovarik/exifr.svg?branch=master"></a>
+			<a href="https://coveralls.io/github/MikeKovarik/exifr"><img src="https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg"></a>
 			<!--
 			<a class="github-button" href="https://github.com/sponsors/MikeKovarik" data-icon="octicon-heart" data-size="large" aria-label="Sponsor @MikeKovarik on GitHub">Sponsor</a>
 			-->
