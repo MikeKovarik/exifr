@@ -1,18 +1,17 @@
 <h1>
-  <a href="https://github.com/MikeKovarik/exifr">
-    <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="140" alt="exifr">
-  </a>
+  <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="140" alt="exifr">
 </h1>
+
+📷 The fastest and most versatile JavaScript EXIF reading library.
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
-[![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![devDependency Status](https://david-dm.org/MikeKovarik/exifr/dev-status.svg)](https://david-dm.org/MikeKovarik/exifr#info=devDependencies)
+[![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
+[![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 
-📑 The fastest and most versatile JavaScript EXIF reading library.
-
-Try it yourself - [demo page](https://mutiny.cz/exifr/).
+Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Installation
 

@@ -1,7 +1,7 @@
 {
   "name": "exifr",
   "version": "2.1.2",
-  "description": "📑 The fastest and most versatile JavaScript EXIF reading library.",
+  "description": "📷 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
   "keywords": [
@@ -27,6 +27,7 @@
   },
   "scripts": {
     "test": "mocha test/test.js",
+    "coverage": "nyc npm test",
     "build": "rollup -c rollup.config.prod.js",
     "dev": "rollup -c rollup.config.dev.js -w"
   },
@@ -37,5 +38,14 @@
     "nyc": "^14.1.1",
     "rollup": "^1.10.0",
     "rollup-plugin-notify": "^1.0.1"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text",
+      "text-summary"
+    ],
+    "check-coverage": false,
+    "cache": true
   }
 }
