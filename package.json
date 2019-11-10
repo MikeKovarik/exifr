@@ -49,6 +49,7 @@
     "@babel/preset-env": "^7.6.3",
     "babel-preset-minify": "^0.5.1",
     "chai": "^4.2.0",
+    "coveralls": "^3.0.7",
     "esm": "^3.2.25",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1",
