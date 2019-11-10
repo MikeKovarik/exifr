@@ -32,7 +32,7 @@
   "scripts": {
     "dev": "mocha -r esm ./test/**.spec.js --watch",
     "test": "mocha -r esm ./test/**.spec.js",
-    "coverage": "nyc mocha -r esm ./test/**.spec.js",
+    "coverage": "nyc npm test",
     "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {
