@@ -7,3 +7,6 @@ install:
 script:
   - npm run build
   - npm test
+after_success:
+  - nyc report --reporter=text-lcov > coverage.lcov
+  - bash <(curl -s https://codecov.io/bash)
