@@ -10,3 +10,7 @@ script:
 after_success:
   - nyc npm test
   - nyc report --reporter=text-lcov | coveralls
+# only run CI on master
+branches:
+  only:
+  - master
