@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.1.3] - 2019-11-10
+
+### Added
+- code coverage
+
 ## [2.1.2] - 2019-11-09
 
 ### Changed
@@ -53,7 +58,8 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v2.1.2...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v2.1.3...HEAD
+[2.1.2]: https://github.com/MikeKovarik/exifr/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/MikeKovarik/exifr/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/MikeKovarik/exifr/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/MikeKovarik/exifr/compare/v2.0.0...v2.1.0
