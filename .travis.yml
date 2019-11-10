@@ -8,6 +8,5 @@ script:
   - npm run build
   - npm test
 after_success:
-  - npm run coverage
-  - nyc report --reporter=text-lcov > coverage.lcov
-  - bash <(curl -s https://codecov.io/bash)
+  - nyc npm test
+  - nyc report --reporter=text-lcov | coveralls
