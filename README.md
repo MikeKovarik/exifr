@@ -37,10 +37,11 @@ Works everywhere and accepts pretty much everything you throw at it.
 
 ### Supports
 
-* JPEG files
-* TIFF files
-* XMP Segments - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
-* IPTC Segments - Captions & copyrights
+* .jpg & .tif files
+* JFIF, TIFF segments
+* XMP - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
+* IPTC - Captions & copyrights
+* ICC Color profile
 * Embedded thumbnail extraction
 
 ## Installation

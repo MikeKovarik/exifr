@@ -9,15 +9,18 @@
     "tiff",
     "jpg",
     "jpeg",
-    "metadata",
-    "makernote",
     "xmp",
     "gps",
+    "jfif",
+    "icc",
+    "iptc",
     "image",
     "picture",
     "photo",
     "buffer",
-    "uint8array"
+    "uint8array",
+    "metadata",
+    "makernote"
   ],
   "homepage": "https://mutiny.cz/exifr/",
   "bugs": "https://github.com/MikeKovarik/exifr/issues",
@@ -32,6 +35,11 @@
   "scripts": {
     "dev": "mocha -r esm ./test/**.spec.js --watch",
     "test": "mocha -r esm ./test/**.spec.js",
+    "test-jfif": "npm test -- --grep=JFIF",
+    "test-tiff": "npm test -- --grep=TIFF",
+    "test-iptc": "npm test -- --grep=IPTC",
+    "test-icc": "npm test -- --grep=ICC",
+    "test-xmp": "npm test -- --grep=XMP",
     "coverage": "nyc npm test",
     "build": "rollup -c rollup.config.js"
   },
