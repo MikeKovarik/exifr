@@ -1,13 +1,13 @@
-import Reader from './reader.mjs'
-import {tags, TAG_APPNOTES} from './tags.mjs'
-import {BufferView} from './util/BufferView.mjs'
-import {AppSegment, parsers as parserClasses} from './parsers/core.mjs'
-import './parsers/tiff.mjs'
-import './parsers/jfif.mjs'
-import './parsers/iptc.mjs'
-import './parsers/icc.mjs'
-import './parsers/xmp.mjs'
-import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.mjs'
+import Reader from './reader.js'
+import {tags, TAG_APPNOTES} from './tags.js'
+import {BufferView} from './util/BufferView.js'
+import {AppSegment, parsers as parserClasses} from './parsers/core.js'
+import './parsers/tiff.js'
+import './parsers/jfif.js'
+import './parsers/iptc.js'
+import './parsers/icc.js'
+import './parsers/xmp.js'
+import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.js'
 
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 

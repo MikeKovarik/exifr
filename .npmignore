@@ -1,9 +1,9 @@
 *
 .*
 !index.mjs
-!index.js
-!index.legacy.js
+!index.cjs
+!index.legacy.cjs
 !lite.mjs
-!lite.js
-!lite.legacy.js
+!lite.cjs
+!lite.legacy.cjs
 !src/*

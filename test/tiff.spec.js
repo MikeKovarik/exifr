@@ -1,6 +1,6 @@
-import {parse} from '../index.mjs'
-import {assert} from './test-util.mjs'
-import {getFile} from './test-util.mjs'
+import {assert} from './test-util.js'
+import {getFile} from './test-util.js'
+import {parse} from '../src/index-full.js'
 
 
 describe('TIFF', () => {

@@ -1,8 +1,0 @@
-import './tags/tiff-ifd0-values.mjs'
-import './tags/tiff-gps-tags.mjs'
-import './tags/tiff-exif-tags.mjs'
-import './tags/tiff-exif-values.mjs'
-import './tags/tiff-icc-tags.mjs'
-import './tags/tiff-icc-values.mjs'
-import './tags/iptc.mjs'
-export * from './index-lite.mjs'

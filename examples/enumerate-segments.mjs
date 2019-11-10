@@ -1,5 +1,5 @@
-// node --experimental-modules enumerate-segments.mjs
-import {ExifParser} from '../src/index-full.mjs'
+// node --experimental-modules enumerate-segments.js
+import {ExifParser} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 import path from 'path'
 

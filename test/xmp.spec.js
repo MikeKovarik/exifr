@@ -1,7 +1,7 @@
-import {parse} from '../index.mjs'
-import {assert} from './test-util.mjs'
-import {getFile, getPath} from './test-util.mjs'
-import XmpParser from '../src/parsers/xmp.mjs'
+import {assert} from './test-util.js'
+import {getFile, getPath} from './test-util.js'
+import {parse} from '../src/index-full.js'
+import XmpParser from '../src/parsers/xmp.js'
 
 
 describe('XMP', () => {

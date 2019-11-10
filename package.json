@@ -25,8 +25,14 @@
     "type": "git",
     "url": "https://github.com/MikeKovarik/exifr.git"
   },
+  "main": "index.cjs",
+  "module": "index.mjs",
+  "types": "index.d.ts",
+  "type": "module",
   "scripts": {
-    "test": "mocha test/test.js",
+    "dev": "mocha -r esm ./test/**.spec.js --watch",
+    "test": "mocha -r esm ./test/**.spec.js",
+    "coverage": "nyc mocha -r esm ./test/**.spec.js",
     "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {
@@ -35,10 +41,32 @@
     "@babel/preset-env": "^7.6.3",
     "babel-preset-minify": "^0.5.1",
     "chai": "^4.2.0",
-    "mocha": "^6.1.4",
+    "esm": "^3.2.25",
+    "mocha": "^6.2.2",
+    "nyc": "^14.1.1",
     "rollup": "^1.25.2",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-notify": "^1.0.1"
   },
-  "dependencies": {}
+  "nyc": {
+    "exclude": [
+      "src/index-full.js",
+      "src/index-lite.js",
+      "src/options.js",
+      "src/util/debug.js",
+      "src/parsers/tiff-tags.js",
+      "src/tags/**.*",
+      "test/**.*"
+    ],
+    "reporter": [
+      "text",
+      "text-summary"
+    ],
+    "require": ["esm"],
+    "check-coverage": false,
+    "cache": true
+  },
+  "esm": {
+    "cjs": true
+  }
 }

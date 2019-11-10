@@ -1,4 +1,4 @@
-import {parse} from '../index.mjs'
+import {parse} from '../src/index-full.js'
 
 setTimeout(() => {
 	parse(base64)

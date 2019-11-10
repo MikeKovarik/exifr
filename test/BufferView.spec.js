@@ -1,7 +1,7 @@
-import {BufferView} from '../src/util/BufferView.mjs'
-import {assert, isBrowser, isNode} from './test-util.mjs'
-import {getPath, getUrl, getFile} from './test-util.mjs'
 import {promises as fs} from 'fs'
+import {assert} from './test-util.js'
+import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {BufferView} from '../src/util/BufferView.js'
 
 
 describe('BufferView', () => {

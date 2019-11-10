@@ -1,4 +1,4 @@
-import {tags} from '../tags.mjs'
+import {tags} from '../tags.js'
 
 
 // https://sno.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html

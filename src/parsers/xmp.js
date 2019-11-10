@@ -1,5 +1,5 @@
-import {AppSegment, parsers} from './core.mjs'
-import {BufferView} from '../util/BufferView.mjs'
+import {AppSegment, parsers} from './core.js'
+import {BufferView} from '../util/BufferView.js'
 
 
 //<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>

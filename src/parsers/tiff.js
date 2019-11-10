@@ -1,8 +1,8 @@
-import {AppSegment, parsers} from './core.mjs'
-import {tags} from '../tags.mjs'
-import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from '../tags.mjs'
-import {slice, BufferView} from '../util/BufferView.mjs'
-import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.mjs'
+import {AppSegment, parsers} from './core.js'
+import {tags} from '../tags.js'
+import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from '../tags.js'
+import {slice, BufferView} from '../util/BufferView.js'
+import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.js'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949

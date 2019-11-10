@@ -392,12 +392,20 @@ require('exifr/index.legacy.js') // imports index.legacy.js
 
 TODO - work in progress
 
+|         | Supported inputs                                             | Chunked mode | parsers                               | size  |
+|---------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
+| full    | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
+| default | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
+| lite    | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
 
-|        | Supported inputs                                             | Chunked mode | parsers                               | size  |
-|--------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
-| full   | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
-| medium | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
-| lite   | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
+
+| | full | lite |
+|-|-|-|
+| inputs | `ArrayBuffer`<br>`Buffer` | `ArrayBuffer` |
+| parsers | TIFF<br>IPTC<br>ICC | TIFF |
+| chunked reader | yes | no |
+| size | 40 Kb | 20 Kb |
+| file | `index.js` | `index2.js` |
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 

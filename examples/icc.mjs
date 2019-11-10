@@ -1,5 +1,5 @@
-// node --experimental-modules enumerate-segments.mjs
-import {parse} from '../src/index-full.mjs'
+// node --experimental-modules enumerate-segments.js
+import {parse} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 
 //fs.readFile('../test/fixtures/IMG_20180725_163423.jpg')

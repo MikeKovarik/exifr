@@ -1,8 +1,8 @@
-import {ChunkedReader, FsReader} from '../src/reader.mjs'
-import {BufferView, DynamicBufferView} from '../src/util/BufferView.mjs'
-import {assert, isBrowser, isNode} from './test-util.mjs'
-import {getPath, getUrl, getFile} from './test-util.mjs'
 import {promises as fs} from 'fs'
+import {assert} from './test-util.js'
+import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {DynamicBufferView} from '../src/util/BufferView.js'
+import {ChunkedReader, FsReader} from '../src/reader.js'
 
 
 describe('DynamicBufferView', () => {

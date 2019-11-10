@@ -1,6 +1,6 @@
-import {parse} from '../index.mjs'
-import {assert} from './test-util.mjs'
-import {getFile, getPath} from './test-util.mjs'
+import {assert} from './test-util.js'
+import {getFile, getPath} from './test-util.js'
+import {parse} from '../src/index-full.js'
 
 
 describe('issues (special cases)', () => {

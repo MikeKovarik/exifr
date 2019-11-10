@@ -2,14 +2,14 @@
 // It uses the new ES Modules and import syntax which might not be implemented in your
 // browser or version of Node.
 
-// To run this script in node, use 'node --experimental-modules gps.mjs'
+// To run this script in node, use 'node --experimental-modules gps.js'
 
 // To run this in browser, use latest version of Chrome or Edge and make sure your
-// http server serves files with .mjs extensions with the type/javascript mime.
+// http server serves files with .js extensions with the type/javascript mime.
 // Also the module imports 'fs' module and it fails in browsers. For that you could
 // use newly drafted importmaps.
 
-import {parse} from '../index.mjs'
+import {parse} from '../src/index-full.js'
 
 async function main() {
 	var exif = await parse('../test/IMG_20180725_163423.jpg')

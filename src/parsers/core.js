@@ -1,5 +1,5 @@
-import {BufferView} from '../util/BufferView.mjs'
-import createOptions from '../options.mjs'
+import {BufferView} from '../util/BufferView.js'
+import createOptions from '../options.js'
 
 
 /*

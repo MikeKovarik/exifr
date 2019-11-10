@@ -1,7 +1,7 @@
-import {parse} from '../index.mjs'
-import {assert} from './test-util.mjs'
-import {getFile} from './test-util.mjs'
-import IccParser from '../src/parsers/icc.mjs'
+import {assert} from './test-util.js'
+import {getFile} from './test-util.js'
+import {parse} from '../src/index-full.js'
+import IccParser from '../src/parsers/icc.js'
 
 
 function testImage(filePath, results = {}) {

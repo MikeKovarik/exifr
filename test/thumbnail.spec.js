@@ -1,6 +1,6 @@
-import {ExifParser, thumbnailBuffer, thumbnailUrl} from '../index.mjs'
-import {assert, isBrowser} from './test-util.mjs'
-import {getFile} from './test-util.mjs'
+import {assert} from './test-util.js'
+import {getFile, isBrowser} from './test-util.js'
+import {ExifParser, thumbnailBuffer, thumbnailUrl} from '../src/index-full.js'
 
 
 describe('thumbnail', () => {

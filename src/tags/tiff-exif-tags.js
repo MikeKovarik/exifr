@@ -1,4 +1,4 @@
-import {tags} from '../tags.mjs'
+import {tags} from '../tags.js'
 
 
 // Comprehensive list of TIFF and Exif tags found on

@@ -1,4 +1,4 @@
-import {tags} from '../tags.mjs'
+import {tags} from '../tags.js'
 
 
 tags.tiff = tags.tiff || {}

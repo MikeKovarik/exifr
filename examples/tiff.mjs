@@ -1,4 +1,4 @@
-import * as exifr from '../index.mjs'
+import * as exifr from '../index.js'
 import {promises as fs} from 'fs'
 
 fs.readFile('../test/fixtures/001.tif')

@@ -1,5 +1,5 @@
-import {AppSegment, parsers} from './core.mjs'
-import {CursorView} from '../util/BufferView.mjs'
+import {AppSegment, parsers} from './core.js'
+import {CursorView} from '../util/BufferView.js'
 
 
 export default class Jfif extends AppSegment {

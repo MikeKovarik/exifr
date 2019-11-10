@@ -121,6 +121,7 @@
 		h3 span {
 			font-weight: 400;
 			font-size: 12px;
+			margin-left: 16px;
 		}
 
 
@@ -163,6 +164,7 @@
 			white-space: pre-wrap;
 			font-size: 10px;
 		}
+		img,
 		table {
 			font-size: 12px;
 			border-spacing: 0;
@@ -208,9 +210,8 @@
 			#input        {grid-area: input}
 			#output       {grid-area: output}
 			#output-head  {grid-area: output-head}
-			#app1-thumb   {
-				grid-row: auto / span 2;
-			}
+			#thumb        {grid-area: thumb}
+			#app1-thumb   {grid-area: app1-thumb}
 		}
 		@media only screen and (min-width: 500px) and (max-width: 749px) {
 			#grid {
@@ -254,8 +255,8 @@
 				grid-template-columns: 220px min-content min-content auto;
 				grid-template-areas:
 					"input-head output-head  output-head  output-head"
-					"input      app1-ifd0    app1-thumb   output     "
-					"input      app1-exif    app1-thumb   output     "
+					"input      thumb        app1-ifd0    output     "
+					"input      app1-thumb   app1-exif    output     "
 					"input      app1-gps     app1-interop output     "
 					"input      app1-iptc    .            output     "
 					"input      marker-notes .            output     "
@@ -335,11 +336,14 @@
 
 		</div>
 
+		<div id="thumb">
+			<h3>Embedded thumbnail</h3>
+			<img alt="Doesn't contain thumbnail">
+		</div>
+
 		<div id="app1-thumb">
 			<h3>APP1 - Thumbnail<span>Show all</span></h3>
 			<table></table>
-			<br>
-			<img>
 		</div>
 
 		<div id="app1-ifd0">
@@ -422,12 +426,12 @@
 			xmp: document.querySelector('#app1-xmp pre'),
 		}
 
-		var thumbImg = document.querySelector('#app1-thumb img')
+		var thumbImg = document.querySelector('#thumb img')
 
 		// picker & dropzone
-		dropzone.addEventListener('dragenter', e => e.preventDefault())
-		dropzone.addEventListener('dragover', e => e.preventDefault())
-		dropzone.addEventListener('drop', e => {
+		document.body.addEventListener('dragenter', e => e.preventDefault())
+		document.body.addEventListener('dragover', e => e.preventDefault())
+		document.body.addEventListener('drop', e => {
 			e.preventDefault()
 			handleFile(e.dataTransfer.files[0])
 		})
@@ -478,6 +482,14 @@
 
 			console.log('output.exif', output.exif)
 
+			/*
+			// TODO: separate these from raw output
+			Long properties
+			XPComment in IFD0 in exifr-issue-13.jpg
+			ImageDescription in IFD0 in Bush-dog.jpg
+			MakerNote
+			*/
+
 			if (output.exif.MakerNote) {
 				console.log(output.exif.MakerNote)
 				var makerNote = new TextDecoder('utf-8').decode(output.exif.MakerNote)
@@ -492,8 +504,21 @@
 			} else {
 				thumbImg.style.display = 'none'
 			}
+
+			//displayImage(file)
+		}
+/*
+		function displayImage(blob) {
+			if (thumbImg.src) {
+				inputImg.style.height = thumbImg.height
+				//inputImg.style.width = thumbImg.width
+			}
+			inputImg.src = URL.createObjectURL(blob)
 		}
 
+		function hideImage() {
+		}
+*/
 		function cleanOutput(exif) {
 			console.log('exif', exif)
 			console.log('exif.exif', exif.exif)

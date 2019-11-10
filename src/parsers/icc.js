@@ -1,6 +1,6 @@
-import {AppSegment, parsers} from './core.mjs'
-import {BufferView} from '../util/BufferView.mjs'
-import {tagKeys, tagValues} from '../tags.mjs'
+import {AppSegment, parsers} from './core.js'
+import {BufferView} from '../util/BufferView.js'
+import {tagKeys, tagValues} from '../tags.js'
 
 
 const PROFILE_HEADER_LENGTH = 84

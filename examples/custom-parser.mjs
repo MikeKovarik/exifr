@@ -1,5 +1,5 @@
-// node --experimental-modules enumerate-segments.mjs
-import {ExifParser, Tiff} from '../index.mjs'
+// node --experimental-modules enumerate-segments.js
+import {ExifParser, Tiff} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 
 class Flir extends Tiff {

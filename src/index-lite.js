@@ -1,9 +1,9 @@
-import './util/debug.mjs'
-import {ExifParser} from './parser.mjs'
-export * from './parser.mjs'
-//export defaultOptions from './options.mjs'
-export {tags} from './tags.mjs'
-import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.mjs'
+import './util/debug.js'
+import {ExifParser} from './parser.js'
+export * from './parser.js'
+//export defaultOptions from './options.js'
+export {tags} from './tags.js'
+import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.js'
 
 export async function parse(arg, options) {
 	let exifr = new ExifParser(options)

@@ -1,5 +1,5 @@
-import {hasBuffer, isBrowser, isNode, isWorker, BufferView, DynamicBufferView} from './util/BufferView.mjs'
-import createOptions from './options.mjs'
+import {hasBuffer, isBrowser, isNode, isWorker, BufferView, DynamicBufferView} from './util/BufferView.js'
+import createOptions from './options.js'
 
 
 if (isNode) {

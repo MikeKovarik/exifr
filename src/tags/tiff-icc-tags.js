@@ -1,4 +1,4 @@
-import {tagKeys} from '../tags.mjs'
+import {tagKeys} from '../tags.js'
 
 
 tagKeys.icc = {
