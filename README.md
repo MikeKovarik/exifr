@@ -1,8 +1,4 @@
-<h1>
-<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/black-small.png" width="140">
-</h1>
-
-📷 The fastest and most versatile JavaScript EXIF reading library.
+<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="140" alt="exifr">
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
@@ -11,7 +7,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
 [![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 
-Try it yourself - [demo page](https://mutiny.cz/exifr/).
+📷 The fastest and most versatile JavaScript EXIF reading library.
+
+Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Features
 

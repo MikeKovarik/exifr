@@ -7,3 +7,6 @@ install:
 script:
   - npm run build
   - npm test
+after_success:
+  - nyc npm test
+  - nyc report --reporter=text-lcov | coveralls
