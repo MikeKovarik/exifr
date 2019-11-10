@@ -15,60 +15,107 @@ describe('TIFF', () => {
     it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
         let options = {wholeFile: true}
         let input = getPath('001.tif')
-        var output = await parse(input, options)
+        let output = await parse(input, options)
         assert.equal(output.Make, 'DJI')
     })
 
-    */
+	*/
 
-    it(`should contain IFD0 block (as output.ifd0)`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.ifd0.Make, 'Google')
-        assert.equal(output.ifd0.Model, 'Pixel')
-    })
+	function testBlockResult(output, blockName, results = {}) {
+		assert.isObject(output[blockName], `output.${blockName} is undefined`)
+		for (let [key, val] of Object.entries(results)) {
+			assert.equal(output[blockName][key], val)
+		}
+	}
 
-    it(`should contain Exif block (as output.exif)`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.exif.ExposureTime, 0.000376)
-    })
+	function testBlock(blockName, enabledByDefault, results = {}) {
+		let filePath = 'IMG_20180725_163423.jpg'
 
-    it(`should contain GPS block (as output.gps)`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.gps.GPSLatitude.length, 3)
-        assert.equal(output.gps.GPSLongitude.length, 3)
-    })
+		it(`output.${blockName} is undefined when {${blockName}: false}`, async () => {
+			let options = {mergeOutput: false, [blockName]: false}
+			let input = await getFile(filePath)
+			let output = await parse(input, options)
+			assert.isUndefined(output[blockName], `output shouldn't contain ${blockName}`)
+		})
 
-    it(`should contain interop if requested`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false, interop: true})
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.interop.InteropIndex, 'R98')
-    })
+		it(`output.${blockName} is undefined when {tiff: false}`, async () => {
+			let options = {mergeOutput: false, tiff: false}
+			let input = await getFile(filePath)
+			let output = await parse(input, options)
+			assert.isUndefined(output[blockName], `output shouldn't contain ${blockName}`)
+		})
 
-    it(`should contain thumbnail (IFD1) if requested`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false, thumbnail: true})
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.thumbnail.ImageHeight, 189)
-    })
+		it(`output.${blockName} is object when {${blockName}: true}`, async () => {
+			let options = {mergeOutput: false, [blockName]: true}
+			let input = await getFile(filePath)
+			let output = await parse(input, options)
+			testBlockResult(output, blockName, results)
+		})
 
-    it(`should contain GPS block (as output.gps) and processing method`, async () => {
-        var output = await parse(await getFile('PANO_20180725_162444.jpg'), {mergeOutput: false})
-        assert.exists(output, `output is undefined`)
+		if (enabledByDefault) {
+			it(`output.${blockName} is object by default`, async () => {
+				let options = {mergeOutput: false}
+				let input = await getFile(filePath)
+				let output = await parse(input, options)
+				testBlockResult(output, blockName, results)
+			})
+		} else {
+			it(`output.${blockName} is undefined by default`, async () => {
+				let options = {mergeOutput: false}
+				let input = await getFile(filePath)
+				let output = await parse(input, options)
+				assert.isUndefined(output[blockName], `output shouldn't contain ${blockName}`)
+			})
+		}
+
+	}
+
+	testBlock('ifd0', true, {
+		Make: 'Google',
+		Model: 'Pixel',
+	})
+
+	testBlock('exif', true, {
+        ExposureTime: 0.000376
+	})
+
+	testBlock('gps', true, {
+		GPSLatitudeRef: 'N',
+		GPSLongitudeRef: 'E',
+		GPSDOP: 18,
+	})
+
+	testBlock('interop', false, {
+        InteropIndex: 'R98'
+	})
+
+	// IFD0
+	testBlock('thumbnail', false, {
+        ImageHeight: 189
+	})
+
+    it(`additional GPS block test 1`, async () => {
+        let output = await parse(await getFile('PANO_20180725_162444.jpg'), {mergeOutput: false})
         assert.equal(output.gps.GPSProcessingMethod, 'fused', `output doesn't contain gps`)
     })
 
-    it(`should contain Exif block (as output.exif) if requested`, async () => {
-        var output = await parse(await getFile('img_1771.jpg'))
-        assert.exists(output, `output is undefined`)
+    it(`additional GPS block test 2 (practical latitude & longitude in output)`, async () => {
+        let output = await parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
+		assert.equal(output.gps.latitude, 50.29960277777778)
+		assert.equal(output.gps.longitude, 14.820294444444444)
+    })
+
+    it(`additional EXIF block test`, async () => {
+        let output = await parse(await getFile('img_1771.jpg'))
         assert.equal(output.ApertureValue, 4.65625)
     })
 
-	it(`should handle .tif with scattered TIFF - IFD0 pointing to the end of file`, async () => {
+	it(`should handle .tif with scattered TIFF (IFD0 pointing to the end of file)`, async () => {
 		let input = await getFile('001.tif')
-		var output = await parse(input)
+		let output = await parse(input)
 		assert.equal(output.Make, 'DJI')
 	})
+
+	// TODO: more tests for .tif
 
 })
