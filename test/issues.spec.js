@@ -32,7 +32,7 @@ describe('issues (special cases)', () => {
             xmp: true,
             mergeOutput: false,
         }
-        var output = await parse(getPath('exifr-issue-3.jpg'), options)
+        var output = await parse(getPath('issue-exifr-3.jpg'), options)
         console.log(output)
         assert.exists(output.gps)
     })
@@ -54,20 +54,20 @@ describe('issues (special cases)', () => {
 	/*
 	TODO
 	https://github.com/drewnoakes/metadata-extractor/issues/151
-	metadata-extractor-issue-152.jpg
-	metadata-extractor-issue-152.tif
+	issue-metadata-extractor-152.jpg
+	issue-metadata-extractor-152.tif
 	*/
 
 	// TODO: implement
     it(`metadata-extractor #152 jpg`, async () => {
-		let input = await getFile('metadata-extractor-issue-152.jpg')
+		let input = await getFile('issue-metadata-extractor-152.jpg')
         var output = await parse(input, true)
         assert.equal(true, false)
     })
 
 	// TODO: implement
     it(`metadata-extractor #152 tif`, async () => {
-		let input = await getFile('metadata-extractor-issue-152.jpg')
+		let input = await getFile('issue-metadata-extractor-152.jpg')
         var output = await parse(input, true)
         assert.equal(true, false)
     })

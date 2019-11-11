@@ -10,7 +10,7 @@ describe('parser', () => {
         let input = await getFile('IMG_20180725_163423.jpg')
         let exifr = new Exifr(true)
         await exifr.read(input)
-        exifr.findAppSegments()
+        exifr.findJpgAppSegments()
         let jfifSegment = exifr.appSegments.find(segment => segment.type === 'jfif')
         assert.isDefined(jfifSegment)
         assert.equal(jfifSegment.offset, 25388)

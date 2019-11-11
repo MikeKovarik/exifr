@@ -5,7 +5,7 @@ import IccParser from '../src/parsers/icc.js'
 
 
 function testImage(filePath, results = {}) {
-	it(`parsing icc from jpg ${filePath}`, async () => {
+	it(`testing parsed properties against file ${filePath}`, async () => {
 		var file = await getFile(filePath)
 		var options = {mergeOutput: false, icc: true}
 		var output = await parse(file, options)
@@ -31,14 +31,14 @@ describe('ICC', () => {
 
 	it(`output.icc is undefined by default`, async () => {
 		var options = {mergeOutput: false}
-		var file = await getFile('./exifr-issue-13.jpg')
+		var file = await getFile('./issue-exifr-13.jpg')
 		var output = await parse(file, options)
 		assert.isUndefined(output.icc)
 	})
 
 	it(`output.icc is undefined when {icc: false}`, async () => {
 		var options = {mergeOutput: false, icc: false}
-		var file = await getFile('./exifr-issue-13.jpg')
+		var file = await getFile('./issue-exifr-13.jpg')
 		var output = await parse(file, options)
 		assert.isUndefined(output.icc)
 	})
@@ -52,10 +52,34 @@ describe('ICC', () => {
 
 	it(`output.icc is undefined if the file doesn't contain ICC`, async () => {
 		var options = {mergeOutput: false, icc: true}
-		var file = await getFile('./exifr-issue-3.jpg')
+		var file = await getFile('./issue-exifr-3.jpg')
 		var output = await parse(file, options)
 		assert.isUndefined(output.icc)
 	})
+
+	/*
+	// https://github.com/drewnoakes/metadata-extractor/issues/65
+	NOTE: this file has multiple ICC segments but even other parsers dont seem to extract useful data from them.
+	the chunks are as follows
+	[
+		{offset: 14167, length: 65490, chunkNumber: 1},
+		{offset: 79675, length: 65490, chunkNumber: 2},
+		{offset: 145183, length: 65490, chunkNumber: 3},
+		{offset: 210691, length: 65490, chunkNumber: 4},
+		{offset: 276199, length: 65490, chunkNumber: 5},
+		{offset: 341707, length: 65490, chunkNumber: 6},
+		{offset: 407215, length: 65490, chunkNumber: 7},
+		{offset: 472723, length: 65490, chunkNumber: 8},
+		{offset: 538231, length: 33248, chunkNumber: 9}
+	]
+	it(`multisegment ICC support`, async () => {
+		var options = {mergeOutput: false, icc: true}
+		var file = await getFile('./issue-metadata-extractor-65.jpg')
+		var output = await parse(file, options)
+		assert.isObject(output.icc)
+		console.log(output.icc)
+	})
+	*/
 
 
 	describe('IccParser class', () => {

@@ -47,7 +47,7 @@ describe('XMP', () => {
 
     it(`should parse XMP independenly (even if the file doesn't have TIFF)`, async () => {
         let options = {mergeOutput: false, xmp: true, wholeFile: true}
-        let input = getPath('exifr-issue-4.jpg')
+        let input = getPath('issue-exifr-4.jpg')
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
@@ -67,28 +67,28 @@ describe('XMP', () => {
 	})
 
     it(`issue exifr #4 whole file`, async () => {
-		let input = await getFile('exifr-issue-4.jpg')
+		let input = await getFile('issue-exifr-4.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #4 chunked`, async () => {
-		let input = getPath('exifr-issue-4.jpg')
+		let input = getPath('issue-exifr-4.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #13 whole file`, async () => {
-		let input = await getFile('exifr-issue-13.jpg')
+		let input = await getFile('issue-exifr-13.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #13 chunked`, async () => {
-		let input = getPath('exifr-issue-13.jpg')
+		let input = getPath('issue-exifr-13.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)

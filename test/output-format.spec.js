@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
-import {getFile} from './test-util.js'
-import {parse} from '../src/index-full.js'
+import {getFile, getPath} from './test-util.js'
+import {parse, ExifParser} from '../src/index-full.js'
 
 
 describe('output object', () => {
@@ -21,7 +21,7 @@ describe('output object', () => {
 
 	it(`contains multiple requested segments`, async () => {
 		let options = {xmp: true, jfif: true, wholeFile: true, mergeOutput: false}
-		let input = getPath('exifr-issue-4.jpg')
+		let input = getPath('issue-exifr-4.jpg')
 		let output = await parse(input, options)
 		assert.isObject(output, `output is undefined`)
 		assert.exists(output.jfif)

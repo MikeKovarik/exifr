@@ -12,7 +12,7 @@ class Flir extends Tiff {
 Flir.headerLength = 4 // todo: fix this when rollup support class properties
 
 ;(async function() {
-	let filePath = '../test/fixtures/exifr-issue-3.jpg'
+	let filePath = '../test/fixtures/issue-exifr-3.jpg'
 	let fileBuffer = await fs.readFile(filePath)
 	let options = {wholeFile: true, mergeOutput: false, jfif: false, xmp: false, exif: false}
 	let exifr = new ExifParser(options)

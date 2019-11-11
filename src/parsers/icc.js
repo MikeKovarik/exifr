@@ -25,6 +25,13 @@ export default class IccParser extends AppSegment {
 			// ICC_PROFILE
 	}
 
+	static findPosition(chunk, offset) {
+		let seg = super.findPosition(chunk, offset)
+		seg.chunkNumber = chunk.getUint8(offset + 16)
+		seg.chunkCount  = chunk.getUint8(offset + 17)
+		return seg
+	}
+
 	parse() {
 		this.output = {}
 		this.parseHeader()

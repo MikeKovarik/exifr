@@ -28,7 +28,7 @@ import path from 'path'
 				'|',
 				percentage(segment.offset, fileBuffer.length), percentage(segment.end, fileBuffer.length),
 				'|',
-				segment.type || fileBuffer.slice(segment.offset, segment.offset + 20).toString(),
+				segment.type || fileBuffer.slice(segment.offset, segment.offset + 20).toString().replace(/\n+/g, ''),
 				fileBuffer.slice(segment.offset, segment.offset + 20)
 			)
 		}
