@@ -28,8 +28,6 @@ const SIZE_LOOKUP = {
 	13: 4 // IFD (sometimes used instead of 4 LONG)
 }
 
-const blockKeys = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
-
 // jpg wraps tiff into app1 segment.
 export class TiffCore extends AppSegment {
 
@@ -132,6 +130,8 @@ export class TiffCore extends AppSegment {
 
 
 
+
+const blockKeys = ['ifd0', 'thumbnail', 'exif', 'gps', 'interop']
 
 /*
 JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.

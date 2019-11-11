@@ -332,9 +332,12 @@
 				<div muted>&nbsp;&nbsp;// APP segments</div>
 				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" name="tiff" checked>,</div>
 				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" name="xmp">,</div>
-				<!--div>&nbsp;&nbsp;icc:       <input type="checkbox" name="icc">,</div-->
+				<div>&nbsp;&nbsp;icc:       <input type="checkbox" name="icc">,</div>
 				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" name="iptc">,</div>
+				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" name="jfif">,</div>
 				<div muted>&nbsp;&nbsp;// TIFF blocks</div>
+				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
+				<div>&nbsp;&nbsp;ifd0:      <input type="checkbox" name="ifd0" checked disabled>,</div>
 				<div>&nbsp;&nbsp;exif:      <input type="checkbox" name="exif" checked>,</div>
 				<div>&nbsp;&nbsp;gps:       <input type="checkbox" name="gps" checked>,</div>
 				<div>&nbsp;&nbsp;interop:   <input type="checkbox" name="interop">,</div>
@@ -353,27 +356,27 @@
 		</div>
 
 		<div id="app1-thumb">
-			<h3>APP1 - Thumbnail<span>Show all</span></h3>
+			<h3>Thumbnail<span>Show all</span></h3>
 			<table></table>
 		</div>
 
 		<div id="app1-ifd0">
-			<h3>APP1 - IFD0<span>Show all</span></h3>
+			<h3>IFD0<span>Show all</span></h3>
 			<table></table>
 		</div>
 
 		<div id="app1-exif">
-			<h3>APP1 - EXIF<span>Show all</span></h3>
+			<h3>EXIF<span>Show all</span></h3>
 			<table></table>
 		</div>
 
 		<div id="app1-gps">
-			<h3>APP1 - GPS<span>Show all</span></h3>
+			<h3>GPS<span>Show all</span></h3>
 			<table></table>
 		</div>
 
 		<div id="app1-interop">
-			<h3>APP1 - Interop<span>Show all</span></h3>
+			<h3>Interop<span>Show all</span></h3>
 			<table></table>
 		</div>
 
@@ -384,6 +387,16 @@
 
 		<div id="app1-xmp">
 			<h3>XMP<span>Show all</span></h3>
+			<pre></pre>
+		</div>
+
+		<div id="app1-icc">
+			<h3>ICC<span>Show all</span></h3>
+			<pre></pre>
+		</div>
+
+		<div id="app1-jfif">
+			<h3>JFIF<span>Show all</span></h3>
 			<pre></pre>
 		</div>
 
@@ -415,9 +428,13 @@
 	<p>MIT, Mike Kovařík</p>
 
 	<script async defer src="https://buttons.github.io/buttons.js"></script>
+	<!--
 	<script src="./index.js"></script>
 	<script>
-		var {ExifParser, defaultOptions, parse} = window.exifr
+		var {ExifParser, parse} = window.exifr
+	-->
+	<script type="module">
+		import {ExifParser, parse} from './src/index-full.js'
 
 		let lastFile
 
@@ -455,7 +472,7 @@
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
-		fetch('./test/IMG_20180725_163423.jpg')
+		fetch('./test/fixtures/IMG_20180725_163423.jpg')
 			.then(res => res.arrayBuffer())
 			.then(handleFile)
 

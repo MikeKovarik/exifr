@@ -1,20 +1,8 @@
 import {assert} from './test-util.js'
-import {getFile} from './test-util.js'
+import {getFile, testSegment, testImage} from './test-util.js'
 import {parse} from '../src/index-full.js'
 import IccParser from '../src/parsers/icc.js'
 
-
-function testImage(filePath, results = {}) {
-	it(`testing parsed properties against file ${filePath}`, async () => {
-		var file = await getFile(filePath)
-		var options = {mergeOutput: false, icc: true}
-		var output = await parse(file, options)
-		assert.exists(output.icc, `output is undefined`)
-		for (let [key, val] of Object.entries(results)) {
-			assert.equal(output.icc[key], val)
-		}
-	})
-}
 
 function testProfile(filePath, results = {}) {
 	it(`parsing .icc fixture ${filePath}`, async () => {
@@ -27,34 +15,13 @@ function testProfile(filePath, results = {}) {
 	})
 }
 
-describe('ICC', () => {
+describe('ICC Segment', () => {
 
-	it(`output.icc is undefined by default`, async () => {
-		var options = {mergeOutput: false}
-		var file = await getFile('./issue-exifr-13.jpg')
-		var output = await parse(file, options)
-		assert.isUndefined(output.icc)
-	})
-
-	it(`output.icc is undefined when {icc: false}`, async () => {
-		var options = {mergeOutput: false, icc: false}
-		var file = await getFile('./issue-exifr-13.jpg')
-		var output = await parse(file, options)
-		assert.isUndefined(output.icc)
-	})
-
-	it(`output.icc is object when {icc: true}`, async () => {
-		var options = {mergeOutput: false, icc: true}
-		var file = await getFile('./IMG_20180725_163423.jpg')
-		var output = await parse(file, options)
-		assert.isObject(output.icc)
-	})
-
-	it(`output.icc is undefined if the file doesn't contain ICC`, async () => {
-		var options = {mergeOutput: false, icc: true}
-		var file = await getFile('./issue-exifr-3.jpg')
-		var output = await parse(file, options)
-		assert.isUndefined(output.icc)
+	testSegment({
+		key: 'icc',
+		fileWith: 'IMG_20180725_163423.jpg',
+		fileWithout: 'issue-exifr-3.jpg',
+		definedByDefault: false
 	})
 
 	/*
@@ -164,7 +131,7 @@ describe('ICC', () => {
 
 	})
 
-	testImage('IMG_20180725_163423.jpg', {
+	testImage('icc', 'IMG_20180725_163423.jpg', {
 		cmm: undefined, // we intentionally do not include empty \u0000 values
 		version: '4.0.0',
 		intent: 'Perceptual',
@@ -174,7 +141,7 @@ describe('ICC', () => {
 		copyright: 'Copyright (c) 2016 Google Inc.\u0000',
 	})
 
-	testImage('Bush-dog.jpg', {
+	testImage('icc', 'Bush-dog.jpg', {
 		version: '2.1.0',
 		intent: 'Perceptual',
 		cmm: 'Lino',
@@ -188,7 +155,7 @@ describe('ICC', () => {
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
 
-	testImage('issue-fast-exif-2.jpg', {
+	testImage('icc', 'issue-fast-exif-2.jpg', {
 		// TEXT tag
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 		// SIG tag

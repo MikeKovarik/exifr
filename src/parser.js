@@ -186,7 +186,11 @@ export class Exifr extends Reader {
 				libOutput[parser.constructor.type] = parserOutput
 		})
 		await Promise.all(promises)
-		return libOutput
+		//console.log('libOutput', libOutput)
+		if (Object.keys(libOutput).length === 0)
+			return undefined
+		else
+			return libOutput
 	}
 
 	async readSegments() {

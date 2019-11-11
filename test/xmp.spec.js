@@ -1,48 +1,30 @@
 import {assert} from './test-util.js'
-import {getFile, getPath} from './test-util.js'
+import {getFile, getPath, testSegment} from './test-util.js'
 import {parse} from '../src/index-full.js'
 import XmpParser from '../src/parsers/xmp.js'
 
 
-describe('XMP', () => {
+describe('XMP Segment', () => {
 
-    it(`output.xmp is undefined by default`, async () => {
-        let options = {mergeOutput: false}
-        let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options)
-        assert.isObject(output, `output is undefined`)
-        assert.isUndefined(output.xmp, `output shouldn't contain xmp`)
-    })
+	testSegment({
+		key: 'xmp',
+		fileWith: 'cookiezen.jpg',
+		fileWithout: 'img_1771_no_exif.jpg',
+		definedByDefault: false
+	})
 
-    it(`output.xmp is undefined when {xmp: false}`, async () => {
-        let options = {mergeOutput: false, xmp: false}
+    it(`output.xmp is string when {xmp: true, mergeOutput: true}`, async () => {
+        let options = {mergeOutput: true, xmp: true}
         let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options)
-        assert.isObject(output, `output is undefined`)
-        assert.isUndefined(output.xmp, `output shouldn't contain xmp`)
+        let output = await parse(input, options) || {}
+        assert.isString(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`output.xmp is string when {xmp: true, mergeOutput: false}`, async () => {
         let options = {mergeOutput: false, xmp: true}
         let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options)
-        assert.isObject(output, `output is undefined`)
+        let output = await parse(input, options) || {}
         assert.isString(output.xmp, `output doesn't contain xmp`)
-    })
-
-    it(`output.xmp is string when {xmp: true, mergeOutput: true}`, async () => {
-        let options = {mergeOutput: true, xmp: true}
-        let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options)
-        assert.isObject(output, `output is undefined`)
-        assert.isString(output.xmp, `output doesn't contain xmp`)
-    })
-
-    it(`output.xmp is undefined if the file doesn't contain XMP`, async () => {
-        let input = await getFile('img_1771_no_exif.jpg')
-        let output = await parse(input)
-        assert.isObject(output, `output is undefined`)
-        assert.isUndefined(output.xmp, `output shouldn't contain xmp`)
     })
 
     it(`should parse XMP independenly (even if the file doesn't have TIFF)`, async () => {
