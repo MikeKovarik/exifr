@@ -188,7 +188,7 @@ describe('ICC', () => {
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 	})
 
-	testImage('fast-exif-issue-2.jpg', {
+	testImage('issue-fast-exif-2.jpg', {
 		// TEXT tag
 		copyright: 'Copyright (c) 1998 Hewlett-Packard C',
 		// SIG tag

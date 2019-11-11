@@ -95,14 +95,14 @@ describe('XMP', () => {
     })
 
     it(`issue node-exif #58 whole file`, async () => {
-		let input = await getFile('node-exif-issue-58.jpg')
+		let input = await getFile('issue-node-exif-58.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue node-exif #58 chunked`, async () => {
-		let input = getPath('node-exif-issue-58.jpg')
+		let input = getPath('issue-node-exif-58.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await parse(input, options)
         assert.exists(output.xmp, `output doesn't contain xmp`)

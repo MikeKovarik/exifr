@@ -39,14 +39,14 @@ describe('issues (special cases)', () => {
 */
 
     it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
-        var output = await parse(await getFile('fast-exif-issue-2.jpg'), true)
+        var output = await parse(await getFile('issue-fast-exif-2.jpg'), true)
         assert.exists(output, `output is undefined`)
         assert.equal(output.ApertureValue, 5.655638)
         assert.equal(output.LensModel, '24.0-70.0 mm f/2.8')
     })
 
     it(`exif-js #124`, async () => {
-        var output = await parse(await getFile('exif-js-issue-124.tiff'), true)
+        var output = await parse(await getFile('issue-exif-js-124.tiff'), true)
         assert.exists(output, `output is undefined`)
         assert.equal(output.Make, 'FLIR')
     })
