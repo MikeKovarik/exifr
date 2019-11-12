@@ -123,6 +123,8 @@ export class Exifr extends Reader {
 	}
 
 	findJpgAppSegments(offset = 0, wantedSegments = []) {
+		// TODO: only use parsers wanted by options
+		let wantedParsers = parserClasses
 		let wanted = new Set(wantedSegments)
 		let file = this.file
 		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
@@ -139,7 +141,7 @@ export class Exifr extends Reader {
 				let type = getSegmentType(file, offset)
 				if (type) {
 					// known and parseable segment found
-					let Parser = parserClasses[type]
+					let Parser = wantedParsers[type]
 					let seg = Parser.findPosition(file, offset)
 					seg.type = type
 					if (wanted.size === 0) {

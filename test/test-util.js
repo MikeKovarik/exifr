@@ -102,6 +102,7 @@ export function testImage(segKey, filePath, results = {}) {
 		var options = {mergeOutput: false, [segKey]: true}
 		var output = await parse(file, options)
 		assert.exists(output[segKey], `output is undefined`)
+		console.log(output[segKey])
 		for (let [key, val] of Object.entries(results)) {
 			assert.equal(output[segKey][key], val)
 		}

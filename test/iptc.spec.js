@@ -16,6 +16,22 @@ describe('IPTC Segment', () => {
 		headline: 'BUSH',
 	})
 
+	testImage('iptc', 'iptc-agency-photographer-example.jpg', {})
+	testImage('iptc', 'iptc-independent-photographer-example.jpg', {})
+	testImage('iptc', 'iptc-staff-photographer-example.jpg', {})
+	testImage('iptc', 'BonTonARTSTORplusIPTC.jpg', {})
+
+
+	// https://www.iptc.org/std-dev/photometadata/examples/agency-photographer-example.jpg
+	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/alandmarkimagebyanindependentphotographer.htm
+	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/adocumentaryimagebyastaffphotographer1.htm
+	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/aheritageartworkimagebyanagencyphotographer.htm
+	// iptc-agency-photographer-example.jpg
+	// iptc-independent-photographer-example.jpg
+	// iptc-staff-photographer-example.jpg
+	// http://metadatadeluxe.pbworks.com/w/page/20792260/Photoshop%20Panels%20-%20IPTC%20and%20ARTstor
+	// BonTonARTSTORplusIPTC.jpg
+
 /*
 	it(`IPTC - as output.iptc if requested with options.iptc`, async () => {
 		let options = {mergeOutput: false, iptc: true, exif: false}
