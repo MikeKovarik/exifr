@@ -16,33 +16,62 @@ describe('IPTC Segment', () => {
 		headline: 'BUSH',
 	})
 
-	testImage('iptc', 'iptc-agency-photographer-example.jpg', {})
-	testImage('iptc', 'iptc-independent-photographer-example.jpg', {})
-	testImage('iptc', 'iptc-staff-photographer-example.jpg', {})
-	testImage('iptc', 'BonTonARTSTORplusIPTC.jpg', {})
-
-
-	// https://www.iptc.org/std-dev/photometadata/examples/agency-photographer-example.jpg
-	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/alandmarkimagebyanindependentphotographer.htm
-	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/adocumentaryimagebyastaffphotographer1.htm
-	// https://www.iptc.org/std/photometadata/documentation/userguide/index.htm#!Documents/aheritageartworkimagebyanagencyphotographer.htm
-	// iptc-agency-photographer-example.jpg
-	// iptc-independent-photographer-example.jpg
-	// iptc-staff-photographer-example.jpg
-	// http://metadatadeluxe.pbworks.com/w/page/20792260/Photoshop%20Panels%20-%20IPTC%20and%20ARTstor
-	// BonTonARTSTORplusIPTC.jpg
-
-/*
-	it(`IPTC - as output.iptc if requested with options.iptc`, async () => {
-		let options = {mergeOutput: false, iptc: true, exif: false}
-		let input = await getFile('Bush-dog.jpg')
-		let output = await parse(input, options)
-		assert.isObject(output, `output is undefined`)
-		assert.isObject(output.iptc, `output does not contain iptc`)
-		assert.typeOf(output.iptc.caption, 'string')
-		assert.equal(output.iptc.credit, 'AP')
-		assert.equal(output.iptc.headline, 'BUSH')
+	testImage('iptc', 'iptc-agency-photographer-example.jpg', {
+		// this does not represent all IPTC data in the file
+		dateCreated: '20090624',
+		byline: 'Julie Doe',
+		bylineTitle: 'Mugwum contract photographer',
+		city: 'Washington',
+		state: 'District of Columbia',
+		country: 'United States of America',
+		headline: 'Lincoln Memorial',
+		credit: 'Mugwum Press',
+		source: 'Julie Doe / Mugwum Press',
 	})
-*/
+
+	testImage('iptc', 'iptc-independent-photographer-example.jpg', {
+		// this does not represent all IPTC data in the file
+		dateCreated: '19851125',
+		byline: 'David Riecks',
+		bylineTitle: 'Photographer',
+		city: 'Nainital',
+		state: 'Uttarakhand',
+		country: 'India',
+		headline: 'Southern Himalayan Mountains.',
+		credit: '�1985 David Riecks: www.riecks.c',
+		source: 'David Riecks Photography',
+		copyright: '�1985 David Riecks, All Rights Reserved',
+		captionWriter: 'David Riecks'
+	})
+
+	testImage('iptc', 'iptc-staff-photographer-example.jpg', {
+		// this does not represent all IPTC data in the file
+		dateCreated: '20070419',
+		byline: 'John Doe',
+		bylineTitle: 'Staff Photographer',
+		city: 'Watseka',
+		state: 'Illinois',
+		country: 'United States',
+		headline: 'Farmer planting onions',
+		credit: 'Big Newspaper',
+		source: 'John Doe / Big Newspaper',
+		copyright: '�2010 Big Newspaper, all rights reserved',
+		captionWriter: 'Susan Brown'
+	})
+
+	testImage('iptc', 'BonTonARTSTORplusIPTC.jpg', {
+		// this does not represent all IPTC data in the file
+		headline: 'Do you know your lesson?: Tailored ensembles imagined by Jeanne Lanvin',
+		byline: 'Allan Kohl',
+		credit: 'Allan Kohl; Minneapolis College of Art & Design Visual Resource Collection',
+		source: 'Core 4 Sample Database (VCat)',
+		dateCreated: '20071119',
+		// ... and then there's more data like keywords array
+	})
+
+	testImage('iptc', 'issue-fast-exif-2.jpg', {
+		dateCreated: '20170506',
+		byline: 'FRPASSAQUAY'
+	})
 
 })

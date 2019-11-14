@@ -24,7 +24,7 @@ export class AppSegment {
 	static findPosition(buffer, offset) {
 		// length at offset+2 is the size of appN content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
 		let length = buffer.getUint16(offset + 2) + 2
-		let headerLength = typeof this.headerLength === 'function' ? this.headerLength(buffer, offset) : this.headerLength
+		let headerLength = typeof this.headerLength === 'function' ? this.headerLength(buffer, offset, length) : this.headerLength
 		let start = offset + headerLength
 		let size = length - headerLength
 		let end = start + size
