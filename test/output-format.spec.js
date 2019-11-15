@@ -4,10 +4,9 @@ import {parse, ExifParser} from '../src/index-full.js'
 
 
 describe('output object', () => {
-
+/*
 	it(`should return undefined if no exif was found`, async () => {
-		var output = await parse(await getFile('img_1771_no_exif.jpg'))
-		console.log('output', output)
+		let output = await parse(await getFile('img_1771_no_exif.jpg'))
 		assert.equal(output, undefined)
 	})
 
@@ -29,37 +28,188 @@ describe('output object', () => {
 	})
 
     it(`should merge all segments by default`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'))
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let output = await parse(input)
         assert.exists(output, `output is undefined`)
         assert.equal(output.Make, 'Google')
         assert.equal(output.ExposureTime, 0.000376)
         assert.equal(output.GPSLongitude.length, 3)
     })
-
-    it(`should translate values to string by default`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'))
+*/
+/*
+    it(`should translate tag names to string by default`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateTags: undefined}
+		let output = await parse(input, options)
         assert.exists(output, `output is undefined`)
-        assert.equal(output.Contrast, 'Normal')
-        assert.equal(output.MeteringMode, 'CenterWeightedAverage')
+        assert.isUndefined(output[0xA408])
+        assert.isUndefined(output[0x9207])
+        assert.isDefined(output.Contrast)
+        assert.isDefined(output.MeteringMode)
     })
 
-    it(`should not translate values to string if options.postProcess = false`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {postProcess: false})
+    it(`should translate tag names to string when {translateTags: true}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateTags: true}
+		let output = await parse(input, options)
         assert.exists(output, `output is undefined`)
-        assert.equal(output.Contrast, 0)
-        assert.equal(output.MeteringMode, 2)
+        assert.isUndefined(output[0xA408])
+        assert.isUndefined(output[0x9207])
+        assert.isDefined(output.Contrast)
+        assert.isDefined(output.MeteringMode)
     })
 
+    it(`should not translate tag names to string when {translateTags: false}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateTags: false}
+		let output = await parse(input, options)
+        assert.exists(output, `output is undefined`)
+        assert.isDefined(output[0xA408])
+        assert.isDefined(output[0x9207])
+        assert.isUndefined(output.Contrast)
+        assert.isUndefined(output.MeteringMode)
+    })
+
+
+    it(`should translate tag values to string by default`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateValues: undefined, translateTags: false}
+		let output = await parse(input, options)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output[0xA408] || output.Contrast, 'Normal')
+        assert.equal(output[0x9207] || output.MeteringMode, 'CenterWeightedAverage')
+    })
+
+    it(`should translate tag values to string when {translateValues: true}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateValues: true, translateTags: false}
+		let output = await parse(input, options)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output[0xA408] || output.Contrast, 'Normal')
+        assert.equal(output[0x9207] || output.MeteringMode, 'CenterWeightedAverage')
+    })
+
+    it(`should not translate tag values to string when {translateValues: false}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {translateValues: false, translateTags: false}
+		let output = await parse(input, options)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output[0xA408] || output.Contrast, 0)
+        assert.equal(output[0x9207] || output.MeteringMode, 2)
+    })
+*/
+/*
     it(`should revive dates as Date instance by default`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'))
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {}
+		let output = await parse(input, options)
         assert.exists(output, `output is undefined`)
         assert.instanceOf(output.DateTimeOriginal, Date)
     })
 
-    it(`should not revive dates as Date instance if options.postProcess = false`, async () => {
-        var output = await parse(await getFile('IMG_20180725_163423.jpg'), {postProcess: false})
+    it(`should not revive dates as Date instance when {reviveValues: true}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {reviveValues: true}
+		let output = await parse(input, options)
+        assert.exists(output, `output is undefined`)
+        assert.instanceOf(output.DateTimeOriginal, Date)
+    })
+
+    it(`should not revive dates as Date instance when {reviveValues: false}`, async () => {
+        let input = await getFile('IMG_20180725_163423.jpg')
+		let options = {reviveValues: false}
+		let output = await parse(input, options)
         assert.exists(output, `output is undefined`)
         assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
     })
+*/
+
+
+	function testTranslation(...tags) {
+
+		it(`should translate tag names to string by default`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateTags: undefined}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.isUndefined(output[rawKey])
+				assert.exists(output[translatedKey])
+			}
+		})
+
+		it(`should translate tag names to string when {translateTags: true}`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateTags: true}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.isUndefined(output[rawKey])
+				assert.exists(output[translatedKey])
+			}
+		})
+
+		it(`should not translate tag names to string when {translateTags: false}`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateTags: false}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.exists(output[rawKey])
+				assert.isUndefined(output[translatedKey])
+			}
+		})
+
+
+		it(`should translate tag values to string by default`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateValues: undefined, translateTags: false}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+				assert.equal(output[rawKey] || output[translatedKey], translatedValue)
+			}
+		})
+
+		it(`should translate tag values to string when {translateValues: true}`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateValues: true, translateTags: false}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+				assert.equal(output[rawKey] || output[translatedKey], translatedValue)
+			}
+		})
+
+		it(`should not translate tag values to string when {translateValues: false}`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {translateValues: false}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+				assert.equal(output[rawKey] || output[translatedKey], rawValue)
+			}
+		})
+
+
+		it(`should translate tag names & values by default`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let output = await parse(input)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+				assert.equal(output[translatedKey], translatedValue)
+			}
+		})
+
+
+	}
+
+	testTranslation([
+		0xA408, 'Contrast',
+		'Normal', 0,
+	], [
+		0x9207, 'MeteringMode',
+		'CenterWeightedAverage', 2,
+	])
 
 })
