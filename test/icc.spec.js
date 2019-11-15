@@ -24,20 +24,22 @@ describe('ICC Segment', () => {
 		definedByDefault: false
 	})
 
-	testTranslation('icc', 'Bush-dog.jpg', [
-		80, 'creator',
-		'HP', 'Hewlett-Packard',
-	//], [
-	//	12, 'deviceClass',
-	//	'mntr', 'Monitor',
-	], [
-		40, 'platform',
-		'MSFT', 'Microsoft',
-	], [
-		'cprt', 'copyright',
-		'Copyright (c) 1998 Hewlett-Packard C',
-		'Copyright (c) 1998 Hewlett-Packard C',
-	])
+	describe('translation', () => {
+		testTranslation('icc', 'Bush-dog.jpg', [
+			80, 'creator',
+			'HP', 'Hewlett-Packard',
+		], [
+			12, 'deviceClass',
+			'mntr', 'Monitor',
+		], [
+			40, 'platform',
+			'MSFT', 'Microsoft',
+		], [
+			'cprt', 'copyright',
+			'Copyright (c) 1998 Hewlett-Packard C',
+			'Copyright (c) 1998 Hewlett-Packard C',
+		])
+	})
 
 	/*
 	// https://github.com/drewnoakes/metadata-extractor/issues/65

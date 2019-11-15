@@ -61,17 +61,19 @@ describe('TIFF Segment', () => {
 		definedByDefault: true,
 	})
 
-	testTranslation('tiff', 'IMG_20180725_163423.jpg', [
-		0xA408, 'Contrast',
-		0, 'Normal',
-	], [
-		0x9207, 'MeteringMode',
-		2, 'CenterWeightedAverage',
-	], [
-		0x0001, 'GPSLatitudeRef',
-		'N',
-		'N',
-	])
+	describe('translation', () => {
+		testTranslation('tiff', 'IMG_20180725_163423.jpg', [
+			0xA408, 'Contrast',
+			0, 'Normal',
+		], [
+			0x9207, 'MeteringMode',
+			2, 'CenterWeightedAverage',
+		], [
+			0x0001, 'GPSLatitudeRef',
+			'N',
+			'N',
+		])
+	})
 
     /*
     import {TiffExifParser} from '../src/parsers/tiff'
