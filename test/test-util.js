@@ -151,6 +151,7 @@ export function testTranslation(type, filePath, ...tags) {
 			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
 		}
 	})
+
 	it(`should translate tag values to string when {translateValues: true}`, async () => {
 		let input = await getFile(filePath)
 		let options = {[type]: true, translateValues: true}

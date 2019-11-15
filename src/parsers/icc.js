@@ -112,26 +112,16 @@ export default class IccParser extends AppSegment {
 		else
 			return values
 	}
-/*
-	// TODO
-	translate() {
-		let {translateValues, translateTags} = this.options
-		if (!translateValues && !translateTags) return
-		let iccKeys = tagKeys.icc
-		let iccVals = tagValues.icc
-		let entries = Object.entries(this.output)
-		entries = entries.map(([key, val]) => {
-			if (translateValues) {
-				let dict = iccVals[key]
-				if (dict) val = dict[typeof val === 'string' ? val.toLowerCase() : val] || val
-			}
-			//while (val.endsWith('\0')) val = val.slice(0, -1)
-			key = iccKeys[key] || key
-			return [key, val]
-		})
-		this.output = Object.fromEntries(entries)
+
+	translateValue(val, dict) {
+		if (dict) {
+			if (typeof val === 'string')
+				return dict[val.toLowerCase()] || val
+			else
+				return dict[val] || val
+		}
 	}
-*/
+
 }
 
 export const headerParsers = {

@@ -68,10 +68,15 @@ export class AppSegment {
 		//if (this.options.reviveValues)
 		//	entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
 		if (this.options.translateValues && valDict)
-			entries = entries.map(([tag, val]) => [tag, tag in valDict ? valDict[tag][val] || val : val])
+			entries = entries.map(([tag, val]) => [tag, this.translateValue(val, valDict[tag]) || val])
 		if (this.options.translateTags && keyDict)
 			entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
 		return Object.fromEntries(entries)
+	}
+
+	// can be overriden by parses (namely ICC) that inherits from this base class.
+	translateValue(val, dict) {
+		return dict && dict[val]
 	}
 
 }
