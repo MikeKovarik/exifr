@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, getPath} from './test-util.js'
+import {getFile, getPath, testTranslation} from './test-util.js'
 import {parse, ExifParser} from '../src/index-full.js'
 
 
@@ -36,7 +36,7 @@ describe('output object', () => {
         assert.equal(output.GPSLongitude.length, 3)
     })
 
-	testTranslation([
+	testTranslation('tiff', 'IMG_20180725_163423.jpg', [
 		0xA408, 'Contrast',
 		0, 'Normal',
 	], [
@@ -69,86 +69,3 @@ describe('output object', () => {
     })
 
 })
-
-function testTranslation(...tags) {
-
-	it(`should translate tag names to string by default`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.isUndefined(output[rawKey])
-			assert.exists(output[translatedKey])
-		}
-	})
-
-	it(`should translate tag names to string when {translateTags: true}`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {translateTags: true}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.isUndefined(output[rawKey])
-			assert.exists(output[translatedKey])
-		}
-	})
-
-	it(`should not translate tag names to string when {translateTags: false}`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {translateTags: false}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.exists(output[rawKey])
-			assert.isUndefined(output[translatedKey])
-		}
-	})
-
-
-	it(`should translate tag values to string by default`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {}
-		let output = await parse(input, options)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
-		}
-	})
-	it(`should translate tag values to string when {translateValues: true}`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {translateValues: true}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
-		}
-	})
-
-	it(`should not translate tag values to string when {translateValues: false}`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let options = {translateValues: false}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], rawValue)
-		}
-	})
-
-
-	it(`should translate tag names & values by default`, async () => {
-		let input = await getFile('IMG_20180725_163423.jpg')
-		let output = await parse(input)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[translatedKey], translatedValue)
-		}
-	})
-
-}

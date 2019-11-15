@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testImage} from './test-util.js'
+import {getFile, testSegment, testImage, testTranslation} from './test-util.js'
 import {parse} from '../src/index-full.js'
 import IccParser from '../src/parsers/icc.js'
 
@@ -23,6 +23,21 @@ describe('ICC Segment', () => {
 		fileWithout: 'issue-exifr-3.jpg',
 		definedByDefault: false
 	})
+
+	testTranslation('icc', 'Bush-dog.jpg', [
+		80, 'creator',
+		'HP', 'Hewlett-Packard',
+	//], [
+	//	12, 'deviceClass',
+	//	'mntr', 'Monitor',
+	], [
+		40, 'platform',
+		'MSFT', 'Microsoft',
+	], [
+		'cprt', 'copyright',
+		'Copyright (c) 1998 Hewlett-Packard C',
+		'Copyright (c) 1998 Hewlett-Packard C',
+	])
 
 	/*
 	// https://github.com/drewnoakes/metadata-extractor/issues/65

@@ -1,5 +1,6 @@
 import {BufferView} from '../util/BufferView.js'
 import createOptions from '../options.js'
+import {tagKeys, tagValues} from '../tags.js'
 
 
 /*
@@ -56,7 +57,8 @@ export class AppSegment {
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
 	translate() {
 		if (this.canTranslate) {
-			this.output = this.translateBlock(tagKeys[key], tagValues[key], this.output)
+			let type = this.constructor.type
+			this.output = this.translateBlock(tagKeys[type], tagValues[type], this.output)
 		}
 	}
 

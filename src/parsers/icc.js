@@ -112,7 +112,7 @@ export default class IccParser extends AppSegment {
 		else
 			return values
 	}
-
+/*
 	// TODO
 	translate() {
 		let {translateValues, translateTags} = this.options
@@ -131,7 +131,7 @@ export default class IccParser extends AppSegment {
 		})
 		this.output = Object.fromEntries(entries)
 	}
-
+*/
 }
 
 export const headerParsers = {

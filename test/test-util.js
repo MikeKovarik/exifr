@@ -53,6 +53,7 @@ export async function getFile(urlOrPath) {
 	return cachedFiles[urlOrPath]
 }
 
+
 export function testSegment({key, fileWith, fileWithout, definedByDefault}) {
 
 	if (definedByDefault) {
@@ -95,6 +96,96 @@ export function testSegment({key, fileWith, fileWithout, definedByDefault}) {
 	})
 
 }
+
+
+export function testTranslation(type, filePath, ...tags) {
+
+	it(`should translate tag names to string by default`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true}
+		let output = await parse(input, options)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey] of tags) {
+			assert.isUndefined(output[rawKey])
+			assert.exists(output[translatedKey])
+		}
+	})
+
+	it(`should translate tag names to string when {translateTags: true}`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true, translateTags: true}
+		let output = await parse(input, options)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey] of tags) {
+			assert.isUndefined(output[rawKey])
+			assert.exists(output[translatedKey])
+		}
+	})
+
+	it(`should not translate tag names to string when {translateTags: false}`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true, translateTags: false}
+		let output = await parse(input, options)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey] of tags) {
+			assert.exists(output[rawKey])
+			assert.isUndefined(output[translatedKey])
+		}
+	})
+
+
+	it(`should translate tag values to string by default`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true}
+		let output = await parse(input, options)
+		assert.exists(output, `output is undefined`)
+		//console.log(output)
+		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+			//console.log('output[rawKey] || output[translatedKey]', output[rawKey] || output[translatedKey])
+			//console.log('output[translatedKey]', output[translatedKey])
+			//console.log('output[rawKey]', output[rawKey])
+			//console.log('translatedValue', translatedValue)
+			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
+		}
+	})
+	it(`should translate tag values to string when {translateValues: true}`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true, translateValues: true}
+		let output = await parse(input, options)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
+		}
+	})
+
+	it(`should not translate tag values to string when {translateValues: false}`, async () => {
+		let input = await getFile(filePath)
+		let options = {[type]: true, translateValues: false}
+		let output = await parse(input, options)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+			assert.equal(output[rawKey] || output[translatedKey], rawValue)
+		}
+	})
+
+
+	it(`should translate tag names & values by default`, async () => {
+		let input = await getFile(filePath)
+		let output = await parse(input)
+		//console.log(output)
+		assert.exists(output, `output is undefined`)
+		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+			assert.equal(output[translatedKey], translatedValue)
+		}
+	})
+
+}
+
 
 export function testImage(segKey, filePath, results = {}) {
 	it(`testing parsed properties against file ${filePath}`, async () => {
