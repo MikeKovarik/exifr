@@ -98,86 +98,94 @@ export function testSegment({key, fileWith, fileWithout, definedByDefault}) {
 }
 
 
-export function testTranslation(type, filePath, ...tags) {
+export function testSegmentTranslation({type, file, tags}) {
 
-	it(`should translate tag names to string by default`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.isUndefined(output[rawKey])
-			assert.exists(output[translatedKey])
+	describe('translation', () => {
+
+		it(`should translate tag names to string by default`, async () => {
+			let input = await getFile(file)
+			let options = {[type]: true}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.isUndefined(output[rawKey])
+				assert.exists(output[translatedKey])
+			}
+		})
+
+		it(`should translate tag names to string when {translateTags: true}`, async () => {
+			let input = await getFile(file)
+			let options = {[type]: true, translateTags: true}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.isUndefined(output[rawKey])
+				assert.exists(output[translatedKey])
+			}
+		})
+
+		it(`should not translate tag names to string when {translateTags: false}`, async () => {
+			let input = await getFile(file)
+			let options = {[type]: true, translateTags: false}
+			let output = await parse(input, options)
+			assert.exists(output, `output is undefined`)
+			for (let [rawKey, translatedKey] of tags) {
+				assert.exists(output[rawKey])
+				assert.isUndefined(output[translatedKey])
+			}
+		})
+
+		if (Math.max(...tags.map(tag => tag.length)) > 2) {
+			// some semgments don't need value translation (IPTC)
+
+			it(`should translate tag values to string by default`, async () => {
+				let input = await getFile(file)
+				let options = {[type]: true}
+				let output = await parse(input, options)
+				assert.exists(output, `output is undefined`)
+				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+					let val = translatedValue || rawValue // this is to test non-translatable values
+					if (val === undefined) continue
+					assert.equal(output[rawKey] || output[translatedKey], val) //translatedValue)
+				}
+			})
+
+			it(`should translate tag values to string when {translateValues: true}`, async () => {
+				let input = await getFile(file)
+				let options = {[type]: true, translateValues: true}
+				let output = await parse(input, options)
+				assert.exists(output, `output is undefined`)
+				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+					let val = translatedValue || rawValue // this is to test non-translatable values
+					if (val === undefined) continue
+					assert.equal(output[rawKey] || output[translatedKey], val) //translatedValue)
+				}
+			})
+
+			it(`should not translate tag values to string when {translateValues: false}`, async () => {
+				let input = await getFile(file)
+				let options = {[type]: true, translateValues: false}
+				let output = await parse(input, options)
+				assert.exists(output, `output is undefined`)
+				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+					assert.equal(output[rawKey] || output[translatedKey], rawValue)
+				}
+			})
+
+
+			it(`should translate tag names & values by default`, async () => {
+				let input = await getFile(file)
+				let options = {[type]: true}
+				let output = await parse(input, options)
+				assert.exists(output, `output is undefined`)
+				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
+					let val = translatedValue || rawValue
+					assert.equal(output[translatedKey], val)
+				}
+			})
+
 		}
-	})
 
-	it(`should translate tag names to string when {translateTags: true}`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true, translateTags: true}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.isUndefined(output[rawKey])
-			assert.exists(output[translatedKey])
-		}
-	})
-
-	it(`should not translate tag names to string when {translateTags: false}`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true, translateTags: false}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey] of tags) {
-			assert.exists(output[rawKey])
-			assert.isUndefined(output[translatedKey])
-		}
-	})
-
-
-	it(`should translate tag values to string by default`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true}
-		let output = await parse(input, options)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
-		}
-	})
-
-	it(`should translate tag values to string when {translateValues: true}`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true, translateValues: true}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
-		}
-	})
-
-	it(`should not translate tag values to string when {translateValues: false}`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true, translateValues: false}
-		let output = await parse(input, options)
-		//console.log(output)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[rawKey] || output[translatedKey], rawValue)
-		}
-	})
-
-
-	it(`should translate tag names & values by default`, async () => {
-		let input = await getFile(filePath)
-		let options = {[type]: true}
-		let output = await parse(input, options)
-		assert.exists(output, `output is undefined`)
-		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			assert.equal(output[translatedKey], translatedValue)
-		}
 	})
 
 }

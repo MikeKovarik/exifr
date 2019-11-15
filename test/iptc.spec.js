@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testImage} from './test-util.js'
+import {getFile, testSegment, testSegmentTranslation, testImage} from './test-util.js'
 
 
 describe('IPTC Segment', () => {
@@ -9,6 +9,18 @@ describe('IPTC Segment', () => {
 		fileWith: 'Bush-dog.jpg',
 		fileWithout: 'IMG_20180725_163423.jpg',
 		definedByDefault: false
+	})
+
+	testSegmentTranslation({
+		type: 'iptc',
+		file: 'Bush-dog.jpg',
+		tags: [
+			[
+				105, 'headline',
+			], [
+				110, 'credit',
+			],
+		]
 	})
 
 	testImage('iptc', 'Bush-dog.jpg', {

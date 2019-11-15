@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testTranslation, testImage} from './test-util.js'
+import {getFile, testSegment, testSegmentTranslation, testImage} from './test-util.js'
 import {parse} from '../src/index-full.js'
 import IccParser from '../src/parsers/icc.js'
 
@@ -24,21 +24,24 @@ describe('ICC Segment', () => {
 		definedByDefault: false
 	})
 
-	describe('translation', () => {
-		testTranslation('icc', 'Bush-dog.jpg', [
-			80, 'creator',
-			'HP', 'Hewlett-Packard',
-		], [
-			12, 'deviceClass',
-			'mntr', 'Monitor',
-		], [
-			40, 'platform',
-			'MSFT', 'Microsoft',
-		], [
-			'cprt', 'copyright',
-			'Copyright (c) 1998 Hewlett-Packard C',
-			'Copyright (c) 1998 Hewlett-Packard C',
-		])
+	testSegmentTranslation({
+		type: 'icc',
+		file: 'Bush-dog.jpg',
+		tags: [
+			[
+				80, 'creator',
+				'HP', 'Hewlett-Packard',
+			], [
+				12, 'deviceClass',
+				'mntr', 'Monitor',
+			], [
+				40, 'platform',
+				'MSFT', 'Microsoft',
+			], [
+				'cprt', 'copyright',
+				'Copyright (c) 1998 Hewlett-Packard C',
+			]
+		]
 	})
 
 	/*

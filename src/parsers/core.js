@@ -42,16 +42,19 @@ export class AppSegment {
 		return instance.parse()
 	}
 
-	constructor(chunk, options, file) {
+	constructor(chunk, options = {}, file) {
 		this.chunk = chunk
 		this.options = options
 		this.file = file
-	}
 
-	get canTranslate() {
-		return this.options.translateTags
-			|| this.options.translateValues
-			|| this.options.reviveValues
+		let Ctor = this.constructor
+		let type = Ctor.type
+		let segOptions = options[type] || {}
+		let optionProps = ['translateTags', 'translateValues', 'reviveValues']
+		for (let prop of optionProps)
+			this[prop] = pickDefined(Ctor[prop], segOptions[prop], options[prop])
+
+		this.canTranslate = this.translateTags || this.translateValues || this.reviveValues
 	}
 
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
@@ -80,5 +83,9 @@ export class AppSegment {
 	}
 
 }
+
+const isDefined = val => val !== undefined
+
+const pickDefined = (...values) => values.find(isDefined)
 
 export var parsers = {}
