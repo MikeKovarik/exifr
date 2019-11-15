@@ -1,5 +1,5 @@
 import {AppSegment, parsers} from './core.js'
-import {tags} from '../tags.js'
+import {tagKeys, tagValues} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from '../tags.js'
 import {slice, BufferView} from '../util/BufferView.js'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.js'
@@ -32,7 +32,6 @@ const SIZE_LOOKUP = {
 export class TiffCore extends AppSegment {
 
 	parseHeader() {
-		//console.log('this.ifd0Offset', this.ifd0Offset, this.ifd0Offset.toString(16))
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.chunk.getUint16()
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
@@ -311,17 +310,20 @@ export class TiffExif extends TiffCore {
 	}
 
 	translate() {
-		let {translateTags, reviveValues} = this.options
-		if (translateTags || reviveValues) {
+		let {translateTags, translateValues, reviveValues} = this.options
+		if (translateTags || translateValues || reviveValues) {
 			for (let key of blockKeys) {
-				let dictionary = tags.tiff[key]
+				let keyDict = tagKeys.tiff[key]
+				let valDict = tagValues.tiff[key]
 				let rawTags = this[key]
 				if (rawTags === undefined) continue
 				let entries = Object.entries(this[key])
-				if (reviveValues)
-					entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
-				if (translateTags)
-					entries = entries.map(([tag, val]) => [dictionary[tag] || tag, val])
+				//if (reviveValues)
+				//	entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
+				if (translateValues && valDict)
+					entries = entries.map(([tag, val]) => [tag, tag in valDict ? valDict[tag][val] || val : val])
+				if (translateTags && keyDict)
+					entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
 				this[key] = Object.fromEntries(entries)
 			}
 		}
