@@ -310,21 +310,11 @@ export class TiffExif extends TiffCore {
 	}
 
 	translate() {
-		let {translateTags, translateValues, reviveValues} = this.options
-		if (translateTags || translateValues || reviveValues) {
-			for (let key of blockKeys) {
-				let keyDict = tagKeys.tiff[key]
-				let valDict = tagValues.tiff[key]
-				let rawTags = this[key]
-				if (rawTags === undefined) continue
-				let entries = Object.entries(this[key])
-				//if (reviveValues)
-				//	entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
-				if (translateValues && valDict)
-					entries = entries.map(([tag, val]) => [tag, tag in valDict ? valDict[tag][val] || val : val])
-				if (translateTags && keyDict)
-					entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
-				this[key] = Object.fromEntries(entries)
+		if (this.canTranslate) {
+			for (let block of blockKeys) {
+				if (block in this) {
+					this[block] = this.translateBlock(tagKeys.tiff[block], tagValues.tiff[block], this[block])
+				}
 			}
 		}
 	}

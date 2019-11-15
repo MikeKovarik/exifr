@@ -47,6 +47,31 @@ export class AppSegment {
 		this.file = file
 	}
 
+	get canTranslate() {
+		return this.options.translateTags
+			|| this.options.translateValues
+			|| this.options.reviveValues
+	}
+
+	// can be overriden by parses (namely TIFF) that inherits from this base class.
+	translate() {
+		if (this.canTranslate) {
+			this.output = this.translateBlock(tagKeys[key], tagValues[key], this.output)
+		}
+	}
+
+	// split into separate function so that it can be used by TIFF but shared with other parsers.
+	translateBlock(keyDict, valDict, rawTags) {
+		let entries = Object.entries(rawTags)
+		//if (this.options.reviveValues)
+		//	entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
+		if (this.options.translateValues && valDict)
+			entries = entries.map(([tag, val]) => [tag, tag in valDict ? valDict[tag][val] || val : val])
+		if (this.options.translateTags && keyDict)
+			entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
+		return Object.fromEntries(entries)
+	}
+
 }
 
 export var parsers = {}
