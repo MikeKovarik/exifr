@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, getPath, testTranslation} from './test-util.js'
+import {getFile, getPath} from './test-util.js'
 import {parse, ExifParser} from '../src/index-full.js'
 
 
@@ -35,14 +35,6 @@ describe('output object', () => {
         assert.equal(output.ExposureTime, 0.000376)
         assert.equal(output.GPSLongitude.length, 3)
     })
-
-	testTranslation('tiff', 'IMG_20180725_163423.jpg', [
-		0xA408, 'Contrast',
-		0, 'Normal',
-	], [
-		0x9207, 'MeteringMode',
-		2, 'CenterWeightedAverage',
-	])
 
     it(`should revive dates as Date instance by default`, async () => {
         let input = await getFile('IMG_20180725_163423.jpg')

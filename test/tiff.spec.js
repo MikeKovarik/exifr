@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment} from './test-util.js'
+import {getFile, testSegment, testTranslation} from './test-util.js'
 import {parse} from '../src/index-full.js'
 
 
@@ -60,6 +60,18 @@ describe('TIFF Segment', () => {
 		fileWithout: 'noexif.jpg',
 		definedByDefault: true,
 	})
+
+	testTranslation('tiff', 'IMG_20180725_163423.jpg', [
+		0xA408, 'Contrast',
+		0, 'Normal',
+	], [
+		0x9207, 'MeteringMode',
+		2, 'CenterWeightedAverage',
+	], [
+		0x0001, 'GPSLatitudeRef',
+		'N',
+		'N',
+	])
 
     /*
     import {TiffExifParser} from '../src/parsers/tiff'

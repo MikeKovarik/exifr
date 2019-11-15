@@ -142,12 +142,7 @@ export function testTranslation(type, filePath, ...tags) {
 		let options = {[type]: true}
 		let output = await parse(input, options)
 		assert.exists(output, `output is undefined`)
-		//console.log(output)
 		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-			//console.log('output[rawKey] || output[translatedKey]', output[rawKey] || output[translatedKey])
-			//console.log('output[translatedKey]', output[translatedKey])
-			//console.log('output[rawKey]', output[rawKey])
-			//console.log('translatedValue', translatedValue)
 			assert.equal(output[rawKey] || output[translatedKey], translatedValue)
 		}
 	})
@@ -177,8 +172,8 @@ export function testTranslation(type, filePath, ...tags) {
 
 	it(`should translate tag names & values by default`, async () => {
 		let input = await getFile(filePath)
-		let output = await parse(input)
-		//console.log(output)
+		let options = {[type]: true}
+		let output = await parse(input, options)
 		assert.exists(output, `output is undefined`)
 		for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 			assert.equal(output[translatedKey], translatedValue)

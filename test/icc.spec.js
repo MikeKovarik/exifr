@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testImage, testTranslation} from './test-util.js'
+import {getFile, testSegment, testTranslation, testImage} from './test-util.js'
 import {parse} from '../src/index-full.js'
 import IccParser from '../src/parsers/icc.js'
 
