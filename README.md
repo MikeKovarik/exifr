@@ -208,6 +208,11 @@ can be:
 
 #### Reading file from disk or fetching url
 
+If allowed, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
+This can save lots of memory, disk reads and speed things up. But it may not suit you.
+
+* `options.wholeFile` `bool/undefined` default `undefined`
+
 ##### Chunked mode
 
 In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
