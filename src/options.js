@@ -35,7 +35,7 @@ const defaultOptions = {
 	// TODO
 	translateValues: true,
 	// Translate enum values to strings, convert dates to Date instances, etc...
-	postProcess: true,
+	postProcess: true, // todo: deprecate
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE: Causes loss of thumbnail EXIF data.
 	mergeOutput: true,
@@ -59,7 +59,9 @@ const defaultOptions = {
 	// APP13 IPTC segment - Captions and copyrights
 	iptc: false,
 
+	// TODO: implement
 	makerNote: false,
+	// TODO: implement
 	userComment: false,
 
 	// Array of tags that will be excluded when parsing.
@@ -114,4 +116,24 @@ function processOptions(userOptions = {}) {
 	options.skipTags = options.skipTags.map(tag => typeof tag === 'string' ? findTag(tag) : tag)
 	options.skipTags = unique(options.skipTags)
 	return options
+}
+
+export function addPickTags(options, segKey, ...tags) {
+	let segOpts = options[segKey]
+	if (Array.isArray(segOpts)) {
+		segOpts.push(...tags)
+	} else if (typeof segOpts === 'object') {
+		segOpts.pickTags.push(...tags)
+	} else {
+		options[segKey] = tags
+	}
+}
+
+export function addSkipTags(options, segKey, ...tags) {
+	let segOpts = options[segKey]
+	if (!Array.isArray(segOpts) && typeof segOpts === 'object') {
+		segOpts.skipTags.push(...tags)
+	} else {
+		options[segKey] = tags
+	}
 }

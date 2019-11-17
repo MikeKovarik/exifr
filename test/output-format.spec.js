@@ -44,7 +44,7 @@ describe('output object', () => {
         assert.instanceOf(output.DateTimeOriginal, Date)
     })
 
-    it(`should not revive dates as Date instance when {reviveValues: true}`, async () => {
+    it(`should revive dates as Date instance when {reviveValues: true}`, async () => {
         let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {reviveValues: true}
 		let output = await parse(input, options)
@@ -58,6 +58,26 @@ describe('output object', () => {
 		let output = await parse(input, options)
         assert.exists(output, `output is undefined`)
         assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
+    })
+
+    it(`ApplicationNotes is moved from tiff to output.xmp`, async () => {
+		let input = await getFile('issue-metadata-extractor-152.tif')
+        var output = await parse(input, {mergeOutput: false}) || {}
+        assert.exists(output.xmp)
+        assert.isUndefined(output.ifd0.ApplicationNotes)
+        assert.isUndefined(output.ifd0[0x02BC])
+    })
+
+    it(`ApplicationNotes is not moved from tiff to output.xmp when {tiff: false}`, async () => {
+		let input = await getFile('issue-metadata-extractor-152.tif')
+        var output = await parse(input, {mergeOutput: false, tiff: false}) || {}
+        assert.isUndefined(output.xmp)
+    })
+
+    it(`ApplicationNotes is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
+		let input = await getFile('issue-metadata-extractor-152.tif')
+        var output = await parse(input, {mergeOutput: false, xmp: false}) || {}
+        assert.isString(output.xmp)
     })
 
 })

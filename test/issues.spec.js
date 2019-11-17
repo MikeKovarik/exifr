@@ -67,7 +67,7 @@ describe('issues (special cases)', () => {
 
 	// TODO: implement
     it(`metadata-extractor #152 tif`, async () => {
-		let input = await getFile('issue-metadata-extractor-152.jpg')
+		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, true)
         assert.equal(true, false)
     })

@@ -8,6 +8,7 @@ import './parsers/iptc.js'
 import './parsers/icc.js'
 import './parsers/xmp.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.js'
+import {addPickTags} from './options.js'
 
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
@@ -91,28 +92,33 @@ export class Exifr extends Reader {
 	}
 
 	async parseTiffFile() {
-
-		if (this.isTiff) {
-			if (this.options.xmp && (!this.options.tiff || !this.options.ifd0)) {
-				// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
-				// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
-				this.options.tiff = true
-				this.options.ifd0 = [TAG_APPNOTES]
-			}
+		if (this.options.xmp && (!this.options.tiff || !this.options.ifd0)) {
+			// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
+			// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
+			this.options.tiff = true
+			addPickTags(this.options, 'ifd0', TAG_APPNOTES)
 		}
 
-		if (this.options.tiff) {
+		if (this.options.tiff || this.options.xmp) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
+			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
 			this.appSegments.push(seg)
 			let chunk = await this.ensureSegmentChunk(seg)
 			this.createParser('tiff', chunk)
-		}
-		if (this.options.xmp) {
-			let ifd0 = this.parsers.tiff.parseIfd0Block()
-			let data = ifd0[TAG_APPNOTES]
-			let chunk = BufferView.from(data)
-			this.createParser('xmp', chunk)
+			this.parsers.tiff.parseIfd0Block()
+			if (this.parsers.tiff.appNotes) {
+				let chunk = BufferView.from(this.parsers.tiff.appNotes)
+				if (this.options.xmp) {
+					this.createParser('xmp', chunk)
+				} else {
+					let string = chunk.getString()
+					this.parsers.xmp = {
+						constructor: {type: 'xmp'},
+						parse: () => string,
+					}
+				}
+			}
 		}
 	}
 

@@ -1,8 +1,9 @@
 import {AppSegment, parsers} from './core.js'
 import {tagKeys, tagValues} from '../tags.js'
-import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from '../tags.js'
+import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_APPNOTES} from '../tags.js'
 import {slice, BufferView} from '../util/BufferView.js'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.js'
+import {addPickTags} from '../options.js'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949
@@ -192,6 +193,16 @@ export class TiffExif extends TiffCore {
 	parseIfd0Block() {
 		if (!this.headerParsed) this.parseHeader()
 		if (this.ifd0) return
+		// User may want to skip IFD0, in which case we need to at least go through it to find exif/gps/interop pointers.
+		if (!this.options.ifd0) {
+			let tags = []
+			if (this.options.exif)    tags.push(TAG_IFD_EXIF)
+			if (this.options.interop) tags.push(TAG_IFD_INTEROP)
+			if (this.options.gps)     tags.push(TAG_IFD_GPS)
+			if (this.options.xmp)     tags.push(TAG_APPNOTES) // .tif contains XMP as ApplicationNotes tag
+			if (tags.length === 0) return
+			addPickTags(this.options, 'ifd0', ...tags)
+		}
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		this.ifd0Offset = this.chunk.getUint32(4)
@@ -216,21 +227,27 @@ export class TiffExif extends TiffCore {
 			}
 		}
 		// Parse IFD0 block.
-		this.ifd0 = this.parseTags(this.ifd0Offset, ...this._getPickSkipTags('exif'))
+		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, ...this._getPickSkipTags('ifd0'))
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
-		if (Object.keys(this.ifd0).length === 0) return
+		if (Object.keys(ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
-		this.exifOffset    = this.ifd0[TAG_IFD_EXIF]
-		this.interopOffset = this.ifd0[TAG_IFD_INTEROP]
-		this.gpsOffset     = this.ifd0[TAG_IFD_GPS]
+		this.exifOffset    = ifd0[TAG_IFD_EXIF]
+		this.interopOffset = ifd0[TAG_IFD_INTEROP]
+		this.gpsOffset     = ifd0[TAG_IFD_GPS]
+		this.makerNote     = ifd0[TAG_MAKERNOTE]
+		this.userComment   = ifd0[TAG_USERCOMMENT]
+		this.appNotes      = ifd0[TAG_APPNOTES]
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.sanitize) {
-			delete this.ifd0[TAG_IFD_EXIF]
-			delete this.ifd0[TAG_IFD_INTEROP]
-			delete this.ifd0[TAG_IFD_GPS]
+			delete ifd0[TAG_IFD_EXIF]
+			delete ifd0[TAG_IFD_INTEROP]
+			delete ifd0[TAG_IFD_GPS]
+			delete ifd0[TAG_MAKERNOTE]
+			delete ifd0[TAG_USERCOMMENT]
+			delete ifd0[TAG_APPNOTES] // XMP in .tif
 		}
-		return this.ifd0
+		return ifd0
 	}
 
 	_getPickSkipTags(blockName) {
@@ -299,6 +316,7 @@ export class TiffExif extends TiffCore {
 			return subView.buffer
 	}
 
+	// TODO: rework
 	postProcess() {
 		if (this.options.postProcess) {
 			let gps = this.gps
