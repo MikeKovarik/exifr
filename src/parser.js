@@ -8,7 +8,6 @@ import './parsers/iptc.js'
 import './parsers/icc.js'
 import './parsers/xmp.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.js'
-import {addPickTags} from './options.js'
 
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
@@ -96,7 +95,7 @@ export class Exifr extends Reader {
 			// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
 			// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
 			this.options.tiff = true
-			addPickTags(this.options, 'ifd0', TAG_APPNOTES)
+			this.options.addPickTags('ifd0', TAG_APPNOTES)
 		}
 
 		if (this.options.tiff || this.options.xmp) {

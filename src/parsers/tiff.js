@@ -3,7 +3,6 @@ import {tagKeys, tagValues} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_APPNOTES} from '../tags.js'
 import {slice, BufferView} from '../util/BufferView.js'
 import {translateValue, reviveDate, ConvertDMSToDD} from './tiff-tags.js'
-import {addPickTags} from '../options.js'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949
@@ -201,7 +200,7 @@ export class TiffExif extends TiffCore {
 			if (this.options.gps)     tags.push(TAG_IFD_GPS)
 			if (this.options.xmp)     tags.push(TAG_APPNOTES) // .tif contains XMP as ApplicationNotes tag
 			if (tags.length === 0) return
-			addPickTags(this.options, 'ifd0', ...tags)
+			this.options.addPickTags('ifd0', ...tags)
 		}
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
