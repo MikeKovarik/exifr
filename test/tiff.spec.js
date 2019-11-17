@@ -155,6 +155,7 @@ describe('TIFF Segment', () => {
     it(`IFD0 is ignored and only sifted through for GPS IFD pointer when {ifd0: false, gps: true}`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, {mergeOutput: false, ifd0: false, gps: true})
+		//console.log('output', output)
 		assert.isUndefined(output.ifd0.ImageWidth)
 		assert.isUndefined(output.ifd0.Make)
 		assert.exists(output.gps)

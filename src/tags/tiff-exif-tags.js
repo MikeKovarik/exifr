@@ -1,11 +1,11 @@
-import {tags} from '../tags.js'
+import {tagKeys} from '../tags.js'
 
 
-// Comprehensive list of TIFF and Exif tags found on
+// Comprehensive list of TIFF and Exif tagKeys found on
 // http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/EXIF.html
-tags.tiff = tags.tiff || {} // todo deprecate
-tags.tiff.ifd0 = tags.tiff.exif = tags.tiff.interop = tags.tiff.thumbnail = // todo deprecate
-tags.ifd0 = tags.exif = tags.interop = tags.thumbnail = {
+tagKeys.tiff = tagKeys.tiff || {} // todo deprecate
+tagKeys.tiff.ifd0 = tagKeys.tiff.exif = tagKeys.tiff.interop = tagKeys.tiff.thumbnail = // todo deprecate
+tagKeys.ifd0 = tagKeys.exif = tagKeys.interop = tagKeys.thumbnail = {
 	0x0001: 'InteropIndex',
 	0x0002: 'InteropVersion',
 	0x000B: 'ProcessingSoftware',

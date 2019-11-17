@@ -1,6 +1,6 @@
 import {BufferView} from '../util/BufferView.js'
 import createOptions from '../options.js'
-import {tagKeys, tagValues} from '../tags.js'
+import {tagKeys, tagValues, tagRevivers} from '../tags.js'
 
 
 /*
@@ -61,15 +61,17 @@ export class AppSegment {
 	translate() {
 		if (this.canTranslate) {
 			let type = this.constructor.type
-			this.output = this.translateBlock(tagKeys[type], tagValues[type], this.output)
+			this.output = this.translateBlock(tagKeys[type], tagValues[type], this.output, tagRevivers[type])
 		}
 	}
 
 	// split into separate function so that it can be used by TIFF but shared with other parsers.
-	translateBlock(keyDict, valDict, rawTags) {
+	translateBlock(keyDict, valDict, rawTags, revivers) {
+		if (this.options.reviveValues && revivers) {
+			for (let [tag, reviver] of Object.entries(revivers))
+				if (rawTags[tag]) rawTags[tag] = reviver(rawTags[tag])
+		}
 		let entries = Object.entries(rawTags)
-		//if (this.options.reviveValues)
-		//	entries = entries.map(([tag, val]) => [tag, translateValue(tag, val)])
 		if (this.options.translateValues && valDict)
 			entries = entries.map(([tag, val]) => [tag, this.translateValue(val, valDict[tag]) || val])
 		if (this.options.translateTags && keyDict)
