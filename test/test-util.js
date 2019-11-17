@@ -191,14 +191,44 @@ export function testSegmentTranslation({type, file, tags}) {
 }
 
 
+export function testPickOrSkipTags(segKey, filePath, pickTags, skipTags) {
+	//describe('pick / skip', () => {
+
+		it(`only tags from {pickTags: [...]} are in the output`, async () => {
+			let file = await getFile(filePath)
+			let options = {mergeOutput: false, [segKey]: true, pickTags}
+			let output = await parse(file, options)
+			let segment = output[segKey]
+			for (let tagKey of pickTags)
+				assert.exists(segment[tagKey])
+			for (let tagKey of skipTags)
+				assert.isUndefined(segment[tagKey])
+		})
+
+		it(`tags from {skipTags: [...]} are not in the output`, async () => {
+			let file = await getFile(filePath)
+			let options = {mergeOutput: false, [segKey]: true, skipTags}
+			let output = await parse(file, options)
+			let segment = output[segKey]
+			for (let tagKey of pickTags)
+				assert.exists(segment[tagKey])
+			for (let tagKey of skipTags)
+				assert.isUndefined(segment[tagKey])
+		})
+
+	//})
+}
+
+
 export function testImage(segKey, filePath, results = {}) {
 	it(`testing parsed properties against file ${filePath}`, async () => {
-		var file = await getFile(filePath)
-		var options = {mergeOutput: false, [segKey]: true}
-		var output = await parse(file, options)
-		assert.exists(output[segKey], `output is undefined`)
-		for (let [key, val] of Object.entries(results)) {
-			assert.equal(output[segKey][key], val)
+		let file = await getFile(filePath)
+		let options = {mergeOutput: false, [segKey]: true}
+		let output = await parse(file, options)
+		let segment = output[segKey]
+		assert.exists(segment, `output is undefined`)
+		for (let [tagKey, tagVal] of Object.entries(results)) {
+			assert.equal(segment[tagKey], tagVal)
 		}
 	})
 }

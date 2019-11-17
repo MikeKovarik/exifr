@@ -1,7 +1,14 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
-import {tags, findTag} from './tags.js'
+import {tagKeys} from './tags.js'
 
+
+const configurableSegsOrBlocks = [
+	// APP (jpg) Segments
+	'jfif', 'tiff', 'xmp', 'icc', 'iptc',
+	// TIFF Blocks
+	'exif', 'gps', 'interop', 'thumbnail',
+]
 
 class Options {
 
@@ -83,6 +90,9 @@ class Options {
 			}
 		} else if (userOptions !== undefined) {
 			Object.assign(this, userOptions)
+			// We don't want to modify user's data. It would also break tests.
+			this.pickTags = [...this.pickTags]
+			this.skipTags = [...this.skipTags]
 		}
 		if (this.mergeOutput) this.thumbnail = false
 		if (this.pickTags.length) {
@@ -93,12 +103,25 @@ class Options {
 		//if (!this.xmp)         this.skipTags.push(/* app notes tag */)
 		if (!this.makerNote)   this.skipTags.push(TAG_MAKERNOTE)
 		if (!this.userComment) this.skipTags.push(TAG_USERCOMMENT)
-		this.pickTags = this._translateTagCodes(this.pickTags)
-		this.skipTags = this._translateTagCodes(this.skipTags)
+		// sanitize & translate tag names to tag codes
+		this._translatePickOrSkip(this)
+		for (let segKey of configurableSegsOrBlocks)
+			this.translatePickOrSkip(segKey)
 	}
 
-	_translateTagCodes(tags) {
-		return unique(tags.map(findTagIfPossible))
+	translatePickOrSkip(segKey) {
+		let segment = this[segKey]
+		if (Array.isArray(segment)) {
+			this[segKey] = segment = {pickTags: segment}
+			this._translatePickOrSkip(segment, segKey)
+		} else if (typeof segment === 'object') {
+			this._translatePickOrSkip(segment, segKey)
+		}
+	}
+
+	_translatePickOrSkip(segment, segKey) {
+		segment.pickTags = sanitizeTags(segment.pickTags, segKey)
+		segment.skipTags = sanitizeTags(segment.skipTags, segKey)
 	}
 
 	addPickTags(segKey, ...tags) {
@@ -123,13 +146,28 @@ class Options {
 
 }
 
-function findTagIfPossible(tag) {
-	return typeof tag === 'string' ? findTag(tag) : tag
+function sanitizeTags(tags, segKey) {
+	let dict = tagKeys[segKey]
+	tags = tags
+		.map(tag => typeof tag === 'string' ? findTag(tag, dict) : tag)
+		.filter(isDefined)
+	return unique(tags)
 }
 
-function unique(array) {
-	return Array.from(new Set(array))
+// TODO: to be heavily refactored. this is just temporary implementation
+function findTag(tag, dict) {
+	if (dict) {
+		for (let [key, name] of Object.entries(dict))
+			if (tag === name) return Number(key)
+	} else {
+		for (let dict of Object.values(tagKeys))
+			for (let [key, name] of Object.entries(dict))
+				if (tag === name) return Number(key)
+	}
 }
+
+const isDefined = item => item !== undefined
+const unique = array => Array.from(new Set(array))
 
 export default function optionsFactory(userOptions) {
 	if (userOptions)

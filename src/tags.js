@@ -4,9 +4,10 @@ export const tagValues = {}
 export const tags = tagKeys // todo deprecate
 export const valueString = tagValues // todo deprecate
 
-export function findTag(tagName) {
-	for (let [code, name] of Object.entries(tags))
-		if (tagName === name) return Number(code)
+
+export function findTag(tag) {
+	for (let [key, name] of Object.entries(tags))
+		if (tag === name) return Number(key)
 }
 
 export const TAG_MAKERNOTE   = 0x927C

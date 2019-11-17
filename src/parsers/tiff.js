@@ -50,12 +50,14 @@ export class TiffCore extends AppSegment {
 	}
 
 	parseTags(offset, pickTags = [], skipTags = []) {
+		let onlyPick = pickTags.length > 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
-			if (pickTags.includes(tag) || !skipTags.includes(tag))
+			//console.log('tag', tag, 'pickTags.includes(tag)', pickTags.includes(tag), 'skipTags.includes(tag)', skipTags.includes(tag))
+			if ((onlyPick && pickTags.includes(tag)) || (!onlyPick && !skipTags.includes(tag)))
 				output[tag] = this.parseTag(offset)
 			offset += 12
 		}

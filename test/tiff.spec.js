@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testSegmentTranslation} from './test-util.js'
+import {getFile, testSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
 import {parse} from '../src/index-full.js'
 
 
@@ -99,6 +99,7 @@ describe('TIFF Segment', () => {
 			Make: 'Google',
 			Model: 'Pixel',
 		})
+		testPickOrSkipTags('ifd0', 'IMG_20180725_163423.jpg', ['Make'], ['Model'])
 	})
 
 	describe('EXIF Block', () => {
