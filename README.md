@@ -17,22 +17,21 @@ Works everywhere and accepts pretty much everything you throw at it.
 
 * **Isomorphic**.
 <br> *Works in Node.js and Browsers.*
-* **Wide range of inputs**
-<br> *`Buffer`, `ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL*
+* **Handles any input**
+<br> *`Buffer`, `ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL.*
 * **Blazing Fast**.
 <br> *Like really fast. Like 1-2ms fast.*
-* **Efficient**.
+* **Doesn't read whole file**.
 <br> *Only reads first few bytes instead of the whole file.*
 * **Configurable small builds**.
 <br> *Comes in many variants so you import only the code you really need.*
 * **Fine grained parsing**
-<br> *Only need GPS coords? It'll only parse GPS IFD, not the whole TIFF.*
+<br> *Only need GPS coords? It'll only parse GPS IFD, not the whole TIFF segment.*
 * **Comes as both UMD & ESM Module**
 <br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
 * **Simple output, translated values**
-<br> *Meaningful descriptive strings instead of enum values, dates converted to Date instances, etc...*
+<br> *Meaningful strings instead of enum values, Date instances, converted GPS cords, etc...*
 * **Promise based**
-<br> *Uses Node.js 10 Promise FS API*
 * **No dependencies**
 
 ### Supports
@@ -208,6 +207,11 @@ can be:
 * `boolean` shortcut to enable parsing all segments and blocks
 
 #### Reading file from disk or fetching url
+
+If allowed, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
+This can save lots of memory, disk reads and speed things up. But it may not suit you.
+
+* `options.wholeFile` `bool/undefined` default `undefined`
 
 ##### Chunked mode
 
