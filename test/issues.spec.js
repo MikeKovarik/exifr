@@ -62,14 +62,18 @@ describe('issues (special cases)', () => {
     it(`metadata-extractor #152 jpg`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.jpg')
         var output = await parse(input, true)
-        assert.equal(true, false)
+        assert.equal(output.Make, 'Parrot')
+        assert.exists(output.GPSLatitude)
+        assert.exists(output.xmp)
     })
 
 	// TODO: implement
     it(`metadata-extractor #152 tif`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, true)
-        assert.equal(true, false)
+        assert.equal(output.Make, 'Parrot')
+        assert.exists(output.GPSLatitude)
+        assert.exists(output.xmp)
     })
 
 })
