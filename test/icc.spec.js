@@ -24,6 +24,9 @@ describe('ICC Segment', () => {
 		definedByDefault: false
 	})
 
+	// we won't bother implementing this for now. its way to insignificant of a use.
+	//testPickOrSkipTags('icc', 'Bush-dog.jpg', [80, 'cprt', 'description'], [12, 'cmm', 'copyright'])
+
 	testSegmentTranslation({
 		type: 'icc',
 		file: 'Bush-dog.jpg',

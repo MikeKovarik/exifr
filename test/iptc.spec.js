@@ -11,6 +11,9 @@ describe('IPTC Segment', () => {
 		definedByDefault: false
 	})
 
+	// we won't bother implementing this for now. its way to insignificant of a use.
+	//testPickOrSkipTags('iptc', 'iptc-agency-photographer-example.jpg', [80, 'dateCreated'], [101, 'headline'])
+
 	testSegmentTranslation({
 		type: 'iptc',
 		file: 'Bush-dog.jpg',
