@@ -3,49 +3,24 @@ export var isBrowser = typeof navigator !== 'undefined'
 export var isWorker = isBrowser && typeof HTMLImageElement === 'undefined'
 export var isNode = typeof global !== 'undefined' && typeof process !== 'undefined' && process.versions && process.versions.node
 
-// KEEP IN MIND!
-// Node's buffer.slice() returns new Buffer pointing to the same memory.
-// Web's arrayBuffer.slice() returns new ArrayBuffer with newly copied data.
-// Web's arrayBuffer.subarray() returns new ArrayBuffer pointing to the same memory. Just like Node's buffer.slice.
-// NOTE: We're only using this method when we're outputting unprocessed slices of binary data to user.
-//       Internally we just use the original ArrayBuffer with offsets because wrapping a slice in DataView
-//       Would just return view over the whole original ArrayBuffer.
-// TODO: deprecate
-export function slice(buffer, start, end) {
-	if (buffer.slice)
-		return buffer.slice(start, end)
-	else
-		return (new Uint8Array(buffer.buffer)).subarray(start, end)
-}
+
+const utf8  = new TextDecoder('utf-8')
+//const utf16 = new TextDecoder('utf-16')
 
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
 //       we can safely use it along with TextDecoder API.
 // TODO: deprecate
 export function toString(buffer, start = 0, end) {
-	if (buffer instanceof DataView) {
-		/*
-		if (hasBuffer) {
-			// warning: small buffers are shared in one big arraybuffer pool. creating node buffer from buffer.buffer arraybuffer can lead to unexpected outputs if not handled with buffer.byteOffset
-			return Buffer.from(buffer.buffer)
-				//.slice(buffer.byteOffset, buffer.byteLength)
-				.slice(start, end)
-				.toString('ascii', start, end)
-		} else {
-		*/
-			var decoder = new TextDecoder('utf-8')
-			if (start && end)
-				return decoder.decode(slice(buffer, start, end))
-			else
-				return decoder.decode(buffer)
-		//}
+	if (buffer instanceof DataView || buffer instanceof Uint8Array) {
+		if (start && end)
+			return utf8.decode(slice(buffer, start, end))
+		else
+			return utf8.decode(buffer)
 	} else {
 		return buffer.toString('ascii', start, end)
 	}
 }
 
-
-const utf8  = new TextDecoder('utf-8')
-//const utf16 = new TextDecoder('utf-16')
 
 export class BufferView {
 
@@ -103,6 +78,10 @@ export class BufferView {
 
 	getUintView() {
 		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
+	}
+
+	getUintArray(offset, length) {
+		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
 	}
 
 	set(arg, offset) {

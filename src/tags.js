@@ -3,7 +3,6 @@ export const tagKeys = {}
 export const tagValues = {}
 export const tagRevivers = {}
 export const tags = tagKeys // todo deprecate
-export const valueString = tagValues // todo deprecate
 
 
 export function findTag(tag) {

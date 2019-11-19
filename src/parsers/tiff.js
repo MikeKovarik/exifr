@@ -1,8 +1,8 @@
 import {AppSegment, parsers} from './core.js'
 import {tagKeys, tagValues, tagRevivers} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_APPNOTES} from '../tags.js'
-import {slice, BufferView} from '../util/BufferView.js'
-import {translateValue, reviveDate, ConvertDMSToDD} from '../tags/tiff-revivers.js'
+import {BufferView} from '../util/BufferView.js'
+import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949
@@ -86,7 +86,7 @@ export class TiffCore extends AppSegment {
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === 7)
-			return slice(this.chunk, offset, offset + valueCount)
+			return this.chunk.getUintArray(offset, valueCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
 		if (valueCount === 1) {
@@ -331,7 +331,7 @@ export class TiffExif extends TiffCore {
 		if (this.canTranslate) {
 			for (let block of blockKeys) {
 				if (block in this) {
-					this[block] = this.translateBlock(tagKeys[block], tagValues[block], this[block], tagRevivers[block])
+					this[block] = this.translateBlock(this[block], block)
 				}
 			}
 		}

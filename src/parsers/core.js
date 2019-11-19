@@ -61,15 +61,20 @@ export class AppSegment {
 	translate() {
 		if (this.canTranslate) {
 			let type = this.constructor.type
-			this.output = this.translateBlock(tagKeys[type], tagValues[type], this.output, tagRevivers[type])
+			this.output = this.translateBlock(this.output, type)
 		}
 	}
 
 	// split into separate function so that it can be used by TIFF but shared with other parsers.
-	translateBlock(keyDict, valDict, rawTags, revivers) {
+	translateBlock(rawTags, type) {
+		let keyDict  = tagKeys[type]
+		let valDict  = tagValues[type]
+		let revivers = tagRevivers[type]
 		if (this.options.reviveValues && revivers) {
-			for (let [tag, reviver] of Object.entries(revivers))
+			for (let [tag, reviver] of Object.entries(revivers)) {
+				if (rawTags[tag] === undefined) continue
 				if (rawTags[tag]) rawTags[tag] = reviver(rawTags[tag])
+			}
 		}
 		let entries = Object.entries(rawTags)
 		if (this.options.translateValues && valDict)
