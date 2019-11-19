@@ -56,7 +56,6 @@ export class TiffCore extends AppSegment {
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
-			//console.log('tag', tag, 'pickTags.includes(tag)', pickTags.includes(tag), 'skipTags.includes(tag)', skipTags.includes(tag))
 			if ((onlyPick && pickTags.includes(tag)) || (!onlyPick && !skipTags.includes(tag)))
 				output[tag] = this.parseTag(offset)
 			offset += 12
@@ -332,7 +331,7 @@ export class TiffExif extends TiffCore {
 		if (this.canTranslate) {
 			for (let block of blockKeys) {
 				if (block in this) {
-					this[block] = this.translateBlock(tagKeys.tiff[block], tagValues.tiff[block], this[block], tagRevivers[block])
+					this[block] = this.translateBlock(tagKeys[block], tagValues[block], this[block], tagRevivers[block])
 				}
 			}
 		}

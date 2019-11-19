@@ -95,17 +95,23 @@ describe('TIFF Segment', () => {
 	*/
 
 	describe('IFD0 / Image Block', () => {
+
 		testBlock('ifd0', true, {
 			Make: 'Google',
 			Model: 'Pixel',
 		})
+
 		testPickOrSkipTags('ifd0', 'IMG_20180725_163423.jpg', ['Make'], ['Model'])
+
 	})
+
 
 	describe('EXIF Block', () => {
 		testBlock('exif', true, {
 			ExposureTime: 0.000376
 		})
+
+		testPickOrSkipTags('exif', 'IMG_20180725_163423.jpg', ['ExposureTime'], ['ISO'])
 
 		it(`additional EXIF block test`, async () => {
 			let output = await parse(await getFile('img_1771.jpg'))
@@ -113,12 +119,16 @@ describe('TIFF Segment', () => {
 		})
 	})
 
+
 	describe('GPS Block', () => {
+
 		testBlock('gps', true, {
 			GPSLatitudeRef: 'N',
 			GPSLongitudeRef: 'E',
 			GPSDOP: 18,
 		})
+
+		testPickOrSkipTags('gps', 'IMG_20180725_163423.jpg', ['GPSLatitude'], ['GPSDateStamp'])
 
 		it(`additional GPS block test 1`, async () => {
 			let output = await parse(await getFile('PANO_20180725_162444.jpg'), {mergeOutput: false})
@@ -133,16 +143,24 @@ describe('TIFF Segment', () => {
 	})
 
 	describe('Interop Block', () => {
+
 		testBlock('interop', false, {
 			InteropIndex: 'R98'
 		})
+
+		testPickOrSkipTags('interop', 'IMG_20180725_163423.jpg', ['InteropIndex'], ['InteropVersion'])
+
 	})
 
 	// IFD1
 	describe('IFD1 / Thumbnail', () => {
+
 		testBlock('thumbnail', false, {
 			ImageHeight: 189
 		})
+
+		testPickOrSkipTags('thumbnail', 'IMG_20180725_163423.jpg', ['Orientation'], ['ImageHeight'])
+
 	})
 
 	it(`should handle .tif with scattered TIFF (IFD0 pointing to the end of file)`, async () => {

@@ -1,8 +1,7 @@
-import {tags} from '../tags.js'
+import {tagKeys} from '../tags.js'
 
 
-tags.tiff = tags.tiff || {}
-tags.tiff.gps = {
+tagKeys.gps = {
 	0x0000: 'GPSVersionID',
 	0x0001: 'GPSLatitudeRef',
 	0x0002: 'GPSLatitude',
