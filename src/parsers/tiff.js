@@ -3,6 +3,7 @@ import {tagKeys, tagValues, tagRevivers} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_APPNOTES} from '../tags.js'
 import {BufferView} from '../util/BufferView.js'
 import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
+import {isEmpty} from '../util/helpers.js'
 
 
 export const TIFF_LITTLE_ENDIAN = 0x4949
@@ -49,14 +50,16 @@ export class TiffCore extends AppSegment {
 		this.headerParsed = true
 	}
 
-	parseTags(offset, pickTags = [], skipTags = []) {
-		let onlyPick = pickTags.length > 0
+	parseTags(offset, blockKey) {
+		let picks = this.options.getPickTags(blockKey, 'tiff')
+		let skips = this.options.getSkipTags(blockKey, 'tiff')
+		let onlyPick = picks.length > 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
 		let output = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
-			if ((onlyPick && pickTags.includes(tag)) || (!onlyPick && !skipTags.includes(tag)))
+			if ((onlyPick && picks.includes(tag)) || (!onlyPick && !skips.includes(tag)))
 				output[tag] = this.parseTag(offset)
 			offset += 12
 		}
@@ -173,7 +176,6 @@ export class TiffExif extends TiffCore {
 		if (this.options.gps)       this.parseGpsBlock()       // APP1 - GPS IFD
 		if (this.options.interop)   this.parseInteropBlock()   // APP1 - Interop IFD
 		if (this.options.thumbnail) this.parseThumbnailBlock() // APP1 - IFD1
-		this.postProcess()
 		this.translate()
 		if (this.options.mergeOutput) {
 			// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
@@ -184,9 +186,12 @@ export class TiffExif extends TiffCore {
 			this.output = {}
 			for (let key of blockKeys) {
 				let blockOutput = this[key]
-				if (blockOutput) this.output[key] = blockOutput
+				if (blockOutput && !isEmpty(blockOutput))
+					this.output[key] = blockOutput
 			}
 		}
+		if (this.makerNote)   this.output.makerNote   = this.makerNote
+		if (this.userComment) this.output.userComment = this.userComment
 		return this.output
 	}
 
@@ -227,7 +232,7 @@ export class TiffExif extends TiffCore {
 			}
 		}
 		// Parse IFD0 block.
-		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, ...this._getPickSkipTags('ifd0'))
+		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (Object.keys(ifd0).length === 0) return
 		// Store offsets of other blocks in the TIFF segment.
@@ -238,7 +243,6 @@ export class TiffExif extends TiffCore {
 		this.userComment   = ifd0[TAG_USERCOMMENT]
 		this.appNotes      = ifd0[TAG_APPNOTES]
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
-		// User doesn't need to see this. But we're sanitizing it only if options.postProcess is enabled.
 		if (this.options.sanitize) {
 			delete ifd0[TAG_IFD_EXIF]
 			delete ifd0[TAG_IFD_INTEROP]
@@ -250,19 +254,13 @@ export class TiffExif extends TiffCore {
 		return ifd0
 	}
 
-	_getPickSkipTags(blockName) {
-		let pickTags = this.options[blockName].pickTags || this.options.tiff.pickTags || this.options.pickTags
-		let skipTags = this.options[blockName].skipTags || this.options.tiff.skipTags || this.options.skipTags
-		return [pickTags, skipTags]
-	}
-
 	// EXIF block of TIFF of APP1 segment
 	// 0x8769
 	parseExifBlock() {
 		if (this.exif) return
 		if (!this.ifd0) this.parseIfd0Block()
 		if (this.exifOffset === undefined) return
-		return this.exif = this.parseTags(this.exifOffset, ...this._getPickSkipTags('exif'))
+		return this.exif = this.parseTags(this.exifOffset, 'exif')
 	}
 
 	// GPS block of TIFF of APP1 segment
@@ -271,7 +269,12 @@ export class TiffExif extends TiffCore {
 		if (this.gps) return
 		if (!this.ifd0) this.parseIfd0Block()
 		if (this.gpsOffset === undefined) return
-		return this.gps = this.parseTags(this.gpsOffset, ...this._getPickSkipTags('gps'))
+		let gps = this.gps = this.parseTags(this.gpsOffset, 'gps')
+		if (gps && gps[GPS_LAT] && gps[GPS_LON]) {
+			gps.latitude  = ConvertDMSToDD(...gps[GPS_LAT], gps[GPS_LATREF])
+			gps.longitude = ConvertDMSToDD(...gps[GPS_LON], gps[GPS_LONREF])
+		}
+		return gps
 	}
 
 	// INTEROP block of TIFF of APP1 segment
@@ -281,7 +284,7 @@ export class TiffExif extends TiffCore {
 		if (!this.ifd0) this.parseIfd0Block()
 		this.interopOffset = this.interopOffset || (this.exif && this.exif[TAG_IFD_INTEROP])
 		if (this.interopOffset === undefined) return
-		return this.interop = this.parseTags(this.interopOffset, ...this._getPickSkipTags('interop'))
+		return this.interop = this.parseTags(this.interopOffset, 'interop')
 	}
 
 	// THUMBNAIL block of TIFF of APP1 segment
@@ -292,11 +295,15 @@ export class TiffExif extends TiffCore {
 		if (this.options.mergeOutput && !force) return
 		if (!this.ifd0) this.parseIfd0Block()
 		let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
+		console.log('ifd0Entries', ifd0Entries)
 		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
+		console.log('temp', temp)
 		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
 		this.ifd1Offset = this.chunk.getUint32(temp)
+		console.log('this.ifd1Offset', this.ifd1Offset)
 		if (this.ifd1Offset > 0) {
-			this.thumbnail = this.parseTags(this.ifd1Offset, ...this._getPickSkipTags('thumbnail'))
+			this.ifd1 = this.parseTags(this.ifd1Offset, 'thumbnail')
+			this.thumbnail = this.ifd1
 			this.thumbnailParsed = true
 		}
 		return this.thumbnail
@@ -314,17 +321,6 @@ export class TiffExif extends TiffCore {
 			return Buffer.from(subView.buffer)
 		else
 			return subView.buffer
-	}
-
-	// TODO: rework
-	postProcess() {
-		if (this.options.postProcess) {
-			let gps = this.gps
-			if (gps && gps[GPS_LAT] && gps[GPS_LON]) {
-				gps.latitude  = ConvertDMSToDD(...gps[GPS_LAT], gps[GPS_LATREF])
-				gps.longitude = ConvertDMSToDD(...gps[GPS_LON], gps[GPS_LONREF])
-			}
-		}
 	}
 
 	translate() {

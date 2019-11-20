@@ -10,6 +10,13 @@ const utf8  = new TextDecoder('utf-8')
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
 //       we can safely use it along with TextDecoder API.
 // TODO: deprecate
+export function toString(arg) {
+	if (arg instanceof DataView || arg instanceof Uint8Array)
+		return utf8.decode(arg)
+	else
+		return Buffer.from(arg).toString('ascii')
+}
+/*
 export function toString(buffer, start = 0, end) {
 	if (buffer instanceof DataView || buffer instanceof Uint8Array) {
 		if (start && end)
@@ -20,6 +27,7 @@ export function toString(buffer, start = 0, end) {
 		return buffer.toString('ascii', start, end)
 	}
 }
+*/
 
 
 export class BufferView {

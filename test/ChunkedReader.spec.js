@@ -218,13 +218,17 @@ describe('ChunkedReader', () => {
 
 		it(`reading additional chunks keeps extending original view`, async () => {
 			let view = new FsReader(path, options)
+			console.log('view.byteLength', view.byteLength)
 			await view.readChunked()
+			console.log('view.byteLength', view.byteLength)
 			let tiffChunk = await view.readChunk(tiffOffset, tiffLength)
 			assert.equal(tiffChunk.byteLength, tiffLength)
 			assert.equal(view.byteLength, tiffEnd)
+			console.log('view.byteLength', view.byteLength)
 			let jfifChunk = await view.readChunk(jfifOffset, jfifLength)
 			assert.equal(jfifChunk.byteLength, jfifLength)
 			assert.equal(view.byteLength, jfifEnd)
+			console.log('view.byteLength', view.byteLength)
 		})
 
 		it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
@@ -256,6 +260,20 @@ describe('ChunkedReader', () => {
 			assert.equal(view.byteLength, jfifEnd)
 		})
 	*/
+
+
+		const ifd0Pointer = 8
+		const exifPointer = 239
+		const gpsPointer = 18478
+
+		it(`small chunk`, async () => {
+			let options = {wholeFile: false, seekChunkSize}
+			let view = new FsReader(path, options)
+			await view.readChunked()
+			assert.equal(true, false)
+		})
+
+
 	})
 
 })

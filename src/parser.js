@@ -8,6 +8,7 @@ import './parsers/iptc.js'
 import './parsers/icc.js'
 import './parsers/xmp.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './parsers/tiff.js'
+import {undefinedIfEmpty} from './util/helpers.js'
 
 // TODO: disable/enable tags dictionary
 // TODO: public tags dictionary. user can define what he needs and uses 
@@ -193,11 +194,7 @@ export class Exifr extends Reader {
 				libOutput[parser.constructor.type] = parserOutput
 		})
 		await Promise.all(promises)
-		//console.log('libOutput', libOutput)
-		if (Object.keys(libOutput).length === 0)
-			return undefined
-		else
-			return libOutput
+		return undefinedIfEmpty(libOutput)
 	}
 
 	async readSegments() {

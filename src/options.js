@@ -41,24 +41,25 @@ class Options {
 	translateTags = true
 	// TODO
 	translateValues = true
-	// Translate enum values to strings, convert dates to Date instances, etc...
-	postProcess = true // todo = deprecate
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
 	mergeOutput = true
 
-	// APP0 segment
-	jfif = false
 	// APP1 TIFF segment - The basic EXIF tags (image, exif, gps)
 	tiff = true
-	// APP1 TIFF segment - Exif IFD block.
+	// TIFF segment - Exif IFD block.
+	ifd0 = true
+	// TIFF segment - Exif IFD block.
 	exif = true
-	// APP1 TIFF segment - GPS IFD block - GPS latitue and longitude data.
+	// TIFF segment - GPS IFD block - GPS latitue and longitude data.
 	gps = true
-	// APP1 TIFF segment - Interop IFD block - This is a thing too.
+	// TIFF segment - Interop IFD block - This is a thing too.
 	interop = false
-	// APP1 TIFF segment - IFD1 block - Size and other information about embeded thumbnail.
+	// TIFF segment - IFD1 block - Size and other information about embeded thumbnail.
 	thumbnail = false
+
+	// APP0 segment
+	jfif = false
 	// APP1 XMP segment - XML based extension, often used by editors like Photoshop.
 	xmp = false
 	// APP2 ICC segment
@@ -142,6 +143,20 @@ class Options {
 		} else {
 			this[segKey] = tags
 		}
+	}
+
+	getPickTags(segKey, fallbackKey) {
+		if (Array.isArray(this[segKey])) return this[segKey]
+		if (Array.isArray(this[fallbackKey])) return this[fallbackKey]
+		return (this[segKey] && this[segKey].pickTags)
+			|| (this[fallbackKey] && this[fallbackKey].pickTags)
+			|| this.pickTags
+	}
+
+	getSkipTags(segKey, fallbackKey) {
+		return (this[segKey] && this[segKey].skipTags)
+			|| (this[fallbackKey] && this[fallbackKey].skipTags)
+			|| this.skipTags
 	}
 
 }

@@ -6,25 +6,29 @@ import XmpParser from '../src/parsers/xmp.js'
 
 describe('XMP Segment', () => {
 
-	testSegment({
-		key: 'xmp',
-		fileWith: 'cookiezen.jpg',
-		fileWithout: 'img_1771_no_exif.jpg',
-		definedByDefault: false
-	})
+	describe('enable/disable in options', () => {
 
-    it(`output.xmp is string when {xmp: true, mergeOutput: true}`, async () => {
-        let options = {mergeOutput: true, xmp: true}
-        let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options) || {}
-        assert.isString(output.xmp, `output doesn't contain xmp`)
-    })
+        testSegment({
+            key: 'xmp',
+            fileWith: 'cookiezen.jpg',
+            fileWithout: 'img_1771_no_exif.jpg',
+            definedByDefault: false
+        })
 
-    it(`output.xmp is string when {xmp: true, mergeOutput: false}`, async () => {
-        let options = {mergeOutput: false, xmp: true}
-        let input = await getFile('cookiezen.jpg')
-        let output = await parse(input, options) || {}
-        assert.isString(output.xmp, `output doesn't contain xmp`)
+        it(`output.xmp is string when {xmp: true, mergeOutput: true}`, async () => {
+            let options = {mergeOutput: true, xmp: true}
+            let input = await getFile('cookiezen.jpg')
+            let output = await parse(input, options) || {}
+            assert.isString(output.xmp, `output doesn't contain xmp`)
+        })
+
+        it(`output.xmp is string when {xmp: true, mergeOutput: false}`, async () => {
+            let options = {mergeOutput: false, xmp: true}
+            let input = await getFile('cookiezen.jpg')
+            let output = await parse(input, options) || {}
+            assert.isString(output.xmp, `output doesn't contain xmp`)
+        })
+
     })
 
     it(`should parse XMP independenly (even if the file doesn't have TIFF)`, async () => {

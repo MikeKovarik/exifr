@@ -6,6 +6,9 @@ tagRevivers.ifd0 =
 tagRevivers.exif =
 tagRevivers.interop =
 tagRevivers.thumbnail = {
+	// ifd0
+	0xC68B: toString,
+	// ???
 	0x9003: reviveDate,
 	0x9004: reviveDate,
 	0x0132: reviveDate,

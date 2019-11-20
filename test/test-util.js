@@ -104,34 +104,37 @@ export function testSegmentTranslation({type, file, tags}) {
 
 		it(`should translate tag names to string by default`, async () => {
 			let input = await getFile(file)
-			let options = {[type]: true}
+			let options = {mergeOutput: false, [type]: true}
 			let output = await parse(input, options)
+			let segment = output[type]
 			assert.exists(output, `output is undefined`)
 			for (let [rawKey, translatedKey] of tags) {
-				assert.isUndefined(output[rawKey])
-				assert.exists(output[translatedKey])
+				assert.isUndefined(segment[rawKey])
+				assert.exists(segment[translatedKey])
 			}
 		})
 
 		it(`should translate tag names to string when {translateTags: true}`, async () => {
 			let input = await getFile(file)
-			let options = {[type]: true, translateTags: true}
+			let options = {mergeOutput: false, [type]: true, translateTags: true}
 			let output = await parse(input, options)
+			let segment = output[type]
 			assert.exists(output, `output is undefined`)
 			for (let [rawKey, translatedKey] of tags) {
-				assert.isUndefined(output[rawKey])
-				assert.exists(output[translatedKey])
+				assert.isUndefined(segment[rawKey])
+				assert.exists(segment[translatedKey])
 			}
 		})
 
 		it(`should not translate tag names to string when {translateTags: false}`, async () => {
 			let input = await getFile(file)
-			let options = {[type]: true, translateTags: false}
+			let options = {mergeOutput: false, [type]: true, translateTags: false}
 			let output = await parse(input, options)
+			let segment = output[type]
 			assert.exists(output, `output is undefined`)
 			for (let [rawKey, translatedKey] of tags) {
-				assert.exists(output[rawKey])
-				assert.isUndefined(output[translatedKey])
+				assert.exists(segment[rawKey])
+				assert.isUndefined(segment[translatedKey])
 			}
 		})
 
@@ -140,47 +143,51 @@ export function testSegmentTranslation({type, file, tags}) {
 
 			it(`should translate tag values to string by default`, async () => {
 				let input = await getFile(file)
-				let options = {[type]: true}
+				let options = {mergeOutput: false, [type]: true}
 				let output = await parse(input, options)
+				let segment = output[type]
 				assert.exists(output, `output is undefined`)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue // this is to test non-translatable values
 					if (val === undefined) continue
-					assert.equal(output[rawKey] || output[translatedKey], val) //translatedValue)
+					assert.equal(segment[rawKey] || segment[translatedKey], val) //translatedValue)
 				}
 			})
 
 			it(`should translate tag values to string when {translateValues: true}`, async () => {
 				let input = await getFile(file)
-				let options = {[type]: true, translateValues: true}
+				let options = {mergeOutput: false, [type]: true, translateValues: true}
 				let output = await parse(input, options)
+				let segment = output[type]
 				assert.exists(output, `output is undefined`)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue // this is to test non-translatable values
 					if (val === undefined) continue
-					assert.equal(output[rawKey] || output[translatedKey], val) //translatedValue)
+					assert.equal(segment[rawKey] || segment[translatedKey], val) //translatedValue)
 				}
 			})
 
 			it(`should not translate tag values to string when {translateValues: false}`, async () => {
 				let input = await getFile(file)
-				let options = {[type]: true, translateValues: false}
+				let options = {mergeOutput: false, [type]: true, translateValues: false}
 				let output = await parse(input, options)
+				let segment = output[type]
 				assert.exists(output, `output is undefined`)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
-					assert.equal(output[rawKey] || output[translatedKey], rawValue)
+					assert.equal(segment[rawKey] || segment[translatedKey], rawValue)
 				}
 			})
 
 
 			it(`should translate tag names & values by default`, async () => {
 				let input = await getFile(file)
-				let options = {[type]: true}
+				let options = {mergeOutput: false, [type]: true}
 				let output = await parse(input, options)
+				let segment = output[type]
 				assert.exists(output, `output is undefined`)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue
-					assert.equal(output[translatedKey], val)
+					assert.equal(segment[translatedKey], val)
 				}
 			})
 
@@ -192,7 +199,7 @@ export function testSegmentTranslation({type, file, tags}) {
 
 
 export function testPickOrSkipTags(segKey, filePath, pickTags, skipTags) {
-	//describe('pick / skip', () => {
+	describe('pick / skip', () => {
 
 		it(`only tags from {pickTags: [...]} are in the output`, async () => {
 			let file = await getFile(filePath)
@@ -216,7 +223,7 @@ export function testPickOrSkipTags(segKey, filePath, pickTags, skipTags) {
 				assert.isUndefined(segment[tagKey])
 		})
 
-	//})
+	})
 }
 
 

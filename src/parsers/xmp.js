@@ -16,17 +16,15 @@ export default class Xmp extends AppSegment {
 	parse() {
 		// Read XMP segment as string. We're not parsing the XML.
 		let string = this.chunk.getString()
-		// Trims the mess around.
-		if (this.options.postProcess || this.parseXml) {
-			let start = string.indexOf('<x:xmpmeta')
-			let end = string.indexOf('x:xmpmeta>') + 10
-			string = string.slice(start, end)
-			// offer user to supply custom xml parser
-			if (this.parseXml) return this.parseXml(string)
-		}
-		// TO BE FURTHER DEVELOPED IF/WHEN XMP/XML PARSER IS IMPLEMENTED
-		//this.output = this.options.mergeOutput ? {xmp} : xmp
-		return string
+		// Trim the mess around.
+		let start = string.indexOf('<x:xmpmeta')
+		let end = string.indexOf('x:xmpmeta>') + 10
+		string = string.slice(start, end)
+		// Parse XML if the user provided his own XMP parser.
+		if (this.parseXml)
+			return this.parseXml(string)
+		else
+			return string
 	}
 
 	//parseXml() {}

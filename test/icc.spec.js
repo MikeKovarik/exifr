@@ -17,11 +17,13 @@ function testProfile(filePath, results = {}) {
 
 describe('ICC Segment', () => {
 
-	testSegment({
-		key: 'icc',
-		fileWith: 'IMG_20180725_163423.jpg',
-		fileWithout: 'issue-exifr-3.jpg',
-		definedByDefault: false
+	describe('enable/disable in options', () => {
+		testSegment({
+			key: 'icc',
+			fileWith: 'IMG_20180725_163423.jpg',
+			fileWithout: 'issue-exifr-3.jpg',
+			definedByDefault: false
+		})
 	})
 
 	// we won't bother implementing this for now. its way to insignificant of a use.

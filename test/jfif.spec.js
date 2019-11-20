@@ -4,11 +4,13 @@ import {getFile, testSegment, testImage} from './test-util.js'
 
 describe('JFIF Segment', () => {
 
-	testSegment({
-		key: 'jfif',
-		fileWith: 'issue-exifr-4.jpg',
-		fileWithout: undefined,
-		definedByDefault: false
+	describe('enable/disable in options', () => {
+		testSegment({
+			key: 'jfif',
+			fileWith: 'issue-exifr-4.jpg',
+			fileWithout: undefined,
+			definedByDefault: false
+		})
 	})
 
 	testImage('jfif', 'issue-exifr-4.jpg', {

@@ -4,11 +4,13 @@ import {getFile, testSegment, testSegmentTranslation, testImage} from './test-ut
 
 describe('IPTC Segment', () => {
 
-	testSegment({
-		key: 'iptc',
-		fileWith: 'Bush-dog.jpg',
-		fileWithout: 'IMG_20180725_163423.jpg',
-		definedByDefault: false
+	describe('enable/disable in options', () => {
+		testSegment({
+			key: 'iptc',
+			fileWith: 'Bush-dog.jpg',
+			fileWithout: 'IMG_20180725_163423.jpg',
+			definedByDefault: false
+		})
 	})
 
 	// we won't bother implementing this for now. its way to insignificant of a use.

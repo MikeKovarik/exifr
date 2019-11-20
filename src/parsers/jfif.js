@@ -8,9 +8,9 @@ export default class Jfif extends AppSegment {
 	static headerLength = 9
 
 	static canHandle(buffer, offset) {
-		return buffer.getUint8(offset + 1) === 0xE0
+		return buffer.getUint8(offset + 1)  === 0xE0
 			&& buffer.getUint32(offset + 4) === 0x4A464946 // 'JFIF'
-			&& buffer.getUint8(offset + 8) === 0x00       // followed by '\0'
+			&& buffer.getUint8(offset + 8)  === 0x00       // followed by '\0'
 	}
 
 	parse() {
