@@ -1,0 +1,276 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	font-size: 15px;
+	background-color: rgb(234, 234, 234);
+	background: linear-gradient(to bottom, rgb(234, 234, 234), rgb(245, 250, 255));
+	color: rgb(80, 80, 80);
+	margin: 0;
+}
+
+@media only screen and (max-width: 599px) {
+	body {
+		padding: 16px;
+	}
+}
+@media only screen and (min-width: 600px) {
+	body {
+		padding: 40px;
+	}
+}
+
+a,
+h1,
+h2,
+h3,
+[accent] {
+	color: rgb(50, 80, 144);
+}
+h2 {
+	font-weight: 500;
+	font-size: 28px;
+}
+h3 {
+	font-weight: 700;
+	font-size: 16px;
+}
+h2,
+h3 {
+	position: relative;
+	margin-top: 0px;
+	margin-bottom: 8px;
+}
+* + h2 {
+	margin-top: 48px;
+}
+* + h3 {
+	margin-top: 24px;
+}
+
+.disabled {
+	opacity: 0.4;
+}
+
+header {
+	position: relative;
+	margin-bottom: 16px;
+}
+	header .badges {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	header .badges > *:not(:last-child) {
+		margin-right: 8px;
+	}
+	header h1 {
+		width: 167px;
+		height: 89px;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: contain;
+		background-image: url('./logo/blue-small.png');
+		font-size: 0;
+		margin-bottom: 32px;
+	}
+@media only screen and (max-width: 739px) {
+	header .badges {
+		margin: 16px 0;
+	}
+}
+@media only screen and (min-width: 740px) {
+	header {
+		display: flex;
+	}
+		header .description {
+			margin-top: 23px;
+			margin-left: 56px;
+		}
+		header .badges {
+			position: absolute;
+			right: 0;
+			top: 0;
+		}
+}
+
+#app1-thumb img,
+#thumb img {
+	width: 200px;
+}
+
+#picker,
+#dropzone,
+pre,
+p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+h3 {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+	h3 span:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+#input-head,
+#output-head {
+	margin: 0;
+}
+h2 span,
+h3 span {
+	font-weight: 400;
+	font-size: 12px;
+	margin-left: 16px;
+}
+
+
+@media only screen and (min-width: 600px) {
+	#dropzone {
+		width: 220px;
+	}
+}
+#dropzone {
+	position: relative;
+	height: 120px;
+	border: 2px dashed rgba(50, 80, 144, 0.2);
+	border-radius: 5px;
+	color: rgba(50, 80, 144, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+#dropzone:hover {
+	border: 2px dashed rgba(50, 80, 144, 0.4);
+	color: rgba(50, 80, 144, 0.8);
+}
+	#picker {
+		cursor: pointer;
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+	}
+
+form {
+	font-family: monospace;
+}
+pre {
+	white-space: pre-wrap;
+	font-size: 10px;
+}
+img,
+table {
+	font-size: 12px;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+	table td {
+		padding: 1px 0;
+		vertical-align: baseline;
+	}
+	table td + td {
+		padding-left: 12px;
+		white-space: normal;
+	}
+
+[muted] {
+	opacity: 0.4;
+}
+
+
+.wrap {
+	white-space: normal;
+}
+.nowrap {
+	white-space: nowrap;
+}
+
+#grid {
+	display: grid;
+}
+
+@media only screen and (max-width: 499px) {
+	#grid {
+		gap: 32px;
+	}
+}
+@media only screen and (min-width: 500px) {
+	#grid {
+		gap: 24px 56px;
+	}
+}
+
+@media only screen and (min-width: 500px) {
+	#input-head   {grid-area: input-head}
+	#input        {grid-area: input}
+	#output       {grid-area: output}
+	#output-head  {grid-area: output-head}
+	#thumb        {grid-area: thumb}
+	#app1-thumb   {grid-area: app1-thumb}
+}
+@media only screen and (min-width: 500px) and (max-width: 749px) {
+	#grid {
+		grid-template-columns: 220px auto;
+		grid-template-areas:
+			"input-head output-head"
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"output     output     "
+	}
+}
+@media only screen and (min-width: 750px) and (max-width: 999px) {
+	#grid {
+		grid-template-columns: 220px min-content auto;
+		grid-template-areas:
+			"input-head output-head output-head"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+			"input      .           output"
+	}
+}
+@media only screen and (min-width: 1000px) {
+	#grid {
+		grid-template-columns: 220px min-content min-content auto;
+		grid-template-areas:
+			"input-head output-head  output-head  output-head"
+			"input      thumb        app1-ifd0    output     "
+			"input      app1-thumb   app1-exif    output     "
+			"input      app1-gps     app1-interop output     "
+			"input      app1-iptc    .            output     "
+			"input      marker-notes .            output     "
+			"input      .            .            output     "
+			"input      .            .            output     "
+	}
+}

@@ -4,284 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1"/>
 	<title>Exifr</title>
-	<style>
-		* {
-			box-sizing: border-box;
-		}
-		body {
-			font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			font-size: 15px;
-			background-color: rgb(234, 234, 234);
-			background: linear-gradient(to bottom, rgb(234, 234, 234), rgb(245, 250, 255));
-			color: rgb(80, 80, 80);
-			margin: 0;
-		}
-
-		@media only screen and (max-width: 599px) {
-			body {
-				padding: 16px;
-			}
-		}
-		@media only screen and (min-width: 600px) {
-			body {
-				padding: 40px;
-			}
-		}
-
-		a,
-		h1,
-		h2,
-		h3,
-		[accent] {
-			color: rgb(50, 80, 144);
-		}
-		h2 {
-			font-weight: 500;
-			font-size: 28px;
-		}
-		h3 {
-			font-weight: 700;
-			font-size: 16px;
-		}
-		h2,
-		h3 {
-			position: relative;
-			margin-top: 0px;
-			margin-bottom: 8px;
-		}
-		* + h2 {
-			margin-top: 48px;
-		}
-		* + h3 {
-			margin-top: 24px;
-		}
-
-		
-		header {
-			position: relative;
-			margin-bottom: 16px;
-		}
-			header .badges {
-				display: flex;
-				align-items: center;
-				flex-wrap: wrap;
-			}
-			header .badges > *:not(:last-child) {
-				margin-right: 8px;
-			}
-			header h1 {
-				width: 167px;
-				height: 89px;
-				background-position: center;
-				background-repeat: no-repeat;
-				background-size: contain;
-				background-image: url('./logo/blue-small.png');
-				font-size: 0;
-				margin-bottom: 32px;
-			}
-		@media only screen and (max-width: 739px) {
-			header .badges {
-				margin: 16px 0;
-			}
-		}
-		@media only screen and (min-width: 740px) {
-			header {
-				display: flex;
-			}
-				header .description {
-					margin-top: 23px;
-					margin-left: 56px;
-				}
-				header .badges {
-					position: absolute;
-					right: 0;
-					top: 0;
-				}
-		}
-
-		#app1-thumb img,
-		#thumb img {
-			width: 200px;
-		}
-
-		#picker,
-		#dropzone,
-		pre,
-		p {
-			margin-top: 8px;
-			margin-bottom: 8px;
-		}
-
-		h3 {
-			display: flex;
-			align-items: baseline;
-			justify-content: space-between;
-		}
-			h3 span:hover {
-				text-decoration: underline;
-				cursor: pointer;
-			}
-
-		#input-head,
-		#output-head {
-			margin: 0;
-		}
-		h2 span,
-		h3 span {
-			font-weight: 400;
-			font-size: 12px;
-			margin-left: 16px;
-		}
-
-
-		@media only screen and (min-width: 600px) {
-			#dropzone {
-				width: 220px;
-			}
-		}
-		#dropzone {
-			position: relative;
-			height: 120px;
-			border: 2px dashed rgba(50, 80, 144, 0.2);
-			border-radius: 5px;
-			color: rgba(50, 80, 144, 0.5);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			text-align: center;
-		}
-		#dropzone:hover {
-			border: 2px dashed rgba(50, 80, 144, 0.4);
-			color: rgba(50, 80, 144, 0.8);
-		}
-			#picker {
-				cursor: pointer;
-				position: absolute;
-				left: 0;
-				top: 0;
-				right: 0;
-				bottom: 0;
-				width: 100%;
-				height: 100%;
-				opacity: 0;
-			}
-
-		form {
-			font-family: monospace;
-		}
-		pre {
-			white-space: pre-wrap;
-			font-size: 10px;
-		}
-		img,
-		table {
-			font-size: 12px;
-			border-spacing: 0;
-			border-collapse: collapse;
-		}
-			table td {
-				padding: 1px 0;
-				vertical-align: baseline;
-			}
-			table td + td {
-				padding-left: 12px;
-			}
-
-		[muted] {
-			opacity: 0.4;
-		}
-
-
-		.wrap {
-			white-space: normal;
-		}
-		.nowrap {
-			white-space: nowrap;
-		}
-
-		#grid {
-			display: grid;
-		}
-
-		@media only screen and (max-width: 499px) {
-			#grid {
-				gap: 32px;
-			}
-		}
-		@media only screen and (min-width: 500px) {
-			#grid {
-				gap: 24px 56px;
-			}
-		}
-
-		@media only screen and (min-width: 500px) {
-			#input-head   {grid-area: input-head}
-			#input        {grid-area: input}
-			#output       {grid-area: output}
-			#output-head  {grid-area: output-head}
-			#thumb        {grid-area: thumb}
-			#app1-thumb   {grid-area: app1-thumb}
-		}
-		@media only screen and (min-width: 500px) and (max-width: 749px) {
-			#grid {
-				grid-template-columns: 220px auto;
-				grid-template-areas:
-					"input-head output-head"
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"input      .          "
-					"output     output     "
-			}
-		}
-		@media only screen and (min-width: 750px) and (max-width: 999px) {
-			#grid {
-				grid-template-columns: 220px min-content auto;
-				grid-template-areas:
-					"input-head output-head output-head"
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-					"input      .           output     "
-			}
-		}
-		@media only screen and (min-width: 1000px) {
-			#grid {
-				grid-template-columns: 220px min-content min-content auto;
-				grid-template-areas:
-					"input-head output-head  output-head  output-head"
-					"input      thumb        app1-ifd0    output     "
-					"input      app1-thumb   app1-exif    output     "
-					"input      app1-gps     app1-interop output     "
-					"input      app1-iptc    .            output     "
-					"input      marker-notes .            output     "
-					"input      .            .            output     "
-					"input      .            .            output     "
-			}
-		}
-	</style>
+	<link rel="stylesheet" type="text/css" href="./demo.css">
 </head>
 <body>
-
-	<!--
-	TODO: allow nicely displaying all information
-	TODO: display makernote
-	TODO: display parsed xmp (using the new API to inject XML parser into library)
-	-->
 
 	<header>
 		<h1>Exifr</h1>
@@ -308,19 +33,14 @@
 
 		<h2 id="output-head">
 			Output
-			<span id="time"></span>
-			<!-- TODO -->
-			<!--div>
-				<input type="checkbox" checked>
-				Display only interresting data
-			</div-->
+			<span>parsed in ${parseTime} ms</span>
 		</h2>
 
 		<div id="input">
 
 			<h3>File</h3>
 			<div id="dropzone">
-				<input id="picker" type="file" multiple>
+				<input id="picker" type="file" multiple change.trigger="onPick($event)">
 				Click to pick
 				<br>or<br>
 				drop your file here
@@ -330,84 +50,73 @@
 			<form>
 				<div>{</div>
 				<div muted>&nbsp;&nbsp;// APP segments</div>
-				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" name="tiff" checked>,</div>
-				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" name="xmp">,</div>
-				<div>&nbsp;&nbsp;icc:       <input type="checkbox" name="icc">,</div>
-				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" name="iptc">,</div>
-				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" name="jfif">,</div>
+				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.tiff" change.trigger="updateOptions('tiff')">,</div>
+				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;icc:       <input type="checkbox" checked.bind="options.icc" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" checked.bind="options.iptc" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" checked.bind="options.jfif" change.trigger="updateOptions()">,</div>
 				<div muted>&nbsp;&nbsp;// TIFF blocks</div>
 				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
-				<div>&nbsp;&nbsp;ifd0:      <input type="checkbox" name="ifd0" checked disabled>,</div>
-				<div>&nbsp;&nbsp;exif:      <input type="checkbox" name="exif" checked>,</div>
-				<div>&nbsp;&nbsp;gps:       <input type="checkbox" name="gps" checked>,</div>
-				<div>&nbsp;&nbsp;interop:   <input type="checkbox" name="interop">,</div>
-				<div>&nbsp;&nbsp;thumbnail: <input type="checkbox" name="thumbnail" checked>,</div>
+				<div>&nbsp;&nbsp;ifd0:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.ifd0" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;exif:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.exif" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;gps:       <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.gps" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;interop:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.interop" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;thumbnail: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.thumbnail" change.trigger="updateOptions()">,</div>
+				<div muted>&nbsp;&nbsp;// other content of TIFF</div>
+				<div>&nbsp;&nbsp;makerNote:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.makerNote" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;userComment: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.userComment" change.trigger="updateOptions()">,</div>
 				<div muted>&nbsp;&nbsp;// output style</div>
-				<div>&nbsp;&nbsp;postProcess: <input type="checkbox" name="postProcess" checked>,</div>
-				<div>&nbsp;&nbsp;mergeOutput: <input type="checkbox" name="mergeOutput" checked>,</div>
+				<div title="combine all segments and blocks into single output object">&nbsp;&nbsp;mergeOutput: <input type="checkbox" checked.bind="options.mergeOutput" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;sanitize:        <input type="checkbox" checked.bind="options.sanitize" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;translateTags:   <input type="checkbox" checked.bind="options.translateTags" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;translateValues: <input type="checkbox" checked.bind="options.translateValues" change.trigger="updateOptions()">,</div>
+				<!--
+				<div muted>&nbsp;&nbsp;// skip or only pick tags</div>
+				<div>&nbsp;&nbsp;pickTags: [<input type="text" name="pickTags">],</div>
+				<div>&nbsp;&nbsp;skipTags: [<input type="text" name="skipTags">],</div>
 				<div>}</div>
+				-->
 			</form>
 
 		</div>
 
 		<div id="thumb">
 			<h3>Embedded thumbnail</h3>
-			<img alt="Doesn't contain thumbnail">
+			<img if.bind="thumbUrl" src.bind="thumbUrl">
+			<p if.bind="thumbUrl === undefined">
+				Doesn't contain thumbnail
+			</p>
 		</div>
-
-		<div id="app1-thumb">
-			<h3>Thumbnail<span>Show all</span></h3>
+<!--
+		<div id="app1-thumb" class.bind="options.thumb ? '' : 'disabled'">
+			<h3>Thumbnail (IFD1)<span click.trigger="toggleSegment('thumbnail')">Show all</span></h3>
 			<table></table>
 		</div>
+-->
+		<segment-box options.bind="options" output.bind="output" type="thumbnail"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="ifd0" title="Image"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="exif"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="gps"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="interop"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="iptc"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="xmp"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="icc"></segment-box>
+		<segment-box options.bind="options" output.bind="output" type="jfif"></segment-box>
 
-		<div id="app1-ifd0">
-			<h3>IFD0<span>Show all</span></h3>
-			<table></table>
+		<div id="marker-notes" class.bind="options.makerNote ? '' : 'disabled'">
+			<h3>Maker Note</h3>
+			<pre>${makerNote | binary}</pre>
 		</div>
 
-		<div id="app1-exif">
-			<h3>EXIF<span>Show all</span></h3>
-			<table></table>
-		</div>
-
-		<div id="app1-gps">
-			<h3>GPS<span>Show all</span></h3>
-			<table></table>
-		</div>
-
-		<div id="app1-interop">
-			<h3>Interop<span>Show all</span></h3>
-			<table></table>
-		</div>
-
-		<div id="app1-iptc" class="wrap">
-			<h3>IPTC<span>Show all</span></h3>
-			<table></table>
-		</div>
-
-		<div id="app1-xmp">
-			<h3>XMP<span>Show all</span></h3>
-			<pre></pre>
-		</div>
-
-		<div id="app1-icc">
-			<h3>ICC<span>Show all</span></h3>
-			<pre></pre>
-		</div>
-
-		<div id="app1-jfif">
-			<h3>JFIF<span>Show all</span></h3>
-			<pre></pre>
-		</div>
-
-		<div id="marker-notes">
-			<h3>Maker Notes</h3>
-			<pre></pre>
+		<div id="user-comment" class.bind="options.userComment ? '' : 'disabled'">
+			<h3>User Comment</h3>
+			<pre>${userComment | binary}</pre>
 		</div>
 
 		<div id="output" class="wrap">
 			<h3>Raw output</h3>
-			<pre></pre>
+			<pre>${output | json}</pre>
 		</div>
 
 	</div>
@@ -427,173 +136,11 @@
 	<h2>License</h2>
 	<p>MIT, Mike Kovařík</p>
 
-	<script async defer src="https://buttons.github.io/buttons.js"></script>
 	<!--
-	<script src="./index.js"></script>
-	<script>
-		var {ExifParser, parse} = window.exifr
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
 	-->
-	<script type="module">
-		import {ExifParser, parse} from './src/index-full.js'
-
-		let lastFile
-
-		var picker = document.querySelector('#picker')
-		var dropzone = document.querySelector('#dropzone')
-		let outputNode = document.querySelector('#output pre')
-		let form = document.querySelector('form')
-		var time = document.querySelector('#time')
-
-		var outputNodes = {
-			image: document.querySelector('#app1-ifd0 table'),
-			exif: document.querySelector('#app1-exif table'),
-			gps: document.querySelector('#app1-gps table'),
-			thumbnail: document.querySelector('#app1-thumb table'),
-			interop: document.querySelector('#app1-interop table'),
-			iptc: document.querySelector('#app1-iptc table'),
-			xmp: document.querySelector('#app1-xmp pre'),
-		}
-
-		var thumbImg = document.querySelector('#thumb img')
-
-		// picker & dropzone
-		document.body.addEventListener('dragenter', e => e.preventDefault())
-		document.body.addEventListener('dragover', e => e.preventDefault())
-		document.body.addEventListener('drop', e => {
-			e.preventDefault()
-			handleFile(e.dataTransfer.files[0])
-		})
-		picker.addEventListener('change', e => handleFile(picker.files[0]))
-
-		// options checkboxes
-		let inputs = Array.from(form.querySelectorAll('input'))
-		for (let input of inputs) input.addEventListener('change', e => handleFile())
-
-		// Load the demo image as array buffer to keep in memory
-		// to prevent distortion of initial parse time.
-		// i.e: show off library's performance and don't include file load time in it.
-		fetch('./test/fixtures/IMG_20180725_163423.jpg')
-			.then(res => res.arrayBuffer())
-			.then(handleFile)
-
-		async function handleFile(file = lastFile) {
-			lastFile = file
-
-			let options = Object.fromEntries(inputs.map(input => [input.name, input.checked]))
-
-			// parse with users preconfigured settings
-			let t1 = performance.now()
-			let rawOutput = await parse(file, options)
-			let t2 = performance.now()
-			time.innerText = `parsed in ${(t2 - t1).toFixed(1)} ms`
-
-			if (rawOutput) {
-				cleanOutput(rawOutput)
-				outputNode.innerText = JSON.stringify(rawOutput, null, 2)
-			} else {
-				outputNode.innerText = 'The file has no EXIF'
-			}
-
-			// now parse again for the nice boxes with clear information.
-			options.mergeOutput = false
-			options.postProcess = true
-			let parser = new ExifParser(options)
-			await parser.read(file)
-			let output = await parser.parse() || {}
-			renderTable(parser, output, 'image',   ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software'])
-			renderTable(parser, output, 'exif',    ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'])
-			renderTable(parser, output, 'gps',     ['latitude', 'longitude'])
-			renderTable(parser, output, 'interop', ['InteropIndex', 'InteropVersion'])
-			renderTable(parser, output, 'iptc',    ['headline', 'caption', 'source', 'country'])
-			renderTable(parser, output, 'xmp')
-			renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
-
-			console.log('output.exif', output.exif)
-
-			/*
-			// TODO: separate these from raw output
-			Long properties
-			XPComment in IFD0 in issue-exifr-13.jpg
-			ImageDescription in IFD0 in Bush-dog.jpg
-			MakerNote
-			*/
-
-			if (output.exif.MakerNote) {
-				console.log(output.exif.MakerNote)
-				var makerNote = new TextDecoder('utf-8').decode(output.exif.MakerNote)
-				console.log(makerNote)
-			}
-
-			if (parser.thumbnail) {
-				let arrayBuffer = await parser.extractThumbnail()
-				let blob = new Blob([arrayBuffer])
-				thumbImg.src = URL.createObjectURL(blob)
-				thumbImg.style.display = ''
-			} else {
-				thumbImg.style.display = 'none'
-			}
-
-			//displayImage(file)
-		}
-/*
-		function displayImage(blob) {
-			if (thumbImg.src) {
-				inputImg.style.height = thumbImg.height
-				//inputImg.style.width = thumbImg.width
-			}
-			inputImg.src = URL.createObjectURL(blob)
-		}
-
-		function hideImage() {
-		}
-*/
-		function cleanOutput(exif) {
-			console.log('exif', exif)
-			console.log('exif.exif', exif.exif)
-			if (exif === undefined) return {}
-			if (exif.exif) exif = exif.exif
-			if (exif.MakerNote) exif.MakerNote = '[... OMITTED ...]'
-			if (exif.UserComment) exif.UserComment = '[... OMITTED ...]'
-			if (exif.ApplicationNotes) exif.ApplicationNotes = '[... OMITTED ...]'
-		}
-
-		function renderTable(parser, output, name, props) {
-			let {options} = parser
-			let node = outputNodes[name]
-			let data = output[name]
-			if (data) {
-				if (props) {
-					let rows = props.map(prop => `<td>${splitTag(prop)}</td><td>${data[prop]}</td>`)
-					node.innerHTML = '<tr>' + rows.join('</tr><tr>') + '</tr>'
-				} else {
-					node.innerText = data
-				}
-			} else if (!options[name]) {
-				node.innerHTML = '<tr><tr>Not parsed</tr></tr>'
-			} else {
-				node.innerHTML = '<tr><tr>No data found</tr></tr>'
-			}
-		}
-
-
-		// ISO => ISO
-		// XMPToolkit => XMP Toolkit
-		// FNumber => F Number
-		// AbsoluteAltitude => Absolute Altitude
-		// FlightRollDegree => Flight Roll Degree
-		// imageWidth => Image Width
-		// latitude => Latitude
-		function splitTag(string) {
-			return string.match(matchRegex).map(capitalize).join(' ')
-		}
-
-		function capitalize(string) {
-			return string.charAt(0).toUpperCase() + string.slice(1)
-		}
-
-		var matchRegex = /([A-Z]+(?=[A-Z][a-z]))|([A-Z][a-z]+)|([0-9]+)|([a-z]+)|([A-Z]+)/g
-
-	</script>
+	<script src="./node_modules/aurelia-script/dist/aurelia.umd.js"></script>
+	<script type="module" src="./demo.js"></script>
 
 </body>
 </html>
