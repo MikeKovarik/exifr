@@ -83,6 +83,7 @@
 
 		<div id="thumb">
 			<h3>Embedded thumbnail</h3>
+			<img if.bind="imageUrl" src.bind="imageUrl">
 			<img if.bind="thumbUrl" src.bind="thumbUrl">
 			<p if.bind="thumbUrl === undefined">
 				Doesn't contain thumbnail

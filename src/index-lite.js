@@ -5,6 +5,7 @@ export * from './parser.js'
 export {tags} from './tags.js'
 import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.js'
 import optionsFactory from './options.js'
+import {hasBuffer} from './util/BufferView.js'
 
 
 export {optionsFactory}
@@ -41,16 +42,20 @@ export async function parseAppSegments(arg, options) {
 	// TODO
 }
 
-export async function thumbnailBuffer(arg, options = {}) {
+export async function thumbnail(arg, options = {}) {
 	options.thumbnail = true
 	options.mergeOutput = true
 	let exifr = new ExifParser(options)
 	await exifr.read(arg)
-	return exifr.extractThumbnail()
+	let uint8array = await exifr.extractThumbnail()
+	if (uint8array && hasBuffer)
+		return Buffer.from(uint8array)
+	else
+		return uint8array
 }
 
 export async function thumbnailUrl(...args) {
-	let arrayBuffer = await thumbnailBuffer(...args)
+	let arrayBuffer = await thumbnail(...args)
 	if (arrayBuffer !== undefined) {
 		let blob = new Blob([arrayBuffer])
 		return URL.createObjectURL(blob)

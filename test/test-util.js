@@ -22,20 +22,20 @@ if (isNode) {
 		var dirname = path.dirname(import.meta.url.replace('file:///', ''))
 }
 
-export function getPath(filepath) {
-	filepath = 'fixtures/' + filepath
+export function getPath(filePath) {
+	filePath = 'fixtures/' + filePath
 	if (isNode)
-		return path.join(dirname, filepath)
+		return path.join(dirname, filePath)
 	else
-		return filepath
+		return filePath
 }
 
 // TODO: need to include 'fixtures/'
-export function getUrl(filepath) {
+export function getUrl(filePath) {
 	return location.href
 		.split('/')
 		.slice(0, -1)
-		.concat(filepath)
+		.concat(filePath)
 		.join('/')
 		.replace(/\\/g, '/')
 }

@@ -119,15 +119,7 @@ class ExifrDemoApp {
 	thumbnailFilter = ['ImageWidth', 'ImageHeight', 'ThumbnailLength']
 
 	constructor() {
-		let instance = optionsFactory()
-		let object = cloneObject(instance)
-		delete object.pickTags
-		delete object.skipTags
-		this.options = object
-
-		//this.options.makerNote = true
-		//this.options.userComment = true
-
+		this.createDefaultOptions()
 
 		this.thumbImg = document.querySelector('#thumb img')
 
@@ -150,6 +142,17 @@ class ExifrDemoApp {
 			.then(res => res.arrayBuffer())
 			.then(this.handleFile)
 
+	}
+
+	createDefaultOptions() {
+		let instance = optionsFactory()
+		let object = cloneObject(instance)
+		delete object.pickTags
+		delete object.skipTags
+		object.thumbnail = true
+		this.options = object
+		//this.options.makerNote = true
+		//this.options.userComment = true
 	}
 
 	onCheckboxChanged = e => {
@@ -189,6 +192,7 @@ class ExifrDemoApp {
 	}
 
 	handleFile = async (file = this.lastFile) => {
+		let input = file
 		this.clear()
 		this.lastFile = file
 
@@ -235,20 +239,36 @@ class ExifrDemoApp {
 		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote
 		this.userComment = output.userComment || output.UserComment || output.exif && output.exif.UserComment
 
-
-		if (parser.thumbnail) {
+			console.log('input', input)
+		if (output.thumbnail) {
 			let arrayBuffer = await parser.extractThumbnail()
+			console.log('arrayBuffer', arrayBuffer)
 			let blob = new Blob([arrayBuffer])
+			console.log('blob', blob)
 			this.thumbUrl = URL.createObjectURL(blob)
+			console.log('thumbUrl', this.thumbUrl)
 		}
 
-		//displayImage(file)
+		if (input instanceof ArrayBuffer)
+			this.imageUrl = URL.createObjectURL(new Blob([input]))
+		if (input instanceof Blob)
+			this.imageUrl = URL.createObjectURL(input)
+		if (typeof input === 'string')
+			this.imageUrl = input
+
+		console.log('output.thumbnail', output.thumbnail)
+		console.log('this.thumbUrl', this.thumbUrl)
+		console.log('this.imageUrl', this.imageUrl)
 	}
 
 	clear() {
 		if (this.thumbUrl) {
 			URL.revokeObjectURL(this.thumbUrl)
 			this.thumbUrl = undefined
+		}
+		if (this.imageUrl) {
+			URL.revokeObjectURL(this.imageUrl)
+			this.imageUrl = undefined
 		}
 	}
 

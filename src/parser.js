@@ -242,12 +242,6 @@ export class Exifr extends Reader {
 	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
 	async createParsers() {
 		//global.recordBenchTime(`exifr.createParsers()`)
-		if (this.options.jfif && !parserClasses.jfif) throw new Error('JFIF Parser was not loaded, try using full build of exifr.')
-		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
-		if (this.options.iptc && !parserClasses.iptc) throw new Error('IPTC Parser was not loaded, try using full build of exifr.')
-		if (this.options.icc  && !parserClasses.icc)  throw new Error('ICC Parser was not loaded, try using full build of exifr.')
-		if (this.options.xmp  && !parserClasses.xmp)  throw new Error('XMP Parser was not loaded, try using full build of exifr.')
-
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
@@ -259,7 +253,7 @@ export class Exifr extends Reader {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
 				parser.append(chunk)
 			} else if (!parser) {
-				let Parser = parserClasses[type]
+				let Parser = this.getParser(type)
 				let parser = new Parser(chunk, this.options, this.file)
 				this.parsers[type] = parser
 			}
@@ -279,13 +273,20 @@ export class Exifr extends Reader {
 		return seg
 	}
 
+	getParser(type) {
+		if (this.options[type] && !parserClasses[type])
+			throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
+		else
+			return parserClasses[type]
+	}
+
 	async extractThumbnail() {
-		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
+		let TiffParser = this.getParser('tiff')
 		let seg = this.getOrFindSegment('tiff')
 		if (seg !== undefined) {
 			let chunk = await this.ensureSegmentChunk(seg)
-			this.parsers.tiff = new parserClasses.tiff(chunk, this.options, this.file)
-			return this.parsers.tiff.extractThumbnail()
+			let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)
+			return parser.extractThumbnail()
 		}
 	}
 

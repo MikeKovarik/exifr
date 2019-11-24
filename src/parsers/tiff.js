@@ -321,11 +321,7 @@ export class TiffExif extends TiffCore {
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.thumbnail[THUMB_OFFSET]
 		let length = this.thumbnail[THUMB_LENGTH]
-		let subView = this.chunk.subarray(offset, length)
-		if (typeof Buffer !== 'undefined')
-			return Buffer.from(subView.buffer)
-		else
-			return subView.buffer
+		return this.chunk.getUintArray(offset, length)
 	}
 
 	translate() {
