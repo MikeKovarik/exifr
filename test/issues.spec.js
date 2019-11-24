@@ -23,20 +23,6 @@ describe('issues (special cases)', () => {
         var output = await parse(await getFile('002.tiff'), options)
         assert.exists(output.gps)
     })
-/*
-    // TODO
-    it(`#3 - app1 completeness`, async () => {
-        let options = {
-            tiff: true,
-            exif: true,
-            xmp: true,
-            mergeOutput: false,
-        }
-        var output = await parse(getPath('issue-exifr-3.jpg'), options)
-        console.log(output)
-        assert.exists(output.gps)
-    })
-*/
 
     it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
         var output = await parse(await getFile('issue-fast-exif-2.jpg'), true)
@@ -75,6 +61,14 @@ describe('issues (special cases)', () => {
         assert.exists(output.GPSLatitude)
         assert.exists(output.xmp)
     })
+/*
+    // TODO
+    it(`#3 FLIR`, async () => {
+        let options = {???}
+        var output = await parse(getPath('issue-exifr-3.jpg'), options)
+        assert.exists(output.gps)
+    })
+*/
 
 })
 

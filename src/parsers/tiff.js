@@ -196,6 +196,11 @@ export class TiffExif extends TiffCore {
 		return this.output
 	}
 
+	findIfd0Offset() {
+		if (this.ifd0Offset === undefined)
+			this.ifd0Offset = this.chunk.getUint32(4)
+	}
+
 	parseIfd0Block() {
 		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
 		if (!this.headerParsed) this.parseHeader()
@@ -212,7 +217,7 @@ export class TiffExif extends TiffCore {
 		}
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
-		this.ifd0Offset = this.chunk.getUint32(4)
+		this.findIfd0Offset()
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
 		if (this.ifd0Offset > this.file.byteLength && !this.file.chunked)
@@ -298,14 +303,11 @@ export class TiffExif extends TiffCore {
 	parseThumbnailBlock(force = false) {
 		if (this.thumbnail || this.thumbnailParsed) return
 		if (this.options.mergeOutput && !force) return
-		if (!this.ifd0) this.parseIfd0Block()
+		this.findIfd0Offset()
 		let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
-		console.log('ifd0Entries', ifd0Entries)
 		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
-		console.log('temp', temp)
 		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
 		this.ifd1Offset = this.chunk.getUint32(temp)
-		console.log('this.ifd1Offset', this.ifd1Offset)
 		if (this.ifd1Offset > 0) {
 			this.ifd1 = this.parseTags(this.ifd1Offset, 'thumbnail')
 			this.thumbnail = this.ifd1
@@ -316,6 +318,7 @@ export class TiffExif extends TiffCore {
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
+		if (!this.headerParsed) this.parseHeader()
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
