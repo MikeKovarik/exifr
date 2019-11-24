@@ -83,6 +83,7 @@ export class Exifr extends Reader {
 	unknownSegments = []
 
 	init() {
+		//global.recordBenchTime(`exifr.init()`)
 		// JPEG's exif is based on TIFF structure from .tif files.
 		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
 		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
@@ -129,9 +130,14 @@ export class Exifr extends Reader {
 	}
 
 	findJpgAppSegments(offset = 0, wantedSegments = []) {
+		//global.recordBenchTime(`exifr.findJpgAppSegments()`)
 		// TODO: only use parsers wanted by options
-		let wantedParsers = parserClasses
-		let wanted = new Set(wantedSegments)
+		if (wantedSegments.length === 0)
+			wantedSegments = Object.keys(parserClasses).filter(key => this.options[key])
+		let wantedParsers = new Map
+		for (let type of wantedSegments)
+			wantedParsers.set(type, parserClasses[type])
+		let remainingSegments = new Set(wantedSegments)
 		let file = this.file
 		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
 		for (; offset < bytes; offset++) {
@@ -145,18 +151,20 @@ export class Exifr extends Reader {
 			let length = file.getUint16(offset + 2)
 			if (isAppSegment) {
 				let type = getSegmentType(file, offset)
-				if (type) {
+				if (type && wantedParsers.has(type)) {
 					// known and parseable segment found
-					let Parser = wantedParsers[type]
+					let Parser = wantedParsers.get(type)
 					let seg = Parser.findPosition(file, offset)
 					seg.type = type
-					if (wanted.size === 0) {
+					/*
+					if (findAll) {
 						this.appSegments.push(seg)
-					} else if (wanted.size > 0 && wanted.has(type)) {
+					} else if (remainingSegments.size > 0 && remainingSegments.has(type)) {
+					*/
 						this.appSegments.push(seg)
-						wanted.delete(type)
-						if (wanted.size === 0) break
-					}
+						remainingSegments.delete(type)
+						if (remainingSegments.size === 0) break
+					//}
 				} else {
 					// either unknown/supported appN segment or just a noise.
 					let seg = AppSegment.findPosition(file, offset)
@@ -167,9 +175,11 @@ export class Exifr extends Reader {
 			}
 			offset += length + 1
 		}
+		//global.recordBenchTime(`segments found`)
 	}
 
 	async parse() {
+		//global.recordBenchTime(`exifr.parse()`)
 		this.init()
 		if (this.isTiff)
 			await this.parseTiffFile()
@@ -179,12 +189,14 @@ export class Exifr extends Reader {
 	}
 
 	async parseJpegFile() {
+		//global.recordBenchTime(`exifr.parseJpegFile()`)
 		this.findJpgAppSegments()
 		await this.readSegments()
 		this.createParsers()
 	}
 
 	async createOutput() {
+		//global.recordBenchTime(`exifr.createOutput()`)
 		let libOutput = {}
 		let promises = Object.values(this.parsers).map(async parser => {
 			let parserOutput = await parser.parse()
@@ -198,11 +210,13 @@ export class Exifr extends Reader {
 	}
 
 	async readSegments() {
+		//global.recordBenchTime(`exifr.readSegments()`)
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
 	}
 
 	ensureSegmentChunk = async seg => {
+		//global.recordBenchTime(`exifr.ensureSegmentChunk(${seg.type})`)
 		let start = seg.start
 		let size = seg.size || MAX_APP_SIZE
 		if (this.file.chunked) {
@@ -227,6 +241,7 @@ export class Exifr extends Reader {
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
 	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
 	async createParsers() {
+		//global.recordBenchTime(`exifr.createParsers()`)
 		if (this.options.jfif && !parserClasses.jfif) throw new Error('JFIF Parser was not loaded, try using full build of exifr.')
 		if (this.options.tiff && !parserClasses.tiff) throw new Error('TIFF Parser was not loaded, try using full build of exifr.')
 		if (this.options.iptc && !parserClasses.iptc) throw new Error('IPTC Parser was not loaded, try using full build of exifr.')

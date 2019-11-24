@@ -96,6 +96,9 @@ class Options {
 			this.skipTags = [...this.skipTags]
 		}
 		if (this.mergeOutput) this.thumbnail = false
+		if (this.makerNote || this.userComment && (!this.exif || !this.tiff)) {
+			console.log('want to parse makerNote or userComment but exif or tiff is disabled. TODO: enable tiff and add EXIF_IFD_POINTER to pickTags')
+		}
 		if (this.pickTags.length) {
 			if (this.exif)    this.pickTags.push(TAG_IFD_EXIF)
 			if (this.gps)     this.pickTags.push(TAG_IFD_GPS)

@@ -1,6 +1,14 @@
 import {tagRevivers} from '../tags.js'
 import {toString} from '../util/BufferView.js'
 
+/*
+ifd0
+    "ModifyDate": "2018-07-25T14:34:23.000Z",
+
+exif
+    "DateTimeOriginal": "2018-07-25T14:34:23.000Z",
+    "DateTimeDigitized": "2018-07-25T14:34:23.000Z",
+*/
 
 tagRevivers.ifd0 =
 tagRevivers.exif =

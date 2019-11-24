@@ -44,6 +44,7 @@
     "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {
+    "aurelia-script": "^1.5.2",
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/preset-env": "^7.6.3",

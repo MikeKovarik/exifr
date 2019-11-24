@@ -18,6 +18,7 @@ export default class Reader {
 	}
 
 	async read(arg) {
+		//global.recordBenchTime(`exifr.read()`)
 		if (typeof arg === 'string')
 			await this.readString(arg)
 		else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)

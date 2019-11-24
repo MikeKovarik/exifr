@@ -4,6 +4,10 @@ export * from './parser.js'
 //export defaultOptions from './options.js'
 export {tags} from './tags.js'
 import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.js'
+import optionsFactory from './options.js'
+
+
+export {optionsFactory}
 
 export async function parse(arg, options) {
 	let exifr = new ExifParser(options)

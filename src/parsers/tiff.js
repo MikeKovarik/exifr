@@ -171,6 +171,7 @@ export class TiffExif extends TiffCore {
 
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 	async parse() {
+		//global.recordBenchTime(`tiffExif.parse()`)
 		this.parseIfd0Block()                                  // APP1 - IFD0
 		if (this.options.exif)      this.parseExifBlock()      // APP1 - EXIF IFD
 		if (this.options.gps)       this.parseGpsBlock()       // APP1 - GPS IFD
@@ -196,6 +197,7 @@ export class TiffExif extends TiffCore {
 	}
 
 	parseIfd0Block() {
+		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
 		if (!this.headerParsed) this.parseHeader()
 		if (this.ifd0) return
 		// User may want to skip IFD0, in which case we need to at least go through it to find exif/gps/interop pointers.
@@ -260,7 +262,10 @@ export class TiffExif extends TiffCore {
 		if (this.exif) return
 		if (!this.ifd0) this.parseIfd0Block()
 		if (this.exifOffset === undefined) return
-		return this.exif = this.parseTags(this.exifOffset, 'exif')
+		let exif = this.exif = this.parseTags(this.exifOffset, 'exif')
+		if (!this.interopOffset) this.interopOffset = exif[TAG_IFD_INTEROP]
+		if (this.options.sanitize) delete exif[TAG_IFD_INTEROP]
+		return exif
 	}
 
 	// GPS block of TIFF of APP1 segment
@@ -282,7 +287,7 @@ export class TiffExif extends TiffCore {
 	parseInteropBlock() {
 		if (this.interop) return
 		if (!this.ifd0) this.parseIfd0Block()
-		this.interopOffset = this.interopOffset || (this.exif && this.exif[TAG_IFD_INTEROP])
+		if (this.interopOffset === undefined && !this.exif) this.parseExifBlock()
 		if (this.interopOffset === undefined) return
 		return this.interop = this.parseTags(this.interopOffset, 'interop')
 	}
