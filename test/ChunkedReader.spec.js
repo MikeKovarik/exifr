@@ -1,8 +1,8 @@
-import {promises as fs} from 'fs'
 import {assert} from './test-util.js'
-import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {getPath} from './test-util.js'
 import {DynamicBufferView} from '../src/util/BufferView.js'
-import {ChunkedReader, FsReader} from '../src/reader.js'
+import {FsReader} from '../src/reader.js'
+import {ExifParser} from '../src/index-full.js'
 
 
 describe('DynamicBufferView', () => {
@@ -191,7 +191,13 @@ describe('DynamicBufferView', () => {
 
 })
 
+
+
+
+
 describe('ChunkedReader', () => {
+
+	const path = getPath('IMG_20180725_163423.jpg')
 
 	const tiffOffset = 2
 	const tiffLength = 25386
@@ -201,12 +207,14 @@ describe('ChunkedReader', () => {
 	const jfifLength = 18
 	const jfifEnd    = jfifOffset + jfifLength
 
+	const ifd0Pointer = 8
+	const exifPointer = 239
+	const gpsPointer = 18478
+
 	const seekChunkSize = 10
+	const options = {wholeFile: false, seekChunkSize}
 
 	describe('FsReader', () => {
-
-		let path = getPath('IMG_20180725_163423.jpg')
-		let options = {wholeFile: false, seekChunkSize}
 
 		it(`reads initial chunk`, async () => {
 			let view = new FsReader(path, {seekChunkSize})
@@ -216,64 +224,83 @@ describe('ChunkedReader', () => {
 			assert.equal(view.getUint8(1), 0xD8)
 		})
 
-		it(`reading additional chunks keeps extending original view`, async () => {
-			let view = new FsReader(path, options)
-			console.log('view.byteLength', view.byteLength)
-			await view.readChunked()
-			console.log('view.byteLength', view.byteLength)
-			let tiffChunk = await view.readChunk(tiffOffset, tiffLength)
-			assert.equal(tiffChunk.byteLength, tiffLength)
-			assert.equal(view.byteLength, tiffEnd)
-			console.log('view.byteLength', view.byteLength)
-			let jfifChunk = await view.readChunk(jfifOffset, jfifLength)
-			assert.equal(jfifChunk.byteLength, jfifLength)
-			assert.equal(view.byteLength, jfifEnd)
-			console.log('view.byteLength', view.byteLength)
+		describe('readChunked()', () => {
+
+			it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
+				let view = new FsReader(path, options)
+				await view.readChunked()
+				assert.equal(view.getUint8(0), 0xFF)
+				assert.equal(view.getUint8(1), 0xD8)
+				assert.equal(view.getUint8(2), 0xFF)
+				assert.equal(view.getUint8(3), 0xE1)
+				let tiffChunk = await view.readChunk(tiffOffset, tiffLength)
+				assert.equal(view.getUint8(0), 0xFF)
+				assert.equal(view.getUint8(1), 0xD8)
+				assert.equal(view.getUint8(2), 0xFF)
+				assert.equal(view.getUint8(3), 0xE1)
+				assert.equal(view.getUint8(13), 0x49)
+				assert.equal(view.getUint8(14), 0x2a)
+				assert.equal(tiffChunk.getUint8(0), 0xFF)
+				assert.equal(tiffChunk.getUint8(1), 0xE1)
+				assert.equal(tiffChunk.getUint8(11), 0x49)
+				assert.equal(tiffChunk.getUint8(12), 0x2a)
+			})
+
+			it(`reading additional chunks keeps extending original view`, async () => {
+				let view = new FsReader(path, options)
+				await view.readChunked()
+				let tiffChunk = await view.readChunk(tiffOffset, tiffLength)
+				assert.equal(tiffChunk.byteLength, tiffLength)
+				assert.equal(view.byteLength, tiffEnd)
+				let jfifChunk = await view.readChunk(jfifOffset, jfifLength)
+				assert.equal(jfifChunk.byteLength, jfifLength)
+				assert.equal(view.byteLength, jfifEnd)
+			})
+
+			it(`reading sparsely creates second range`, async () => {
+				let view = new FsReader(path, options)
+				await view.readChunked()
+				assert.equal(view.ranges[0].end, seekChunkSize)
+				assert.lengthOf(view.ranges, 1)
+				let jfifChunk = await view.readChunk(jfifOffset, jfifLength)
+				assert.equal(view.ranges[1].end, jfifOffset + jfifLength)
+				assert.lengthOf(view.ranges, 2)
+				assert.equal(jfifChunk.byteLength, jfifLength)
+				assert.equal(view.byteLength, jfifEnd)
+			})
+
+			it(`space between sparse segments does not contain useful data`, async () => {
+				let view = new FsReader(path, options)
+				await view.readChunked()
+				await view.readChunk(jfifOffset, jfifLength)
+				assert.notEqual(view.getUint32(jfifOffset - 4), 0x5c47ffd9)
+				assert.equal(view.getUint32(jfifOffset), 0xffe00010)
+			})
+
 		})
 
-		it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
-			let view = new FsReader(path, options)
-			await view.readChunked()
-			assert.equal(view.getUint8(0), 0xFF)
-			assert.equal(view.getUint8(1), 0xD8)
-			assert.equal(view.getUint8(2), 0xFF)
-			assert.equal(view.getUint8(3), 0xE1)
-			let tiffChunk = await view.readChunk(tiffOffset, tiffLength)
-			assert.equal(view.getUint8(0), 0xFF)
-			assert.equal(view.getUint8(1), 0xD8)
-			assert.equal(view.getUint8(2), 0xFF)
-			assert.equal(view.getUint8(3), 0xE1)
-			assert.equal(view.getUint8(13), 0x49)
-			assert.equal(view.getUint8(14), 0x2a)
-			assert.equal(tiffChunk.getUint8(0), 0xFF)
-			assert.equal(tiffChunk.getUint8(1), 0xE1)
-			assert.equal(tiffChunk.getUint8(11), 0x49)
-			assert.equal(tiffChunk.getUint8(12), 0x2a)
-		})
-	/*
-		it(`reading distant chunk extends original buffer but leaves`, async () => {
-			let view = new FsReader(path, options)
-			await view.readChunked()
-			assert.equal(tiffChunk.byteLength, tiffLength)
-			let jfifChunk = await view.readChunk(jfifOffset, jfifLength)
-			assert.equal(jfifChunk.byteLength, jfifLength)
-			assert.equal(view.byteLength, jfifEnd)
-		})
-	*/
+		describe('readWhole()', () => {
 
+			it(`space between segments contains useful data`, async () => {
+				let view = new FsReader(path, options)
+				await view.readWhole()
+				assert.equal(view.getUint32(jfifOffset - 4), 0x5c47ffd9)
+				assert.equal(view.getUint32(jfifOffset), 0xffe00010)
+			})
 
-		const ifd0Pointer = 8
-		const exifPointer = 239
-		const gpsPointer = 18478
-
-		it(`small chunk`, async () => {
-			let options = {wholeFile: false, seekChunkSize}
-			let view = new FsReader(path, options)
-			await view.readChunked()
-			assert.equal(true, false)
 		})
 
+	})
 
+	it(`12345 practical example of chunked reader processing simple jpg file sequentially`, async () => {
+		let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
+		let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+		let exifr = new ExifParser(options)
+		await exifr.read(path)
+		assert.isAtLeast(exifr.file.byteLength, 12695)
+		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
+		let parsed = await exifr.parse()
+		assert.instanceOf(parsed.gps.GPSLatitude, Array)
 	})
 
 })

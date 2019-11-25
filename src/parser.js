@@ -185,7 +185,9 @@ export class Exifr extends Reader {
 			await this.parseTiffFile()
 		else
 			await this.parseJpegFile()
-		return this.createOutput()
+		let output = await this.createOutput()
+		if (this.file.destroy) /*await*/ this.file.destroy()
+		return output
 	}
 
 	async parseJpegFile() {

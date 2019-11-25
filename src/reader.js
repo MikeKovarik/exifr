@@ -144,13 +144,9 @@ export class ChunkedReader extends DynamicBufferView {
 			|| !!this.options.iptc
 	}
 
-	destroy() {}
-
 }
 
 export class FsReader extends ChunkedReader {
-
-	bytesRead = 0
 
 	async readWhole() {
 		this.chunked = false
@@ -177,7 +173,9 @@ export class FsReader extends ChunkedReader {
 	// TODO: auto close file handle when reading and parsing is over
 	// (app can read more chunks after parsing the first)
 	async destroy() {
+		console.log('FsReader.destroy()')
 		if (this.fh) {
+			await this.fh.close()
 			this.fh = undefined
 		}
 	}
