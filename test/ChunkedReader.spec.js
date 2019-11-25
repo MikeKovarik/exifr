@@ -292,15 +292,30 @@ describe('ChunkedReader', () => {
 
 	})
 
-	it(`12345 practical example of chunked reader processing simple jpg file sequentially`, async () => {
-		let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
-		let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
-		let exifr = new ExifParser(options)
-		await exifr.read(path)
-		assert.isAtLeast(exifr.file.byteLength, 12695)
-		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
-		let parsed = await exifr.parse()
-		assert.instanceOf(parsed.gps.GPSLatitude, Array)
+	describe('practical example of chunked reader', () => {
+
+		it(`reading simple .jpg file sequentially`, async () => {
+			let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
+			let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+			let exifr = new ExifParser(options)
+			await exifr.read(path)
+			assert.isAtLeast(exifr.file.byteLength, 12695)
+			assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
+			let output = await exifr.parse()
+			assert.instanceOf(output.gps.GPSLatitude, Array)
+		})
+
+		it(`reading scattered (IFD0 pointing to the end of file)`, async () => {
+			let input = await getPath('001.tif')
+			let options = {wholeFile: false, seekChunkSize: 100}
+			let exifr = new ExifParser(options)
+			await exifr.read(input)
+			let output = await exifr.parse()
+			console.log('output', output)
+			assert.equal(output.Make, 'DJI')
+		})
+
 	})
+
 
 })
