@@ -5,7 +5,6 @@ body {
 	font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 	font-size: 15px;
 	background-color: rgb(234, 234, 234);
-	background: linear-gradient(to bottom, rgb(234, 234, 234), rgb(245, 250, 255));
 	color: rgb(80, 80, 80);
 	margin: 0;
 }
@@ -41,6 +40,7 @@ h3 {
 	position: relative;
 	margin-top: 0px;
 	margin-bottom: 8px;
+	text-transform: capitalize;
 }
 * + h2 {
 	margin-top: 48px;
@@ -56,6 +56,13 @@ h3 {
 header {
 	position: relative;
 	margin-bottom: 16px;
+	/*
+	background-color: rgba(234, 234, 234, 0.7);
+	backdrop-filter: blur(10px);
+	position: sticky;
+	top: 0px;
+	z-index: 999;
+	*/
 }
 	header .badges {
 		display: flex;
@@ -162,9 +169,16 @@ h3 span {
 		opacity: 0;
 	}
 
-form {
+#options {
 	font-family: monospace;
 }
+@media only screen and (min-width: 500px) {
+	#options {
+		position: sticky;
+		top: 20px;
+	}
+}
+
 pre {
 	white-space: pre-wrap;
 	font-size: 10px;
@@ -214,7 +228,7 @@ table {
 @media only screen and (min-width: 500px) {
 	#input-head   {grid-area: input-head}
 	#input        {grid-area: input}
-	#output       {grid-area: output}
+	#raw          {grid-area: raw}
 	#output-head  {grid-area: output-head}
 	#thumb        {grid-area: thumb}
 	#app1-thumb   {grid-area: app1-thumb}
@@ -235,7 +249,7 @@ table {
 			"input      .          "
 			"input      .          "
 			"input      .          "
-			"output     output     "
+			"output     raw        "
 	}
 }
 @media only screen and (min-width: 750px) and (max-width: 999px) {
@@ -243,21 +257,21 @@ table {
 		grid-template-columns: 220px min-content auto;
 		grid-template-areas:
 			"input-head output-head output-head"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
-			"input      .           output"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
 	}
 }
 @media only screen and (min-width: 1000px) {
@@ -265,12 +279,27 @@ table {
 		grid-template-columns: 220px min-content min-content auto;
 		grid-template-areas:
 			"input-head output-head  output-head  output-head"
-			"input      thumb        app1-ifd0    output     "
-			"input      app1-thumb   app1-exif    output     "
-			"input      app1-gps     app1-interop output     "
-			"input      app1-iptc    .            output     "
-			"input      marker-notes .            output     "
-			"input      .            .            output     "
-			"input      .            .            output     "
+			"input      thumb        app1-ifd0    raw"
+			"input      app1-thumb   app1-exif    raw"
+			"input      app1-gps     app1-interop raw"
+			"input      app1-iptc    .            raw"
+			"input      marker-notes .            raw"
+			"input      .            .            raw"
+			"input      .            .            raw"
 	}
 }
+#grid.raw-fullscreen {
+	grid-template-columns: 220px auto;
+	grid-template-areas:
+		"input-head output-head"
+		"input      raw"
+}
+	/*
+	#grid.raw-fullscreen segment-box,
+	#grid.raw-fullscreen #thumb,
+	#grid.raw-fullscreen #marker-notes,
+	#grid.raw-fullscreen #user-comment {
+	*/
+	#grid.raw-fullscreen > *:not(#input-head):not(#output-head):not(#input):not(#raw) {
+		display: none;
+	}

@@ -1,4 +1,4 @@
-var exifr = require('../index.js')
+var exifr = require('../index.cjs')
 var fs = require('fs').promises
 
 fs.readFile('../test/fixtures/IMG_20180725_163423.jpg')

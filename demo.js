@@ -1,6 +1,21 @@
 import {ExifParser, parse, optionsFactory} from './src/index-full.js'
 
 
+/*
+// TODO: separate these from raw output
+Long properties
+XPComment in IFD0 in issue-exifr-13.jpg
+ImageDescription in IFD0 in Bush-dog.jpg
+MakerNote
+
+// tyhle jsou number array v ifd0 (binarni?)
+0x9C9B: 'XPTitle', //
+0x9C9C: 'XPComment', //
+0x9C9D: 'XPAuthor', // 
+0x9C9E: 'XPKeywords', //
+0x9C9F: 'XPSubject', //
+*/
+
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
 function cloneObject(object) {
@@ -118,7 +133,10 @@ class ExifrDemoApp {
 	iptcFilter =      ['headline', 'caption', 'source', 'country']
 	thumbnailFilter = ['ImageWidth', 'ImageHeight', 'ThumbnailLength']
 
+	rawFullscreen = false
+
 	constructor() {
+
 		this.createDefaultOptions()
 
 		this.thumbImg = document.querySelector('#thumb img')
@@ -226,14 +244,6 @@ class ExifrDemoApp {
 		renderTable(parser, output, 'iptc',    ['headline', 'caption', 'source', 'country'])
 		renderTable(parser, output, 'xmp')
 		renderTable(parser, output, 'thumbnail', ['ImageWidth', 'ImageHeight', 'ThumbnailLength'])
-		*/
-
-		/*
-		// TODO: separate these from raw output
-		Long properties
-		XPComment in IFD0 in issue-exifr-13.jpg
-		ImageDescription in IFD0 in Bush-dog.jpg
-		MakerNote
 		*/
 
 		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote

@@ -27,7 +27,7 @@
 	</header>
 
 
-	<div id="grid" class="nowrap">
+	<div id="grid" class="nowrap ${rawFullscreen ? 'raw-fullscreen' : ''}">
 
 		<h2 id="input-head">Input</h2>
 
@@ -47,24 +47,24 @@
 			</div>
 
 			<h3>Options</h3>
-			<form>
+			<form id="options">
 				<div>{</div>
 				<div muted>&nbsp;&nbsp;// APP segments</div>
 				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.tiff" change.trigger="updateOptions('tiff')">,</div>
+				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// TIFF blocks</div>
+				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd0:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.ifd0" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;exif:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.exif" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:       <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.gps" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.interop" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;thumbnail: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.thumbnail" change.trigger="updateOptions()">,</div>
+				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// other content of TIFF</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;makerNote:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.makerNote" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;userComment: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.userComment" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;icc:       <input type="checkbox" checked.bind="options.icc" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" checked.bind="options.iptc" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" checked.bind="options.jfif" change.trigger="updateOptions()">,</div>
-				<div muted>&nbsp;&nbsp;// TIFF blocks</div>
-				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
-				<div>&nbsp;&nbsp;ifd0:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.ifd0" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;exif:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.exif" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;gps:       <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.gps" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;interop:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.interop" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;thumbnail: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.thumbnail" change.trigger="updateOptions()">,</div>
-				<div muted>&nbsp;&nbsp;// other content of TIFF</div>
-				<div>&nbsp;&nbsp;makerNote:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.makerNote" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;userComment: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.userComment" change.trigger="updateOptions()">,</div>
 				<div muted>&nbsp;&nbsp;// output style</div>
 				<div title="combine all segments and blocks into single output object">&nbsp;&nbsp;mergeOutput: <input type="checkbox" checked.bind="options.mergeOutput" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;sanitize:        <input type="checkbox" checked.bind="options.sanitize" change.trigger="updateOptions()">,</div>
@@ -75,8 +75,8 @@
 				<div muted>&nbsp;&nbsp;// skip or only pick tags</div>
 				<div>&nbsp;&nbsp;pickTags: [<input type="text" name="pickTags">],</div>
 				<div>&nbsp;&nbsp;skipTags: [<input type="text" name="skipTags">],</div>
-				<div>}</div>
 				-->
+				<div>}</div>
 			</form>
 
 		</div>
@@ -115,8 +115,11 @@
 			<pre>${userComment | binary}</pre>
 		</div>
 
-		<div id="output" class="wrap">
-			<h3>Raw output</h3>
+		<div id="raw" class="wrap">
+			<h3>
+				Raw output
+				<span click.trigger="rawFullscreen = !rawFullscreen">Toggle fullscreen</span>
+			</h3>
 			<pre>${output | json}</pre>
 		</div>
 
