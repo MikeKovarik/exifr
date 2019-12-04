@@ -1,8 +1,13 @@
-import './tags/tiff-ifd0-values.js'
-import './tags/tiff-gps-keys.js'
-import './tags/tiff-exif-keys.js'
-import './tags/tiff-exif-values.js'
+export * from './index-lite.js'
+
+// TIFF - Additional tags
+import './tags/tiff-interop-keys.js'
+import './tags/tiff-other-keys.js'
+
+// ICC
 import './tags/icc-keys.js'
 import './tags/icc-values.js'
-import './tags/iptc.js'
-export * from './index-lite.js'
+
+// IPTC
+import './tags/iptc-keys.js'
+import './tags/iptc-values.js'
