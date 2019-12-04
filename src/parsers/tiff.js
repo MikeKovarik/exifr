@@ -56,14 +56,14 @@ export class TiffCore extends AppSegment {
 		let onlyPick = picks.length > 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
-		let output = {}
+		let block = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
 			if ((onlyPick && picks.includes(tag)) || (!onlyPick && !skips.includes(tag)))
-				output[tag] = this.parseTag(offset)
+				block[tag] = this.parseTag(offset)
 			offset += 12
 		}
-		return output
+		return block
 	}
 
 	parseTag(offset) {
@@ -172,7 +172,8 @@ export class TiffExif extends TiffCore {
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 	async parse() {
 		//global.recordBenchTime(`tiffExif.parse()`)
-		this.parseIfd0Block()                                  // APP1 - IFD0
+		this.parseHeader()
+		if (this.options.ifd0)      this.parseIfd0Block()                                  // APP1 - IFD0
 		if (this.options.exif)      this.parseExifBlock()      // APP1 - EXIF IFD
 		if (this.options.gps)       this.parseGpsBlock()       // APP1 - GPS IFD
 		if (this.options.interop)   this.parseInteropBlock()   // APP1 - Interop IFD
@@ -203,18 +204,7 @@ export class TiffExif extends TiffCore {
 
 	parseIfd0Block() {
 		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
-		if (!this.headerParsed) this.parseHeader()
 		if (this.ifd0) return
-		// User may want to skip IFD0, in which case we need to at least go through it to find exif/gps/interop pointers.
-		if (!this.options.ifd0) {
-			let tags = []
-			if (this.options.exif)    tags.push(TAG_IFD_EXIF)
-			if (this.options.interop) tags.push(TAG_IFD_INTEROP)
-			if (this.options.gps)     tags.push(TAG_IFD_GPS)
-			if (this.options.xmp)     tags.push(TAG_APPNOTES) // .tif contains XMP as ApplicationNotes tag
-			if (tags.length === 0) return
-			this.options.addPickTags('ifd0', ...tags)
-		}
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		this.findIfd0Offset()
@@ -223,20 +213,19 @@ export class TiffExif extends TiffCore {
 		if (this.ifd0Offset > this.file.byteLength && !this.file.chunked)
 			throw new Error(`IFD0 offset points to outside of file. ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
 		if (this.ifd0Offset > this.chunk.byteLength) {
-			// WARNING: this is unusual case in jpeg files, but happens in tiff files.
-			// tiff files start with TIFF structure header which contains pointer to IFD0. But the actual IFD0 data can be
-			// at the end of the file. Since we only received chunk of max size of 64kb, we need to step outside of the chunk
-			// and work with the whole file because all other pointers are absolute values from start of the file.
-			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
+			// This is unusual case in jpeg files, but happens often in tiff files.
+			// .tif files start with TIFF structure header. It contains pointer to IFD0. But the IFD0 data can be at the end of the file.
+			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
 			if (this.file.chunked) {
 				// TODO: fetch/read
 				throw new Error(`IFD0 offset points to outside of currently loaded bytes. ifd0Offset: ${this.ifd0Offset}, chunk.byteLength: ${this.chunk.byteLength}`)
 				// TODO: await read the chunk
-				this.chunk = BufferView.from(this.file, this.le)
 			} else {
-				// WARNING: We cannot just replace chunk by file (as in this.chunk=this.file).
-				this.chunk = BufferView.from(this.file, this.le)
 			}
+			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.
+			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
+			// WARNING: Creating different view on top of file with TIFFs endian mode, because TIFF structure typically uses different endiannness.
+			this.chunk = BufferView.from(this.file, this.le)
 		}
 		// Parse IFD0 block.
 		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')

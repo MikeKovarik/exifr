@@ -7,7 +7,7 @@ const configurableSegsOrBlocks = [
 	// APP (jpg) Segments
 	'jfif', 'tiff', 'xmp', 'icc', 'iptc',
 	// TIFF Blocks
-	'exif', 'gps', 'interop', 'thumbnail',
+	'ifd0', 'exif', 'gps', 'interop', 'thumbnail',
 ]
 
 class Options {
@@ -96,21 +96,43 @@ class Options {
 			this.skipTags = [...this.skipTags]
 		}
 		if (this.mergeOutput) this.thumbnail = false
-		if (this.makerNote || this.userComment && (!this.exif || !this.tiff)) {
-			console.log('want to parse makerNote or userComment but exif or tiff is disabled. TODO: enable tiff and add EXIF_IFD_POINTER to pickTags')
-		}
-		if (this.pickTags.length) {
-			if (this.exif)    this.pickTags.push(TAG_IFD_EXIF)
-			if (this.gps)     this.pickTags.push(TAG_IFD_GPS)
-			if (this.interop) this.pickTags.push(TAG_IFD_INTEROP)
-		}
-		//if (!this.xmp)         this.skipTags.push(/* app notes tag */)
-		if (!this.makerNote)   this.skipTags.push(TAG_MAKERNOTE)
-		if (!this.userComment) this.skipTags.push(TAG_USERCOMMENT)
+		// handle the tiff->ifd0->exif->makernote pickTags dependency tree.
+		this._ensurePickOrSkip()
 		// sanitize & translate tag names to tag codes
 		this._translatePickOrSkip(this)
 		for (let segKey of configurableSegsOrBlocks)
 			this.translatePickOrSkip(segKey)
+	}
+
+	_ensurePickOrSkip() {
+		let opts = this
+		if (isUnwanted(opts.exif) || Array.isArray(opts.exif)) {
+			let tags = [...this.pickTags]
+			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
+			if (opts.makerNote)   tags.push(TAG_MAKERNOTE)
+			if (opts.userComment) tags.push(TAG_USERCOMMENT)
+			if (tags.length)      opts.addPickTags('exif', ...tags)
+		} else if (opts.exif) {
+			// skip makernote & usercomment by default
+			let tags = [...this.skipTags]
+			if (!this.makerNote)   tags.push(TAG_MAKERNOTE)
+			if (!this.userComment) tags.push(TAG_USERCOMMENT)
+			if (tags.length)       opts.addSkipTags('exif', ...tags)
+		}
+		if ((isUnwanted(opts.ifd0) || Array.isArray(opts.ifd0)) && (opts.exif || opts.gps || opts.interop)) {
+			let tags = [...this.pickTags]
+			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
+			if (opts.exif)    tags.push(TAG_IFD_EXIF)
+			if (opts.gps)     tags.push(TAG_IFD_GPS)
+			if (opts.interop) tags.push(TAG_IFD_INTEROP)
+			// offset of Interop IFD can be in both IFD0 and Exif IFD.
+			if (opts.interop && isConfigured(this.exif))
+				opts.addPickTags('exif', TAG_IFD_INTEROP)
+			opts.addPickTags('ifd0', ...tags)
+		}
+		if (isUnwanted(opts.tiff) && (opts.ifd0 || opts.thumbnail)) {
+			opts.tiff = true
+		}
 	}
 
 	translatePickOrSkip(segKey) {
@@ -124,8 +146,9 @@ class Options {
 	}
 
 	_translatePickOrSkip(segment, segKey) {
-		segment.pickTags = sanitizeTags(segment.pickTags, segKey)
-		segment.skipTags = sanitizeTags(segment.skipTags, segKey)
+		let dict = tagKeys[segKey] || tagKeys.all
+		if (segment.pickTags) segment.pickTags = sanitizeTags(segment.pickTags, dict)
+		if (segment.skipTags) segment.skipTags = sanitizeTags(segment.skipTags, dict)
 	}
 
 	addPickTags(segKey, ...tags) {
@@ -164,8 +187,17 @@ class Options {
 
 }
 
-function sanitizeTags(tags, segKey) {
-	let dict = tagKeys[segKey]
+function isUnwanted(value) {
+	return value === undefined
+		|| value === false
+}
+
+function isConfigured(value) {
+	return Array.isArray(value)
+		|| typeof value === 'object'
+}
+
+function sanitizeTags(tags, dict) {
 	tags = tags
 		.map(tag => typeof tag === 'string' ? findTag(tag, dict) : tag)
 		.filter(isDefined)

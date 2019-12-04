@@ -1,5 +1,5 @@
 import Reader from './reader.js'
-import {tags, TAG_APPNOTES} from './tags.js'
+import {TAG_APPNOTES} from './tags.js'
 import {BufferView} from './util/BufferView.js'
 import {AppSegment, parsers as parserClasses} from './parsers/core.js'
 import './parsers/tiff.js'
@@ -129,15 +129,21 @@ export class Exifr extends Reader {
 		return this.parsers[type] = parser
 	}
 
-	findJpgAppSegments(offset = 0, wantedSegments = []) {
+	findJpgAppSegments(offset = 0, wantedSegments) {
 		//global.recordBenchTime(`exifr.findJpgAppSegments()`)
-		// TODO: only use parsers wanted by options
-		if (wantedSegments.length === 0)
-			wantedSegments = Object.keys(parserClasses).filter(key => this.options[key])
+		let findAll
 		let wantedParsers = new Map
-		for (let type of wantedSegments)
-			wantedParsers.set(type, parserClasses[type])
-		let remainingSegments = new Set(wantedSegments)
+		let remainingSegments
+		if (wantedSegments === true) {
+			findAll = true
+		} else {
+			if (wantedSegments === undefined)
+				wantedSegments = Object.keys(parserClasses).filter(key => this.options[key])
+			findAll = false
+			for (let type of wantedSegments)
+				wantedParsers.set(type, parserClasses[type])
+			remainingSegments = new Set(wantedSegments)
+		}
 		let file = this.file
 		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
 		for (; offset < bytes; offset++) {
@@ -156,15 +162,11 @@ export class Exifr extends Reader {
 					let Parser = wantedParsers.get(type)
 					let seg = Parser.findPosition(file, offset)
 					seg.type = type
-					/*
-					if (findAll) {
-						this.appSegments.push(seg)
-					} else if (remainingSegments.size > 0 && remainingSegments.has(type)) {
-					*/
-						this.appSegments.push(seg)
+					this.appSegments.push(seg)
+					if (!findAll) {
 						remainingSegments.delete(type)
 						if (remainingSegments.size === 0) break
-					//}
+					}
 				} else {
 					// either unknown/supported appN segment or just a noise.
 					let seg = AppSegment.findPosition(file, offset)
