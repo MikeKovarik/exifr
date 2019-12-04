@@ -1,6 +1,8 @@
 import {tagKeys} from '../tags.js'
 
 
+// https://exiftool.org/TagNames/ICC_Profile.html
+
 tagKeys.icc = {
 	4:  'cmm',
 	8:  'version',
@@ -10,10 +12,14 @@ tagKeys.icc = {
 	24: 'date',
 	36: 'signature',
 	40: 'platform',
+	44: 'cmmFlags',
 	48: 'manufacturer',
 	52: 'model',
+	56: 'attributes',
 	64: 'intent',
+	68: 'spaceIlluminant',
 	80: 'creator',
+	84: 'id',
 	desc: 'description',
 	cprt: 'copyright',
 	dmdd: 'modelDescription',

@@ -1,6 +1,8 @@
 import {tagValues} from '../tags.js'
 
 
+// https://exiftool.org/TagNames/ICC_Profile.html
+
 const companies = {
 	appl: 'Apple',
 	adbe: 'Adobe',

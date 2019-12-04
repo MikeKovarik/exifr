@@ -1,10 +1,10 @@
 import {tagValues} from '../tags.js'
 
 
-let tags = tagValues.exif = tagValues.interop = {}
+const exif = tagValues.exif = {}
 
 // ExposureProgram
-tags[0x8822] = {
+exif[0x8822] = {
 	0: 'Not defined',
 	1: 'Manual',
 	2: 'Normal program',
@@ -17,7 +17,7 @@ tags[0x8822] = {
 }
 
 // ComponentsConfiguration
-tags[0x9101] = {
+exif[0x9101] = {
 	0: '-',
 	1: 'Y',
 	2: 'Cb',
@@ -28,7 +28,7 @@ tags[0x9101] = {
 }
 
 // MeteringMode
-tags[0x9207] = {
+exif[0x9207] = {
 	0:  'Unknown',
 	1:  'Average',
 	2:  'CenterWeightedAverage',
@@ -40,7 +40,7 @@ tags[0x9207] = {
 }
 
 // LightSource
-tags[0x9208] = {
+exif[0x9208] = {
 	0:   'Unknown',
 	1:   'Daylight',
 	2:   'Fluorescent',
@@ -65,7 +65,7 @@ tags[0x9208] = {
 }
 
 // Flash
-tags[0x9209] = {
+exif[0x9209] = {
 	0x00: 'Flash did not fire',
 	0x01: 'Flash fired',
 	0x05: 'Strobe return light not detected',
@@ -91,15 +91,15 @@ tags[0x9209] = {
 }
 
 // FocalPlaneResolutionUnit
-tags[0x9210] =
-tags[0xa210] = {
+exif[0x9210] =
+exif[0xa210] = {
 	1: 'No absolute unit of measurement',
 	2: 'Inch',
 	3: 'Centimeter',
 }
 
 // SensingMethod
-tags[0xa217] = {
+exif[0xa217] = {
 	1: 'Not defined',
 	2: 'One-chip color area sensor',
 	3: 'Two-chip color area sensor',
@@ -110,19 +110,19 @@ tags[0xa217] = {
 }
 
 // FileSource
-tags[0xa300] = {
+exif[0xa300] = {
 	1: 'Film Scanner',
 	2: 'Reflection Print Scanner',
 	3: 'Digital Camera',
 }
 
 // SceneType
-tags[0xa301] = {
+exif[0xa301] = {
 	1: 'Directly photographed'
 }
 
 // CustomRendered
-tags[0xa401] = {
+exif[0xa401] = {
 	0: 'Normal',
 	1: 'Custom',
 	2: 'HDR (no original saved)',
@@ -134,20 +134,20 @@ tags[0xa401] = {
 }
 
 // ExposureMode
-tags[0xa402] = {
+exif[0xa402] = {
 	0: 'Auto',
 	1: 'Manual',
 	2: 'Auto bracket',
 }
 
 // WhiteBalance
-tags[0xa403] = {
+exif[0xa403] = {
 	0: 'Auto',
 	1: 'Manual'
 }
 
 // SceneCaptureType
-tags[0xa406] = {
+exif[0xa406] = {
 	0: 'Standard',
 	1: 'Landscape',
 	2: 'Portrait',
@@ -156,7 +156,7 @@ tags[0xa406] = {
 }
 
 // GainControl
-tags[0xa407] = {
+exif[0xa407] = {
 	0: 'None',
 	1: 'Low gain up',
 	2: 'High gain up',
@@ -165,16 +165,16 @@ tags[0xa407] = {
 }
 
 // Contrast, Saturation, Sharpness
-tags[0xa408] =
-tags[0xa409] =
-tags[0xa40a] = {
+exif[0xa408] =
+exif[0xa409] =
+exif[0xa40a] = {
 	0: 'Normal',
 	1: 'Low',
 	2: 'High'
 }
 
 // SubjectDistanceRange
-tags[0xa40c] = {
+exif[0xa40c] = {
 	0: 'Unknown',
 	1: 'Macro',
 	2: 'Close',
@@ -182,7 +182,7 @@ tags[0xa40c] = {
 }
 
 // CompositeImage
-tags[0xa460] = {
+exif[0xa460] = {
 	0: 'Unknown',
 	1: 'Not a Composite Image',
 	2: 'General Composite Image',
