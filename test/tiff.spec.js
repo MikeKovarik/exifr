@@ -100,30 +100,37 @@ describe('TIFF Segment', () => {
 
 	describe('pick / skip', () => {
 
-		it(`pickskip1`, async () => {
+		it(`only ifd0 pickTags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let options = {mergeOutput: false, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
+			let options = {mergeOutput: true, ifd0: ['Make'], exif: false, gps: false, interop: false}
 			var output = await parse(input, options)
-			console.log('output', output)
-			assert.isObject(output)
+			assert.exists(output.Make)
+			assert.lengthOf(Object.keys(output), 1)
 		})
 
-		it(`pickskip1 only ifd0, exif & gps pickTags are present in output`, async () => {
+		it(`only ifd0, exif & gps pickTags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: false}
 			var output = await parse(input, options)
-			console.log('output', output)
 			assert.exists(output.Make)
 			assert.exists(output.ISO)
 			assert.exists(output.GPSLatitude)
 			assert.lengthOf(Object.keys(output), 3)
 		})
 
-		it(`pickskip3 only ifd0, exifm gps & interop pickTags are present in output`, async () => {
+		it(`only exif & gps pickTags are present in output`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: true, ifd0: false, exif: ['ISO'], gps: ['GPSLatitude'], interop: false}
+			var output = await parse(input, options)
+			assert.exists(output.ISO)
+			assert.exists(output.GPSLatitude)
+			assert.lengthOf(Object.keys(output), 2)
+		})
+
+		it(`only ifd0, exifm gps & interop pickTags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			var output = await parse(input, options)
-			console.log('output', output)
 			assert.exists(output.Make)
 			assert.exists(output.ISO)
 			assert.exists(output.GPSLatitude)
@@ -131,42 +138,39 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 4)
 		})
 
-		it(`pickskip1 only ifd0 pickTags are present in output`, async () => {
+		it(`pickskip2 only ifd0, exifm gps & interop blocks with picked tags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let options = {mergeOutput: true, ifd0: ['Make'], exif: false, gps: false, interop: false}
+			let options = {mergeOutput: false, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			var output = await parse(input, options)
-			console.log('output', output)
-			assert.exists(output.Make)
-			assert.lengthOf(Object.keys(output), 1)
+			assert.exists(output.ifd0)
+			assert.exists(output.exif)
+			assert.exists(output.gps)
+			assert.exists(output.interop)
+			assert.lengthOf(Object.keys(output.ifd0), 1)
+			assert.lengthOf(Object.keys(output.exif), 1)
+			assert.lengthOf(Object.keys(output.gps), 1)
+			assert.lengthOf(Object.keys(output.interop), 1)
+			assert.exists(output.ifd0.Make)
+			assert.exists(output.exif.ISO)
+			assert.exists(output.gps.GPSLatitude)
+			assert.exists(output.interop.InteropIndex)
 		})
 
-		it(`pickskip1 only exif & gps pickTags are present in output`, async () => {
-			let input = await getFile('IMG_20180725_163423.jpg')
-			let options = {mergeOutput: true, ifd0: false, exif: ['ISO'], gps: ['GPSLatitude'], interop: false}
-			var output = await parse(input, options)
-			console.log('output', output)
-			assert.exists(output.ISO)
-			assert.exists(output.GPSLatitude)
-			assert.lengthOf(Object.keys(output), 2)
-		})
-
-		it(`pickskip2 does not contain exif, nor ifd0, but contains makerNote when {ifd0: false, exif: false, makerNote: true, mergeOutput: false}`, async () => {
+		it(`does not contain exif, nor ifd0, but contains makerNote when {ifd0: false, exif: false, makerNote: true, mergeOutput: false}`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, makerNote: true}
 			var output = await parse(input, options)
-			console.log('output', output)
 			assert.isUndefined(output.exif)
-			assert.exists(output.MakerNote) // Capital
+			assert.exists(output.makerNote)
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
-		it(`pickskip2 does not contain exif, nor ifd0, but contains makerNote when {ifd0: false, exif: false, makerNote: true, mergeOutput: true}`, async () => {
+		it(`does not contain exif, nor ifd0, but contains makerNote when {ifd0: false, exif: false, makerNote: true, mergeOutput: true}`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: false, exif: false, gps: false, makerNote: true}
 			var output = await parse(input, options)
-			console.log('output', output)
 			assert.isUndefined(output.exif)
-			assert.exists(output.makerNote) // lowerCase
+			assert.exists(output.makerNote)
 			assert.lengthOf(Object.keys(output), 1)
 		})
 

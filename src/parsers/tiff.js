@@ -235,16 +235,12 @@ export class TiffExif extends TiffCore {
 		this.exifOffset    = ifd0[TAG_IFD_EXIF]
 		this.interopOffset = ifd0[TAG_IFD_INTEROP]
 		this.gpsOffset     = ifd0[TAG_IFD_GPS]
-		this.makerNote     = ifd0[TAG_MAKERNOTE]
-		this.userComment   = ifd0[TAG_USERCOMMENT]
 		this.appNotes      = ifd0[TAG_APPNOTES]
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		if (this.options.sanitize) {
 			delete ifd0[TAG_IFD_EXIF]
 			delete ifd0[TAG_IFD_INTEROP]
 			delete ifd0[TAG_IFD_GPS]
-			delete ifd0[TAG_MAKERNOTE]
-			delete ifd0[TAG_USERCOMMENT]
 			delete ifd0[TAG_APPNOTES] // XMP in .tif
 		}
 		return ifd0
@@ -258,7 +254,13 @@ export class TiffExif extends TiffCore {
 		if (this.exifOffset === undefined) return
 		let exif = this.exif = this.parseTags(this.exifOffset, 'exif')
 		if (!this.interopOffset) this.interopOffset = exif[TAG_IFD_INTEROP]
-		if (this.options.sanitize) delete exif[TAG_IFD_INTEROP]
+		this.makerNote   = exif[TAG_MAKERNOTE]
+		this.userComment = exif[TAG_USERCOMMENT]
+		if (this.options.sanitize) {
+			delete exif[TAG_IFD_INTEROP]
+			delete exif[TAG_MAKERNOTE]
+			delete exif[TAG_USERCOMMENT]
+		}
 		return exif
 	}
 
