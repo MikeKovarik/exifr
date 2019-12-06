@@ -218,9 +218,9 @@ export class TiffExif extends TiffCore {
 			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
 			if (this.file.chunked) {
 				// TODO: fetch/read
+				console.warn('work in progress: TODO: IMPLEMENT ME')
 				throw new Error(`IFD0 offset points to outside of currently loaded bytes. ifd0Offset: ${this.ifd0Offset}, chunk.byteLength: ${this.chunk.byteLength}`)
 				// TODO: await read the chunk
-			} else {
 			}
 			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.
 			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())

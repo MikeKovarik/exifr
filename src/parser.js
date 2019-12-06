@@ -107,6 +107,7 @@ export class Exifr extends Reader {
 			this.appSegments.push(seg)
 			let chunk = await this.ensureSegmentChunk(seg)
 			this.createParser('tiff', chunk)
+			this.parsers.tiff.parseHeader()
 			this.parsers.tiff.parseIfd0Block()
 			if (this.parsers.tiff.appNotes) {
 				let chunk = BufferView.from(this.parsers.tiff.appNotes)
