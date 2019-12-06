@@ -60,7 +60,7 @@ describe('output object', () => {
         assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
     })
 
-    it(`ApplicationNotes is moved from tiff to output.xmp`, async () => {
+    it(`ApplicationNotes (xmp in .tif) is moved from tiff to output.xmp`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, {mergeOutput: false}) || {}
         assert.exists(output.xmp)
@@ -68,13 +68,14 @@ describe('output object', () => {
         assert.isUndefined(output.ifd0[0x02BC])
     })
 
-    it(`ApplicationNotes is not moved from tiff to output.xmp when {tiff: false}`, async () => {
+    // TODO: this behavior should be changed in future version when detecting the file as .tif
+    it(`ApplicationNotes (xmp in .tif) is available output.xmp despite {tiff: false}`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, {mergeOutput: false, tiff: false}) || {}
-        assert.isUndefined(output.xmp)
+        assert.exists(output.xmp)
     })
 
-    it(`ApplicationNotes is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
+    it(`ApplicationNotes (xmp in .tif) is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
         var output = await parse(input, {mergeOutput: false, xmp: false}) || {}
         assert.isString(output.xmp)

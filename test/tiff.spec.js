@@ -23,11 +23,11 @@ function testBlock({blockName, definedByDefault, results}) {
 			assert.isUndefined(output[blockName], `output shouldn't contain ${blockName}`)
 		})
 
-		it(`output.${blockName} is undefined when {tiff: false}`, async () => {
-			let options = {mergeOutput: false, tiff: false}
+		it(`output.${blockName} is defined when {${blockName}: true, tiff: false}`, async () => {
+			let options = {mergeOutput: false, [blockName]: true, tiff: false}
 			let input = await getFile(fileWith)
 			let output = await parse(input, options) || {}
-			assert.isUndefined(output[blockName], `output shouldn't contain ${blockName}`)
+			assert.exists(output[blockName], `output should contain ${blockName}`)
 		})
 
 		if (fileWithout) {
@@ -72,6 +72,7 @@ function testBlock({blockName, definedByDefault, results}) {
 
 }
 
+
 describe('TIFF Segment', () => {
 
 	it(`should handle .tif with scattered TIFF (IFD0 pointing to the end of file)`, async () => {
@@ -80,23 +81,23 @@ describe('TIFF Segment', () => {
 		assert.equal(output.Make, 'DJI')
 	})
 
-    it(`IFD0 is ignored and only sifted through for GPS IFD pointer when {ifd0: false, gps: true}`, async () => {
+	it(`IFD0 is ignored and only sifted through for GPS IFD pointer when {ifd0: false, gps: true}`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
 		let options = {mergeOutput: false, ifd0: false, gps: true}
-        var output = await parse(input, options)
+		var output = await parse(input, options)
 		assert.isUndefined(output.ifd0)
 		//assert.isUndefined(output.ifd0.ImageWidth)
 		//assert.isUndefined(output.ifd0.Make)
 		assert.exists(output.gps)
 		assert.exists(output.gps.GPSLatitude)
-    })
+	})
 
-    it(`random issue {ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}`, async () => {
+	it(`random issue {ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}`, async () => {
 		let input = await getFile('canon-dslr.jpg')
 		let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
-        var output = await parse(input, options)
+		var output = await parse(input, options)
 		assert.isObject(output)
-    })
+	})
 
 	describe('pick / skip', () => {
 
@@ -138,7 +139,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 4)
 		})
 
-		it(`pickskip2 only ifd0, exifm gps & interop blocks with picked tags are present in output`, async () => {
+		it(`only ifd0, exifm gps & interop blocks with picked tags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: false, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			var output = await parse(input, options)
@@ -182,27 +183,24 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
-    })
+	})
 
 	// TODO: more tests for .tif
 
-    /*
-    import {TiffExifParser} from '../src/parsers/tiff'
-    TiffExifParser
-
-    // Exif is scattered throughout the file.
-    // Header at the beginning of file, data at the end.
-    // tiff offset at 0; ID0 offset at 677442
-    it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
-        let options = {wholeFile: true}
-        let input = getPath('001.tif')
-        let output = await parse(input, options)
-        assert.equal(output.Make, 'DJI')
-    })
-
-	*/
+	//import {TiffExifParser} from '../src/parsers/tiff'
+	//TiffExifParser
+	// Exif is scattered throughout the file.
+	// Header at the beginning of file, data at the end.
+	// tiff offset at 0; ID0 offset at 677442
+	//it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
+	//    let options = {wholeFile: true}
+	//    let input = getPath('001.tif')
+	//    let output = await parse(input, options)
+	//    assert.equal(output.Make, 'DJI')
+	//})
 
 })
+
 
 describe('TIFF - IFD0 / Image Block', () => {
 
@@ -290,6 +288,7 @@ describe('TIFF - GPS Block', () => {
 	})
 })
 
+
 describe('TIFF - Interop Block', () => {
 
 	testBlock({
@@ -311,6 +310,7 @@ describe('TIFF - Interop Block', () => {
 	})
 
 })
+
 
 // IFD1
 describe('TIFF - IFD1 / Thumbnail Block', () => {
