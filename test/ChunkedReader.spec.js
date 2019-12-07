@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getPath} from './test-util.js'
+import {getPath, getFile} from './test-util.js'
 import {DynamicBufferView} from '../src/util/BufferView.js'
 import {FsReader} from '../src/reader.js'
 import {ExifParser} from '../src/index-full.js'
@@ -305,14 +305,34 @@ describe('ChunkedReader', () => {
 			assert.instanceOf(output.gps.GPSLatitude, Array)
 		})
 
-		it(`reading scattered (IFD0 pointing to the end of file)`, async () => {
-			let input = await getPath('001.tif')
-			let options = {wholeFile: false, seekChunkSize: 100}
-			let exifr = new ExifParser(options)
-			await exifr.read(input)
-			let output = await exifr.parse()
-			console.log('output', output)
-			assert.equal(output.Make, 'DJI')
+		describe (`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
+
+			it(`input path & {wholeFile: false}`, async () => {
+				let input = await getPath('001.tif')
+				let options = {wholeFile: false, seekChunkSize: 100}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				let output = await exifr.parse()
+				assert.equal(output.Make, 'DJI')
+			})
+
+			it(`input path & {wholeFile: false}`, async () => {
+				let input = await getPath('001.tif')
+				let options = {wholeFile: true}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				let output = await exifr.parse()
+				assert.equal(output.Make, 'DJI')
+			})
+
+			it(`input buffer & no options`, async () => {
+				let input = await getFile('001.tif')
+				let exifr = new ExifParser()
+				await exifr.read(input)
+				let output = await exifr.parse()
+				assert.equal(output.Make, 'DJI')
+			})
+
 		})
 
 	})

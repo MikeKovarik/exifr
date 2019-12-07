@@ -33,6 +33,7 @@ const SIZE_LOOKUP = {
 export class TiffCore extends AppSegment {
 
 	parseHeader() {
+		console.log('parseHeader')
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.chunk.getUint16()
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
@@ -51,6 +52,7 @@ export class TiffCore extends AppSegment {
 	}
 
 	parseTags(offset, blockKey) {
+		console.log('parseTags', blockKey)
 		let picks = this.options.getPickTags(blockKey, 'tiff')
 		let skips = this.options.getSkipTags(blockKey, 'tiff')
 		let onlyPick = picks.length > 0
@@ -203,30 +205,16 @@ export class TiffExif extends TiffCore {
 	}
 
 	parseIfd0Block() {
+		console.log('parseIfd0Block')
 		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		this.findIfd0Offset()
+		console.log('this.ifd0Offset', this.ifd0Offset)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
-		if (this.ifd0Offset > this.file.byteLength && !this.file.chunked)
-			throw new Error(`IFD0 offset points to outside of file. ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
-		if (this.ifd0Offset > this.chunk.byteLength) {
-			// This is unusual case in jpeg files, but happens often in tiff files.
-			// .tif files start with TIFF structure header. It contains pointer to IFD0. But the IFD0 data can be at the end of the file.
-			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
-			if (this.file.chunked) {
-				// TODO: fetch/read
-				console.warn('work in progress: TODO: IMPLEMENT ME')
-				throw new Error(`IFD0 offset points to outside of currently loaded bytes. ifd0Offset: ${this.ifd0Offset}, chunk.byteLength: ${this.chunk.byteLength}`)
-				// TODO: await read the chunk
-			}
-			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.
-			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
-			// WARNING: Creating different view on top of file with TIFFs endian mode, because TIFF structure typically uses different endiannness.
-			this.chunk = BufferView.from(this.file, this.le)
-		}
+		this.ensureChunkRead('IFD0', this.ifd0Offset, this.options.minimalTiffSize)
 		// Parse IFD0 block.
 		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
@@ -244,6 +232,34 @@ export class TiffExif extends TiffCore {
 			delete ifd0[TAG_APPNOTES] // XMP in .tif
 		}
 		return ifd0
+	}
+
+	ensureChunkRead(blockName, blockOffset, minSize) {
+		console.log('this.file.chunked', this.file.chunked)
+		console.log('blockOffset', blockOffset)
+		console.log('minSize', minSize)
+		console.log('this.file.byteLength', this.file.byteLength)
+		console.log('this.chunk.byteLength', this.chunk.byteLength)
+		let end = blockOffset + minSize
+		console.log('end', end)
+		if (!this.file.chunked) {
+			if (blockOffset > this.file.byteLength)
+				throw new Error(`${blockName} offset points to outside of file.\nblockOffset: ${blockOffset}, file.byteLength: ${this.file.byteLength}`)
+			//if (blockOffset + minSize > this.file.byteLength)
+			//	throw new Error(`Not enough bytes of file are read to ensure ${blockName} block is properly parsed.\nblockOffset: ${blockOffset}, minSize: ${minSize}, file.byteLength: ${this.file.byteLength}`)
+		} else if (blockOffset + minSize > this.chunk.byteLength) {
+			// This is unusual case in jpeg files, but happens often in tiff files.
+			// .tif files start with TIFF structure header. It contains pointer to IFD0. But the IFD0 data can be at the end of the file.
+			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
+			console.warn('work in progress: TODO: IMPLEMENT ME')
+			throw new Error(`${blockName} offset points to outside of currently loaded bytes.\nblockOffset: ${blockOffset}, minSize: ${minSize}, chunk.byteLength: ${this.chunk.byteLength}`)
+		}
+		if (blockOffset/* + minSize*/ > this.chunk.byteLength) {
+			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.
+			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
+			// WARNING: Creating different view on top of file with TIFFs endian mode, because TIFF structure typically uses different endiannness.
+			this.chunk = BufferView.from(this.file, this.le)
+		}
 	}
 
 	// EXIF block of TIFF of APP1 segment

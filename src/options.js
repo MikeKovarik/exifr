@@ -32,6 +32,8 @@ class Options {
 	// whole EXIF (and not just its begining like in case of seekChunkSize) in prevetion
 	// of additional loading and fetching.
 	parseChunkSize = 64 * 1024
+	// TODO
+	minimalTiffSize = 10 * 1024
 
 	// Removes IFD pointers and other artifacts (useless for user) from output.
 	sanitize = true
