@@ -60,25 +60,76 @@ describe('output object', () => {
         assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
     })
 
-    it(`ApplicationNotes (xmp in .tif) is moved from tiff to output.xmp`, async () => {
-		let input = await getFile('issue-metadata-extractor-152.tif')
-        var output = await parse(input, {mergeOutput: false}) || {}
-        assert.exists(output.xmp)
-        assert.isUndefined(output.ifd0.ApplicationNotes)
-        assert.isUndefined(output.ifd0[0x02BC])
+	describe('Extracting XMP from TIFF - ApplicationNotes (xmp in .tif)', () => {
+
+		let segName = 'xmp'
+		let propName = 'ApplicationNotes'
+		let propCode = 0x02BC
+		let input
+		let filePath = 'issue-metadata-extractor-152.tif'
+		before(async () => {
+			input = await getFile(filePath)
+		})
+
+		it(`is moved from tiff to output.${segName}`, async () => {
+			var output = await parse(input, {mergeOutput: false}) || {}
+			assert.exists(output[segName])
+			assert.isUndefined(output.ifd0[propName])
+			assert.isUndefined(output.ifd0[propCode])
+		})
+
+		// TODO: this behavior should be changed in future version when detecting the file as .tif
+		it(`is available output.${segName} despite {tiff: false}`, async () => {
+			var output = await parse(input, {mergeOutput: false, tiff: false}) || {}
+			assert.exists(output[segName])
+		})
+
+		it(`is moved from tiff to output.${segName} as not parsed string despite {xmp: false}`, async () => {
+			var output = await parse(input, {mergeOutput: false, [segName]: false}) || {}
+			assert.isString(output[segName])
+		})
+
     })
 
-    // TODO: this behavior should be changed in future version when detecting the file as .tif
-    it(`ApplicationNotes (xmp in .tif) is available output.xmp despite {tiff: false}`, async () => {
-		let input = await getFile('issue-metadata-extractor-152.tif')
-        var output = await parse(input, {mergeOutput: false, tiff: false}) || {}
-        assert.exists(output.xmp)
+	describe('Extracting IPTC from TIFF', () => {
+
+		let segName = 'iptc'
+		let propName = 'IPTC'
+		let propCode = 0x83bb
+		let input
+		let filePath = 'tif-with-iptc-icc-xmp.tif'
+		before(async () => {
+			input = await getFile(filePath)
+		})
+
+		it(`is moved from tiff to output.${segName}`, async () => {
+			let options = {mergeOutput: false, [segName]: true}
+			var output = await parse(input, options) || {}
+			console.log(output)
+			assert.exists(output[segName])
+			assert.isUndefined(output.ifd0[propName])
+			assert.isUndefined(output.ifd0[propCode])
+		})
+
+		// TODO: this behavior should be changed in future version when detecting the file as .tif
+		it(`is available output.${segName} despite {tiff: false}`, async () => {
+			let options = {mergeOutput: false, [segName]: true, tiff: false}
+			var output = await parse(input, options) || {}
+			console.log(output)
+			assert.exists(output[segName])
+		})
+/*
+		it(`is moved from tiff to output.${segName} as not parsed string despite {xmp: false}`, async () => {
+			let options = {mergeOutput: false, [segName]: false}
+            console.log('TCL: options', options)
+			var output = await parse(input, options) || {}
+			assert.isString(output[segName])
+		})
+*/
     })
 
-    it(`ApplicationNotes (xmp in .tif) is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
-		let input = await getFile('issue-metadata-extractor-152.tif')
-        var output = await parse(input, {mergeOutput: false, xmp: false}) || {}
-        assert.isString(output.xmp)
-    })
+	describe('Extracting ICC from TIFF', () => {
+		//0x8773: 'ICC',
+	})
 
 })

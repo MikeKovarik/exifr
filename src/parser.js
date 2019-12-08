@@ -53,6 +53,12 @@ function getSegmentType(buffer, offset) {
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
 
+class JpegFileParser {
+}
+
+class TiffFileParser {
+}
+
 // https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
 // https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
 // http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
@@ -93,14 +99,23 @@ export class Exifr extends Reader {
 	}
 
 	async parseTiffFile() {
+		/*
 		if (this.options.xmp && (!this.options.tiff || !this.options.ifd0)) {
 			// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
 			// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
 			this.options.tiff = true
 			this.options.addPickTags('ifd0', TAG_APPNOTES)
 		}
+		*/
+		const TAG_IPTC = 0x83bb
+		const TAG_PHOTOSHOP = 0x8649
+		const TAG_ICC = 0x8773
+        if (this.options.xmp) this.options.addPick('ifd0', [TAG_APPNOTES], false)
+		if (this.options.iptc) this.options.addPick('ifd0', [TAG_IPTC], false)
+		if (this.options.icc) this.options.addPick('ifd0', [TAG_ICC], false)
+		//if (this.options.photoshop) this.options.addPick('ifd0', [TAG_PHOTOSHOP], false)
 
-		if (this.options.tiff || this.options.xmp) {
+		if (this.options.tiff || this.options.xmp || this.options.iptc) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
@@ -109,18 +124,33 @@ export class Exifr extends Reader {
 			this.createParser('tiff', chunk)
 			this.parsers.tiff.parseHeader()
 			this.parsers.tiff.parseIfd0Block()
-			if (this.parsers.tiff.appNotes) {
-				let chunk = BufferView.from(this.parsers.tiff.appNotes)
-				if (this.options.xmp) {
-					this.createParser('xmp', chunk)
-				} else {
-					let string = chunk.getString()
-					this.parsers.xmp = {
-						constructor: {type: 'xmp'},
-						parse: () => string,
-					}
+
+
+			let createDummyParser = (type, output) => {
+				this.parsers[type] = {
+					constructor: {type},
+					parse: () => output,
 				}
 			}
+
+			if (this.parsers.tiff.appNotes) {
+				let chunk = BufferView.from(this.parsers.tiff.appNotes)
+				if (this.options.xmp)
+					this.createParser('xmp', chunk)
+				else
+					createDummyParser('xmp', chunk.getString())
+			}
+
+			if (this.parsers.tiff.ifd0[TAG_IPTC]) {
+				let rawData = this.parsers.tiff.ifd0[TAG_IPTC]
+				delete this.parsers.tiff.ifd0[TAG_IPTC]
+				let chunk = BufferView.from(rawData)
+				if (this.options.iptc)
+					this.createParser('iptc', chunk)
+				else
+					createDummyParser('iptc', chunk.getString())
+			}
+
 		}
 	}
 
@@ -232,13 +262,16 @@ export class Exifr extends Reader {
 				try {
 					seg.chunk = await this.file.readChunk(start, size)
 				} catch (err) {
-					throw new Error(`Couldn't read segment ${seg.type} at ${seg.offset}/${seg.size}. ${err.message}`)
+					throw new Error(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
 				}
 			}
 		} else if (this.file.byteLength > start + size) {
 			seg.chunk = this.file.subarray(start, size)
+		} else if (seg.size === undefined) {
+			// we dont know the length of segment and the file is much smaller than the fallback size of 64kbs (MAX_APP_SIZE)
+			seg.chunk = this.file.subarray(start)
 		} else {
-			throw new Error(`Segment ${seg.type} at ${seg.offset}/${seg.size} is unreachable ` + JSON.stringify(seg))
+			throw new Error(`Segment unreachable: ` + JSON.stringify(seg))
 		}
 		return seg.chunk
 	}
