@@ -35,14 +35,14 @@ class Options {
 	// TODO
 	minimalTiffSize = 10 * 1024
 
-	// Removes IFD pointers and other artifacts (useless for user) from output.
-	sanitize = true
-	// TODO
-	reviveValues = true
 	// TODO
 	translateTags = true
 	// TODO
 	translateValues = true
+	// TODO
+	reviveValues = true
+	// Removes IFD pointers and other artifacts (useless for user) from output.
+	sanitize = true
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
 	mergeOutput = true
@@ -96,19 +96,28 @@ class Options {
 			// We don't want to modify user's data. It would also break tests.
 			this.pick = [...this.pick]
 			this.skip = [...this.skip]
+			if (userOptions.tiff === false) {
+				// user disabled tiff. let's disable all of the blocks to prevent our pick/skip logic
+				// from reenabling it.
+				this.ifd0 = false
+				this.exif = false
+				this.gps = false
+				this.interop = false
+				this.thumbnail = false
+			}
 		}
 		if (this.mergeOutput) this.thumbnail = false
 		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
-		this._assignPickOrSkipToLocalScopes()
+		this.assignGlobalFilterToLocalScopes()
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
-		this._ensurePickOrSkip()
+		this.normalizeFilters()
 		// now we can translate local block/segment pick/skip tags
 		for (let segKey of configurableSegsOrBlocks)
 			this.translatePickOrSkip(segKey)
 	}
 
-	_assignPickOrSkipToLocalScopes() {
+	assignGlobalFilterToLocalScopes() {
 		if (this.pick.length) {
 			let entries = findScopesForGlobalTagArray(this.pick)
 			for (let [segKey, tags] of entries) this.addPickTags(segKey, ...tags)
@@ -118,7 +127,7 @@ class Options {
 		}
 	}
 
-	_ensurePickOrSkip() {
+	normalizeFilters() {
 		let opts = this
 		if (isUnwanted(opts.exif) || hasPickTags(opts.exif) || opts.pick.length) {
 			let tags = [...this.pick]
@@ -149,14 +158,19 @@ class Options {
 		}
 	}
 
-	translatePickOrSkip(segKey) {
-		let segment = this[segKey]
-		if (Array.isArray(segment)) {
-			this[segKey] = segment = {pick: segment}
-			translateSegmentPickOrSkip(segment, segKey)
-		} else if (typeof segment === 'object') {
-			translateSegmentPickOrSkip(segment, segKey)
+	addPick(segKey, tags, force = true) {
+		if (this[segKey] === true && force === false) return
+		this.addPickTags(segKey, ...tags)
+		if (segKey === 'exif')
+			this.addPick('ifd0', [TAG_IFD_EXIF], force)
+		if (segKey === 'gps')
+			this.addPick('ifd0', [TAG_IFD_GPS], force)
+		if (segKey === 'interop') {
+			this.addPick('ifd0', [TAG_IFD_INTEROP], force)
+			this.addPick('exif', [TAG_IFD_INTEROP], force)
 		}
+		if (segKey === 'ifd0' && !this.tiff)
+			this.tiff = true
 	}
 
 	addPickTags(segKey, ...tags) {
@@ -195,6 +209,16 @@ class Options {
 		return (this[segKey] && this[segKey].skip)
 			|| (this[fallbackKey] && this[fallbackKey].skip)
 			|| this.skip
+	}
+
+	translatePickOrSkip(segKey) {
+		let segment = this[segKey]
+		if (Array.isArray(segment)) {
+			this[segKey] = segment = {pick: segment}
+			translateSegmentPickOrSkip(segment, segKey)
+		} else if (typeof segment === 'object') {
+			translateSegmentPickOrSkip(segment, segKey)
+		}
 	}
 
 }

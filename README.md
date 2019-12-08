@@ -255,17 +255,37 @@ If parsing file known to have EXIF fails try:
 
 * `options.tiff: true` - APP1 - TIFF
 <br>The basic EXIF tags (image, exif, gps)
-<br>TIFF contains the following blocks / is requred for reading the following block:
-  * `options.exif: true` - Sub Exif.
+<br>TIFF segment contains the following blocks / is requred for reading the following block:
+  * `options.ifd0: true` - Basic info about photo.
+  * `options.exif: true` - More detailed info about photo.
   * `options.gps: true` - GPS latitue and longitude data.
-  * `options.thumbnail: false` - Size and other information about embedded thumbnail.
+  * `options.thumbnail: false` - Size and basic info about embedded thumbnail.
   * `options.interop: false` - This is a thing too.
 * `options.xmp: false` - APP1 - XMP
 <br>XML based extension, often used by editors like Photoshop.
-* `options.icc: false` - APP2 - ICC
-<br>TODO
 * `options.iptc: false` - APP13 - IPTC
 <br>Captions and copyrights
+* `options.icc: false` - APP2 - ICC
+<br>Color profile
+
+Each Segment (`tiff`, `xmp`, `iptc`, `icc`) and TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) can be set to either:
+* `true` - enabled with default or inherited options.
+* `false` - disabled, not parsing
+* `object` - enabled with custom options 
+   * Subset of `options` object.
+   * Defined properties override values from `options` object.
+   * Undefined properties are inherited from `options` object.
+   * Can contain `pick`, `skip`, `translateTags`, `translateValues`, `reviveValues`, `sanitize`
+* `Array` of tag names or codes - disabled, not parsing
+   * List of the only tags to parse. All others are skipped.
+   * It's a sortcut for `{pick: ['tags', ...]}`
+   * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
+
+All settings for `options.tiff` are automatically inherited by TIFF blocks (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) unless specified otherwise.
+
+Setting `options.tiff = false` automatically disables all TIFF blocks - sets them to false as well.
+
+However setting `options.tiff = true` does not automatically enables all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled.  `thumbnail` and `inerop` are left disabled
 
 #### Output format
 

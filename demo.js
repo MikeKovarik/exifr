@@ -141,9 +141,6 @@ class ExifrDemoApp {
 
 		this.thumbImg = document.querySelector('#thumb img')
 
-		// file picker
-		this.picker = document.querySelector('#picker')
-		this.picker.addEventListener('change', e => handleFile(this.picker.files[0]))
 		// dropzone
 		document.body.addEventListener('dragenter', e => e.preventDefault())
 		document.body.addEventListener('dragover', e => e.preventDefault())
@@ -207,6 +204,10 @@ class ExifrDemoApp {
 			}
 		}
 		this.handleFile()
+	}
+
+	onPick(e) {
+		this.handleFile(e.target.files[0])
 	}
 
 	handleFile = async (file = this.lastFile) => {

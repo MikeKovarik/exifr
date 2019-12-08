@@ -31,7 +31,6 @@
   "main": "index.cjs",
   "module": "index.mjs",
   "types": "index.d.ts",
-  "type": "module",
   "scripts": {
     "dev": "mocha -r esm ./test/**.spec.js --watch",
     "test": "mocha -r esm ./test/**.spec.js",
