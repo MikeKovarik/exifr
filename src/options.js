@@ -76,13 +76,13 @@ class Options {
 
 	// Array of tags that will be excluded when parsing.
 	// Saves performance because the tags aren't read at all and thus not further processed.
-	// Cannot be used along with 'pickTags' array.
-	skipTags = []
+	// Cannot be used along with 'pick' array.
+	skip = []
 	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
 	// Extremely saves performance because only selected few tags are processed.
 	// Useful for extracting few informations from a batch of many photos.
-	// Cannot be used along with 'skipTags' array.
-	pickTags = []
+	// Cannot be used along with 'skip' array.
+	pick = []
 
 	constructor(userOptions) {
 		if (userOptions === true || userOptions === false) {
@@ -94,13 +94,13 @@ class Options {
 		} else if (userOptions !== undefined) {
 			Object.assign(this, userOptions)
 			// We don't want to modify user's data. It would also break tests.
-			this.pickTags = [...this.pickTags]
-			this.skipTags = [...this.skipTags]
+			this.pick = [...this.pick]
+			this.skip = [...this.skip]
 		}
 		if (this.mergeOutput) this.thumbnail = false
 		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
 		this._assignPickOrSkipToLocalScopes()
-		// handle the tiff->ifd0->exif->makernote pickTags dependency tree.
+		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this._ensurePickOrSkip()
 		// now we can translate local block/segment pick/skip tags
@@ -109,32 +109,32 @@ class Options {
 	}
 
 	_assignPickOrSkipToLocalScopes() {
-		if (this.pickTags.length) {
-			let entries = findScopesForGlobalTagArray(this.pickTags)
+		if (this.pick.length) {
+			let entries = findScopesForGlobalTagArray(this.pick)
 			for (let [segKey, tags] of entries) this.addPickTags(segKey, ...tags)
-		} else if (this.skipTags.length) {
-			let entries = findScopesForGlobalTagArray(this.skipTags)
+		} else if (this.skip.length) {
+			let entries = findScopesForGlobalTagArray(this.skip)
 			for (let [segKey, tags] of entries) this.addSkipTags(segKey, ...tags)
 		}
 	}
 
 	_ensurePickOrSkip() {
 		let opts = this
-		if (isUnwanted(opts.exif) || hasPickTags(opts.exif) || opts.pickTags.length) {
-			let tags = [...this.pickTags]
+		if (isUnwanted(opts.exif) || hasPickTags(opts.exif) || opts.pick.length) {
+			let tags = [...this.pick]
 			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
 			if (opts.makerNote)   tags.push(TAG_MAKERNOTE)
 			if (opts.userComment) tags.push(TAG_USERCOMMENT)
 			if (tags.length)      opts.addPickTags('exif', ...tags)
 		} else if (opts.exif) {
 			// skip makernote & usercomment by default
-			let tags = [...this.skipTags]
+			let tags = [...this.skip]
 			if (!this.makerNote)   tags.push(TAG_MAKERNOTE)
 			if (!this.userComment) tags.push(TAG_USERCOMMENT)
 			if (tags.length)       opts.addSkipTags('exif', ...tags)
 		}
-		if ((isUnwanted(opts.ifd0) || hasPickTags(opts.ifd0) || opts.pickTags.length) && (opts.exif || opts.gps || opts.interop)) {
-			let tags = [...this.pickTags]
+		if ((isUnwanted(opts.ifd0) || hasPickTags(opts.ifd0) || opts.pick.length) && (opts.exif || opts.gps || opts.interop)) {
+			let tags = [...this.pick]
 			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
 			if (opts.exif)    tags.push(TAG_IFD_EXIF)
 			if (opts.gps)     tags.push(TAG_IFD_GPS)
@@ -152,7 +152,7 @@ class Options {
 	translatePickOrSkip(segKey) {
 		let segment = this[segKey]
 		if (Array.isArray(segment)) {
-			this[segKey] = segment = {pickTags: segment}
+			this[segKey] = segment = {pick: segment}
 			translateSegmentPickOrSkip(segment, segKey)
 		} else if (typeof segment === 'object') {
 			translateSegmentPickOrSkip(segment, segKey)
@@ -163,10 +163,10 @@ class Options {
 		let segOpts = this[segKey]
 		if (Array.isArray(segOpts))
 			this[segKey] = [...segOpts, ...tags] // not pushing to prevent modification of user's array
-		else if (segOpts && segOpts.pickTags)
-			segOpts.pickTags = [...segOpts.pickTags, ...tags] // not pushing to prevent modification of user's array
+		else if (segOpts && segOpts.pick)
+			segOpts.pick = [...segOpts.pick, ...tags] // not pushing to prevent modification of user's array
 		else if (typeof segOpts === 'object')
-			segOpts.pickTags = tags
+			segOpts.pick = tags
 		else
 			this[segKey] = tags
 	}
@@ -175,26 +175,26 @@ class Options {
 		let segOpts = this[segKey]
 		// if segment defines which tags to pick, there's no need to specify tags to skip.
 		if (hasPickTags(segOpts)) return
-		if (segOpts && segOpts.skipTags)
-			segOpts.skipTags = [...segOpts.skipTags, ...tags] // not pushing to prevent modification of user's array
+		if (segOpts && segOpts.skip)
+			segOpts.skip = [...segOpts.skip, ...tags] // not pushing to prevent modification of user's array
 		else if (typeof segOpts === 'object')
-			segOpts.skipTags = tags
+			segOpts.skip = tags
 		else
-			this[segKey] = {skipTags: tags}
+			this[segKey] = {skip: tags}
 	}
 
 	getPickTags(segKey, fallbackKey) {
 		if (Array.isArray(this[segKey])) return this[segKey]
 		if (Array.isArray(this[fallbackKey])) return this[fallbackKey]
-		return (this[segKey] && this[segKey].pickTags)
-			|| (this[fallbackKey] && this[fallbackKey].pickTags)
-			|| this.pickTags
+		return (this[segKey] && this[segKey].pick)
+			|| (this[fallbackKey] && this[fallbackKey].pick)
+			|| this.pick
 	}
 
 	getSkipTags(segKey, fallbackKey) {
-		return (this[segKey] && this[segKey].skipTags)
-			|| (this[fallbackKey] && this[fallbackKey].skipTags)
-			|| this.skipTags
+		return (this[segKey] && this[segKey].skip)
+			|| (this[fallbackKey] && this[fallbackKey].skip)
+			|| this.skip
 	}
 
 }
@@ -211,14 +211,14 @@ function isConfigured(segOpts) {
 
 function hasPickTags(segOpts) {
 	return Array.isArray(segOpts)
-		|| segOpts && Array.isArray(segOpts.pickTags)
+		|| segOpts && Array.isArray(segOpts.pick)
 }
 
 function translateSegmentPickOrSkip(segment, segKey, dict) {
 	if (!dict) dict = tagKeys[segKey] || tagKeys.all
-	let {pickTags, skipTags} = segment
-	if (pickTags && pickTags.length > 0) segment.pickTags = translateTagArray(pickTags, dict)
-	if (skipTags && skipTags.length > 0) segment.skipTags = translateTagArray(skipTags, dict)
+	let {pick, skip} = segment
+	if (pick && pick.length > 0) segment.pick = translateTagArray(pick, dict)
+	if (skip && skip.length > 0) segment.skip = translateTagArray(skip, dict)
 }
 
 function translateTagArray(tags, dict) {

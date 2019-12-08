@@ -198,52 +198,52 @@ export function testSegmentTranslation({type, file, tags}) {
 }
 
 
-export function testPickOrSkipTags(segKey, filePath, pickTags, skipTags) {
+export function testPickOrSkipTags(segKey, filePath, pick, skip) {
 	describe('pick / skip', () => {
 
-		it(`only tags from {pickTags: [...]} are in the output`, async () => {
+		it(`only tags from {pick: [...]} are in the output`, async () => {
 			let file = await getFile(filePath)
-			let options = {mergeOutput: false, [segKey]: true, pickTags}
+			let options = {mergeOutput: false, [segKey]: true, pick}
 			let output = await parse(file, options)
 			let segment = output[segKey]
-			for (let tagKey of pickTags)
+			for (let tagKey of pick)
 				assert.exists(segment[tagKey])
-			for (let tagKey of skipTags)
+			for (let tagKey of skip)
 				assert.isUndefined(segment[tagKey])
 		})
 
-		it(`only tags from {${segKey}: {pickTags: [...]}} are in the output`, async () => {
+		it(`only tags from {${segKey}: {pick: [...]}} are in the output`, async () => {
 			let file = await getFile(filePath)
-			let options = {mergeOutput: false, [segKey]: {pickTags}}
+			let options = {mergeOutput: false, [segKey]: {pick}}
 			let output = await parse(file, options)
 			let segment = output[segKey]
-			for (let tagKey of pickTags) {
+			for (let tagKey of pick) {
 				assert.exists(segment[tagKey])
 			}
-			for (let tagKey of skipTags) {
+			for (let tagKey of skip) {
 				assert.isUndefined(segment[tagKey])
 			}
 		})
 
-		it(`tags from {skipTags: [...]} are not in the output`, async () => {
+		it(`tags from {skip: [...]} are not in the output`, async () => {
 			let file = await getFile(filePath)
-			let options = {mergeOutput: false, [segKey]: true, skipTags}
+			let options = {mergeOutput: false, [segKey]: true, skip}
 			let output = await parse(file, options)
 			let segment = output[segKey]
-			for (let tagKey of pickTags)
+			for (let tagKey of pick)
 				assert.exists(segment[tagKey])
-			for (let tagKey of skipTags)
+			for (let tagKey of skip)
 				assert.isUndefined(segment[tagKey])
 		})
 
-		it(`tags from {${segKey}: {skipTags: [...]}} are not in the output`, async () => {
+		it(`tags from {${segKey}: {skip: [...]}} are not in the output`, async () => {
 			let file = await getFile(filePath)
-			let options = {mergeOutput: false, [segKey]: {skipTags}}
+			let options = {mergeOutput: false, [segKey]: {skip}}
 			let output = await parse(file, options)
 			let segment = output[segKey]
-			for (let tagKey of pickTags)
+			for (let tagKey of pick)
 				assert.exists(segment[tagKey])
-			for (let tagKey of skipTags)
+			for (let tagKey of skip)
 				assert.isUndefined(segment[tagKey])
 		})
 

@@ -101,7 +101,7 @@ describe('TIFF Segment', () => {
 
 	describe('pick / skip', () => {
 
-		it(`only ifd0 pickTags are present in output`, async () => {
+		it(`only ifd0 pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: false, gps: false, interop: false}
 			var output = await parse(input, options)
@@ -109,7 +109,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
-		it(`only ifd0, exif & gps pickTags are present in output`, async () => {
+		it(`only ifd0, exif & gps pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: false}
 			var output = await parse(input, options)
@@ -119,7 +119,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 3)
 		})
 
-		it(`only exif & gps pickTags are present in output`, async () => {
+		it(`only exif & gps pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: false, exif: ['ISO'], gps: ['GPSLatitude'], interop: false}
 			var output = await parse(input, options)
@@ -128,7 +128,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 2)
 		})
 
-		it(`only ifd0, exifm gps & interop pickTags are present in output`, async () => {
+		it(`only ifd0, exifm gps & interop pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			var output = await parse(input, options)

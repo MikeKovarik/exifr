@@ -33,7 +33,7 @@ const SIZE_LOOKUP = {
 export class TiffCore extends AppSegment {
 
 	parseHeader() {
-		console.log('parseHeader')
+		//console.log('parseHeader')
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.chunk.getUint16()
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
@@ -52,7 +52,7 @@ export class TiffCore extends AppSegment {
 	}
 
 	parseTags(offset, blockKey) {
-		console.log('parseTags', blockKey)
+		//console.log('parseTags', blockKey)
 		let picks = this.options.getPickTags(blockKey, 'tiff')
 		let skips = this.options.getSkipTags(blockKey, 'tiff')
 		let onlyPick = picks.length > 0
@@ -205,13 +205,13 @@ export class TiffExif extends TiffCore {
 	}
 
 	parseIfd0Block() {
-		console.log('parseIfd0Block')
+		//console.log('parseIfd0Block')
 		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)
 		this.findIfd0Offset()
-		console.log('this.ifd0Offset', this.ifd0Offset)
+		//console.log('this.ifd0Offset', this.ifd0Offset)
 		if (this.ifd0Offset < 8)
 			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
 		this.ensureChunkRead('IFD0', this.ifd0Offset, this.options.minimalTiffSize)
@@ -235,13 +235,13 @@ export class TiffExif extends TiffCore {
 	}
 
 	ensureChunkRead(blockName, blockOffset, minSize) {
-		console.log('this.file.chunked', this.file.chunked)
-		console.log('blockOffset', blockOffset)
-		console.log('minSize', minSize)
-		console.log('this.file.byteLength', this.file.byteLength)
-		console.log('this.chunk.byteLength', this.chunk.byteLength)
+		//console.log('this.file.chunked', this.file.chunked)
+		//console.log('blockOffset', blockOffset)
+		//console.log('minSize', minSize)
+		//console.log('this.file.byteLength', this.file.byteLength)
+		//console.log('this.chunk.byteLength', this.chunk.byteLength)
 		let end = blockOffset + minSize
-		console.log('end', end)
+		//console.log('end', end)
 		if (!this.file.chunked) {
 			if (blockOffset > this.file.byteLength)
 				throw new Error(`${blockName} offset points to outside of file.\nblockOffset: ${blockOffset}, file.byteLength: ${this.file.byteLength}`)

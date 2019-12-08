@@ -165,8 +165,8 @@ class ExifrDemoApp {
 	createDefaultOptions() {
 		let instance = optionsFactory()
 		let object = cloneObject(instance)
-		delete object.pickTags
-		delete object.skipTags
+		delete object.pick
+		delete object.skip
 		object.thumbnail = true
 		this.options = object
 		//this.options.makerNote = true
