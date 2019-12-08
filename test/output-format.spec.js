@@ -62,42 +62,28 @@ describe('output object', () => {
 
 	describe('Extracting XMP from TIFF - ApplicationNotes (xmp in .tif)', () => {
 
-		let segName = 'xmp'
-		let propName = 'ApplicationNotes'
-		let propCode = 0x02BC
-		let input
 		let filePath = 'issue-metadata-extractor-152.tif'
-		before(async () => {
-			input = await getFile(filePath)
-		})
+		foobar('xmp', 'ApplicationNotes', 0x02BC, filePath)
 
-		it(`is moved from tiff to output.${segName}`, async () => {
-			var output = await parse(input, {mergeOutput: false}) || {}
-			assert.exists(output[segName])
-			assert.isUndefined(output.ifd0[propName])
-			assert.isUndefined(output.ifd0[propCode])
-		})
-
-		it(`is available output.${segName} when {${segName}: true, tiff: false}`, async () => {
-			let options = {mergeOutput: false, [segName]: true, tiff: false}
-			var output = await parse(input, options) || {}
-			assert.exists(output[segName])
-		})
-
-		it(`is moved from tiff to output.${segName} as not parsed string despite {xmp: false}`, async () => {
-			var output = await parse(input, {mergeOutput: false, [segName]: false}) || {}
-			assert.isString(output[segName])
+		it(`is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
+			let input = await getFile(filePath)
+			var output = await parse(input, {mergeOutput: false, xmp: false}) || {}
+			assert.isString(output.xmp)
 		})
 
 	})
 
 	describe('Extracting IPTC from TIFF', () => {
+		foobar('iptc', 'IPTC', 0x83bb, 'tif-with-iptc-icc-xmp.tif')
+	})
 
-		let segName = 'iptc'
-		let propName = 'IPTC'
-		let propCode = 0x83bb
+	describe('Extracting ICC from TIFF', () => {
+		foobar('icc', 'ICC', 0x8773, 'tif-with-iptc-icc-xmp.tif')
+	})
+
+
+	function foobar(segName, propName, propCode, filePath) {
 		let input
-		let filePath = 'tif-with-iptc-icc-xmp.tif'
 		before(async () => {
 			input = await getFile(filePath)
 		})
@@ -115,17 +101,6 @@ describe('output object', () => {
 			var output = await parse(input, options) || {}
 			assert.exists(output[segName])
 		})
-/*
-		it(`is moved from tiff to output.${segName} as not parsed string despite {xmp: false}`, async () => {
-			let options = {mergeOutput: false, [segName]: false}
-			var output = await parse(input, options) || {}
-			assert.isString(output[segName])
-		})
-*/
-	})
-
-	describe('Extracting ICC from TIFF', () => {
-		//0x8773: 'ICC',
-	})
+	}
 
 })
