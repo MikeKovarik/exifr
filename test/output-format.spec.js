@@ -27,38 +27,38 @@ describe('output object', () => {
 		assert.exists(output.xmp)
 	})
 
-    it(`should merge all segments by default`, async () => {
-        let input = await getFile('IMG_20180725_163423.jpg')
+	it(`should merge all segments by default`, async () => {
+		let input = await getFile('IMG_20180725_163423.jpg')
 		let output = await parse(input)
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.Make, 'Google')
-        assert.equal(output.ExposureTime, 0.000376)
-        assert.equal(output.GPSLongitude.length, 3)
-    })
+		assert.exists(output, `output is undefined`)
+		assert.equal(output.Make, 'Google')
+		assert.equal(output.ExposureTime, 0.000376)
+		assert.equal(output.GPSLongitude.length, 3)
+	})
 
-    it(`should revive dates as Date instance by default`, async () => {
-        let input = await getFile('IMG_20180725_163423.jpg')
+	it(`should revive dates as Date instance by default`, async () => {
+		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {}
 		let output = await parse(input, options)
-        assert.exists(output, `output is undefined`)
-        assert.instanceOf(output.DateTimeOriginal, Date)
-    })
+		assert.exists(output, `output is undefined`)
+		assert.instanceOf(output.DateTimeOriginal, Date)
+	})
 
-    it(`should revive dates as Date instance when {reviveValues: true}`, async () => {
-        let input = await getFile('IMG_20180725_163423.jpg')
+	it(`should revive dates as Date instance when {reviveValues: true}`, async () => {
+		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {reviveValues: true}
 		let output = await parse(input, options)
-        assert.exists(output, `output is undefined`)
-        assert.instanceOf(output.DateTimeOriginal, Date)
-    })
+		assert.exists(output, `output is undefined`)
+		assert.instanceOf(output.DateTimeOriginal, Date)
+	})
 
-    it(`should not revive dates as Date instance when {reviveValues: false}`, async () => {
-        let input = await getFile('IMG_20180725_163423.jpg')
+	it(`should not revive dates as Date instance when {reviveValues: false}`, async () => {
+		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {reviveValues: false}
 		let output = await parse(input, options)
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
-    })
+		assert.exists(output, `output is undefined`)
+		assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
+	})
 
 	describe('Extracting XMP from TIFF - ApplicationNotes (xmp in .tif)', () => {
 
@@ -78,9 +78,9 @@ describe('output object', () => {
 			assert.isUndefined(output.ifd0[propCode])
 		})
 
-		// TODO: this behavior should be changed in future version when detecting the file as .tif
-		it(`is available output.${segName} despite {tiff: false}`, async () => {
-			var output = await parse(input, {mergeOutput: false, tiff: false}) || {}
+		it(`is available output.${segName} when {${segName}: true, tiff: false}`, async () => {
+			let options = {mergeOutput: false, [segName]: true, tiff: false}
+			var output = await parse(input, options) || {}
 			assert.exists(output[segName])
 		})
 
@@ -89,7 +89,7 @@ describe('output object', () => {
 			assert.isString(output[segName])
 		})
 
-    })
+	})
 
 	describe('Extracting IPTC from TIFF', () => {
 
@@ -105,28 +105,24 @@ describe('output object', () => {
 		it(`is moved from tiff to output.${segName}`, async () => {
 			let options = {mergeOutput: false, [segName]: true}
 			var output = await parse(input, options) || {}
-			console.log(output)
 			assert.exists(output[segName])
 			assert.isUndefined(output.ifd0[propName])
 			assert.isUndefined(output.ifd0[propCode])
 		})
 
-		// TODO: this behavior should be changed in future version when detecting the file as .tif
-		it(`is available output.${segName} despite {tiff: false}`, async () => {
+		it(`is available output.${segName} when {${segName}: true, tiff: false}`, async () => {
 			let options = {mergeOutput: false, [segName]: true, tiff: false}
 			var output = await parse(input, options) || {}
-			console.log(output)
 			assert.exists(output[segName])
 		})
 /*
 		it(`is moved from tiff to output.${segName} as not parsed string despite {xmp: false}`, async () => {
 			let options = {mergeOutput: false, [segName]: false}
-            console.log('TCL: options', options)
 			var output = await parse(input, options) || {}
 			assert.isString(output[segName])
 		})
 */
-    })
+	})
 
 	describe('Extracting ICC from TIFF', () => {
 		//0x8773: 'ICC',

@@ -204,6 +204,16 @@ export class TiffExif extends TiffCore {
 			this.ifd0Offset = this.chunk.getUint32(4)
 	}
 
+	findIfd1Offset() {
+		if (this.ifd1Offset === undefined) {
+			this.findIfd0Offset()
+			let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
+			let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
+			// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
+			this.ifd1Offset = this.chunk.getUint32(temp)
+		}
+	}
+
 	parseIfd0Block() {
 		//console.log('parseIfd0Block')
 		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
@@ -310,11 +320,7 @@ export class TiffExif extends TiffCore {
 	parseThumbnailBlock(force = false) {
 		if (this.thumbnail || this.thumbnailParsed) return
 		if (this.options.mergeOutput && !force) return
-		this.findIfd0Offset()
-		let ifd0Entries = this.chunk.getUint16(this.ifd0Offset)
-		let temp = this.ifd0Offset + 2 + (ifd0Entries * 12)
-		// IFD1 offset is number of bytes from start of TIFF header where thumbnail info is.
-		this.ifd1Offset = this.chunk.getUint32(temp)
+		this.findIfd1Offset()
 		if (this.ifd1Offset > 0) {
 			this.ifd1 = this.parseTags(this.ifd1Offset, 'thumbnail')
 			this.thumbnail = this.ifd1

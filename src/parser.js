@@ -39,7 +39,7 @@ function isJpgMarker(marker2) {
 }
 
 function isAppMarker(marker2) {
-    return marker2 >= MARKER_2_APP0
+	return marker2 >= MARKER_2_APP0
 		&& marker2 <= MARKER_2_APP15
 }
 
@@ -48,110 +48,24 @@ function getSegmentType(buffer, offset) {
 		if (Parser.canHandle(buffer, offset)) return Parser.type
 }
 
+function getParserClass(options, type) {
+	if (options[type] && !parserClasses[type])
+		throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
+	else
+		return parserClasses[type]
+}
+
 // First argument can be Node's Buffer or Web's DataView instance.
 // Takes chunk of file and tries to find EXIF (it usually starts inside the chunk, but is much larger).
 // Returns location {start, size, end} of the EXIF in the file not the input chunk itself.
 
 
-class JpegFileParser {
-}
+class FileBase {
 
-class TiffFileParser {
-}
-
-// https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
-// https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
-// http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
-// JPG contains SOI, APP1, [APP2, ... APPn], DQT, DHT, and more segments
-// APPn contain metadata about the image in various formats. There can be multiple APPn segments,
-// even multiple segments of the same type.
-// APP1 contains the basic and most important EXIF data.
-// APP2 contains ICC
-// APP13 contains IPTC
-// the main APP1 (the one with EXIF) is often followed by another APP1 with XMP data (in XML format).
-// Structure of APPn (APP1, APP2, APP13, etc...):
-// - First two bytes are the marker FF En (e.g. FF E1 for APP1)
-// - 3rd & 4th bytes are length of the APPn segment
-// - Followed by a few bytes of segment itentification - describing what type of content is there.
-// Structure of TIFF (APP1-EXIF):
-// - FF 01 - marker
-// - xx xx - Size
-// - 45 78 69 66 00 00 / ASCII string 'Exif\0\0'
-// - TIFF HEADER
-// - 0th IFD + value
-// - 1th IFD + value
-// - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
-export class Exifr extends Reader {
-
-	parsers = {}
-	appSegments = []
-	jpgSegments = []
-	unknownSegments = []
-
-	init() {
-		//global.recordBenchTime(`exifr.init()`)
-		// JPEG's exif is based on TIFF structure from .tif files.
-		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
-		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
-		var marker = this.file.getUint16(0)
-		this.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
-		//this.isJpeg = marker === JPEG_SOI
-	}
-
-	async parseTiffFile() {
-		/*
-		if (this.options.xmp && (!this.options.tiff || !this.options.ifd0)) {
-			// TIFF file doesn't wrap data into APP segments, therefore there can't be an XMP APP1 segment.
-			// Instead, XMP in TIFF is stored as tag 700/0x02BC aka ApplicationNotes in IFD0 block.
-			this.options.tiff = true
-			this.options.addPickTags('ifd0', TAG_APPNOTES)
-		}
-		*/
-		const TAG_IPTC = 0x83bb
-		const TAG_PHOTOSHOP = 0x8649
-		const TAG_ICC = 0x8773
-        if (this.options.xmp) this.options.addPick('ifd0', [TAG_APPNOTES], false)
-		if (this.options.iptc) this.options.addPick('ifd0', [TAG_IPTC], false)
-		if (this.options.icc) this.options.addPick('ifd0', [TAG_ICC], false)
-		//if (this.options.photoshop) this.options.addPick('ifd0', [TAG_PHOTOSHOP], false)
-
-		if (this.options.tiff || this.options.xmp || this.options.iptc) {
-			// The file starts with TIFF structure (instead of JPEGs FF D8)
-			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
-			let seg = {start: 0, type: 'tiff'}
-			this.appSegments.push(seg)
-			let chunk = await this.ensureSegmentChunk(seg)
-			this.createParser('tiff', chunk)
-			this.parsers.tiff.parseHeader()
-			this.parsers.tiff.parseIfd0Block()
-
-
-			let createDummyParser = (type, output) => {
-				this.parsers[type] = {
-					constructor: {type},
-					parse: () => output,
-				}
-			}
-
-			if (this.parsers.tiff.appNotes) {
-				let chunk = BufferView.from(this.parsers.tiff.appNotes)
-				if (this.options.xmp)
-					this.createParser('xmp', chunk)
-				else
-					createDummyParser('xmp', chunk.getString())
-			}
-
-			if (this.parsers.tiff.ifd0[TAG_IPTC]) {
-				let rawData = this.parsers.tiff.ifd0[TAG_IPTC]
-				delete this.parsers.tiff.ifd0[TAG_IPTC]
-				let chunk = BufferView.from(rawData)
-				if (this.options.iptc)
-					this.createParser('iptc', chunk)
-				else
-					createDummyParser('iptc', chunk.getString())
-			}
-
-		}
+	constructor(options, file, parsers) {
+		this.options = options
+		this.file = file
+		this.parsers = parsers
 	}
 
 	createParser(type, chunk) {
@@ -160,8 +74,57 @@ export class Exifr extends Reader {
 		return this.parsers[type] = parser
 	}
 
-	findJpgAppSegments(offset = 0, wantedSegments) {
-		//global.recordBenchTime(`exifr.findJpgAppSegments()`)
+	ensureSegmentChunk = async seg => {
+		//global.recordBenchTime(`exifr.ensureSegmentChunk(${seg.type})`)
+		let start = seg.start
+		let size = seg.size || MAX_APP_SIZE
+		if (this.file.chunked) {
+			let available = this.file.isRangeAvailable(start, size)
+			if (available) {
+				seg.chunk = this.file.subarray(start, size)
+			} else {
+				try {
+					seg.chunk = await this.file.readChunk(start, size)
+				} catch (err) {
+					throw new Error(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
+				}
+			}
+		} else if (this.file.byteLength > start + size) {
+			seg.chunk = this.file.subarray(start, size)
+		} else if (seg.size === undefined) {
+			// we dont know the length of segment and the file is much smaller than the fallback size of 64kbs (MAX_APP_SIZE)
+			seg.chunk = this.file.subarray(start)
+		} else {
+			throw new Error(`Segment unreachable: ` + JSON.stringify(seg))
+		}
+		return seg.chunk
+	}
+
+}
+
+
+
+class JpegFileParser extends FileBase {
+
+	appSegments = []
+	jpgSegments = []
+	unknownSegments = []
+
+	async parse() {
+		//global.recordBenchTime(`exifr.parse()`)
+		this.findAppSegments()
+		await this.readSegments()
+		this.createParsers()
+	}
+
+	async readSegments() {
+		//global.recordBenchTime(`exifr.readSegments()`)
+		let promises = this.appSegments.map(this.ensureSegmentChunk)
+		await Promise.all(promises)
+	}
+
+	findAppSegments(offset = 0, wantedSegments) {
+		//global.recordBenchTime(`exifr.findAppSegments()`)
 		let findAll
 		let wantedParsers = new Map
 		let remainingSegments
@@ -211,71 +174,6 @@ export class Exifr extends Reader {
 		//global.recordBenchTime(`segments found`)
 	}
 
-	async parse() {
-		//global.recordBenchTime(`exifr.parse()`)
-		this.init()
-		if (this.isTiff)
-			await this.parseTiffFile()
-		else
-			await this.parseJpegFile()
-		let output = await this.createOutput()
-		if (this.file.destroy) /*await*/ this.file.destroy()
-		return output
-	}
-
-	async parseJpegFile() {
-		//global.recordBenchTime(`exifr.parseJpegFile()`)
-		this.findJpgAppSegments()
-		await this.readSegments()
-		this.createParsers()
-	}
-
-	async createOutput() {
-		//global.recordBenchTime(`exifr.createOutput()`)
-		let libOutput = {}
-		let promises = Object.values(this.parsers).map(async parser => {
-			let parserOutput = await parser.parse()
-			if ((this.options.mergeOutput || parser.constructor.mergeOutput) && typeof parserOutput !== 'string')
-				Object.assign(libOutput, parserOutput)
-			else
-				libOutput[parser.constructor.type] = parserOutput
-		})
-		await Promise.all(promises)
-		return undefinedIfEmpty(libOutput)
-	}
-
-	async readSegments() {
-		//global.recordBenchTime(`exifr.readSegments()`)
-		let promises = this.appSegments.map(this.ensureSegmentChunk)
-		await Promise.all(promises)
-	}
-
-	ensureSegmentChunk = async seg => {
-		//global.recordBenchTime(`exifr.ensureSegmentChunk(${seg.type})`)
-		let start = seg.start
-		let size = seg.size || MAX_APP_SIZE
-		if (this.file.chunked) {
-			let available = this.file.isRangeAvailable(start, size)
-			if (available) {
-				seg.chunk = this.file.subarray(start, size)
-			} else {
-				try {
-					seg.chunk = await this.file.readChunk(start, size)
-				} catch (err) {
-					throw new Error(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
-				}
-			}
-		} else if (this.file.byteLength > start + size) {
-			seg.chunk = this.file.subarray(start, size)
-		} else if (seg.size === undefined) {
-			// we dont know the length of segment and the file is much smaller than the fallback size of 64kbs (MAX_APP_SIZE)
-			seg.chunk = this.file.subarray(start)
-		} else {
-			throw new Error(`Segment unreachable: ` + JSON.stringify(seg))
-		}
-		return seg.chunk
-	}
-
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
 	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
 	async createParsers() {
@@ -291,7 +189,7 @@ export class Exifr extends Reader {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
 				parser.append(chunk)
 			} else if (!parser) {
-				let Parser = this.getParser(type)
+				let Parser = getParserClass(this.options, type)
 				let parser = new Parser(chunk, this.options, this.file)
 				this.parsers[type] = parser
 			}
@@ -305,27 +203,142 @@ export class Exifr extends Reader {
 	getOrFindSegment(type) {
 		let seg = this.getSegment(type)
 		if (seg === undefined) {
-			this.findJpgAppSegments(0, [type])
+			this.findAppSegments(0, [type])
 			seg = this.getSegment(type)
 		}
 		return seg
 	}
 
-	getParser(type) {
-		if (this.options[type] && !parserClasses[type])
-			throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
-		else
-			return parserClasses[type]
+}
+
+class TiffFileParser extends FileBase {
+
+	async parse() {
+		const TAG_IPTC = 0x83bb
+		const TAG_PHOTOSHOP = 0x8649
+		const TAG_ICC = 0x8773
+		if (this.options.xmp) this.options.addPick('ifd0', [TAG_APPNOTES], false)
+		if (this.options.iptc) this.options.addPick('ifd0', [TAG_IPTC], false)
+		if (this.options.icc) this.options.addPick('ifd0', [TAG_ICC], false)
+		//if (this.options.photoshop) this.options.addPick('ifd0', [TAG_PHOTOSHOP], false)
+
+		if (this.options.tiff || this.options.xmp || this.options.iptc) {
+			// The file starts with TIFF structure (instead of JPEGs FF D8)
+			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
+			let seg = {start: 0, type: 'tiff'}
+			let chunk = await this.ensureSegmentChunk(seg)
+			this.createParser('tiff', chunk)
+			this.parsers.tiff.parseHeader()
+			this.parsers.tiff.parseIfd0Block()
+
+			if (this.parsers.tiff.appNotes) {
+				let chunk = BufferView.from(this.parsers.tiff.appNotes)
+				if (this.options.xmp)
+					this.createParser('xmp', chunk)
+				else
+					this.createDummyParser('xmp', chunk.getString())
+			}
+
+			//this.adaptTiffPropAsSegment('xmp', TAG_APPNOTES)
+			this.adaptTiffPropAsSegment('iptc', TAG_IPTC)
+			//this.adaptTiffPropAsSegment('icc', TAG_ICC)
+		}
+	}
+
+	adaptTiffPropAsSegment(key, CODE) {
+		if (this.parsers.tiff.ifd0[CODE]) {
+			let rawData = this.parsers.tiff.ifd0[CODE]
+			delete this.parsers.tiff.ifd0[CODE]
+			let chunk = BufferView.from(rawData)
+			if (this.options[key])
+				this.createParser(key, chunk)
+			else
+				this.createDummyParser(key, chunk.getString())
+		}
+	}
+
+	createDummyParser = (type, output) => {
+		this.parsers[type] = {
+			constructor: {type},
+			parse: () => output,
+		}
+	}
+
+}
+
+// https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
+// https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
+// http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
+// JPG contains SOI, APP1, [APP2, ... APPn], DQT, DHT, and more segments
+// APPn contain metadata about the image in various formats. There can be multiple APPn segments,
+// even multiple segments of the same type.
+// APP1 contains the basic and most important EXIF data.
+// APP2 contains ICC
+// APP13 contains IPTC
+// the main APP1 (the one with EXIF) is often followed by another APP1 with XMP data (in XML format).
+// Structure of APPn (APP1, APP2, APP13, etc...):
+// - First two bytes are the marker FF En (e.g. FF E1 for APP1)
+// - 3rd & 4th bytes are length of the APPn segment
+// - Followed by a few bytes of segment itentification - describing what type of content is there.
+// Structure of TIFF (APP1-EXIF):
+// - FF 01 - marker
+// - xx xx - Size
+// - 45 78 69 66 00 00 / ASCII string 'Exif\0\0'
+// - TIFF HEADER
+// - 0th IFD + value
+// - 1th IFD + value
+// - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
+export class Exifr extends Reader {
+
+	parsers = {}
+
+	init() {
+		//global.recordBenchTime(`exifr.parse()`)
+		if (this.fileParser) return
+		// JPEG's exif is based on TIFF structure from .tif files.
+		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
+		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
+		var marker = this.file.getUint16(0)
+		this.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
+		//this.isJpeg = marker === JPEG_SOI
+		let FileParser = this.isTiff ? TiffFileParser : JpegFileParser
+		this.fileParser = new FileParser(this.options, this.file, this.parsers)
+	}
+
+	async parse() {
+		this.init()
+		await this.fileParser.parse()
+		let output = await this.createOutput()
+		if (this.file.destroy) /*await*/ this.file.destroy()
+		return output
+	}
+
+	async createOutput() {
+		//global.recordBenchTime(`exifr.createOutput()`)
+		let libOutput = {}
+		let {mergeOutput} = this.options
+		let promises = Object.values(this.parsers).map(async parser => {
+			let parserOutput = await parser.parse()
+			if ((mergeOutput || parser.constructor.mergeOutput) && typeof parserOutput !== 'string')
+				Object.assign(libOutput, parserOutput)
+			else
+				libOutput[parser.constructor.type] = parserOutput
+		})
+		await Promise.all(promises)
+		return undefinedIfEmpty(libOutput)
 	}
 
 	async extractThumbnail() {
-		let TiffParser = this.getParser('tiff')
-		let seg = this.getOrFindSegment('tiff')
-		if (seg !== undefined) {
-			let chunk = await this.ensureSegmentChunk(seg)
-			let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)
-			return parser.extractThumbnail()
-		}
+		this.init()
+		let TiffParser = getParserClass(this.options, 'tiff')
+		if (this.isTiff)
+			var seg = {start: 0, type: 'tiff'}
+		else
+			var seg = this.fileParser.getOrFindSegment('tiff')
+		if (seg === undefined) return
+		let chunk = await this.fileParser.ensureSegmentChunk(seg)
+		let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)
+		return parser.extractThumbnail()
 	}
 
 }

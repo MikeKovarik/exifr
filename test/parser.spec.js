@@ -4,23 +4,25 @@ import {parse, Exifr} from '../src/index-full.js'
 
 
 
-describe('parser', () => {
+describe('JpegFileParser', () => {
 
-	describe('exifr.findJpgAppSegments()', () => {
+	describe('.findAppSegments()', () => {
 
 		it(`finds APP segments existing in jpg file`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
-			exifr.findJpgAppSegments()
-			let jfifSegment = exifr.appSegments.find(segment => segment.type === 'jfif')
+			exifr.init()
+			let jpegFileParser = exifr.fileParser
+			jpegFileParser.findAppSegments()
+			let jfifSegment = jpegFileParser.appSegments.find(segment => segment.type === 'jfif')
 			assert.isDefined(jfifSegment)
 			assert.equal(jfifSegment.offset, 25388)
 			assert.equal(jfifSegment.length, 18)
 			assert.equal(jfifSegment.start, 25397)
 			assert.equal(jfifSegment.size, 9)
 			assert.equal(jfifSegment.end, 25406)
-			let tiffSegment = exifr.appSegments.find(segment => segment.type === 'tiff')
+			let tiffSegment = jpegFileParser.appSegments.find(segment => segment.type === 'tiff')
 			assert.isDefined(tiffSegment)
 		})
 
@@ -28,11 +30,17 @@ describe('parser', () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
-			exifr.findJpgAppSegments()
-			let xmpSegment = exifr.appSegments.find(segment => segment.type === 'xmp')
+			exifr.init()
+			let jpegFileParser = exifr.fileParser
+			jpegFileParser.findAppSegments()
+			let xmpSegment = jpegFileParser.appSegments.find(segment => segment.type === 'xmp')
 			assert.isUndefined(xmpSegment)
 		})
 
 	})
 
 })
+/*
+describe('TiffFileParser', () => {
+})
+*/
