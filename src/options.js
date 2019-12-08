@@ -99,11 +99,11 @@ class Options {
 			if (userOptions.tiff === false) {
 				// user disabled tiff. let's disable all of the blocks to prevent our pick/skip logic
 				// from reenabling it.
-				this.ifd0 = false
-				this.exif = false
-				this.gps = false
-				this.interop = false
-				this.thumbnail = false
+				this.ifd0      = userOptions.ifd0      || false
+				this.exif      = userOptions.exif      || false
+				this.gps       = userOptions.gps       || false
+				this.interop   = userOptions.interop   || false
+				this.thumbnail = userOptions.thumbnail || false
 			}
 		}
 		if (this.mergeOutput) this.thumbnail = false
