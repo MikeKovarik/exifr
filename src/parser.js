@@ -1,5 +1,5 @@
 import Reader from './reader.js'
-import {TAG_APPNOTES} from './tags.js'
+import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {BufferView} from './util/BufferView.js'
 import {AppSegment, parsers as parserClasses} from './parsers/core.js'
 import './parsers/tiff.js'
@@ -214,10 +214,7 @@ class JpegFileParser extends FileBase {
 class TiffFileParser extends FileBase {
 
 	async parse() {
-		const TAG_IPTC = 0x83bb
-		const TAG_PHOTOSHOP = 0x8649
-		const TAG_ICC = 0x8773
-		if (this.options.xmp) this.options.addPick('ifd0', [TAG_APPNOTES], false)
+		if (this.options.xmp) this.options.addPick('ifd0', [TAG_XMP], false)
 		if (this.options.iptc) this.options.addPick('ifd0', [TAG_IPTC], false)
 		if (this.options.icc) this.options.addPick('ifd0', [TAG_ICC], false)
 		//if (this.options.photoshop) this.options.addPick('ifd0', [TAG_PHOTOSHOP], false)
@@ -231,24 +228,15 @@ class TiffFileParser extends FileBase {
 			this.parsers.tiff.parseHeader()
 			this.parsers.tiff.parseIfd0Block()
 
-			if (this.parsers.tiff.appNotes) {
-				let chunk = BufferView.from(this.parsers.tiff.appNotes)
-				if (this.options.xmp)
-					this.createParser('xmp', chunk)
-				else
-					this.createDummyParser('xmp', chunk.getString())
-			}
-
-			//this.adaptTiffPropAsSegment('xmp', TAG_APPNOTES)
-			this.adaptTiffPropAsSegment('iptc', TAG_IPTC)
-			//this.adaptTiffPropAsSegment('icc', TAG_ICC)
+			this.adaptTiffPropAsSegment('xmp')
+			this.adaptTiffPropAsSegment('iptc')
+			this.adaptTiffPropAsSegment('icc')
 		}
 	}
 
-	adaptTiffPropAsSegment(key, CODE) {
-		if (this.parsers.tiff.ifd0[CODE]) {
-			let rawData = this.parsers.tiff.ifd0[CODE]
-			delete this.parsers.tiff.ifd0[CODE]
+	adaptTiffPropAsSegment(key) {
+		if (this.parsers.tiff[key]) {
+			let rawData = this.parsers.tiff[key]
 			let chunk = BufferView.from(rawData)
 			if (this.options[key])
 				this.createParser(key, chunk)

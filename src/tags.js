@@ -24,7 +24,10 @@ export const tagRevivers = {}
 
 export const TAG_MAKERNOTE   = 0x927C
 export const TAG_USERCOMMENT = 0x9286
-export const TAG_APPNOTES    = 0x02BC // XMP
+export const TAG_XMP         = 0x02BC
+export const TAG_IPTC        = 0x83bb
+export const TAG_PHOTOSHOP   = 0x8649
+export const TAG_ICC         = 0x8773
 
 export const TAG_IFD_EXIF      = 0x8769
 export const TAG_IFD_GPS       = 0x8825

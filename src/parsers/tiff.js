@@ -1,6 +1,6 @@
 import {AppSegment, parsers} from './core.js'
 import {tagKeys, tagValues, tagRevivers} from '../tags.js'
-import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_APPNOTES} from '../tags.js'
+import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 import {BufferView} from '../util/BufferView.js'
 import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
@@ -233,13 +233,17 @@ export class TiffExif extends TiffCore {
 		this.exifOffset    = ifd0[TAG_IFD_EXIF]
 		this.interopOffset = ifd0[TAG_IFD_INTEROP]
 		this.gpsOffset     = ifd0[TAG_IFD_GPS]
-		this.appNotes      = ifd0[TAG_APPNOTES]
+		this.xmp           = ifd0[TAG_XMP]
+		this.iptc          = ifd0[TAG_IPTC]
+		this.icc           = ifd0[TAG_ICC]
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		if (this.options.sanitize) {
 			delete ifd0[TAG_IFD_EXIF]
 			delete ifd0[TAG_IFD_INTEROP]
 			delete ifd0[TAG_IFD_GPS]
-			delete ifd0[TAG_APPNOTES] // XMP in .tif
+			delete ifd0[TAG_XMP]
+			delete ifd0[TAG_IPTC]
+			delete ifd0[TAG_ICC]
 		}
 		return ifd0
 	}
