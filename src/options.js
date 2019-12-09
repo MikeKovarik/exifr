@@ -127,6 +127,7 @@ class Options {
 		}
 	}
 
+	// TODO: rework this using the new addPick() falling through mechanism
 	normalizeFilters() {
 		let opts = this
 		if (isUnwanted(opts.exif) || hasPickTags(opts.exif) || opts.pick.length) {
@@ -142,6 +143,10 @@ class Options {
 			if (!this.userComment) tags.push(TAG_USERCOMMENT)
 			if (tags.length)       opts.addSkipTags('exif', ...tags)
 		}
+		if (opts.interop && (isUnwanted(this.exif) || hasPickTags(opts.exif))) {
+			// interop pointer can be often found in EXIF besides IFD0.
+			opts.addPickTags('exif', TAG_IFD_INTEROP)
+		}
 		if ((isUnwanted(opts.ifd0) || hasPickTags(opts.ifd0) || opts.pick.length) && (opts.exif || opts.gps || opts.interop)) {
 			let tags = [...this.pick]
 			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
@@ -149,8 +154,6 @@ class Options {
 			if (opts.gps)     tags.push(TAG_IFD_GPS)
 			if (opts.interop) tags.push(TAG_IFD_INTEROP)
 			// offset of Interop IFD can be in both IFD0 and Exif IFD.
-			if (opts.interop && isConfigured(this.exif))
-				opts.addPickTags('exif', TAG_IFD_INTEROP)
 			opts.addPickTags('ifd0', ...tags)
 		}
 		if (isUnwanted(opts.tiff) && (opts.ifd0 || opts.thumbnail)) {

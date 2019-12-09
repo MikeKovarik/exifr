@@ -236,7 +236,7 @@ tagKeys.other = {
 	0x9330: 'MSPropertySetStorage',
 	0x9331: 'MSDocumentTextPosition',
 	0x935c: 'ImageSourceData',
-	0xa005: 'InteropOffset',
+	0xa005: 'InteropIFD',
 	0xa010: 'SamsungRawPointersOffset',
 	0xa011: 'SamsungRawPointersLength',
 	0xa101: 'SamsungRawByteOrder',

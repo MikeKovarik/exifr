@@ -81,4 +81,6 @@ tagKeys.ifd0 = tagKeys.thumbnail = {
 	0xc630: 'DNGLensInfo',
 	0xc633: 'ShadowScale',
 	0xc634: 'DNGPrivateData',
+	// not actually assigned to IFD0 but offten found here
+	0xa005: 'InteropIFD',
 }

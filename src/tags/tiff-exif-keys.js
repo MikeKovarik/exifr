@@ -106,4 +106,6 @@ tagKeys.exif = {
 	0xfe56: 'Sharpness',
 	0xfe57: 'Smoothness',
 	0xfe58: 'MoireFilter',
+	// not actually assigned to IFD0 but offten found here
+	0xa005: 'InteropIFD',
 }
