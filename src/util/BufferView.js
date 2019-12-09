@@ -223,37 +223,3 @@ export class DynamicBufferView extends BufferView {
 	}
 
 }
-
-
-export class CursorView extends BufferView {
-
-	constructor(...args) {
-		super(...args)
-		this.offset = 0
-	}
-
-	getUint8() {
-		let result = super.getUint8(this.offset)
-		this.offset += 1
-		return result
-	}
-
-	getUint16() {
-		let result = super.getUint16(this.offset)
-		this.offset += 2
-		return result
-	}
-
-	getUint32() {
-		let result = super.getUint32(this.offset)
-		this.offset += 4
-		return result
-	}
-
-	getString(size) {
-		let result = super.getString(this.offset, size)
-		this.offset += size
-		return result
-	}
-
-}

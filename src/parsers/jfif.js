@@ -1,5 +1,4 @@
 import {AppSegment, parsers} from './core.js'
-import {CursorView} from '../util/BufferView.js'
 
 
 export default class Jfif extends AppSegment {
@@ -14,14 +13,13 @@ export default class Jfif extends AppSegment {
 	}
 
 	parse() {
-		let cursorView = new CursorView(this.chunk, this.start)
 		let jfif = {
-			version:    cursorView.getUint16(),
-			units:      cursorView.getUint8(),
-			Xdensity:   cursorView.getUint16(),
-			Ydensity:   cursorView.getUint16(),
-			Xthumbnail: cursorView.getUint8(),
-			Ythumbnail: cursorView.getUint8(),
+			version:    this.chunk.getUint16(0),
+			units:      this.chunk.getUint8(2),
+			Xdensity:   this.chunk.getUint16(3),
+			Ydensity:   this.chunk.getUint16(5),
+			Xthumbnail: this.chunk.getUint8(7),
+			Ythumbnail: this.chunk.getUint8(8),
 		}
 		this.output = this.options.mergeOutput ? {jfif} : jfif
 		return this.output
