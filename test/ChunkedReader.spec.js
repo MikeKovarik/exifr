@@ -292,50 +292,108 @@ describe('ChunkedReader', () => {
 
 	})
 
-	describe('practical example of chunked reader', () => {
+	it(`reading simple .jpg file sequentially`, async () => {
+		let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
+		let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+		let exifr = new ExifParser(options)
+		await exifr.read(path)
+		assert.isAtLeast(exifr.file.byteLength, 12695)
+		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
+		let output = await exifr.parse()
+		assert.instanceOf(output.gps.GPSLatitude, Array)
+	})
 
-		it(`reading simple .jpg file sequentially`, async () => {
-			let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
-			let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
+
+		it(`input path & {wholeFile: false}`, async () => {
+			let input = await getPath('001.tif')
+			let options = {wholeFile: false, seekChunkSize: 100}
 			let exifr = new ExifParser(options)
-			await exifr.read(path)
-			assert.isAtLeast(exifr.file.byteLength, 12695)
-			assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
+			await exifr.read(input)
 			let output = await exifr.parse()
-			assert.instanceOf(output.gps.GPSLatitude, Array)
+			assert.equal(output.Make, 'DJI')
 		})
 
-		describe (`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
+		it(`input path & {wholeFile: false}`, async () => {
+			let input = await getPath('001.tif')
+			let options = {wholeFile: true}
+			let exifr = new ExifParser(options)
+			await exifr.read(input)
+			let output = await exifr.parse()
+			assert.equal(output.Make, 'DJI')
+		})
 
-			it(`input path & {wholeFile: false}`, async () => {
-				let input = await getPath('001.tif')
-				let options = {wholeFile: false, seekChunkSize: 100}
-				let exifr = new ExifParser(options)
-				await exifr.read(input)
-				let output = await exifr.parse()
-				assert.equal(output.Make, 'DJI')
-			})
-
-			it(`input path & {wholeFile: false}`, async () => {
-				let input = await getPath('001.tif')
-				let options = {wholeFile: true}
-				let exifr = new ExifParser(options)
-				await exifr.read(input)
-				let output = await exifr.parse()
-				assert.equal(output.Make, 'DJI')
-			})
-
-			it(`input buffer & no options`, async () => {
-				let input = await getFile('001.tif')
-				let exifr = new ExifParser()
-				await exifr.read(input)
-				let output = await exifr.parse()
-				assert.equal(output.Make, 'DJI')
-			})
-
+		it(`input buffer & no options`, async () => {
+			let input = await getFile('001.tif')
+			let exifr = new ExifParser()
+			await exifr.read(input)
+			let output = await exifr.parse()
+			assert.equal(output.Make, 'DJI')
 		})
 
 	})
 
+	describe('reads file with small seekChunkSize', () => {
+
+		describe(`small file (32kb)`, async () => {
+			testChunkedFile('tif-with-iptc-icc-xmp.tif')
+		})
+
+		describe(`regular files`, async () => {
+			testChunkedFile('001.tif', ['exif', 'xmp'])
+			testChunkedFile('002.tiff', ['exif', 'xmp'])
+			testChunkedFile('issue-exif-js-124.tiff', ['exif', 'xmp'])
+			testChunkedFile('issue-metadata-extractor-152.tif', ['exif', 'xmp'])
+		})
+
+		function testChunkedFile(fileName, segKeys) {
+
+			it(`reads fixture ${fileName} with default settings`, async () => {
+				let input = await getPath(fileName)
+				let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				let output = await exifr.parse()
+				assert.isObject(output)
+			})
+
+			it(`reads fixture ${fileName} with all segments enabled`, async () => {
+				let input = await getPath(fileName)
+				let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100, xmp: true, icc: true, iptc: true}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				let output = await exifr.parse()
+				assert.isObject(output)
+			})
+
+			if (segKeys) {
+
+				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
+					let input = await getPath(fileName)
+					let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100}
+					for (let segKey of segKeys) options[segKey] = true
+					let exifr = new ExifParser(options)
+					await exifr.read(input)
+					let output = await exifr.parse()
+					assert.isObject(output)
+					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
+				})
+
+				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
+					let input = await getFile(fileName)
+					let options = {mergeOutput: false, seekChunkSize: 100}
+					for (let segKey of segKeys) options[segKey] = true
+					let exifr = new ExifParser(options)
+					await exifr.read(input)
+					let output = await exifr.parse()
+					assert.isObject(output)
+					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
+				})
+
+			}
+
+		}
+
+	})
 
 })

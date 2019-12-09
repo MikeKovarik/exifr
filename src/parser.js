@@ -224,9 +224,10 @@ class TiffFileParser extends FileBase {
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
 			let chunk = await this.ensureSegmentChunk(seg)
+			if (chunk === undefined) throw new Error(`Couldn't read chunk`)
 			this.createParser('tiff', chunk)
 			this.parsers.tiff.parseHeader()
-			this.parsers.tiff.parseIfd0Block()
+			await this.parsers.tiff.parseIfd0Block()
 
 			this.adaptTiffPropAsSegment('xmp')
 			this.adaptTiffPropAsSegment('iptc')
@@ -287,9 +288,9 @@ export class Exifr extends Reader {
 		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
 		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
 		var marker = this.file.getUint16(0)
-		this.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
+		this.file.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
 		//this.isJpeg = marker === JPEG_SOI
-		let FileParser = this.isTiff ? TiffFileParser : JpegFileParser
+		let FileParser = this.file.isTiff ? TiffFileParser : JpegFileParser
 		this.fileParser = new FileParser(this.options, this.file, this.parsers)
 	}
 
@@ -301,6 +302,7 @@ export class Exifr extends Reader {
 		return output
 	}
 
+	// todo: move this logic to parse
 	async createOutput() {
 		//global.recordBenchTime(`exifr.createOutput()`)
 		let libOutput = {}
@@ -319,7 +321,7 @@ export class Exifr extends Reader {
 	async extractThumbnail() {
 		this.init()
 		let TiffParser = getParserClass(this.options, 'tiff')
-		if (this.isTiff)
+		if (this.file.isTiff)
 			var seg = {start: 0, type: 'tiff'}
 		else
 			var seg = this.fileParser.getOrFindSegment('tiff')

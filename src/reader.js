@@ -162,21 +162,22 @@ export class FsReader extends ChunkedReader {
 		await this.readChunk(0, this.options.seekChunkSize)
 	}
 
+	// todo: only read unread bytes. ignore overlaping bytes.
 	async readChunk(start, size) {
+		//console.log('readChunk', start, size)
 		var chunk = this.subarray(start, size, true)
-		var {bytesRead} = await this.fh.read(chunk.dataView, 0, size, start)
-		// read less data then requested. that means we're at the end and there's no more data to read.
-		if (bytesRead < size) return this.destroy()
+		await this.fh.read(chunk.dataView, 0, size, start)
 		return chunk
 	}
 
 	// TODO: auto close file handle when reading and parsing is over
 	// (app can read more chunks after parsing the first)
 	async destroy() {
-		console.log('FsReader.destroy()')
+		//console.log('FsReader.destroy()')
 		if (this.fh) {
-			await this.fh.close()
+			let fh = this.fh
 			this.fh = undefined
+			await fh.close()
 		}
 	}
 

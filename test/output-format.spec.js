@@ -71,6 +71,26 @@ describe('output object', () => {
 			assert.isString(output.xmp)
 		})
 
+		it(`xmp should not be empty when default options`, async () => {
+			let input = await getPath('issue-exif-js-124.tiff')
+			let options = {wholeFile: false, mergeOutput: false}
+			let exifr = new ExifParser(options)
+			await exifr.read(input)
+			let output = await exifr.parse()
+			assert.isObject(output)
+			assert.isNotEmpty(output.xmp)
+		})
+
+		it(`xmp should not be empty when {xmp: true}`, async () => {
+			let input = await getPath('issue-exif-js-124.tiff')
+			let options = {wholeFile: false, mergeOutput: false, xmp: true}
+			let exifr = new ExifParser(options)
+			await exifr.read(input)
+			let output = await exifr.parse()
+			assert.isObject(output)
+			assert.isNotEmpty(output.xmp)
+		})
+
 	})
 
 	describe('Extracting IPTC from TIFF', () => {
