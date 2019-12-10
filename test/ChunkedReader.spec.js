@@ -336,7 +336,7 @@ describe('ChunkedReader', () => {
 	describe('reads file with small seekChunkSize', () => {
 
 		describe(`small file (32kb)`, async () => {
-			testChunkedFile('tif-with-iptc-icc-xmp.tif')
+			testChunkedFile('tif-with-iptc-icc-xmp.tif', ['exif', 'xmp', 'iptc', 'icc'])
 		})
 
 		describe(`regular files`, async () => {

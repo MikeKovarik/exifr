@@ -63,7 +63,7 @@ describe('output object', () => {
 	describe('Extracting XMP from TIFF - ApplicationNotes (xmp in .tif)', () => {
 
 		let filePath = 'issue-metadata-extractor-152.tif'
-		foobar('xmp', 'ApplicationNotes', 0x02BC, filePath)
+		testSegmentFromTiffTag('xmp', 'ApplicationNotes', 0x02BC, filePath)
 
 		it(`is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
 			let input = await getFile(filePath)
@@ -94,15 +94,15 @@ describe('output object', () => {
 	})
 
 	describe('Extracting IPTC from TIFF', () => {
-		foobar('iptc', 'IPTC', 0x83bb, 'tif-with-iptc-icc-xmp.tif')
+		testSegmentFromTiffTag('iptc', 'IPTC', 0x83bb, 'tif-with-iptc-icc-xmp.tif')
 	})
 
 	describe('Extracting ICC from TIFF', () => {
-		foobar('icc', 'ICC', 0x8773, 'tif-with-iptc-icc-xmp.tif')
+		testSegmentFromTiffTag('icc', 'ICC', 0x8773, 'tif-with-iptc-icc-xmp.tif')
 	})
 
 
-	function foobar(segName, propName, propCode, filePath) {
+	function testSegmentFromTiffTag(segName, propName, propCode, filePath) {
 		let input
 		before(async () => {
 			input = await getFile(filePath)
