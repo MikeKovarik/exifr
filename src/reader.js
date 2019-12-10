@@ -157,14 +157,21 @@ export class FsReader extends ChunkedReader {
 
 	async readChunked() {
 		this.chunked = true
-		let fs = await fsPromise
-		this.fh = await fs.open(this.input, 'r')
+		this.fs = await fsPromise
+		await this.open()
 		await this.readChunk(0, this.options.seekChunkSize)
+	}
+
+	async open() {
+		if (this.fh === undefined)
+			this.fh = await this.fs.open(this.input, 'r')
 	}
 
 	// todo: only read unread bytes. ignore overlaping bytes.
 	async readChunk(start, size) {
-		//console.log('readChunk', start, size)
+		// reopen if needed
+		if (this.fh === undefined) await this.open()
+		// read the chunk into newly created/extended chunk of the dynamic buffer.
 		var chunk = this.subarray(start, size, true)
 		await this.fh.read(chunk.dataView, 0, size, start)
 		return chunk
@@ -173,7 +180,6 @@ export class FsReader extends ChunkedReader {
 	// TODO: auto close file handle when reading and parsing is over
 	// (app can read more chunks after parsing the first)
 	async destroy() {
-		//console.log('FsReader.destroy()')
 		if (this.fh) {
 			let fh = this.fh
 			this.fh = undefined
