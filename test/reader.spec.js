@@ -183,7 +183,6 @@ describe('reader', () => {
 		})
 
 		it(`scattered file, chunked mode - should load & parse TIFF chunk at the end of file`, async () => {
-			console.log('test me properly & move to ChunkedReader tests file')
 			let options = {wholeFile: undefined}
 			let input = getPath('001.tif')
 			var output = await parse(input, options)
@@ -191,32 +190,5 @@ describe('reader', () => {
 		})
 
 	})
-
-	/*
-	// TODO
-	describe('file types', () => {
-		it(`.jpg`, async () => {
-		})
-		it(`.tif`, async () => {
-		})
-	})
-	*/
-
-/*
-TODO: rewrite chunked reader for 3.0.0
-	it(`scattered file, chunked mode, allow additional chunks - should succeed`, async () => {
-		let options = {wholeFile: undefined}
-		var output = await parse(getPath('001.tif'), options)
-		assert.equal(output.Make, 'DJI')
-	})
-
-	it(`scattered file, chunked mode, no additional chunks - should fail`, async () => {
-		let options = {wholeFile: false}
-		var output = await parse(getPath('001.tif'), options)
-		assert.equal(exif, undefined)
-	})
-*/
-
-
 
 })
