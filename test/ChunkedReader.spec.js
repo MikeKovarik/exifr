@@ -43,15 +43,12 @@ describe('ChunkedReader', () => {
 
 				it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
 					let file = new ReaderClass(input, options)
-					console.log('file', file.toString())
 					await file.readChunked()
-					console.log('file', file.toString())
 					assert.equal(file.getUint8(0), 0xFF)
 					assert.equal(file.getUint8(1), 0xD8)
 					assert.equal(file.getUint8(2), 0xFF)
 					assert.equal(file.getUint8(3), 0xE1)
 					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
-					console.log('file', file.toString())
 					assert.equal(file.getUint8(0), 0xFF)
 					assert.equal(file.getUint8(1), 0xD8)
 					assert.equal(file.getUint8(2), 0xFF)
@@ -67,15 +64,10 @@ describe('ChunkedReader', () => {
 
 				it(`reading additional chunks keeps extending original view`, async () => {
 					let file = new ReaderClass(input, options)
-					console.log('0', file.toString())
 					await file.readChunked()
-					console.log('1', file.toString())
 					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
-					console.log('2', file.toString())
 					assert.equal(tiffChunk.byteLength, tiffLength)
-					console.log('3', file.toString())
 					assert.equal(file.byteLength, tiffEnd)
-					console.log('4', file.toString())
 					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
 					assert.equal(jfifChunk.byteLength, jfifLength)
 					assert.equal(file.byteLength, jfifEnd)
