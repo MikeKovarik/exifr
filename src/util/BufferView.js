@@ -75,13 +75,25 @@ export class BufferView {
 		this.byteLength = this.dataView.byteLength
 	}
 
-	_sizeTillEnd(offset) {
+	_lengthToEnd(offset) {
 		return this.byteLength - offset
 	}
 
 	subarray(offset, length, Class = BufferView) {
-		length = length || this._sizeTillEnd(offset)
+		length = length || this._lengthToEnd(offset)
 		return new Class(this, offset, length)
+	}
+
+	set(arg, offset, Class = BufferView) {
+		if (arg instanceof DataView || arg instanceof BufferView)
+			arg = new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
+		else if (arg instanceof ArrayBuffer)
+			arg = new Uint8Array(arg)
+		if (!(arg instanceof Uint8Array))
+			throw new Error(`BufferView.set(): Invalid data argument.`)
+		let uintView = this.getUintView()
+		uintView.set(arg, offset)
+		return new Class(this, offset, arg.byteLength)
 	}
 
 	getUintView() {
@@ -90,15 +102,6 @@ export class BufferView {
 
 	getUintArray(offset, length) {
 		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
-	}
-
-	set(arg, offset) {
-		if (arg instanceof DataView || arg instanceof BufferView)
-			arg = new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
-		if (!(arg instanceof Uint8Array))
-			throw new Error(`BufferView.set(): Invalid data argument.`)
-		let uintView = this.getUintView()
-		uintView.set(arg, offset)
 	}
 
 	getString(offset = 0, length = this.byteLength) {
@@ -185,7 +188,7 @@ export class DynamicBufferView extends BufferView {
 	}
 
 	subarray(offset, length, canExtend = false) {
-		length = length || this._sizeTillEnd(offset)
+		length = length || this._lengthToEnd(offset)
 		if (canExtend) this._tryExtend(offset, length)
 		this._registerRange(offset, length)
 		return super.subarray(offset, length)
@@ -194,8 +197,9 @@ export class DynamicBufferView extends BufferView {
 	// TODO: write tests for extending .set()
 	set(arg, offset, canExtend = false) {
 		if (canExtend) this._tryExtend(offset, arg.byteLength)
-		super.set(arg, offset)
-		this._registerRange(offset, arg.byteLength)
+		let chunk = super.set(arg, offset)
+		this._registerRange(offset, chunk.byteLength)
+		return chunk
 	}
 
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length

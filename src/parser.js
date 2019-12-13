@@ -211,6 +211,8 @@ class JpegFileParser extends FileBase {
 
 }
 
+
+
 class TiffFileParser extends FileBase {
 
 	async parse() {

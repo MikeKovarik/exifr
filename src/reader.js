@@ -119,11 +119,14 @@ export class ChunkedReader extends DynamicBufferView {
 		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
 		// Chunked reading is only available for simple exif (APP1) FTD0
 		if (this.forceWholeFile) return await this.readWhole()
-		// Read Chunk
-		await this.readChunked(size)
-		// Seeking for the exif at the beginning of the file failed.
-		// Fall back to scanning throughout the whole file if allowed.
-		if (this.allowWholeFile) return await this.readWhole()
+		try {
+			// Read Chunk
+			await this.readChunked(size)
+		} catch {
+			// Seeking for the exif at the beginning of the file failed.
+			// Fall back to scanning throughout the whole file if allowed.
+			if (this.allowWholeFile) return await this.readWhole()
+		}
 	}
 
 	get allowWholeFile() {
@@ -135,15 +138,14 @@ export class ChunkedReader extends DynamicBufferView {
 	get forceWholeFile() {
 		if (this.allowWholeFile === false) return false
 		return this.options.wholeFile === true
-			|| this.needWholeFile
 	}
-
+/*
 	get needWholeFile() {
 		return !!this.options.xmp
 			|| !!this.options.icc
 			|| !!this.options.iptc
 	}
-
+*/
 }
 
 export class FsReader extends ChunkedReader {
@@ -188,6 +190,25 @@ export class FsReader extends ChunkedReader {
 	}
 
 }
+
+
+export class BlobReader extends ChunkedReader {
+
+	async readChunk(start, size) {
+		let end = size ? start + size : undefined
+		let blob = this.input.slice(start, end)
+		let abChunk = await new Promise((resolve, reject) => {
+			let reader = new FileReader()
+			reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
+			reader.onerror = reject
+			// TODO: subarray or manually create ranges record
+			reader.readAsArrayBuffer(blob)
+		})
+		return this.set(abChunk, start, true)
+	}
+
+}
+
 
 // TODO: make this optional. not everyone will ever use base64 inputs
 export class Base64Reader extends ChunkedReader {
@@ -246,22 +267,6 @@ export class UrlFetcher extends ChunkedReader {
 		let res = await fetch(url, {headers})
 		// TODO: subarray or manually create ranges record
 		return new BufferView(await res.arrayBuffer())
-	}
-
-}
-
-export class BlobReader extends ChunkedReader {
-
-	readChunk(start, size) {
-		let end = size ? start + size : undefined
-		let blob = this.input.slice(start, end)
-		return new Promise((resolve, reject) => {
-			let reader = new FileReader()
-			reader.onloadend = () => resolve(new BufferView(reader.result || 0))
-			reader.onerror = reject
-			// TODO: subarray or manually create ranges record
-			reader.readAsArrayBuffer(blob)
-		})
 	}
 
 }

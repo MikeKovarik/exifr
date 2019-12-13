@@ -1,12 +1,14 @@
-import {assert, isNode} from './test-util.js'
+import {assert, isNode, isBrowser} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
-import {FsReader} from '../src/reader.js'
+import {FsReader, BlobReader} from '../src/reader.js'
 import {ExifParser} from '../src/index-full.js'
+import {createBlob} from './reader.spec.js'
 
 
 describe('ChunkedReader', () => {
 
-	const path = getPath('IMG_20180725_163423.jpg')
+	const name = 'IMG_20180725_163423.jpg'
+	const path = getPath(name)
 
 	const tiffOffset = 2
 	const tiffLength = 25386
@@ -23,88 +25,97 @@ describe('ChunkedReader', () => {
 	const seekChunkSize = 10
 	const options = {wholeFile: false, seekChunkSize}
 
-	isNode && describe('FsReader', () => {
+	function testReaderClass(input, ReaderClass) {
+		describe(ReaderClass.name, () => {
 
-		it(`reads initial chunk`, async () => {
-			let file = new FsReader(path, {seekChunkSize})
-			await file.readChunked()
-			assert.equal(file.byteLength, seekChunkSize)
-			assert.equal(file.getUint8(0), 0xFF)
-			assert.equal(file.getUint8(1), 0xD8)
-			await file.destroy()
-		})
+			before(async () => input = await input)
 
-		describe('readChunked()', () => {
-
-			it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
-				let file = new FsReader(path, options)
+			it(`reads initial chunk`, async () => {
+				let file = new ReaderClass(input, {seekChunkSize})
 				await file.readChunked()
+				assert.equal(file.byteLength, seekChunkSize)
 				assert.equal(file.getUint8(0), 0xFF)
 				assert.equal(file.getUint8(1), 0xD8)
-				assert.equal(file.getUint8(2), 0xFF)
-				assert.equal(file.getUint8(3), 0xE1)
-				let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
-				assert.equal(file.getUint8(0), 0xFF)
-				assert.equal(file.getUint8(1), 0xD8)
-				assert.equal(file.getUint8(2), 0xFF)
-				assert.equal(file.getUint8(3), 0xE1)
-				assert.equal(file.getUint8(13), 0x49)
-				assert.equal(file.getUint8(14), 0x2a)
-				assert.equal(tiffChunk.getUint8(0), 0xFF)
-				assert.equal(tiffChunk.getUint8(1), 0xE1)
-				assert.equal(tiffChunk.getUint8(11), 0x49)
-				assert.equal(tiffChunk.getUint8(12), 0x2a)
 				await file.destroy()
 			})
 
-			it(`reading additional chunks keeps extending original view`, async () => {
-				let file = new FsReader(path, options)
-				await file.readChunked()
-				let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
-				assert.equal(tiffChunk.byteLength, tiffLength)
-				assert.equal(file.byteLength, tiffEnd)
-				let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
-				assert.equal(jfifChunk.byteLength, jfifLength)
-				assert.equal(file.byteLength, jfifEnd)
-				await file.destroy()
+			describe('readChunked()', () => {
+
+				it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readChunked()
+					assert.equal(file.getUint8(0), 0xFF)
+					assert.equal(file.getUint8(1), 0xD8)
+					assert.equal(file.getUint8(2), 0xFF)
+					assert.equal(file.getUint8(3), 0xE1)
+					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
+					assert.equal(file.getUint8(0), 0xFF)
+					assert.equal(file.getUint8(1), 0xD8)
+					assert.equal(file.getUint8(2), 0xFF)
+					assert.equal(file.getUint8(3), 0xE1)
+					assert.equal(file.getUint8(13), 0x49)
+					assert.equal(file.getUint8(14), 0x2a)
+					assert.equal(tiffChunk.getUint8(0), 0xFF)
+					assert.equal(tiffChunk.getUint8(1), 0xE1)
+					assert.equal(tiffChunk.getUint8(11), 0x49)
+					assert.equal(tiffChunk.getUint8(12), 0x2a)
+					await file.destroy()
+				})
+
+				it(`reading additional chunks keeps extending original view`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readChunked()
+					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
+					assert.equal(tiffChunk.byteLength, tiffLength)
+					assert.equal(file.byteLength, tiffEnd)
+					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
+					assert.equal(jfifChunk.byteLength, jfifLength)
+					assert.equal(file.byteLength, jfifEnd)
+					await file.destroy()
+				})
+
+				it(`reading sparsely creates second range`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readChunked()
+					assert.equal(file.ranges[0].end, seekChunkSize)
+					assert.lengthOf(file.ranges, 1)
+					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
+					assert.equal(file.ranges[1].end, jfifOffset + jfifLength)
+					assert.lengthOf(file.ranges, 2)
+					assert.equal(jfifChunk.byteLength, jfifLength)
+					assert.equal(file.byteLength, jfifEnd)
+					await file.destroy()
+				})
+
+				it(`space between sparse segments does not contain useful data`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readChunked()
+					await file.readChunk(jfifOffset, jfifLength)
+					assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
+					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
+					await file.destroy()
+				})
+
 			})
 
-			it(`reading sparsely creates second range`, async () => {
-				let file = new FsReader(path, options)
-				await file.readChunked()
-				assert.equal(file.ranges[0].end, seekChunkSize)
-				assert.lengthOf(file.ranges, 1)
-				let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
-				assert.equal(file.ranges[1].end, jfifOffset + jfifLength)
-				assert.lengthOf(file.ranges, 2)
-				assert.equal(jfifChunk.byteLength, jfifLength)
-				assert.equal(file.byteLength, jfifEnd)
-				await file.destroy()
-			})
+			describe('readWhole()', () => {
 
-			it(`space between sparse segments does not contain useful data`, async () => {
-				let file = new FsReader(path, options)
-				await file.readChunked()
-				await file.readChunk(jfifOffset, jfifLength)
-				assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
-				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-				await file.destroy()
+				it(`space between segments contains useful data`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readWhole()
+					assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
+					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
+				})
+
 			})
 
 		})
+	}
 
-		describe('readWhole()', () => {
 
-			it(`space between segments contains useful data`, async () => {
-				let file = new FsReader(path, options)
-				await file.readWhole()
-				assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
-				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-			})
+	isNode && testReaderClass(path, FsReader)
+	isBrowser && testReaderClass(createBlob(name), BlobReader)
 
-		})
-
-	})
 
 	it(`reading simple .jpg file sequentially`, async () => {
 		let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
