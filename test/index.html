@@ -13,6 +13,15 @@
 	-->
 	<script src="https://unpkg.com/chai@4.2.0/chai.js"></script>
 
+	<style>
+		@media (prefers-color-scheme: dark) {
+			html {
+				filter: invert(1) hue-rotate(180deg);
+				background: #000;
+			}
+		}
+	</style>
+
 </head>
 <body>
 
@@ -32,7 +41,22 @@
 	}
 	</script>
 
-	<script type="module" src="./test.mjs"></script>
+	<script type="module">
+		import './BufferView.spec.js'
+		import './ChunkedReader.spec.js'
+		import './highlevel.spec.js'
+		import './icc.spec.js'
+		import './iptc.spec.js'
+		import './issues.spec.js'
+		import './jfif.spec.js'
+		import './output-format.spec.js'
+		import './parser.spec.js'
+		import './reader.spec.js'
+		import './thumbnail.spec.js'
+		import './tiff.spec.js'
+		import './xmp.spec.js'
+		mocha.run()
+	</script>
 
 </body>
 </html>

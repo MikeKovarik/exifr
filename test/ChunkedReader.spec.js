@@ -1,4 +1,4 @@
-import {assert} from './test-util.js'
+import {assert, isNode} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
 import {FsReader} from '../src/reader.js'
 import {ExifParser} from '../src/index-full.js'
@@ -23,7 +23,7 @@ describe('ChunkedReader', () => {
 	const seekChunkSize = 10
 	const options = {wholeFile: false, seekChunkSize}
 
-	describe('FsReader', () => {
+	isNode && describe('FsReader', () => {
 
 		it(`reads initial chunk`, async () => {
 			let file = new FsReader(path, {seekChunkSize})

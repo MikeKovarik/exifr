@@ -39,11 +39,12 @@
 		<div id="input">
 
 			<h3>File</h3>
-			<div id="dropzone">
+			<div id="dropzone" class="${imageUrl ? 'with-img' : ''}" css="background-image: url(${imageUrl});">
 				<input id="picker" type="file" multiple change.trigger="onPick($event)">
 				Click to pick
 				<br>or<br>
 				drop your file here
+				<div class="close" click.trigger="clear()">X</div>
 			</div>
 
 			<h3>Options</h3>
@@ -58,7 +59,7 @@
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:       <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.gps" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.interop" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;thumbnail: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.thumbnail" change.trigger="updateOptions()">,</div>
-				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// other content of TIFF</div>
+				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// other data</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;makerNote:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.makerNote" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;userComment: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.userComment" change.trigger="updateOptions()">,</div>
 				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="updateOptions()">,</div>
@@ -83,7 +84,6 @@
 
 		<div id="thumb">
 			<h3>Embedded thumbnail</h3>
-			<img if.bind="imageUrl" src.bind="imageUrl">
 			<img if.bind="thumbUrl" src.bind="thumbUrl">
 			<p if.bind="thumbUrl === undefined">
 				Doesn't contain thumbnail
@@ -120,7 +120,7 @@
 				Raw output
 				<span click.trigger="rawFullscreen = !rawFullscreen">Toggle fullscreen</span>
 			</h3>
-			<pre>${output | json}</pre>
+			<pre>${rawOutput | json}</pre>
 		</div>
 
 	</div>

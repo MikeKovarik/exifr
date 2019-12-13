@@ -55,7 +55,8 @@ h3 {
 
 header {
 	position: relative;
-	margin-bottom: 16px;
+	margin-bottom: 48px;
+	display: grid;
 	/*
 	background-color: rgba(234, 234, 234, 0.7);
 	backdrop-filter: blur(10px);
@@ -80,31 +81,25 @@ header {
 		background-size: contain;
 		background-image: url('./logo/blue-small.png');
 		font-size: 0;
-		margin-bottom: 32px;
 	}
-@media only screen and (max-width: 739px) {
-	header .badges {
-		margin: 16px 0;
-	}
-}
-@media only screen and (min-width: 740px) {
+@media only screen and (min-width: 750px) {
 	header {
-		display: flex;
+		grid-template-columns: 188px auto;
+		align-items: end;
 	}
-		header .description {
-			margin-top: 23px;
-			margin-left: 56px;
-		}
-		header .badges {
-			position: absolute;
-			right: 0;
-			top: 0;
-		}
+	header .description {
+		padding-bottom: 4px;
+	}
+	header .badges {
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
 }
 
-#app1-thumb img,
 #thumb img {
-	width: 200px;
+	max-width: 188px;
+	max-height: 188px;
 }
 
 #picker,
@@ -114,6 +109,43 @@ p {
 	margin-top: 8px;
 	margin-bottom: 8px;
 }
+#dropzone.with-img {
+	height: 140px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	border-radius: 0;
+	border: none !important;
+	color: transparent !important;
+}
+	#dropzone:not(.with-img) .close {
+		display: none;
+	}
+	#dropzone .close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		width: 24px;
+		height: 24px;
+		background-color: rgba(0,0,0,0.4);
+		color: #FFF;
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	#dropzone .close:hover {
+		background-color: rgba(0,0,0,0.6);
+	}
+	#dropzone .close::before {
+		content: '';
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		bottom: -8px;
+		left: -8px;
+	}
 
 h3 {
 	display: flex;
@@ -139,7 +171,7 @@ h3 span {
 
 @media only screen and (min-width: 600px) {
 	#dropzone {
-		width: 220px;
+		width: 100%;
 	}
 }
 #dropzone {
@@ -215,13 +247,20 @@ table {
 }
 
 @media only screen and (max-width: 499px) {
+	header,
 	#grid {
 		gap: 32px;
 	}
 }
 @media only screen and (min-width: 500px) {
+	header,
 	#grid {
 		gap: 24px 56px;
+	}
+}
+@media only screen and (max-width: 400px) {
+	header {
+		gap: 16px;
 	}
 }
 
@@ -230,12 +269,11 @@ table {
 	#input        {grid-area: input}
 	#raw          {grid-area: raw}
 	#output-head  {grid-area: output-head}
-	#thumb        {grid-area: thumb}
 	#app1-thumb   {grid-area: app1-thumb}
 }
 @media only screen and (min-width: 500px) and (max-width: 749px) {
 	#grid {
-		grid-template-columns: 220px auto;
+		grid-template-columns: 188px auto;
 		grid-template-areas:
 			"input-head output-head"
 			"input      .          "
@@ -249,12 +287,13 @@ table {
 			"input      .          "
 			"input      .          "
 			"input      .          "
-			"output     raw        "
+			"input      .          "
+			"input      raw        "
 	}
 }
 @media only screen and (min-width: 750px) and (max-width: 999px) {
 	#grid {
-		grid-template-columns: 220px min-content auto;
+		grid-template-columns: 188px min-content auto;
 		grid-template-areas:
 			"input-head output-head output-head"
 			"input      .           raw"
@@ -275,8 +314,9 @@ table {
 	}
 }
 @media only screen and (min-width: 1000px) {
+	#thumb        {grid-area: thumb}
 	#grid {
-		grid-template-columns: 220px min-content min-content auto;
+		grid-template-columns: 188px min-content min-content auto;
 		grid-template-areas:
 			"input-head output-head  output-head  output-head"
 			"input      thumb        app1-ifd0    raw"
@@ -289,7 +329,7 @@ table {
 	}
 }
 #grid.raw-fullscreen {
-	grid-template-columns: 220px auto;
+	grid-template-columns: 188px auto;
 	grid-template-areas:
 		"input-head output-head"
 		"input      raw"
@@ -303,3 +343,12 @@ table {
 	#grid.raw-fullscreen > *:not(#input-head):not(#output-head):not(#input):not(#raw) {
 		display: none;
 	}
+
+#readme pre {
+	white-space: pre-wrap;
+	font-size: 10px;
+	padding: 10px;
+	background: rgba(50, 80, 144, 0.08);
+	border: 1px solid rgba(50, 80, 144, 0.2);
+	border-radius: 4px;
+}

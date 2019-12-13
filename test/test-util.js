@@ -7,10 +7,8 @@ import {parse} from '../src/index-full.js'
 export var isBrowser = typeof navigator === 'object'
 export var isNode = typeof process === 'object' && process.versions && process.versions.node
 
-if (isBrowser) {
-	mocha.setup('bdd')
-	setTimeout(() => mocha.run(), 100)
-}
+if (isBrowser) mocha.setup('bdd')
+
 // chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
 // in browser we need to use Require.js version which adds it as global to window object.
 export var assert = chai.assert || window.chai.assert
