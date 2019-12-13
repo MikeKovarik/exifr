@@ -63,6 +63,11 @@ export class BufferView {
 		}
 	}
 
+	_swapArrayBuffer(arrayBuffer) {
+		let dataView = new DataView(arrayBuffer)
+		this._swapDataView(dataView)
+	}
+
 	_swapBuffer(uint8) {
 		let dataView = new DataView(uint8.buffer, uint8.byteOffset, uint8.byteLength)
 		this._swapDataView(dataView)

@@ -1,6 +1,7 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
 import {tagKeys} from './tags.js'
+import {isBrowser} from './util/BufferView.js'
 
 
 const configurableSegsOrBlocks = [
@@ -26,12 +27,13 @@ class Options {
 	// false - do not allow reading additional chunks (chunked mode)
 	wholeFile = undefined
 
-	// Size of the chunk that can be scanned for EXIF.
-	seekChunkSize = 512
+	firstChunkSize = undefined
+	// Size of the chunk that can be scanned for EXIF. Used by node.js.
+	firstChunkSizeNode = 512
 	// In browser its sometimes better to download larger chunk in hope that it contains the
-	// whole EXIF (and not just its begining like in case of seekChunkSize) in prevetion
+	// whole EXIF (and not just its begining like in case of firstChunkSizeNode) in prevetion
 	// of additional loading and fetching.
-	parseChunkSize = 64 * 1024
+	firstChunkSizeBrowser = 64 * 1024
 	// TODO
 	minimalTiffSize = 10 * 1024
 
@@ -106,6 +108,8 @@ class Options {
 				this.thumbnail = userOptions.thumbnail || false
 			}
 		}
+		if (this.firstChunkSize === undefined)
+			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		if (this.mergeOutput) this.thumbnail = false
 		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
 		this.assignGlobalFilterToLocalScopes()

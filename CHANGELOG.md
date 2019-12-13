@@ -15,6 +15,8 @@
 - Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/tags/*` files for refference.
 - renamed IFD0 in the output object from `output.image` to `output.ifd0`
 - renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
+- renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
+
 
 ### Added
 - ICC Parser

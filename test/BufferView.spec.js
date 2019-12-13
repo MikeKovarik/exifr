@@ -149,16 +149,49 @@ describe('DynamicBufferView', () => {
 		assert.equal(view.byteLength, 7)
 	})
 
-	it(`.set(input, number, true) extends the buffer if needed`, async () => {
-		let view = new DynamicBufferView(new Uint8Array([0,1,2]))
-		assert.equal(view.byteLength, 3)
-		view.set(new Uint8Array([4,5,6]), 4, true)
-		assert.equal(view.byteLength, 7)
-		assert.equal(view.getUint8(0), 0)
-		assert.equal(view.getUint8(2), 2)
-		// value at 3 is random deallocated data
-		assert.equal(view.getUint8(4), 4)
-		assert.equal(view.getUint8(6), 6)
+	describe('.set()', () => {
+		//it(`.set(input, number, true) extends the buffer if needed`, async () => {
+		it(`extends the buffer if needed`, async () => {
+			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
+			assert.equal(view.byteLength, 3)
+			view.set(new Uint8Array([4,5,6]), 4, true)
+			assert.equal(view.byteLength, 7)
+			assert.equal(view.getUint8(0), 0)
+			assert.equal(view.getUint8(2), 2)
+			// value at 3 is random deallocated data
+			assert.equal(view.getUint8(4), 4)
+			assert.equal(view.getUint8(6), 6)
+		})
+		it(`accepts ArrayBuffer`, async () => {
+			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
+			assert.equal(view.byteLength, 3)
+			let uint8 = new Uint8Array([4,5,6])
+			let arrayBuffer = uint8.buffer
+			view.set(arrayBuffer, 4, true)
+			assert.equal(view.byteLength, 7)
+			assert.equal(view.getUint8(0), 0)
+			assert.equal(view.getUint8(2), 2)
+			// value at 3 is random deallocated data
+			assert.equal(view.getUint8(4), 4)
+			assert.equal(view.getUint8(6), 6)
+		})
+		it(`returns BufferView chunk of the extended view, sharing the same memory`, async () => {
+			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
+			assert.equal(view.byteLength, 3)
+			let uint8 = new Uint8Array([4,5,6])
+			let arrayBuffer = uint8.buffer
+			let chunk = view.set(arrayBuffer, 4, true)
+			assert.equal(chunk.getUint8(0), 4)
+			assert.equal(chunk.getUint8(2), 6)
+			let newVal1 = 98
+			let newVal2 = 99
+			chunk.dataView.setUint8(0, newVal1)
+			view.dataView.setUint8(5, newVal2)
+			assert.equal(chunk.getUint8(0), newVal1)
+			assert.equal(view.getUint8(4), newVal1)
+			assert.equal(chunk.getUint8(1), newVal2)
+			assert.equal(view.getUint8(5), newVal2)
+		})
 	})
 
 	describe('.ranges array', () => {

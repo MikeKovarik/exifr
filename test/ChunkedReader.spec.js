@@ -22,8 +22,8 @@ describe('ChunkedReader', () => {
 	const exifPointer = 239
 	const gpsPointer = 18478
 
-	const seekChunkSize = 10
-	const options = {wholeFile: false, seekChunkSize}
+	const firstChunkSize = 10
+	const options = {wholeFile: false, firstChunkSize}
 
 	function testReaderClass(input, ReaderClass) {
 		describe(ReaderClass.name, () => {
@@ -31,24 +31,27 @@ describe('ChunkedReader', () => {
 			before(async () => input = await input)
 
 			it(`reads initial chunk`, async () => {
-				let file = new ReaderClass(input, {seekChunkSize})
+				let file = new ReaderClass(input, {firstChunkSize})
 				await file.readChunked()
-				assert.equal(file.byteLength, seekChunkSize)
+				assert.equal(file.byteLength, firstChunkSize)
 				assert.equal(file.getUint8(0), 0xFF)
 				assert.equal(file.getUint8(1), 0xD8)
-				await file.destroy()
+				if (file.destroy) await file.destroy()
 			})
 
 			describe('readChunked()', () => {
 
 				it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
 					let file = new ReaderClass(input, options)
+					console.log('file', file.toString())
 					await file.readChunked()
+					console.log('file', file.toString())
 					assert.equal(file.getUint8(0), 0xFF)
 					assert.equal(file.getUint8(1), 0xD8)
 					assert.equal(file.getUint8(2), 0xFF)
 					assert.equal(file.getUint8(3), 0xE1)
 					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
+					console.log('file', file.toString())
 					assert.equal(file.getUint8(0), 0xFF)
 					assert.equal(file.getUint8(1), 0xD8)
 					assert.equal(file.getUint8(2), 0xFF)
@@ -59,32 +62,37 @@ describe('ChunkedReader', () => {
 					assert.equal(tiffChunk.getUint8(1), 0xE1)
 					assert.equal(tiffChunk.getUint8(11), 0x49)
 					assert.equal(tiffChunk.getUint8(12), 0x2a)
-					await file.destroy()
+					if (file.destroy) await file.destroy()
 				})
 
 				it(`reading additional chunks keeps extending original view`, async () => {
 					let file = new ReaderClass(input, options)
+					console.log('0', file.toString())
 					await file.readChunked()
+					console.log('1', file.toString())
 					let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
+					console.log('2', file.toString())
 					assert.equal(tiffChunk.byteLength, tiffLength)
+					console.log('3', file.toString())
 					assert.equal(file.byteLength, tiffEnd)
+					console.log('4', file.toString())
 					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
 					assert.equal(jfifChunk.byteLength, jfifLength)
 					assert.equal(file.byteLength, jfifEnd)
-					await file.destroy()
+					if (file.destroy) await file.destroy()
 				})
 
 				it(`reading sparsely creates second range`, async () => {
 					let file = new ReaderClass(input, options)
 					await file.readChunked()
-					assert.equal(file.ranges[0].end, seekChunkSize)
+					assert.equal(file.ranges[0].end, firstChunkSize)
 					assert.lengthOf(file.ranges, 1)
 					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
 					assert.equal(file.ranges[1].end, jfifOffset + jfifLength)
 					assert.lengthOf(file.ranges, 2)
 					assert.equal(jfifChunk.byteLength, jfifLength)
 					assert.equal(file.byteLength, jfifEnd)
-					await file.destroy()
+					if (file.destroy) await file.destroy()
 				})
 
 				it(`space between sparse segments does not contain useful data`, async () => {
@@ -93,7 +101,7 @@ describe('ChunkedReader', () => {
 					await file.readChunk(jfifOffset, jfifLength)
 					assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-					await file.destroy()
+					if (file.destroy) await file.destroy()
 				})
 
 			})
@@ -114,12 +122,12 @@ describe('ChunkedReader', () => {
 
 
 	isNode && testReaderClass(path, FsReader)
-	isBrowser && testReaderClass(createBlob(name), BlobReader)
+	isBrowser && testReaderClass(createBlob(path), BlobReader)
 
 
 	it(`reading simple .jpg file sequentially`, async () => {
-		let seekChunkSize = tiffOffset + Math.round(tiffLength / 2)
-		let options = {wholeFile: false, seekChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
+		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
 		let exifr = new ExifParser(options)
 		await exifr.read(path)
 		assert.isAtLeast(exifr.file.byteLength, 12695)
@@ -132,7 +140,7 @@ describe('ChunkedReader', () => {
 
 		it(`input path & {wholeFile: false}`, async () => {
 			let input = await getPath('001.tif')
-			let options = {wholeFile: false, seekChunkSize: 100}
+			let options = {wholeFile: false, firstChunkSize: 100}
 			let exifr = new ExifParser(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
@@ -158,7 +166,7 @@ describe('ChunkedReader', () => {
 
 	})
 
-	describe('reads file with small seekChunkSize', () => {
+	describe('reads file with small firstChunkSize', () => {
 
 		describe(`small file (32kb)`, async () => {
 			testChunkedFile('tif-with-iptc-icc-xmp.tif', ['exif', 'xmp', 'iptc', 'icc'])
@@ -175,7 +183,7 @@ describe('ChunkedReader', () => {
 
 			it(`reads fixture ${fileName} with default settings`, async () => {
 				let input = await getPath(fileName)
-				let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100}
+				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
 				let exifr = new ExifParser(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
@@ -184,7 +192,7 @@ describe('ChunkedReader', () => {
 
 			it(`reads fixture ${fileName} with all segments enabled`, async () => {
 				let input = await getPath(fileName)
-				let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100, xmp: true, icc: true, iptc: true}
+				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100, xmp: true, icc: true, iptc: true}
 				let exifr = new ExifParser(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
@@ -195,7 +203,7 @@ describe('ChunkedReader', () => {
 
 				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
 					let input = await getPath(fileName)
-					let options = {wholeFile: false, mergeOutput: false, seekChunkSize: 100}
+					let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
 					let exifr = new ExifParser(options)
 					await exifr.read(input)
@@ -206,7 +214,7 @@ describe('ChunkedReader', () => {
 
 				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
 					let input = await getFile(fileName)
-					let options = {mergeOutput: false, seekChunkSize: 100}
+					let options = {mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
 					let exifr = new ExifParser(options)
 					await exifr.read(input)

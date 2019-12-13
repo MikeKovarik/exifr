@@ -44,17 +44,17 @@ export default class Reader {
 
 	async readBlob(blob) {
 		this.file = new BlobReader(blob, this.options)
-		await this.file.read(this.options.parseChunkSize)
+		await this.file.read()
 	}
 
 	async readUrl(url) {
 		this.file = new UrlFetcher(url, this.options)
-		await this.file.read(this.options.parseChunkSize)
+		await this.file.read()
 	}
 
 	async readBase64(base64) {
 		this.file = new Base64Reader(base64, this.options)
-		await this.file.read(this.options.seekChunkSize)
+		await this.file.read()
 	}
 
 	async readFileFromDisk(filePath) {
@@ -106,7 +106,7 @@ export class ChunkedReader extends DynamicBufferView {
 
 	async readChunked(size) {
 		this.chunked = true
-		await this.readChunk(this.nextGapStart, size)
+		await this.readChunk(0, this.options.firstChunkSize)
 	}
 
 	get nextGapStart() {
@@ -115,13 +115,13 @@ export class ChunkedReader extends DynamicBufferView {
 		return 0
 	}
 
-	async read(size) {
+	async read() {
 		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
 		// Chunked reading is only available for simple exif (APP1) FTD0
 		if (this.forceWholeFile) return await this.readWhole()
 		try {
 			// Read Chunk
-			await this.readChunked(size)
+			await this.readChunked()
 		} catch {
 			// Seeking for the exif at the beginning of the file failed.
 			// Fall back to scanning throughout the whole file if allowed.
@@ -152,8 +152,8 @@ export class FsReader extends ChunkedReader {
 
 	async readWhole() {
 		this.chunked = false
-		let fs = await fsPromise
-		let buffer = await fs.readFile(this.input)
+		this.fs = await fsPromise
+		let buffer = await this.fs.readFile(this.input)
 		this._swapBuffer(buffer)
 	}
 
@@ -161,7 +161,7 @@ export class FsReader extends ChunkedReader {
 		this.chunked = true
 		this.fs = await fsPromise
 		await this.open()
-		await this.readChunk(0, this.options.seekChunkSize)
+		await this.readChunk(0, this.options.firstChunkSize)
 	}
 
 	async open() {
@@ -194,16 +194,25 @@ export class FsReader extends ChunkedReader {
 
 export class BlobReader extends ChunkedReader {
 
-	async readChunk(start, size) {
-		let end = size ? start + size : undefined
-		let blob = this.input.slice(start, end)
-		let abChunk = await new Promise((resolve, reject) => {
+	_readBlobAsArrayBuffer(blob) {
+		return new Promise((resolve, reject) => {
 			let reader = new FileReader()
 			reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
 			reader.onerror = reject
-			// TODO: subarray or manually create ranges record
 			reader.readAsArrayBuffer(blob)
 		})
+	}
+
+	async readWhole() {
+		this.chunked = false
+		let arrayBuffer = await this._readBlobAsArrayBuffer(this.input)
+		this._swapArrayBuffer(arrayBuffer)
+	}
+
+	async readChunk(start, size) {
+		let end = size ? start + size : undefined
+		let blob = this.input.slice(start, end)
+		let abChunk = await this._readBlobAsArrayBuffer(blob)
 		return this.set(abChunk, start, true)
 	}
 
