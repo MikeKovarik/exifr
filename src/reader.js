@@ -268,14 +268,29 @@ export class Base64Reader extends ChunkedReader {
 
 export class UrlFetcher extends ChunkedReader {
 
+	async readWhole() {
+		this.chunked = false
+		let arrayBuffer = await fetch(this.input).then(res => res.arrayBuffer())
+		console.log('arrayBuffer', arrayBuffer)
+		console.log('arrayBuffer.byteLength', arrayBuffer.byteLength)
+		this._swapArrayBuffer(arrayBuffer)
+	}
+
 	async readChunk(start, size) {
-		let end = size ? start + size : undefined
-		let url = this.input
+		let end = size ? start + size - 1 : undefined
+		// note: end in http range is inclusive, unlike APIs in node,
 		let headers = {}
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
-		let res = await fetch(url, {headers})
-		// TODO: subarray or manually create ranges record
-		return new BufferView(await res.arrayBuffer())
+		let abChunk = await fetch(this.input, {headers}).then(res => res.arrayBuffer())
+		if (size !== undefined && abChunk.byteLength !== size) {
+			// received chunk size doesn't match what we requested. server probably doesnt support ranges.
+			this.chunked = false
+			this._swapArrayBuffer(abChunk)
+			return this.subarray(start, size, true)
+		} else {
+			// received the chunk we requested. ok.
+			return this.set(abChunk, start, true)
+		}
 	}
 
 }

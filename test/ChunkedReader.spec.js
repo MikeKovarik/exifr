@@ -1,6 +1,6 @@
 import {assert, isNode, isBrowser} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
-import {FsReader, BlobReader} from '../src/reader.js'
+import {FsReader, BlobReader, UrlFetcher} from '../src/reader.js'
 import {ExifParser} from '../src/index-full.js'
 import {createBlob} from './reader.spec.js'
 
@@ -105,6 +105,7 @@ describe('ChunkedReader', () => {
 					await file.readWhole()
 					assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
+					// end of file 0xAC7FFFD9
 				})
 
 			})
@@ -115,6 +116,8 @@ describe('ChunkedReader', () => {
 
 	isNode && testReaderClass(path, FsReader)
 	isBrowser && testReaderClass(createBlob(path), BlobReader)
+	isBrowser && testReaderClass(path, UrlFetcher)
+	//testReaderClass('TODO', Base64Reader)
 
 
 	it(`reading simple .jpg file sequentially`, async () => {
@@ -122,6 +125,7 @@ describe('ChunkedReader', () => {
 		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
 		let exifr = new ExifParser(options)
 		await exifr.read(path)
+		console.log('exifr.file', exifr.file.toString())
 		assert.isAtLeast(exifr.file.byteLength, 12695)
 		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
 		let output = await exifr.parse()
