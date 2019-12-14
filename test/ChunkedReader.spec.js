@@ -9,6 +9,7 @@ describe('ChunkedReader', () => {
 
 	const name = 'IMG_20180725_163423.jpg'
 	const path = getPath(name)
+	const size = 4055536
 
 	const tiffOffset = 2
 	const tiffLength = 25386
@@ -96,8 +97,14 @@ describe('ChunkedReader', () => {
 					if (file.destroy) await file.destroy()
 				})
 
-				it(`reading chunk at the end of file & exceeding size of the file`, async () => {
-					assert.equals(true, false)
+				it(`reading beyond the end of file doesn't throw or malform the view`, async () => {
+					let file = new ReaderClass(input, options)
+					await file.readChunked()
+					let offset = 20
+					let chunk = await file.readChunk(size - offset, offset * 2)
+					assert.equal(chunk.byteLength, offset)
+					assert.equal(file.byteLength, size)
+					assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
 				})
 
 			})
@@ -109,7 +116,7 @@ describe('ChunkedReader', () => {
 					await file.readWhole()
 					assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-					// end of file 0xAC7FFFD9
+					assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
 				})
 
 			})
