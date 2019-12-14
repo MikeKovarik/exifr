@@ -216,18 +216,20 @@ class JpegFileParser extends FileBase {
 class TiffFileParser extends FileBase {
 
 	async parse() {
-		if (this.options.xmp) this.options.addPick('ifd0', [TAG_XMP], false)
-		if (this.options.iptc) this.options.addPick('ifd0', [TAG_IPTC], false)
-		if (this.options.icc) this.options.addPick('ifd0', [TAG_ICC], false)
-		//if (this.options.photoshop) this.options.addPick('ifd0', [TAG_PHOTOSHOP], false)
+		let options = this.options
+		if (options.xmp) options.addPick('ifd0', [TAG_XMP], false)
+		if (options.iptc) options.addPick('ifd0', [TAG_IPTC], false)
+		if (options.icc) options.addPick('ifd0', [TAG_ICC], false)
+		//if (options.photoshop) options.addPick('ifd0', [TAG_PHOTOSHOP], false)
 
-		if (this.options.tiff || this.options.xmp || this.options.iptc) {
+		if (options.tiff || options.xmp || options.iptc || options.icc) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
 			let chunk = await this.ensureSegmentChunk(seg)
 			if (chunk === undefined) throw new Error(`Couldn't read chunk`)
 			this.createParser('tiff', chunk)
+			console.log('this.parsers.tiff.parseHeader')
 			this.parsers.tiff.parseHeader()
 			await this.parsers.tiff.parseIfd0Block()
 

@@ -36,8 +36,13 @@ const SIZE_LOOKUP = {
 export class TiffCore extends AppSegment {
 
 	parseHeader() {
+		console.log('parseHeader')
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.chunk.getUint16()
+		console.log('file type', this.file.constructor.name)
+		console.log('file', this.file.toString())
+		console.log('chunk', this.chunk.toString())
+		console.log('byteOrder', byteOrder, byteOrder.toString(16))
 		if (byteOrder === TIFF_LITTLE_ENDIAN)
 			this.le = true // little endian
 		else if (byteOrder === TIFF_BIG_ENDIAN)
@@ -176,6 +181,7 @@ export class TiffExif extends TiffCore {
 
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 	async parse() {
+		console.log('parse')
 		//global.recordBenchTime(`tiffExif.parse()`)
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
@@ -360,6 +366,7 @@ export class TiffExif extends TiffCore {
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
+		console.log('extractThumbnail')
 		if (!this.headerParsed) this.parseHeader()
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 

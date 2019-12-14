@@ -96,6 +96,10 @@ describe('ChunkedReader', () => {
 					if (file.destroy) await file.destroy()
 				})
 
+				it(`reading chunk at the end of file & exceeding size of the file`, async () => {
+					assert.equals(true, false)
+				})
+
 			})
 
 			describe('readWhole()', () => {
@@ -109,7 +113,22 @@ describe('ChunkedReader', () => {
 				})
 
 			})
-
+/*
+			it(`input path & {wholeFile: false}`, async () => {
+				let options = {wholeFile: false}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				assert.equal(exifr.file.getUint32(jfifOffset - 4), 0x5c47ffd9)
+				assert.equal(exifr.file.getUint32(jfifOffset), 0xffe00010)
+			})
+			it(`input path & {wholeFile: true}`, async () => {
+				let options = {wholeFile: true}
+				let exifr = new ExifParser(options)
+				await exifr.read(input)
+				assert.equal(exifr.file.getUint32(jfifOffset - 4), 0x5c47ffd9)
+				assert.equal(exifr.file.getUint32(jfifOffset), 0xffe00010)
+			})
+*/
 		})
 	}
 
@@ -133,11 +152,12 @@ describe('ChunkedReader', () => {
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
 
-		it(`input path & {wholeFile: false}`, async () => {
+		it(`input path & {wholeFile: false, firstChunkSize: 100}`, async () => {
 			let input = await getPath('001.tif')
 			let options = {wholeFile: false, firstChunkSize: 100}
 			let exifr = new ExifParser(options)
 			await exifr.read(input)
+			//console.log('exifr.file', exifr.file.toString())
 			let output = await exifr.parse()
 			assert.equal(output.Make, 'DJI')
 		})
