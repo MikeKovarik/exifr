@@ -125,7 +125,6 @@ describe('ChunkedReader', () => {
 		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
 		let exifr = new ExifParser(options)
 		await exifr.read(path)
-		console.log('exifr.file', exifr.file.toString())
 		assert.isAtLeast(exifr.file.byteLength, 12695)
 		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
 		let output = await exifr.parse()
