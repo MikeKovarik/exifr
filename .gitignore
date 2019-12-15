@@ -62,9 +62,13 @@ typings/
 
 package-lock.json
 /index.mjs
-/index.cjs
-/index.legacy.cjs
+/full.mjs
+/full.cjs
+/full.legacy.cjs
 /lite.mjs
 /lite.cjs
 /lite.legacy.cjs
+/core.mjs
+/core.cjs
+/core.legacy.cjs
 /experiments
