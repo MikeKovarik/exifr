@@ -151,7 +151,6 @@ export class ChunkedReader extends DynamicBufferView {
 export class FsReader extends ChunkedReader {
 
 	async readWhole() {
-		console.log('# FsReader.readWhole()')
 		this.chunked = false
 		this.fs = await fsPromise
 		let buffer = await this.fs.readFile(this.input)
@@ -172,7 +171,6 @@ export class FsReader extends ChunkedReader {
 
 	// todo: only read unread bytes. ignore overlaping bytes.
 	async readChunk(start, size) {
-		console.log('# FsReader.readChunk()', start, size)
 		// reopen if needed
 		if (this.fh === undefined) await this.open()
 		// read the chunk into newly created/extended chunk of the dynamic buffer.
@@ -223,24 +221,17 @@ export class BlobReader extends ChunkedReader {
 export class UrlFetcher extends ChunkedReader {
 
 	async readWhole() {
-		console.log('# UrlFetcher.readWhole()')
 		this.chunked = false
 		let arrayBuffer = await fetch(this.input).then(res => res.arrayBuffer())
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
 	async readChunk(start, size) {
-		console.log('-------------------------------------------')
-		console.log('# UrlFetcher.readChunk()', start, size)
 		let end = size ? start + size - 1 : undefined
 		// note: end in http range is inclusive, unlike APIs in node,
 		let headers = {}
 		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
 		let abChunk = await fetch(this.input, {headers}).then(res => res.arrayBuffer())
-		console.log('size', size)
-		console.log('abChunk.byteLength', abChunk.byteLength)
-		console.log('writing chunk', abChunk)
-		console.log('writing to', start)
 		return this.set(abChunk, start, true)
 	}
 

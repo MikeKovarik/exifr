@@ -61,7 +61,6 @@ typings/
 .next
 
 package-lock.json
-/index.mjs
 /full.mjs
 /full.cjs
 /full.legacy.cjs

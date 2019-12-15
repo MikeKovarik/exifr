@@ -12,15 +12,12 @@ export function createImg(url) {
 	return img
 }
 
-export function fetchArrayBuffer(url) {
-	return fetch(url).then(res => res.arrayBuffer())
-}
-
 export async function createArrayBuffer(urlOrPath) {
-	if (isBrowser)
-		return fetchArrayBuffer(urlOrPath)
-	else if (isNode)
-		return (await fs.readFile(urlOrPath)).buffer
+	let bufferOrAb = await getFile(urlOrPath)
+	if (bufferOrAb instanceof Uint8Array)
+		return bufferOrAb.buffer
+	else
+		return bufferOrAb
 }
 
 export function createBlob(url) {
@@ -48,10 +45,10 @@ export async function createBase64Url(url) {
 
 export function createWorker(input) {
 	return new Promise((resolve, reject) => {
-		let worker = new Worker('worker.js')
+		let worker = new Worker('worker.js', { type: "module" })
 		worker.postMessage(input)
 		worker.onmessage = e => resolve(e.data)
-		worker.onerror = reject
+		worker.onerror = err => reject('WebWorker onerror')
 	})
 }
 
@@ -60,20 +57,20 @@ describe('reader', () => {
 	describe('input formats', () => {
 
 		it(`ArrayBuffer`, async () => {
-			var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			var output = await parse(arrayBuffer)
 			assert.exists(output, `output is undefined`)
 		})
 
 		it(`DataView`, async () => {
-			var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let dataView = new DataView(arrayBuffer)
 			var output = await parse(dataView)
 			assert.exists(output, `output is undefined`)
 		})
 
 		it(`Uint8Array`, async () => {
-			var arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
+			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let uint8Array = new Uint8Array(arrayBuffer)
 			var output = await parse(uint8Array)
 			assert.exists(output, `output is undefined`)
@@ -127,16 +124,20 @@ describe('reader', () => {
 			assert.exists(output, `output is undefined`)
 		})
 
-		isBrowser && it(`WebWorker: string URL`, async () => {
-			let url = getUrl('IMG_20180725_163423.jpg')
-			let output = await createWorker(url)
-			assert.isObject(output, `output is undefined`)
-		})
+		describe('Browser: WebWoker', () => {
 
-		isBrowser && it(`WebWorker: ArrayBuffer`, async () => {
-			let arrayBuffer = await createArrayBuffer(getPath('IMG_20180725_163423.jpg'))
-			let output = await createWorker(arrayBuffer)
-			assert.isObject(output, `output is undefined`)
+			isBrowser && it(`MJS: string URL`, async () => {
+				let url = getUrl('IMG_20180725_163423.jpg')
+				let output = await createWorker(url)
+				assert.isObject(output, `output is undefined`)
+			})
+
+			isBrowser && it(`MJS: ArrayBuffer`, async () => {
+				let arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
+				let output = await createWorker(arrayBuffer)
+				assert.isObject(output, `output is undefined`)
+			})
+
 		})
 
 	})
