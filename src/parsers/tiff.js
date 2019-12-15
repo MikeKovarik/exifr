@@ -107,12 +107,13 @@ export class TiffCore extends AppSegment {
 			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
-			let res = []
+			let ArrayType = getTypedArray(type)
+			let arr = new ArrayType(valueCount)
 			for (let i = 0; i < valueCount; i++) {
-				res.push(this.parseTagValue(type, offset))
+				arr[i] = this.parseTagValue(type, offset)
 				offset += valueSize
 			}
-			return res
+			return arr
 		}
 	}
 
@@ -135,6 +136,22 @@ export class TiffCore extends AppSegment {
 
 }
 
+function getTypedArray(type) {
+	switch (type) {
+		case 1:  return Uint8Array
+		case 3:  return Uint16Array
+		case 4:  return Uint32Array
+		case 5:  return Array
+		case 6:  return Int8Array
+		case 8:  return Int16Array
+		case 9:  return Int32Array
+		case 10: return Array
+		case 11: return Float32Array
+		case 12: return Float64Array
+		case 13: return Array
+		default: return Array
+	}
+}
 
 
 
