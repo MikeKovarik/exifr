@@ -101,16 +101,11 @@ export class BufferView {
 		return new BufferView(this, offset, length)
 	}
 
-	subarrayUint8(offset = 0, length) {
-		length = length || this._lengthToEnd(offset)
-		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
-	}
-
 	toUint8() {
 		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
 	}
 
-	getUintArray(offset, length) {
+	getUint8Array(offset, length) {
 		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
 	}
 
