@@ -4,7 +4,7 @@ export var isWorker = isBrowser && typeof HTMLImageElement === 'undefined'
 export var isNode = typeof global !== 'undefined' && typeof process !== 'undefined' && process.versions && process.versions.node
 
 
-const utf8  = new TextDecoder('utf-8')
+const utf8 = new TextDecoder('utf-8')
 //const utf16 = new TextDecoder('utf-16')
 
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
@@ -84,11 +84,6 @@ export class BufferView {
 		return this.byteLength - offset
 	}
 
-	subarray(offset, length, Class = BufferView) {
-		length = length || this._lengthToEnd(offset)
-		return new Class(this, offset, length)
-	}
-
 	set(arg, offset, Class = BufferView) {
 		if (arg instanceof DataView || arg instanceof BufferView)
 			arg = new Uint8Array(arg.buffer, arg.byteOffset, arg.byteLength)
@@ -99,6 +94,16 @@ export class BufferView {
 		let uintView = this.getUintView()
 		uintView.set(arg, offset)
 		return new Class(this, offset, arg.byteLength)
+	}
+
+	subarray(offset, length) {
+		length = length || this._lengthToEnd(offset)
+		return new BufferView(this, offset, length)
+	}
+
+	subarrayUint8(offset = 0, length) {
+		length = length || this._lengthToEnd(offset)
+		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
 	}
 
 	getUintView() {
