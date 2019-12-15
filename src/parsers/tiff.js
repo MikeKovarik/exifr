@@ -99,7 +99,7 @@ export class TiffCore extends AppSegment {
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === 7)
-			return this.chunk.getUintArray(offset, valueCount)
+			return this.chunk.getUint8(offset, valueCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
 		if (valueCount === 1) {
@@ -108,7 +108,7 @@ export class TiffCore extends AppSegment {
 		} else {
 			// Return array of values.
 			if (type === 1) {
-				return this.chunk.subarrayUint8(offset, valueCount)
+				return this.chunk.getUint8(offset, valueCount)
 			} else {
 				let ArrayType = getTypedArray(type)
 				let arr = new ArrayType(valueCount)
@@ -395,7 +395,7 @@ export class TiffExif extends TiffCore {
 		let offset = this.thumbnail[THUMB_OFFSET]
 		let length = this.thumbnail[THUMB_LENGTH]
 		// TODO: should this be checked and ensured with ensureBlockChunk?
-		return this.chunk.getUintArray(offset, length)
+		return this.chunk.getUint8(offset, length)
 	}
 
 	translate() {
