@@ -43,9 +43,9 @@ export default class IccParser extends AppSegment {
 	parseHeader() {
 		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
 			throw new Error('ICC header is too short')
-		for (let [offset, psrser] of Object.entries(headerParsers)) {
+		for (let [offset, parse] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
-			let val = psrser(this.chunk, offset)
+			let val = parse(this.chunk, offset)
 			if (val === EMPTY_VALUE) continue
 			this.output[offset] = val
 		}
@@ -144,9 +144,13 @@ function parseString(view, offset) {
 }
 
 function parseVersion(view, offset) {
-	return (view.getUint8(offset)).toString(10)
-		+ '.' + (view.getUint8(offset + 1) >> 4).toString(10)
-		+ '.' + (view.getUint8(offset + 1) % 16).toString(10)
+	return [
+		view.getUint8(offset),
+		view.getUint8(offset + 1) >> 4,
+		view.getUint8(offset + 1) % 16,
+	]
+	.map(num => num.toString(10))
+	.join('.')
 }
 
 function parseDate(view, offset) {

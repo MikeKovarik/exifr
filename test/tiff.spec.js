@@ -223,6 +223,44 @@ describe('TIFF - IFD0 / Image Block', () => {
 		]]
 	})
 
+	describe('revive edge cases', () => {
+
+		describe('0xC68B OriginalRawFileName', () => {
+
+			const CODE = 0xC68B
+			let reviveOptions   = {tiff: true, ifd0: true, translateTags: false, reviveValues: true}
+			let noReviveOptions = {tiff: true, ifd0: true, translateTags: false, reviveValues: false}
+			let file1
+			let file2
+			before(async () => {
+				file1 = await getFile('issue-metadata-extractor-152.jpg')
+				file2 = await getFile('issue-metadata-extractor-152.tif')
+			})
+
+			it(`string & {reviveValues: false} => string`, async () => {
+				var output = await parse(file1, noReviveOptions)
+				assert.isString(output[CODE])
+			})
+
+			it(`string & {reviveValues: true} => string`, async () => {
+				var output = await parse(file1, reviveOptions)
+				assert.isString(output[CODE])
+			})
+
+			it(`Uint8Array & {reviveValues: false} => Uint8Array`, async () => {
+				var output = await parse(file2, noReviveOptions)
+				assert.instanceOf(output[CODE], Uint8Array)
+			})
+
+			it(`Uint8Array & {reviveValues: true} => string`, async () => {
+				var output = await parse(file2, reviveOptions)
+				assert.isString(output[CODE])
+			})
+
+		})
+
+	})
+
 })
 
 

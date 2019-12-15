@@ -1,27 +1,18 @@
 import {tagRevivers} from '../tags.js'
-import {toString} from '../util/BufferView.js'
+import {toAsciiString} from '../util/BufferView.js'
 
-/*
-ifd0
-    "ModifyDate": "2018-07-25T14:34:23.000Z",
-
-exif
-    "DateTimeOriginal": "2018-07-25T14:34:23.000Z",
-    "DateTimeDigitized": "2018-07-25T14:34:23.000Z",
-*/
 
 tagRevivers.ifd0 =
-tagRevivers.exif =
-tagRevivers.interop =
 tagRevivers.thumbnail = {
-	// ifd0
-	0xC68B: toString,
-	// ???
+	0xC68B: toAsciiString,
+	0x0132: reviveDate,
+}
+
+tagRevivers.exif = {
+	0xA000: toAsciiString,
+	0x9000: toAsciiString,
 	0x9003: reviveDate,
 	0x9004: reviveDate,
-	0x0132: reviveDate,
-	0xA000: toString,
-	0x9000: toString,
 }
 
 tagRevivers.gps = {

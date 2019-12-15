@@ -229,7 +229,6 @@ class TiffFileParser extends FileBase {
 			let chunk = await this.ensureSegmentChunk(seg)
 			if (chunk === undefined) throw new Error(`Couldn't read chunk`)
 			this.createParser('tiff', chunk)
-			console.log('this.parsers.tiff.parseHeader')
 			this.parsers.tiff.parseHeader()
 			await this.parsers.tiff.parseIfd0Block()
 
