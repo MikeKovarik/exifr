@@ -150,7 +150,7 @@ describe('DynamicBufferView', () => {
 	})
 
 	describe('.set()', () => {
-		//it(`.set(input, number, true) extends the buffer if needed`, async () => {
+
 		it(`extends the buffer if needed`, async () => {
 			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
 			assert.equal(view.byteLength, 3)
@@ -162,6 +162,7 @@ describe('DynamicBufferView', () => {
 			assert.equal(view.getUint8(4), 4)
 			assert.equal(view.getUint8(6), 6)
 		})
+
 		it(`accepts ArrayBuffer`, async () => {
 			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
 			assert.equal(view.byteLength, 3)
@@ -175,6 +176,7 @@ describe('DynamicBufferView', () => {
 			assert.equal(view.getUint8(4), 4)
 			assert.equal(view.getUint8(6), 6)
 		})
+
 		it(`returns BufferView chunk of the extended view, sharing the same memory`, async () => {
 			let view = new DynamicBufferView(new Uint8Array([0,1,2]))
 			assert.equal(view.byteLength, 3)
@@ -192,6 +194,7 @@ describe('DynamicBufferView', () => {
 			assert.equal(chunk.getUint8(1), newVal2)
 			assert.equal(view.getUint8(5), newVal2)
 		})
+
 	})
 
 	describe('.ranges array', () => {
