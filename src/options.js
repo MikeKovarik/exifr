@@ -34,8 +34,6 @@ class Options {
 	// whole EXIF (and not just its begining like in case of firstChunkSizeNode) in prevetion
 	// of additional loading and fetching.
 	firstChunkSizeBrowser = 64 * 1024
-	// TODO
-	minimalTiffSize = 10 * 1024
 
 	// TODO
 	translateTags = true
