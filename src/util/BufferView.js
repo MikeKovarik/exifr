@@ -91,7 +91,7 @@ export class BufferView {
 			arg = new Uint8Array(arg)
 		if (!(arg instanceof Uint8Array))
 			throw new Error(`BufferView.set(): Invalid data argument.`)
-		let uintView = this.getUintView()
+		let uintView = this.toUint8()
 		uintView.set(arg, offset)
 		return new Class(this, offset, arg.byteLength)
 	}
@@ -106,7 +106,7 @@ export class BufferView {
 		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
 	}
 
-	getUintView() {
+	toUint8() {
 		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
 	}
 
