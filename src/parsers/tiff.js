@@ -107,13 +107,17 @@ export class TiffCore extends AppSegment {
 			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
-			let ArrayType = getTypedArray(type)
-			let arr = new ArrayType(valueCount)
-			for (let i = 0; i < valueCount; i++) {
-				arr[i] = this.parseTagValue(type, offset)
-				offset += valueSize
+			if (type === 1) {
+				return this.chunk.subarrayUint8(offset, valueCount)
+			} else {
+				let ArrayType = getTypedArray(type)
+				let arr = new ArrayType(valueCount)
+				for (let i = 0; i < valueCount; i++) {
+					arr[i] = this.parseTagValue(type, offset)
+					offset += valueSize
+				}
+				return arr
 			}
-			return arr
 		}
 	}
 
