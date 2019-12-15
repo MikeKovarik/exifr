@@ -285,7 +285,7 @@ export class Base64Reader extends ChunkedReader {
 		} else {
 			let chunk = this.subarray(start, size, true)
 			let binary = atob(base64)
-			let uint8view = chunk.asUint8()
+			let uint8view = chunk.getUintView()
 			for (let i = 0; i < size; i++)
 				uint8view[i] = binary.charCodeAt(offset + i)
 			return chunk

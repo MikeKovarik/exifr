@@ -103,31 +103,31 @@ describe('BufferView', () => {
 
 	})
 
-	describe(`.getUint8()`, () => {
+	describe(`.subarrayUint8()`, () => {
 
-		it(`.getUint8() returns instance of BufferView even if subclassed`, async () => {
+		it(`.subarrayUint8() returns instance of BufferView even if subclassed`, async () => {
 			let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
-			let chunk = view.getUint8(1, 4)
+			let chunk = view.subarrayUint8(1, 4)
 			assert.instanceOf(chunk, Uint8Array)
 		})
 
-		it(`.getUint8(offset, length) creates new view on top of original memory at given offset and length`, async () => {
+		it(`.subarrayUint8(offset, length) creates new view on top of original memory at given offset and length`, async () => {
 			let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
-			let chunk = view.getUint8(1, 4)
+			let chunk = view.subarrayUint8(1, 4)
 			assert.equal(chunk.byteLength, 4)
 			assert.deepEqual(Array.from(chunk), [1,2,3,4])
 		})
 
-		it(`.getUint8() has no sideeffects`, async () => {
+		it(`.subarrayUint8() has no sideeffects`, async () => {
 			let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
-			view.getUint8(1, 4)
+			view.subarrayUint8(1, 4)
 			assert.equal(view.byteLength, 6)
 			assert.deepEqual(Array.from(new Uint8Array(view.buffer)), [0,1,2,3,4,5])
 		})
 
-		it(`.getUint8() chunk shares memory with parent`, async () => {
+		it(`.subarrayUint8() chunk shares memory with parent`, async () => {
 			let view = new BufferView(Uint8Array.from([0,1,2,3,4,5]))
-			let chunk = view.getUint8(1, 4)
+			let chunk = view.subarrayUint8(1, 4)
 			chunk[1] = 98
 			chunk[3] = 99
 			assert.deepEqual(Array.from(chunk), [1,98,3,99])
