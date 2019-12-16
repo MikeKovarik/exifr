@@ -228,8 +228,8 @@ describe('TIFF - IFD0 / Image Block', () => {
 		describe('0xC68B OriginalRawFileName', () => {
 
 			const CODE = 0xC68B
-			let reviveOptions   = {tiff: true, ifd0: true, translateTags: false, reviveValues: true}
-			let noReviveOptions = {tiff: true, ifd0: true, translateTags: false, reviveValues: false}
+			let reviveOptions   = {tiff: true, ifd0: true, translateKeys: false, reviveValues: true}
+			let noReviveOptions = {tiff: true, ifd0: true, translateKeys: false, reviveValues: false}
 			let file1
 			let file2
 			before(async () => {

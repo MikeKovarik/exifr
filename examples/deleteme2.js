@@ -29,7 +29,7 @@ function isImage(fileName) {
 			console.log(fileName)
 			let filePath = path.join('../test/fixtures/', fileName)
 			let fileBuffer = await fs.readFile(filePath)
-			let exifr = new ExifParser({mergeOutput: false, tiff: true, ifd0: true, exif: true, gps: true, interop: true, thumbnail: true, xmp: true, iptc: true, icc: true, sanitize: true, translateTags: false, translateValues: false})
+			let exifr = new ExifParser({mergeOutput: false, tiff: true, ifd0: true, exif: true, gps: true, interop: true, thumbnail: true, xmp: true, iptc: true, icc: true, sanitize: true, translateKeys: false, translateValues: false})
 			await exifr.read(fileBuffer)
 			let output = await exifr.parse()
 			if (isJpg(fileName)) {

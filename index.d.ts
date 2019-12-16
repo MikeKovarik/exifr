@@ -13,7 +13,7 @@ type Output = Tags | ExpandedTags
 interface FormatOptions {
 	skip?: string[] | number[],
 	pick?: string[] | number[],
-	translateTags?: boolean,
+	translateKeys?: boolean,
 	translateValues?: boolean,
 	reviveValues?: boolean,
 }

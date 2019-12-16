@@ -25,7 +25,7 @@ export async function parseGps(arg) {
 		// turning off all unnecessary steps and transformation to get the needed data ASAP
 		sanitize: false,
 		reviveValues: true,
-		translateTags: false,
+		translateKeys: false,
 		mergeOutput: false,
 	}
 	let exifr = new ExifParser(options)

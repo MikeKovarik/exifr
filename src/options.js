@@ -42,7 +42,7 @@ class Options {
 	chunkLimit = 10
 
 	// TODO
-	translateTags = true
+	translateKeys = true
 	// TODO
 	translateValues = true
 	// TODO

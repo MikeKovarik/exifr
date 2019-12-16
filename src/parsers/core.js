@@ -53,11 +53,11 @@ export class AppSegment {
 		let Ctor = this.constructor
 		let type = Ctor.type
 		let segOptions = options[type] || {}
-		let optionProps = ['translateTags', 'translateValues', 'reviveValues']
+		let optionProps = ['translateKeys', 'translateValues', 'reviveValues']
 		for (let prop of optionProps)
 			this[prop] = pickDefined(Ctor[prop], segOptions[prop], options[prop])
 
-		this.canTranslate = this.translateTags || this.translateValues || this.reviveValues
+		this.canTranslate = this.translateKeys || this.translateValues || this.reviveValues
 	}
 
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
@@ -82,7 +82,7 @@ export class AppSegment {
 		let entries = Object.entries(rawTags)
 		if (this.options.translateValues && valDict)
 			entries = entries.map(([tag, val]) => [tag, this.translateValue(val, valDict[tag]) || val])
-		if (this.options.translateTags && keyDict)
+		if (this.options.translateKeys && keyDict)
 			entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
 		return Object.fromEntries(entries)
 	}

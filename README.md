@@ -275,7 +275,7 @@ Each Segment (`tiff`, `xmp`, `iptc`, `icc`) and TIFF block (`ifd0`, `exif`, `gps
    * Subset of `options` object.
    * Defined properties override values from `options` object.
    * Undefined properties are inherited from `options` object.
-   * Can contain `pick`, `skip`, `translateTags`, `translateValues`, `reviveValues`, `sanitize`
+   * Can contain `pick`, `skip`, `translateKeys`, `translateValues`, `reviveValues`, `sanitize`
 * `Array` of tag names or codes - disabled, not parsing
    * List of the only tags to parse. All others are skipped.
    * It's a sortcut for `{pick: ['tags', ...]}`

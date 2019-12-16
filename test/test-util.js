@@ -116,9 +116,9 @@ export function testSegmentTranslation({type, file, tags}) {
 			}
 		})
 
-		it(`should translate tag names to string when {translateTags: true}`, async () => {
+		it(`should translate tag names to string when {translateKeys: true}`, async () => {
 			let input = await getFile(file)
-			let options = {mergeOutput: false, [type]: true, translateTags: true}
+			let options = {mergeOutput: false, [type]: true, translateKeys: true}
 			let output = await parse(input, options)
 			let segment = output[type]
 			assert.exists(output, `output is undefined`)
@@ -128,9 +128,9 @@ export function testSegmentTranslation({type, file, tags}) {
 			}
 		})
 
-		it(`should not translate tag names to string when {translateTags: false}`, async () => {
+		it(`should not translate tag names to string when {translateKeys: false}`, async () => {
 			let input = await getFile(file)
-			let options = {mergeOutput: false, [type]: true, translateTags: false}
+			let options = {mergeOutput: false, [type]: true, translateKeys: false}
 			let output = await parse(input, options)
 			let segment = output[type]
 			assert.exists(output, `output is undefined`)
