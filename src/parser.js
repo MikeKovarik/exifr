@@ -45,7 +45,8 @@ function isAppMarker(marker2) {
 
 function getSegmentType(buffer, offset) {
 	for (let Parser of Object.values(parserClasses))
-		if (Parser.canHandle(buffer, offset)) return Parser.type
+		if (Parser.canHandle(buffer, offset))
+			return Parser.type
 }
 
 function getParserClass(options, type) {
@@ -123,24 +124,55 @@ class JpegFileParser extends FileBase {
 		await Promise.all(promises)
 	}
 
-	async findAppSegments(offset = 0, wantedSegments) {
+	async findAppSegments(offset = 0, wanted) {
 		//global.recordBenchTime(`exifr.findAppSegments()`)
 		let findAll
-		let wantedParsers = new Map
-		let remainingSegments
-		if (wantedSegments === true) {
+		let remaining
+		if (wanted === true) {
 			findAll = true
 		} else {
-			if (wantedSegments === undefined)
-				wantedSegments = Object.keys(parserClasses).filter(key => this.options[key])
+			if (wanted === undefined)
+				wanted = Object.keys(parserClasses).filter(key => this.options[key])
+			else
+				wanted = wanted.filter(key => this.options[key] && key in parserClasses)
 			findAll = false
-			for (let type of wantedSegments)
-				wantedParsers.set(type, parserClasses[type])
-			remainingSegments = new Set(wantedSegments)
+			remaining = new Set(wanted)
+			wanted    = new Set(wanted)
+		}
+		for (let type of wanted) {
+			let Parser = parserClasses[type]
+			if (Parser.multiSegment) {
+				findAll = true
+				await this.file.readWhole()
+				break
+			}
 		}
 		let file = this.file
-		let bytes = file.byteLength - 10 // No need to parse through till the end of the buffer.
-		for (; offset < bytes; offset++) {
+		// _findAppSegments() returns offset where next segment starts. If we didn't store it, next time we continue
+		// we might start in middle of data segment and would uselessly read & parse through noise.
+		offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
+		if (file.chunked) {
+			// We're in chunked mode and couldn't find all wanted segments.
+			// We'll read couple more chunks and parse them until we've found everything or hit chunk limit.
+			while (remaining.size > 0 && file.chunksRead < this.options.chunkLimit) {
+				let {nextChunkOffset} = file
+				// We might have previously found beginning of segment, but only first half might be read in memory.
+				let hasIncompleteSegments = this.appSegments.some(seg => seg.start < nextChunkOffset && seg.end >= nextChunkOffset)
+				// Start reading where we the next block begins. That way we avoid reading part of file where some jpeg image data may be.
+				// Unless there's an incomplete segment. In this case start reading right where the last chunk ends to get the whole segment.
+				if (offset > nextChunkOffset && !hasIncompleteSegments)
+					await file.readNextChunk(offset)
+				else
+					await file.readNextChunk(nextChunkOffset)
+				offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
+			}
+		}
+		//global.recordBenchTime(`segments found`)
+	}
+
+	_findAppSegments(offset, end, findAll, wanted, remaining) {
+		let file = this.file
+		for (; offset < end; offset++) {
 			if (file.getUint8(offset) !== MARKER_1) continue
 			// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
 			let marker2 = file.getUint8(offset + 1)
@@ -151,15 +183,15 @@ class JpegFileParser extends FileBase {
 			let length = file.getUint16(offset + 2)
 			if (isAppSegment) {
 				let type = getSegmentType(file, offset)
-				if (type && wantedParsers.has(type)) {
+				if (type && wanted.has(type)) {
 					// known and parseable segment found
-					let Parser = wantedParsers.get(type)
+					let Parser = parserClasses[type]
 					let seg = Parser.findPosition(file, offset)
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
-						remainingSegments.delete(type)
-						if (remainingSegments.size === 0) break
+						remaining.delete(type)
+						if (remaining.size === 0) break
 					}
 				} else {
 					// either unknown/supported appN segment or just a noise.
@@ -171,11 +203,7 @@ class JpegFileParser extends FileBase {
 			}
 			offset += length + 1
 		}
-		if (remainingSegments.size > 0 && this.file.chunked) {
-			//TODO
-			//await this.findAppSegments(offset - 10, Array.from(remainingSegments))
-		}
-		//global.recordBenchTime(`segments found`)
+		return offset
 	}
 
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
@@ -288,7 +316,7 @@ export class Exifr extends Reader {
 
 	parsers = {}
 
-	init() {
+	setup() {
 		//global.recordBenchTime(`exifr.parse()`)
 		if (this.fileParser) return
 		// JPEG's exif is based on TIFF structure from .tif files.
@@ -302,7 +330,7 @@ export class Exifr extends Reader {
 	}
 
 	async parse() {
-		this.init()
+		this.setup()
 		await this.fileParser.parse()
 		let output = await this.createOutput()
 		if (this.file.destroy) /*await*/ this.file.destroy()
@@ -326,7 +354,7 @@ export class Exifr extends Reader {
 	}
 
 	async extractThumbnail() {
-		this.init()
+		this.setup()
 		let TiffParser = getParserClass(this.options, 'tiff')
 		if (this.file.isTiff)
 			var seg = {start: 0, type: 'tiff'}

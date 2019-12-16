@@ -14,9 +14,12 @@ export class AppSegment {
 
 	static headerLength = 4
 
+	// name. Couldn't use static name property because it is used by contructor name
+	static type = undefined
 	// output is merged into library output or is assigned with parser id
 	static mergeOutput = false
-	static type = undefined
+	// The data may span multiple APP segments.
+	static multiSegment = false
 
 	static canHandle = () => false
 

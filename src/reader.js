@@ -99,9 +99,11 @@ export class ChunkedReader extends DynamicBufferView {
 		this.options = options
 	}
 
+	chunksRead = 0
+
 	async readWhole() {
 		this.chunked = false
-		await this.readChunk(this.nextGapStart)
+		await this.readChunk(this.nextChunkOffset)
 	}
 
 	async readChunked() {
@@ -109,13 +111,13 @@ export class ChunkedReader extends DynamicBufferView {
 		await this.readChunk(0, this.options.firstChunkSize)
 	}
 
-	async readNextChunk() {
-		await this.readChunk(this.nextGapStart, this.options.chunkSize)
+	async readNextChunk(offset = this.nextChunkOffset) {
+		await this.readChunk(offset, this.options.chunkSize)
 	}
 
-	get nextGapStart() {
+	get nextChunkOffset() {
 		let firstRange = this.ranges[0]
-		if (firstRange && firstRange.start === 0) return firstRange.length || 0
+		if (firstRange && firstRange.offset === 0) return firstRange.length || 0
 		return 0
 	}
 
@@ -159,12 +161,13 @@ export class FsReader extends ChunkedReader {
 	}
 
 	// todo: only read unread bytes. ignore overlaping bytes.
-	async readChunk(start, size) {
+	async readChunk(offset, length) {
+		this.chunksRead++
 		// reopen if needed
 		if (this.fh === undefined) await this.open()
 		// read the chunk into newly created/extended chunk of the dynamic buffer.
-		var chunk = this.subarray(start, size, true)
-		await this.fh.read(chunk.dataView, 0, size, start)
+		var chunk = this.subarray(offset, length, true)
+		await this.fh.read(chunk.dataView, 0, length, offset)
 		return chunk
 	}
 
@@ -198,11 +201,12 @@ export class BlobReader extends ChunkedReader {
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
-	async readChunk(start, size) {
-		let end = size ? start + size : undefined
-		let blob = this.input.slice(start, end)
+	async readChunk(offset, length) {
+		this.chunksRead++
+		let end = length ? offset + length : undefined
+		let blob = this.input.slice(offset, end)
 		let abChunk = await this._readBlobAsArrayBuffer(blob)
-		return this.set(abChunk, start, true)
+		return this.set(abChunk, offset, true)
 	}
 
 }
@@ -215,13 +219,14 @@ export class UrlFetcher extends ChunkedReader {
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
-	async readChunk(start, size) {
-		let end = size ? start + size - 1 : undefined
+	async readChunk(offset, length) {
+		this.chunksRead++
+		let end = length ? offset + length - 1 : undefined
 		// note: end in http range is inclusive, unlike APIs in node,
 		let headers = {}
-		if (start || end) headers.range = `bytes=${[start, end].join('-')}`
+		if (offset || end) headers.range = `bytes=${[offset, end].join('-')}`
 		let abChunk = await fetch(this.input, {headers}).then(res => res.arrayBuffer())
-		return this.set(abChunk, start, true)
+		return this.set(abChunk, offset, true)
 	}
 
 }
@@ -232,6 +237,7 @@ export class Base64Reader extends ChunkedReader {
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
 	async readChunk(start, size) {
+		this.chunksRead++
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
 		let base64 = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
 
