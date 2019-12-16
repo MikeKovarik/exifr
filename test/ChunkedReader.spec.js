@@ -100,9 +100,9 @@ describe('ChunkedReader', () => {
 				it(`reading beyond the end of file doesn't throw or malform the view`, async () => {
 					let file = new ReaderClass(input, options)
 					await file.readChunked()
-					let offset = 20
-					let chunk = await file.readChunk(size - offset, offset * 2)
-					assert.equal(chunk.byteLength, offset)
+					let chunkSize = 20
+					let chunk = await file.readChunk(size - chunkSize, chunkSize * 2)
+					assert.equal(chunk.byteLength, chunkSize)
 					assert.equal(file.byteLength, size)
 					assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
 				})
