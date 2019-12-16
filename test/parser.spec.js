@@ -12,7 +12,7 @@ describe('JpegFileParser', () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
-			exifr.init()
+			exifr.setup()
 			let jpegFileParser = exifr.fileParser
 			jpegFileParser.findAppSegments()
 			let jfifSegment = jpegFileParser.appSegments.find(segment => segment.type === 'jfif')
@@ -30,7 +30,7 @@ describe('JpegFileParser', () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
-			exifr.init()
+			exifr.setup()
 			let jpegFileParser = exifr.fileParser
 			jpegFileParser.findAppSegments()
 			let xmpSegment = jpegFileParser.appSegments.find(segment => segment.type === 'xmp')
