@@ -112,7 +112,7 @@ class JpegFileParser extends FileBase {
 
 	async parse() {
 		//global.recordBenchTime(`exifr.parse()`)
-		this.findAppSegments()
+		await this.findAppSegments()
 		await this.readSegments()
 		this.createParsers()
 	}
@@ -123,7 +123,7 @@ class JpegFileParser extends FileBase {
 		await Promise.all(promises)
 	}
 
-	findAppSegments(offset = 0, wantedSegments) {
+	async findAppSegments(offset = 0, wantedSegments) {
 		//global.recordBenchTime(`exifr.findAppSegments()`)
 		let findAll
 		let wantedParsers = new Map
@@ -171,6 +171,10 @@ class JpegFileParser extends FileBase {
 			}
 			offset += length + 1
 		}
+		if (remainingSegments.size > 0 && this.file.chunked) {
+			//TODO
+			//await this.findAppSegments(offset - 10, Array.from(remainingSegments))
+		}
 		//global.recordBenchTime(`segments found`)
 	}
 
@@ -200,10 +204,10 @@ class JpegFileParser extends FileBase {
 		return this.appSegments.find(seg => seg.type === type)
 	}
 
-	getOrFindSegment(type) {
+	async getOrFindSegment(type) {
 		let seg = this.getSegment(type)
 		if (seg === undefined) {
-			this.findAppSegments(0, [type])
+			await this.findAppSegments(0, [type])
 			seg = this.getSegment(type)
 		}
 		return seg
@@ -327,7 +331,7 @@ export class Exifr extends Reader {
 		if (this.file.isTiff)
 			var seg = {start: 0, type: 'tiff'}
 		else
-			var seg = this.fileParser.getOrFindSegment('tiff')
+			var seg = await this.fileParser.getOrFindSegment('tiff')
 		if (seg === undefined) return
 		let chunk = await this.fileParser.ensureSegmentChunk(seg)
 		let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)

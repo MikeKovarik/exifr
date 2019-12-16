@@ -22,18 +22,24 @@ class Options {
 	// Setting this to true enables searching through the whole file.
 	//allowWholeFile = false
 
-	// true - force fetching whole file / reading whole file (whole file mode)
-	// undefined - allow reading additional chunks (chunked mode)
-	// false - do not allow reading additional chunks (chunked mode)
+	// true      - forces reading the whole file
+	// undefined - allows reading additional chunks of size `chunkSize` (chunked mode)
+	// false     - does not allow reading additional chunks beyond `firstChunkSize` (chunked mode)
 	wholeFile = undefined
 
+	// TODO
 	firstChunkSize = undefined
 	// Size of the chunk that can be scanned for EXIF. Used by node.js.
 	firstChunkSizeNode = 512
 	// In browser its sometimes better to download larger chunk in hope that it contains the
 	// whole EXIF (and not just its begining like in case of firstChunkSizeNode) in prevetion
 	// of additional loading and fetching.
-	firstChunkSizeBrowser = 64 * 1024
+	firstChunkSizeBrowser = 65536 // 64kb
+	// TODO
+	chunkSize = 65536 // 64kb
+	// Maximum ammount of additional chunks allowed to read in chunk mode.
+	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
+	chunkLimit = 10
 
 	// TODO
 	translateTags = true
@@ -108,6 +114,9 @@ class Options {
 		}
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
+		this.allowWholeFile = this.wholeFile === true || this.wholeFile === undefined
+		this.forceWholeFile = this.wholeFile === true
+		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
 		if (this.mergeOutput) this.thumbnail = false
 		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
 		this.assignGlobalFilterToLocalScopes()
