@@ -105,6 +105,7 @@ describe('ChunkedReader', () => {
 					assert.equal(chunk.byteLength, chunkSize)
 					assert.equal(file.byteLength, size)
 					assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
+					if (file.destroy) await file.destroy()
 				})
 
 			})
