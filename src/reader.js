@@ -1,10 +1,12 @@
 import {isBrowser, isNode, isWorker, BufferView} from './util/BufferView.js'
 import createOptions from './options.js'
+// TODO: use these bare functions when ChunkedReader is not included in the build
+import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './essentials.js'
+// TODO: make optional
 import {FsReader} from './file-readers/FsReader.js'
 import {Base64Reader} from './file-readers/Base64Reader.js'
 import {UrlFetcher} from './file-readers/UrlFetcher.js'
 import {BlobReader} from './file-readers/BlobReader.js'
-
 export {FsReader, Base64Reader, UrlFetcher, BlobReader}
 
 // TODO: - API for including 3rd party XML parser
@@ -41,11 +43,13 @@ export default class Reader {
 	}
 
 	async readBlob(blob) {
+		// TODO: use readBlobAsArrayBuffer() if ChunkedReader is not bundled
 		this.file = new BlobReader(blob, this.options)
 		await this.file.read()
 	}
 
 	async readUrl(url) {
+		// TODO: use fetchUrlAsArrayBuffer() if ChunkedReader is not bundled
 		this.file = new UrlFetcher(url, this.options)
 		await this.file.read()
 	}

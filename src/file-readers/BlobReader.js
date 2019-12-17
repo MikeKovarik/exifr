@@ -1,20 +1,12 @@
 import {ChunkedReader} from './ChunkedReader.js'
+import {readBlobAsArrayBuffer} from './essentials.js'
 
 
 export class BlobReader extends ChunkedReader {
 
-	_readBlobAsArrayBuffer(blob) {
-		return new Promise((resolve, reject) => {
-			let reader = new FileReader()
-			reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
-			reader.onerror = reject
-			reader.readAsArrayBuffer(blob)
-		})
-	}
-
 	async readWhole() {
 		this.chunked = false
-		let arrayBuffer = await this._readBlobAsArrayBuffer(this.input)
+		let arrayBuffer = await readBlobAsArrayBuffer(this.input)
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
@@ -22,7 +14,7 @@ export class BlobReader extends ChunkedReader {
 		this.chunksRead++
 		let end = length ? offset + length : undefined
 		let blob = this.input.slice(offset, end)
-		let abChunk = await this._readBlobAsArrayBuffer(blob)
+		let abChunk = await readBlobAsArrayBuffer(blob)
 		return this.set(abChunk, offset, true)
 	}
 

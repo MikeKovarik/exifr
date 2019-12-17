@@ -1,11 +1,12 @@
 import {ChunkedReader} from './ChunkedReader.js'
+import {fetchUrlAsArrayBuffer} from './essentials.js'
 
 
 export class UrlFetcher extends ChunkedReader {
 
 	async readWhole() {
 		this.chunked = false
-		let arrayBuffer = await fetch(this.input).then(res => res.arrayBuffer())
+		let arrayBuffer = await fetchUrlAsArrayBuffer(this.input)
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
