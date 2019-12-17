@@ -1,14 +1,14 @@
-import {AppSegment, parsers} from './core.js'
+import {AppSegmentParserBase, segmentParsers} from './core.js'
 import {BufferView} from '../util/BufferView.js'
 
 
-// TODO: modify AppSegment to accept not only buffers,
-//       XMP is usually string and we're converting it to buffer to be passed to AppSegment
+// TODO: modify AppSegmentParserBase to accept not only buffers,
+//       XMP is usually string and we're converting it to buffer to be passed to AppSegmentParserBase
 //       and this Xmp parser then converts it back to string.
 
 //<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>
 // XMPToolkit
-export default class Xmp extends AppSegment {
+export default class Xmp extends AppSegmentParserBase {
 
 	static type = 'xmp'
 
@@ -34,4 +34,4 @@ export default class Xmp extends AppSegment {
 
 }
 
-parsers.xmp = Xmp
+segmentParsers.xmp = Xmp

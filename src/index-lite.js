@@ -1,5 +1,8 @@
 export * from './index-core.js'
 
+// TIFF Parser
+import './parsers/tiff.js'
+
 // TIFF Keys
 import './tags/tiff-ifd0-keys.js'
 import './tags/tiff-exif-keys.js'

@@ -1,4 +1,4 @@
-import {AppSegment, parsers} from './core.js'
+import {AppSegmentParserBase, segmentParsers} from './core.js'
 import {BufferView} from '../util/BufferView.js'
 import {tagKeys, tagValues} from '../tags.js'
 
@@ -14,7 +14,7 @@ Resource ID 0x0422 contains Exif data.
 Resource ID 0x0424 contains XMP data.
 */
 
-export default class Iptc extends AppSegment {
+export default class Iptc extends AppSegmentParserBase {
 
 	static type = 'iptc'
 
@@ -80,4 +80,4 @@ export default class Iptc extends AppSegment {
 
 }
 
-parsers.iptc = Iptc 
+segmentParsers.iptc = Iptc 

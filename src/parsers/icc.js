@@ -1,4 +1,4 @@
-import {AppSegment, parsers} from './core.js'
+import {AppSegmentParserBase, segmentParsers} from './core.js'
 import {BufferView} from '../util/BufferView.js'
 import {tagKeys, tagValues} from '../tags.js'
 
@@ -14,7 +14,7 @@ const TAG_TYPE_SIG  = 'sig '
 
 const EMPTY_VALUE = '\x00\x00\x00\x00'
 
-export default class IccParser extends AppSegment {
+export default class IccParser extends AppSegmentParserBase {
 
 	static type = 'icc'
 	static headerLength = 18
@@ -164,4 +164,4 @@ function parseDate(view, offset) {
 }
 
 
-parsers.icc = IccParser
+segmentParsers.icc = IccParser

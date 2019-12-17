@@ -10,7 +10,7 @@ start  = start of the content
 size   = size of the content. i.e. from start till end
 end    = end of the content (as well as the appN segment)
 */
-export class AppSegment {
+export class AppSegmentParserBase {
 
 	static headerLength = 4
 
@@ -98,4 +98,11 @@ const isDefined = val => val !== undefined
 
 const pickDefined = (...values) => values.find(isDefined)
 
-export var parsers = {}
+export var segmentParsers = {}
+
+export function getParserClass(options, type) {
+	if (options[type] && !segmentParsers[type])
+		throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
+	else
+		return segmentParsers[type]
+}

@@ -1,4 +1,4 @@
-import {AppSegment, parsers} from './core.js'
+import {AppSegmentParserBase, segmentParsers} from './core.js'
 import {tagKeys, tagValues, tagRevivers} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 import {BufferView} from '../util/BufferView.js'
@@ -33,7 +33,7 @@ const SIZE_LOOKUP = {
 // - namely issue-metadata-extractor-152.tif offsets are: EXIF 2468122, IFD0 2468716, GPS  2468550
 
 // jpg wraps tiff into app1 segment.
-export class TiffCore extends AppSegment {
+export class TiffCore extends AppSegmentParserBase {
 
 	parseHeader() {
 		// Detect endian 11th byte of TIFF (1st after header)
@@ -409,4 +409,4 @@ export const GPS_LONREF = 0x0003
 export const GPS_LON    = 0x0004
 
 
-parsers.tiff = TiffExif
+segmentParsers.tiff = TiffExif

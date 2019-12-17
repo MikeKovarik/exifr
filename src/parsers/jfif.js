@@ -1,7 +1,7 @@
-import {AppSegment, parsers} from './core.js'
+import {AppSegmentParserBase, segmentParsers} from './core.js'
 
 
-export default class Jfif extends AppSegment {
+export default class Jfif extends AppSegmentParserBase {
 
 	static type = 'jfif'
 	static headerLength = 9
@@ -34,4 +34,4 @@ export default class Jfif extends AppSegment {
 
 }
 
-parsers.jfif = Jfif
+segmentParsers.jfif = Jfif
