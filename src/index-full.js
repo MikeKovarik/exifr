@@ -1,10 +1,10 @@
 export * from './index-lite.js'
 
 // Parsers
-import './parsers/jfif.js'
-import './parsers/iptc.js'
-import './parsers/icc.js'
-import './parsers/xmp.js'
+import './segment-parsers/jfif.js'
+import './segment-parsers/iptc.js'
+import './segment-parsers/icc.js'
+import './segment-parsers/xmp.js'
 
 // TIFF - Additional tags
 import './tags/tiff-interop-keys.js'

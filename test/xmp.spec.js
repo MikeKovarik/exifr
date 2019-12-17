@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, testSegment} from './test-util.js'
 import {parse} from '../src/index-full.js'
-import XmpParser from '../src/parsers/xmp.js'
+import XmpParser from '../src/segment-parsers/xmp.js'
 
 
 describe('XMP Segment', () => {

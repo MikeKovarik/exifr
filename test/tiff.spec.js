@@ -187,7 +187,7 @@ describe('TIFF Segment', () => {
 
 	// TODO: more tests for .tif
 
-	//import {TiffExifParser} from '../src/parsers/tiff'
+	//import {TiffExifParser} from '../src/segment-parsers/tiff'
 	//TiffExifParser
 	// Exif is scattered throughout the file.
 	// Header at the beginning of file, data at the end.

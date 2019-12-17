@@ -1,4 +1,4 @@
-import {segmentParsers} from '../parsers/core.js'
+import {segmentParsers} from '../segment-parsers/core.js'
 
 
 const MAX_APP_SIZE = 65536 // 64kb

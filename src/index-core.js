@@ -2,7 +2,7 @@ import './util/debug.js' // TODO: DELETEME: TO BE REMOVED BEFORE RELEASING
 import {ExifParser} from './parser.js'
 export * from './parser.js'
 export {tagKeys, tagValues, tagRevivers} from './tags.js'
-import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './parsers/tiff.js'
+import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './segment-parsers/tiff.js'
 import optionsFactory from './options.js'
 import {hasBuffer} from './util/BufferView.js'
 

@@ -1,5 +1,5 @@
 import {FileParserBase} from './core.js'
-import {AppSegmentParserBase, segmentParsers, getParserClass} from '../parsers/core.js'
+import {AppSegmentParserBase, segmentParsers, getParserClass} from '../segment-parsers/core.js'
 
 
 const MARKER_1         = 0xff
