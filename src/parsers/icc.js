@@ -1,11 +1,7 @@
 import {AppSegmentParserBase, segmentParsers} from './core.js'
-import {BufferView} from '../util/BufferView.js'
-import {tagKeys, tagValues} from '../tags.js'
 
 
 const PROFILE_HEADER_LENGTH = 84
-
-const IDENTIFIER = 'ICC_PROFILE\0';
 
 const TAG_TYPE_DESC = 'desc'
 const TAG_TYPE_MLUC = 'mluc'

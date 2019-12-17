@@ -1,5 +1,4 @@
 import {AppSegmentParserBase, segmentParsers} from './core.js'
-import {BufferView} from '../util/BufferView.js'
 
 
 // TODO: modify AppSegmentParserBase to accept not only buffers,

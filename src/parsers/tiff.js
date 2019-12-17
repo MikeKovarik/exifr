@@ -1,5 +1,4 @@
 import {AppSegmentParserBase, segmentParsers} from './core.js'
-import {tagKeys, tagValues, tagRevivers} from '../tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 import {BufferView} from '../util/BufferView.js'
 import {ConvertDMSToDD} from '../tags/tiff-revivers.js'

@@ -1,6 +1,4 @@
 import {AppSegmentParserBase, segmentParsers} from './core.js'
-import {BufferView} from '../util/BufferView.js'
-import {tagKeys, tagValues} from '../tags.js'
 
 
 /*
