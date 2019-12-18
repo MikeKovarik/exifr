@@ -1,5 +1,5 @@
 import Reader from './reader.js'
-import {segmentParsers, getParserClass} from './parser.js'
+import {segmentParsers} from './parser.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './segment-parsers/tiff.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {TiffFileParser} from './file-parsers/tif.js'
@@ -84,7 +84,7 @@ export class Exifr extends Reader {
 
 	async extractThumbnail() {
 		this.setup()
-		let TiffParser = getParserClass(this.options, 'tiff')
+		let TiffParser = segmentParsers.getSafe('tiff', this.options)
 		if (this.file.isTiff)
 			var seg = {start: 0, type: 'tiff'}
 		else

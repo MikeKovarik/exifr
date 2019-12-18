@@ -14,7 +14,7 @@ export class FileParserBase {
 	}
 
 	createParser(type, chunk) {
-		let Parser = segmentParsers[type]
+		let Parser = segmentParsers.get(type)
 		let parser = new Parser(chunk, this.options, this.file)
 		return this.parsers[type] = parser
 	}
@@ -143,11 +143,14 @@ const isDefined = val => val !== undefined
 
 const pickDefined = (...values) => values.find(isDefined)
 
-export var segmentParsers = {}
-
-export function getParserClass(options, type) {
-	if (options[type] && !segmentParsers[type])
-		throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
-	else
-		return segmentParsers[type]
+export var segmentParsers = new class extends Map {
+	getSafe(type, options) {
+		if (options[type] && !this.has(type))
+			throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
+		else
+			return this.get(type)
+	}
+	keys() {
+		return Array.from(super.keys())
+	}
 }

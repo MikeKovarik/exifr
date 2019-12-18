@@ -34,4 +34,4 @@ export default class Jfif extends AppSegmentParserBase {
 
 }
 
-segmentParsers.jfif = Jfif
+segmentParsers.set('jfif', Jfif)

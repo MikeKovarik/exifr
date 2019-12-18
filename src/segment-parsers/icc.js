@@ -160,4 +160,4 @@ function parseDate(view, offset) {
 }
 
 
-segmentParsers.icc = IccParser
+segmentParsers.set('icc', IccParser)

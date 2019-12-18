@@ -33,4 +33,4 @@ export default class Xmp extends AppSegmentParserBase {
 
 }
 
-segmentParsers.xmp = Xmp
+segmentParsers.set('xmp', Xmp)

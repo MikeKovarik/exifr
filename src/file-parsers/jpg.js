@@ -1,4 +1,4 @@
-import {FileParserBase, AppSegmentParserBase, segmentParsers, getParserClass} from '../parser.js'
+import {FileParserBase, AppSegmentParserBase, segmentParsers} from '../parser.js'
 
 
 const MARKER_1         = 0xff
@@ -28,9 +28,9 @@ function isAppMarker(marker2) {
 }
 
 function getSegmentType(buffer, offset) {
-	for (let Parser of Object.values(segmentParsers))
+	for (let [type, Parser] of segmentParsers)
 		if (Parser.canHandle(buffer, offset))
-			return Parser.type
+			return type
 }
 
 export class JpegFileParser extends FileParserBase {
@@ -60,15 +60,15 @@ export class JpegFileParser extends FileParserBase {
 			findAll = true
 		} else {
 			if (wanted === undefined)
-				wanted = Object.keys(segmentParsers).filter(key => this.options[key])
+				wanted = segmentParsers.keys().filter(key => this.options[key])
 			else
-				wanted = wanted.filter(key => this.options[key] && key in segmentParsers)
+				wanted = wanted.filter(key => this.options[key] && segmentParsers.has(key))
 			findAll = false
 			remaining = new Set(wanted)
 			wanted    = new Set(wanted)
 		}
 		for (let type of wanted) {
-			let Parser = segmentParsers[type]
+			let Parser = segmentParsers.get(type)
 			if (Parser.multiSegment) {
 				findAll = true
 				await this.file.readWhole()
@@ -113,7 +113,7 @@ export class JpegFileParser extends FileParserBase {
 				let type = getSegmentType(file, offset)
 				if (type && wanted.has(type)) {
 					// known and parseable segment found
-					let Parser = segmentParsers[type]
+					let Parser = segmentParsers.get(type)
 					let seg = Parser.findPosition(file, offset)
 					seg.type = type
 					this.appSegments.push(seg)
@@ -149,7 +149,7 @@ export class JpegFileParser extends FileParserBase {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
 				parser.append(chunk)
 			} else if (!parser) {
-				let Parser = getParserClass(this.options, type)
+				let Parser = segmentParsers.getSafe(type, this.options)
 				let parser = new Parser(chunk, this.options, this.file)
 				this.parsers[type] = parser
 			}

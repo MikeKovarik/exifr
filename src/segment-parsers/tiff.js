@@ -408,4 +408,4 @@ export const GPS_LONREF = 0x0003
 export const GPS_LON    = 0x0004
 
 
-segmentParsers.tiff = TiffExif
+segmentParsers.set('tiff', TiffExif)

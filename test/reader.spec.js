@@ -7,8 +7,7 @@ import {parse, Exifr} from '../src/index-full.js'
 export function createImg(url) {
 	var img = document.createElement('img')
 	img.src = url
-	document.querySelector('#temp')
-		.append(img)
+	document.querySelector('#temp').append(img)
 	return img
 }
 

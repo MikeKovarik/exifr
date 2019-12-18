@@ -78,4 +78,4 @@ export default class Iptc extends AppSegmentParserBase {
 
 }
 
-segmentParsers.iptc = Iptc 
+segmentParsers.set('iptc', Iptc)
