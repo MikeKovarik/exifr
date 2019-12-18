@@ -66,7 +66,7 @@ describe('ICC Segment', () => {
 	it(`multisegment ICC support`, async () => {
 		var options = {mergeOutput: false, icc: true}
 		var file = await getFile('./issue-metadata-extractor-65.jpg')
-		var output = await parse(file, options)
+		var output = await Exifr.parse(file, options)
 		assert.isObject(output.icc)
 		console.log(output.icc)
 	})

@@ -15,6 +15,7 @@ export default class Xmp extends AppSegmentParserBase {
 		return buffer.getUint8(offset + 1) === 0xE1
 			&& buffer.getUint32(offset + 4) === 0x68747470 // 'http'
 	}
+
 	parse() {
 		// Read XMP segment as string. We're not parsing the XML.
 		let string = this.chunk.getString()

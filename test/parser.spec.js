@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
 import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
-import {parse, Exifr} from '../src/index-full.js'
+import {ExifParser} from '../src/index-full.js'
 
 
 
@@ -10,7 +10,7 @@ describe('JpegFileParser', () => {
 
 		it(`finds APP segments existing in jpg file`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
+			let exifr = new ExifParser({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
 			exifr.setup()
 			let jpegFileParser = exifr.fileParser
@@ -28,7 +28,7 @@ describe('JpegFileParser', () => {
 
 		it(`doesn't find segment not present in jpg file`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let exifr = new Exifr({tiff: true, xmp: true, jfif: true})
+			let exifr = new ExifParser({tiff: true, xmp: true, jfif: true})
 			await exifr.read(input)
 			exifr.setup()
 			let jpegFileParser = exifr.fileParser

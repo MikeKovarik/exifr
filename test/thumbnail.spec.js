@@ -1,6 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, isNode, isBrowser} from './test-util.js'
-import {ExifParser, thumbnail, thumbnailUrl} from '../src/index-full.js'
+import {ExifParser} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 
 
 describe('thumbnail', () => {
@@ -98,32 +99,32 @@ describe('thumbnail', () => {
 
     })
 
-    describe(`exifr.thumbnail()`, async () => {
+    describe(`Exifr.thumbnail()`, async () => {
 
 		it(`returns thumbnail`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await thumbnail(input, options)
+			var thumb = await Exifr.thumbnail(input, options)
 			assertThumbnailData(thumb)
 			assertThumbnailLength(thumb)
 		})
 
 		isBrowser && it(`returns Uint8Array in browser`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await thumbnail(input, options)
+			var thumb = await Exifr.thumbnail(input, options)
 			assert.instanceOf(thumb, Uint8Array)
 		})
 
 		isNode && it(`returns Buffer in node`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await thumbnail(input, options)
+			var thumb = await Exifr.thumbnail(input, options)
 			assert.instanceOf(thumb, Buffer)
 		})
 
     })
 
-    isBrowser && it(`exifr.thumbnailUrl()`, async () => {
+    isBrowser && it(`Exifr.thumbnailUrl()`, async () => {
         let input = await getFile(fileName)
-        var url = await thumbnailUrl(input, options)
+        var url = await Exifr.thumbnailUrl(input, options)
         assert.typeOf(url, 'string')
     })
 

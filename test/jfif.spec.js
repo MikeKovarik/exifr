@@ -22,7 +22,7 @@ describe('JFIF Segment', () => {
 	it(`JFIF`, async () => {
 		let options = {jfif: true, wholeFile: true, mergeOutput: false}
 		let input = getPath('issue-exifr-4.jpg')
-		let output = await parse(input, options)
+		let output = await Exifr.parse(input, options)
 		assert.isObject(output, `output is undefined`)
 		assert.isObject(output.jfif, `output does not contain jfif`)
 		assert.equal(output.jfif.Ydensity, 96)

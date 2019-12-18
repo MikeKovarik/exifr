@@ -1,7 +1,10 @@
+import Exifr from '../src/index-full.js'
+
+
 // gps, thumbnail
 describe('high level API', () => {
 
-	describe('.parseGps()', () => {
+	describe('Exifr.parseGps()', () => {
 
 		describe('output', () => {
 

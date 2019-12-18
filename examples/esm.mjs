@@ -10,10 +10,10 @@
 // use newly drafted importmaps.
 
 //import {parse} from '../index.mjs'
-import {parse} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 
 async function main() {
-	var exif = await parse('../test/fixtures/IMG_20180725_163423.jpg')
+	var exif = await Exifr.parse('../test/fixtures/IMG_20180725_163423.jpg')
 	console.log('latitude ', exif.latitude)
 	console.log('longitude', exif.longitude)
 }

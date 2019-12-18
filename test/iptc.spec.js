@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
 import {getFile, testSegment, testSegmentTranslation, testImage} from './test-util.js'
-import {parse} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 
 
 describe('IPTC Segment', () => {
@@ -48,7 +48,7 @@ describe('IPTC Segment', () => {
 	it(`keywords is array`, async () => {
 		let options = {mergeOutput: false, iptc: true}
 		let input = await getFile('iptc-agency-photographer-example.jpg')
-		let output = await parse(input, options) || {}
+		let output = await Exifr.parse(input, options) || {}
 		assert.isArray(output.iptc.Keywords)
 	})
 

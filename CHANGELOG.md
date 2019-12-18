@@ -5,6 +5,11 @@
 ## [3.0.0]
 
 ### Breaking changes
+- instead of multiple named exports (`import {parse, thumbnailUrl} from 'exifr'`) the library now exports a single default object, housing all the same functions.
+- renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
+- renamed IFD0 in the output object from `output.image` to `output.ifd0`
+- renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
+- removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
 - The library now comes in multiple bundles, with varying number of parsers & tag dictonaries.
   - `lite` bundle is now **recommend as the default for browser** use because of its small footprint. It **does not contain all tags** anymore. Only the most important parsers and dictionaries areincluded - TIFF including IFD0, GPS, EXIF but excluding interop and less frequently used tags. You can still use `full` bundle if you need more features of the library.
   - `full` bundle is now the default for node.js (as specified by `"main": "full.mjs"` field in `package.json`). It still contains all parsers and dictionaries out of the box.
@@ -13,10 +18,6 @@
   - using `.cjs` and `.mjs` file extensions instead of `.js` for exported bundles. `index.js` therefore becomes `index.cjs`
 - Moved interop & some less used IFD0 tags from default dictionary to `src/tags/tiff-other-keys.js`. It saves library size of the default bundle which caters to average usecase. These tags are still available in full bundle of the library.
 - Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/tags/*` files for refference.
-- renamed IFD0 in the output object from `output.image` to `output.ifd0`
-- renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
-- renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
-- removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
 
 
 ### Added

@@ -1,4 +1,5 @@
-import {ExifParser, parse, optionsFactory} from './src/index-full.js'
+import {ExifParser} from './src/index-full.js'
+import Exifr from './src/index-full.js'
 
 
 /*
@@ -160,7 +161,7 @@ class ExifrDemoApp {
 	}
 
 	createDefaultOptions() {
-		let instance = optionsFactory()
+		let instance = Exifr.optionsFactory()
 		let object = cloneObject(instance)
 		for (let key of configurables) {
 			let val = object[key]
@@ -200,7 +201,7 @@ class ExifrDemoApp {
 				options.makerNote   = false
 				options.userComment = false
 			} else {
-				let defaultOptions = optionsFactory()
+				let defaultOptions = Exifr.optionsFactory()
 				options.ifd0        = defaultOptions.ifd0
 				options.exif        = defaultOptions.exif
 				options.gps         = defaultOptions.gps
@@ -261,7 +262,7 @@ class ExifrDemoApp {
 
 		// parse with users preconfigured settings
 		let t1 = performance.now()
-		let rawOutput = await parse(input, options)
+		let rawOutput = await Exifr.parse(input, options)
 		let t2 = performance.now()
 		this.parseTime = (t2 - t1).toFixed(1)
 

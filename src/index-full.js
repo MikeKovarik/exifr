@@ -1,4 +1,6 @@
 export * from './index-lite.js'
+import Exifr from './index-lite.js'
+export default Exifr
 
 // Parsers
 import './segment-parsers/jfif.js'

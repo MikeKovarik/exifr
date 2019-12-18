@@ -1,7 +1,7 @@
 import {promises as fs} from 'fs'
 import {assert} from './test-util.js'
 import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
-import {parse, Exifr} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 
 
 export function createImg(url) {
@@ -57,69 +57,69 @@ describe('reader', () => {
 
 		it(`ArrayBuffer`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
-			var output = await parse(arrayBuffer)
+			var output = await Exifr.parse(arrayBuffer)
 			assert.exists(output, `output is undefined`)
 		})
 
 		it(`DataView`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let dataView = new DataView(arrayBuffer)
-			var output = await parse(dataView)
+			var output = await Exifr.parse(dataView)
 			assert.exists(output, `output is undefined`)
 		})
 
 		it(`Uint8Array`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let uint8Array = new Uint8Array(arrayBuffer)
-			var output = await parse(uint8Array)
+			var output = await Exifr.parse(uint8Array)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isNode && it(`Node: Buffer`, async () => {
 			var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
-			var output = await parse(buffer)
+			var output = await Exifr.parse(buffer)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: Blob`, async () => {
 			var blob = await createBlob(getPath('IMG_20180725_163423.jpg'))
-			var output = await parse(blob)
+			var output = await Exifr.parse(blob)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isNode && it(`Node: string file path`, async () => {
 			let path = getPath('IMG_20180725_163423.jpg')
-			var output = await parse(path)
+			var output = await Exifr.parse(path)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: string URL`, async () => {
 			let url = getUrl('IMG_20180725_163423.jpg')
-			var output = await parse(url)
+			var output = await Exifr.parse(url)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: Object URL`, async () => {
 			var blob = await createObjectUrl(getPath('IMG_20180725_163423.jpg'))
-			var output = await parse(blob)
+			var output = await Exifr.parse(blob)
 			assert.exists(output, `output is undefined`)
 		})
 
 		it(`Browser & Node: base64 URL`, async () => {
 			var blob = await createBase64Url(getPath('IMG_20180725_163423.jpg'))
-			var output = await parse(blob)
+			var output = await Exifr.parse(blob)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: <img> element with normal URL`, async () => {
 			var img = createImg(getPath('IMG_20180725_163423.jpg'))
-			var output = await parse(img)
+			var output = await Exifr.parse(img)
 			assert.exists(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: <img> element with Object URL`, async () => {
 			var img = createImg(await createObjectUrl(getPath('IMG_20180725_163423.jpg')))
-			var output = await parse(img)
+			var output = await Exifr.parse(img)
 			assert.exists(output, `output is undefined`)
 		})
 
@@ -143,7 +143,7 @@ describe('reader', () => {
 
 	//isBrowser && it(`<img> element with base64 URL`, async () => {
 	//	var img = createImg(await createBase64Url(getPath('IMG_20180725_163423.jpg')))
-	//	await parse(img)
+	//	await Exifr.parse(img)
 	//})
 
 
@@ -155,19 +155,19 @@ describe('reader', () => {
 
 		it(`simple file, read/fetch whole file - should succeed`, async () => {
 			let options = {wholeFile: true}
-			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			var output = await Exifr.parse(getPath('IMG_20180725_163423.jpg'), options)
 			assert.equal(output.Make, 'Google')
 		})
 
 		it(`simple file, chunked mode, allow additional chunks - should succeed`, async () => {
 			let options = {wholeFile: undefined}
-			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			var output = await Exifr.parse(getPath('IMG_20180725_163423.jpg'), options)
 			assert.equal(output.Make, 'Google')
 		})
 
 		it(`simple file, chunked mode, no additional chunks - should succeed`, async () => {
 			let options = {wholeFile: false}
-			var output = await parse(getPath('IMG_20180725_163423.jpg'), options)
+			var output = await Exifr.parse(getPath('IMG_20180725_163423.jpg'), options)
 			assert.equal(output.Make, 'Google')
 		})
 
@@ -178,14 +178,14 @@ describe('reader', () => {
 		it(`scattered file, read/fetch whole file - should succeed`, async () => {
 			let options = {wholeFile: true}
 			let input = getPath('001.tif')
-			var output = await parse(input, options)
+			var output = await Exifr.parse(input, options)
 			assert.equal(output.Make, 'DJI')
 		})
 
 		it(`scattered file, chunked mode - should load & parse TIFF chunk at the end of file`, async () => {
 			let options = {wholeFile: undefined}
 			let input = getPath('001.tif')
-			var output = await parse(input, options)
+			var output = await Exifr.parse(input, options)
 			assert.equal(output.Make, 'DJI')
 		})
 

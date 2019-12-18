@@ -1,7 +1,7 @@
-import {parse} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 
 setTimeout(() => {
-	parse(base64)
+	Exifr.parse(base64)
 		.then(console.log)
 		.catch(console.error)
 })

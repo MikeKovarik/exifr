@@ -75,9 +75,9 @@ https://unpkg.com/exifr
 ESM in Node.js
 
 ```js
-import * as exifr from 'exifr'
+import Exifr from 'exifr'
 // exifr handles disk reading. Only reads a few hundred bytes.
-exifr.parse('./myimage.jpg')
+Exifr.parse('./myimage.jpg')
   .then(exif => console.log('Camera:', exif.Make, exif.Model))
   .catch(console.error)
 ```
