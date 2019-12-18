@@ -1,5 +1,5 @@
 // node --experimental-modules enumerate-segments.js
-import {ExifParser, Tiff} from '../src/index-full.js'
+import {Exifr, Tiff} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 
 class Flir extends Tiff {
@@ -15,7 +15,7 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 	let filePath = '../test/fixtures/issue-exifr-3.jpg'
 	let fileBuffer = await fs.readFile(filePath)
 	let options = {wholeFile: true, mergeOutput: false, jfif: false, xmp: false, exif: false}
-	let exifr = new ExifParser(options)
+	let exifr = new Exifr(options)
 	await exifr.read(fileBuffer)
 	exifr.parse()
 	let segments = [...exifr.appSegments, ...exifr.unknownSegments]

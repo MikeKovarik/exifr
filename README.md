@@ -135,7 +135,7 @@ document.querySelector('input[type="file"]').addEventListener('change', async e 
 ```
 
 ```js
-let thumbBuffer = await exifr.thumbnailBuffer(imageBuffer)
+let thumbBuffer = await exifr.thumbnail(imageBuffer)
 ```
 
 Usage in WebWorker
@@ -155,13 +155,13 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 ## API
 
-exifr exports `parse`, `thumbnailBuffer`, `thumbnailUrl` functions and `ExifParser` class
+exifr exports `parse`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
 
 ### `parse(input[, options])` => `Promise<object>`
 
 Accepts any input argument, parses it and returns exif object.
 
-### `thumbnailBuffer(input)` => `Promise<Buffer|ArrayBuffer>`
+### `thumbnail(input)` => `Promise<Buffer|ArrayBuffer>`
 
 Extracts embedded thumbnail from the photo and returns it as a `Buffer` (Node.JS) or an `ArrayBuffer` (browser). 
 
@@ -173,14 +173,14 @@ Browser only - exports the thumbnail wrapped in Object URL.
 
 User is expected to revoke the URL when not needed anymore.
 
-### `ExifParser` class
+### `Exifr` class
 
 Afore mentioned functions are wrappers that internally instantiate `new ExifParse(options)` class, then call `parser.read(input)`, and finally call either `parser.parse()` or `parser.extractThumbnail()`.
 
 To do both parsing EXIF and extracting thumbnail efficiently you can use this class yourself.
 
 ```js
-let parser = new ExifParser(options)
+let parser = new Exifr(options)
 let exif = await parser.read(input)
 let thumb = await parser.extractThumbnail()
 ```
@@ -426,7 +426,10 @@ TODO - work in progress
 | | full | lite |
 |-|-|-|
 | inputs | `ArrayBuffer`<br>`Buffer` | `ArrayBuffer` |
-| parsers | TIFF<br>IPTC<br>ICC | TIFF |
+| file readers | BlobReader<br>Base64Reader | BlobReader |
+| file parsers | `*.jpg`<br>`*.tif` | `*.jpg`<br>`*.tif` |
+| segment parsers | TIFF<br>IPTC<br>ICC | TIFF |
+| dictionaries | ... | ... |
 | chunked reader | yes | no |
 | size | 40 Kb | 20 Kb |
 | file | `index.js` | `index2.js` |
@@ -450,6 +453,34 @@ If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'we
 
 Or try adding similar settings to your bundler of choice.
 
+## Breaking changes / Migration from 2.x.x to 3.0.0
+
+Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
+
+1) Named exports are replaced by default export.
+
+```js
+// 2.x.x
+import {parse, thumbnailBuffer} from 'exifr'
+parse()
+// or
+import * as exifr from 'exifr'
+exifr.thumbnailBuffer()
+// 3.0.0
+import exifr from 'exifr'
+exifr.parse()
+exifr.thumbnail() // renamed from thumbnailBuffer()
+```
+
+2) `ExifParser` is renamed to `Exifr` and became the default export.
+
+```js
+// 2.x.x
+import {ExifParser} from 'exifr'
+// 3.0.0
+import Exifr from 'exifr'
+```
+
 ## Note on performance
 
 As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
@@ -469,3 +500,7 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 ## Licence
 
 MIT, Mike Kovařík, Mutiny.cz
+
+<!-- links -->
+
+[changelog]: https://github.com/mozilla/learning.mozilla.org/blob/master/CHANGELOG.md

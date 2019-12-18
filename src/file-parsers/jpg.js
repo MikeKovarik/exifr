@@ -33,6 +33,29 @@ function getSegmentType(buffer, offset) {
 			return type
 }
 
+
+// https://en.wikipedia.org/wiki/JPEG_File_Interchange_Format
+// https://sno.phy.queensu.ca/~phil/exiftool/TagNames/JPEG.html
+// http://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files
+// JPG contains SOI, APP1, [APP2, ... APPn], DQT, DHT, and more segments
+// APPn contain metadata about the image in various formats. There can be multiple APPn segments,
+// even multiple segments of the same type.
+// APP1 contains the basic and most important EXIF data.
+// APP2 contains ICC
+// APP13 contains IPTC
+// the main APP1 (the one with EXIF) is often followed by another APP1 with XMP data (in XML format).
+// Structure of APPn (APP1, APP2, APP13, etc...):
+// - First two bytes are the marker FF En (e.g. FF E1 for APP1)
+// - 3rd & 4th bytes are length of the APPn segment
+// - Followed by a few bytes of segment itentification - describing what type of content is there.
+// Structure of TIFF (APP1-EXIF):
+// - FF 01 - marker
+// - xx xx - Size
+// - 45 78 69 66 00 00 / ASCII string 'Exif\0\0'
+// - TIFF HEADER
+// - 0th IFD + value
+// - 1th IFD + value
+// - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
 export class JpegFileParser extends FileParserBase {
 
 	appSegments = []

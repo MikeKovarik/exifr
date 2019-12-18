@@ -1,7 +1,7 @@
 import {assert, isNode, isBrowser} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
 import {FsReader, BlobReader, UrlFetcher} from '../src/reader.js'
-import {ExifParser} from '../src/index-full.js'
+import Exifr from '../src/index-full.js'
 import {createBlob} from './reader.spec.js'
 
 
@@ -124,14 +124,14 @@ describe('ChunkedReader', () => {
 /*
 			it(`input path & {wholeFile: false}`, async () => {
 				let options = {wholeFile: false}
-				let exifr = new ExifParser(options)
+				let exifr = new Exifr(options)
 				await exifr.read(input)
 				assert.equal(exifr.file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(exifr.file.getUint32(jfifOffset), 0xffe00010)
 			})
 			it(`input path & {wholeFile: true}`, async () => {
 				let options = {wholeFile: true}
-				let exifr = new ExifParser(options)
+				let exifr = new Exifr(options)
 				await exifr.read(input)
 				assert.equal(exifr.file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(exifr.file.getUint32(jfifOffset), 0xffe00010)
@@ -150,7 +150,7 @@ describe('ChunkedReader', () => {
 	it(`reading simple .jpg file sequentially`, async () => {
 		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
 		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
-		let exifr = new ExifParser(options)
+		let exifr = new Exifr(options)
 		await exifr.read(path)
 		assert.isAtLeast(exifr.file.byteLength, 12695)
 		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
@@ -163,7 +163,7 @@ describe('ChunkedReader', () => {
 		it(`input path & {wholeFile: false, firstChunkSize: 100}`, async () => {
 			let input = await getPath('001.tif')
 			let options = {wholeFile: false, firstChunkSize: 100}
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			//console.log('exifr.file', exifr.file.toString())
 			let output = await exifr.parse()
@@ -173,7 +173,7 @@ describe('ChunkedReader', () => {
 		it(`input path & {wholeFile: false}`, async () => {
 			let input = await getPath('001.tif')
 			let options = {wholeFile: true}
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
 			assert.equal(output.Make, 'DJI')
@@ -181,7 +181,7 @@ describe('ChunkedReader', () => {
 
 		it(`input buffer & no options`, async () => {
 			let input = await getFile('001.tif')
-			let exifr = new ExifParser()
+			let exifr = new Exifr()
 			await exifr.read(input)
 			let output = await exifr.parse()
 			assert.equal(output.Make, 'DJI')
@@ -207,7 +207,7 @@ describe('ChunkedReader', () => {
 			it(`reads fixture ${fileName} with default settings`, async () => {
 				let input = await getPath(fileName)
 				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
-				let exifr = new ExifParser(options)
+				let exifr = new Exifr(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
 				assert.isObject(output)
@@ -216,7 +216,7 @@ describe('ChunkedReader', () => {
 			it(`reads fixture ${fileName} with all segments enabled`, async () => {
 				let input = await getPath(fileName)
 				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100, xmp: true, icc: true, iptc: true}
-				let exifr = new ExifParser(options)
+				let exifr = new Exifr(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
 				assert.isObject(output)
@@ -228,7 +228,7 @@ describe('ChunkedReader', () => {
 					let input = await getPath(fileName)
 					let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
-					let exifr = new ExifParser(options)
+					let exifr = new Exifr(options)
 					await exifr.read(input)
 					let output = await exifr.parse()
 					assert.isObject(output)
@@ -239,7 +239,7 @@ describe('ChunkedReader', () => {
 					let input = await getFile(fileName)
 					let options = {mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
-					let exifr = new ExifParser(options)
+					let exifr = new Exifr(options)
 					await exifr.read(input)
 					let output = await exifr.parse()
 					assert.isObject(output)

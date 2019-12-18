@@ -1,4 +1,3 @@
-import {ExifParser} from './src/index-full.js'
 import Exifr from './src/index-full.js'
 
 
@@ -235,7 +234,7 @@ class ExifrDemoApp {
 		// now parse again for the nice boxes with clear information.
 		options.mergeOutput = false
 		options.sanitize = true
-		let parser = new ExifParser(options)
+		let parser = new Exifr(options)
 		await parser.read(input)
 		let output = await parser.parse() || {}
 		this.output = output

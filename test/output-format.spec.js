@@ -1,6 +1,5 @@
 import {assert} from './test-util.js'
 import {getFile, getPath} from './test-util.js'
-import {ExifParser} from '../src/index-full.js'
 import Exifr from '../src/index-full.js'
 
 
@@ -13,7 +12,7 @@ describe('output object', () => {
 
 	it(`should return undefined if no exif was found (internal .parse() method)`, async () => {
 		let intput = await getFile('noexif.jpg')
-		let exifr = new ExifParser()
+		let exifr = new Exifr()
 		await exifr.read(intput)
 		let output = await exifr.parse()
 		assert.isUndefined(output)
@@ -75,7 +74,7 @@ describe('output object', () => {
 		it(`xmp should not be empty when default options`, async () => {
 			let input = await getPath('issue-exif-js-124.tiff')
 			let options = {wholeFile: false, mergeOutput: false}
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
 			assert.isObject(output)
@@ -85,7 +84,7 @@ describe('output object', () => {
 		it(`xmp should not be empty when {xmp: true}`, async () => {
 			let input = await getPath('issue-exif-js-124.tiff')
 			let options = {wholeFile: false, mergeOutput: false, xmp: true}
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
 			assert.isObject(output)

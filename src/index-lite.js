@@ -1,4 +1,3 @@
-export * from './index-core.js'
 import Exifr from './index-core.js'
 export default Exifr
 

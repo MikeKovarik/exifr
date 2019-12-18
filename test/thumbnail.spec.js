@@ -1,6 +1,5 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, isNode, isBrowser} from './test-util.js'
-import {ExifParser} from '../src/index-full.js'
 import Exifr from '../src/index-full.js'
 
 
@@ -29,11 +28,11 @@ describe('thumbnail', () => {
 		assert.equal(thumb.byteLength, 5448)
 	}
 
-	describe('ExifParser#extractThumbnail()', () => {
+	describe('Exifr#extractThumbnail()', () => {
 
 		it(`returns instance of Uint8Array of thumbnail (on all platforms)`, async () => {
 			let input = await getFile(fileName)
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assert.instanceOf(thumb, Uint8Array)
@@ -41,7 +40,7 @@ describe('thumbnail', () => {
 
 		it(`returns correct thumbnail data`, async () => {
 			let input = await getFile(fileName)
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assertThumbnailData(thumb)
@@ -49,7 +48,7 @@ describe('thumbnail', () => {
 
 		it(`returns thumbnail of correct length`, async () => {
 			let input = await getFile(fileName)
-			let exifr = new ExifParser(options)
+			let exifr = new Exifr(options)
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assertThumbnailLength(thumb)
@@ -57,7 +56,7 @@ describe('thumbnail', () => {
 
 		it(`returns thumbnail (forced after mergeOutput)`, async () => {
 			let input = await getFile(fileName)
-			let exifr = new ExifParser({mergeOutput: true})
+			let exifr = new Exifr({mergeOutput: true})
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assertThumbnailData(thumb)
@@ -66,7 +65,7 @@ describe('thumbnail', () => {
 
 		it(`returns thumbnail (default)`, async () => {
 			let input = await getFile(fileName)
-			let exifr = new ExifParser()
+			let exifr = new Exifr()
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assertThumbnailData(thumb)
@@ -75,7 +74,7 @@ describe('thumbnail', () => {
 
 		it(`returns undefined if there's no exif`, async () => {
 			let input = await getFile('img_1771_no_exif.jpg')
-			let exifr = new ExifParser()
+			let exifr = new Exifr()
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assert.isUndefined(thumb)
@@ -83,7 +82,7 @@ describe('thumbnail', () => {
 
 		it(`returns undefined if there's no exif 2`, async () => {
 			let input = await getFile('noexif.jpg')
-			let exifr = new ExifParser()
+			let exifr = new Exifr()
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assert.isUndefined(thumb)
@@ -91,7 +90,7 @@ describe('thumbnail', () => {
 
 		it(`returns undefined if there's no thumbnail`, async () => {
 			let input = await getFile('PANO_20180725_162444.jpg')
-			let exifr = new ExifParser()
+			let exifr = new Exifr()
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()
 			assert.isUndefined(thumb)
