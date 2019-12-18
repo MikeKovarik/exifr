@@ -1,5 +1,5 @@
 import Reader from './reader.js'
-import {segmentParsers, getParserClass} from './segment-parsers/core.js'
+import {segmentParsers, getParserClass} from './parser.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './segment-parsers/tiff.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {TiffFileParser} from './file-parsers/tif.js'

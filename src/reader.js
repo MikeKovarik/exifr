@@ -1,7 +1,7 @@
-import {isBrowser, isNode, isWorker, BufferView} from './util/BufferView.js'
+import {BufferView, isBrowser, isNode, isWorker} from './util/BufferView.js'
 import createOptions from './options.js'
 // TODO: use these bare functions when ChunkedReader is not included in the build
-import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './essentials.js'
+import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './file-readers/essentials.js'
 // TODO: make optional
 import {FsReader} from './file-readers/FsReader.js'
 import {Base64Reader} from './file-readers/Base64Reader.js'
