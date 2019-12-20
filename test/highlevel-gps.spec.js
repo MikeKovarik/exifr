@@ -5,7 +5,7 @@ import {gpsOnlyOptions} from '../src/options.js'
 
 
 // gps, thumbnail
-describe('high level API', () => {
+describe('Exifr class (high level API)', () => {
 
 	describe('Exifr.gps()', () => {
 

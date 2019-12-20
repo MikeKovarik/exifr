@@ -3,7 +3,7 @@ import {getFile, getPath, isNode, isBrowser} from './test-util.js'
 import Exifr from '../src/index-full.js'
 
 
-describe('thumbnail', () => {
+describe('Exifr class (high level API)', () => {
 
 	let fileName = 'img_1771.jpg'
 
@@ -121,10 +121,15 @@ describe('thumbnail', () => {
 
     })
 
-    isBrowser && it(`Exifr.thumbnailUrl()`, async () => {
-        let input = await getFile(fileName)
-        var url = await Exifr.thumbnailUrl(input, options)
-        assert.typeOf(url, 'string')
+    isBrowser && describe(`Exifr.thumbnailUrl()`, async () => {
+
+		it(`returns string url`, async () => {
+			let input = await getFile(fileName)
+			var url = await Exifr.thumbnailUrl(input, options)
+			assert.typeOf(url, 'string')
+			assert.isTrue(url.startsWith('blob:http'))
+		})
+
     })
 
 })
