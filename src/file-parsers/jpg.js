@@ -81,6 +81,7 @@ export class JpegFileParser extends FileParserBase {
 		let remaining
 		if (wanted === true) {
 			findAll = true
+			wanted    = new Set(segmentParsers.keys())
 		} else {
 			if (wanted === undefined)
 				wanted = segmentParsers.keys().filter(key => this.options[key])
@@ -90,12 +91,14 @@ export class JpegFileParser extends FileParserBase {
 			remaining = new Set(wanted)
 			wanted    = new Set(wanted)
 		}
-		for (let type of wanted) {
-			let Parser = segmentParsers.get(type)
-			if (Parser.multiSegment) {
-				findAll = true
-				await this.file.readWhole()
-				break
+		if (!findAll) {
+			for (let type of wanted) {
+				let Parser = segmentParsers.get(type)
+				if (Parser.multiSegment) {
+					findAll = true
+					await this.file.readWhole()
+					break
+				}
 			}
 		}
 		let file = this.file
