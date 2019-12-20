@@ -21,7 +21,10 @@ if (isNode) {
 }
 
 function routePath(filePath) {
-	return 'fixtures/' + filePath
+	if (filePath.includes('fixtures/'))
+		return filePath
+	else
+		return 'fixtures/' + filePath
 }
 
 export function getPath(filePath) {
