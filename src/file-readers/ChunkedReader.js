@@ -74,4 +74,9 @@ export class ChunkedReader extends DynamicBufferView {
 		}
 	}
 
+	// DO NOT REMOVE!
+	// Some inheriting readers need additional method for cleanup.
+	// This dummy method makes sure anyone can safely call exifr.file.close() and not have to worry.
+	close() {}
+
 }
