@@ -9,15 +9,15 @@ describe('options', () => {
 	describe('options.firstChunkSize', () => {
 
 		isNode && it(`firstChunkSizeNode is a standin for node`, async () => {
-			let size = 1234
-			let options = optionsFactory({firstChunkSizeBrowser: size})
-			assert.equal(options.firstChunkSize, size)
+			let firstChunkSizeNode = 1234
+			let options = optionsFactory({firstChunkSizeNode})
+			assert.equal(options.firstChunkSize, firstChunkSizeNode)
 		})
 
 		isBrowser && it(`firstChunkSizeBrowser is a standin for browser`, async () => {
-			let size = 1234
-			let options = optionsFactory({firstChunkSizeBrowser: size})
-			assert.equal(options.firstChunkSize, size)
+			let firstChunkSizeBrowser = 1234
+			let options = optionsFactory({firstChunkSizeBrowser})
+			assert.equal(options.firstChunkSize, firstChunkSizeBrowser)
 		})
 
 		it(`does not have any effect if input is buffer`, async () => {
