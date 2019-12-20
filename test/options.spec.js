@@ -1,10 +1,63 @@
 import {assert} from './test-util.js'
-import {getFile, getPath} from './test-util.js'
+import {getFile, getPath, isNode, isBrowser} from './test-util.js'
 import Exifr from '../src/index-full.js'
+import optionsFactory from '../src/options.js'
 
 
 describe('options', () => {
 
+	describe('options.firstChunkSize', () => {
+
+		isNode && it(`firstChunkSizeNode is a standin for node`, async () => {
+			let size = 1234
+			let options = optionsFactory({firstChunkSizeBrowser: size})
+			assert.equal(options.firstChunkSize, size)
+		})
+
+		isBrowser && it(`firstChunkSizeBrowser is a standin for browser`, async () => {
+			let size = 1234
+			let options = optionsFactory({firstChunkSizeBrowser: size})
+			assert.equal(options.firstChunkSize, size)
+		})
+
+		it(`does not have any effect if input is buffer`, async () => {
+			let size = 456
+			let exifr = new Exifr({firstChunkSize: size})
+			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
+			assert.equal(exifr.file.byteLength, size)
+		})
+
+	})
+
+	describe('options.chunkSize', () => {
+
+		it(`affects size of the chunk following firstChunkSize`, async () => {
+			let firstChunkSize = 101
+			let chunkSize = 100
+			let exifr = new Exifr({firstChunkSize, chunkSize})
+			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
+			assert.equal(exifr.file.byteLength, firstChunkSize)
+			await exifr.file.readNextChunk()
+			assert.equal(exifr.file.byteLength, firstChunkSize + chunkSize)
+		})
+
+	})
+// This can't be tested
+/*
+	describe('options.chunkLimit', () => {
+
+		it(`affects size of the chunk following firstChunkSize`, async () => {
+			let firstChunkSize = 101
+			let chunkSize = 10
+			let chunkLimit = 5
+			let exifr = new Exifr({firstChunkSize, chunkSize, chunkLimit, tiff: false, icc: true, iptc: true})
+			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
+			await exifr.parse()
+			assert.equal(exifr.file.byteLength, firstChunkSize + (chunkSize * chunkLimit))
+		})
+
+	})
+*/
 	describe('options.wholeFile', () => {
 
 		let simpleFile = getPath('IMG_20180725_163423.jpg')
