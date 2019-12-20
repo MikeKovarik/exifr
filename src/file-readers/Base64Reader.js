@@ -4,45 +4,53 @@ import {hasBuffer} from '../util/BufferView.js'
 
 export class Base64Reader extends ChunkedReader {
 
-	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
-	async readChunk(start, size) {
-		this.chunksRead++
+	constructor(...args) {
+		super(...args)
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
-		let base64 = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
+		this.input = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
+		
+		this.fileSize = (this.input.length / 4) * 3
+		if (this.input.endsWith('=='))     this.fileSize -= 2
+		else if (this.input.endsWith('=')) this.fileSize -= 1
+	}
 
-		let end = size ? start + size : undefined
-		let offset = 0
+	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
+	async readChunk(offset, length) {
+		this.chunksRead++
+
+		var base64 = this.input
+		// Base64 encodes 3 bytes of data into string of 4 characters.
+		// To extract bytes at certain offset and length we need to take that into account,
+		// recalculate the offset and length into blocks of 4 characters, slice the input base64 string
+		// from these first and last of these blocks, and finally adjust correct offset in these blocks.
 		// NOTE: Each 4 character block of base64 string represents 3 bytes of data.
-		if (start !== undefined || end !== undefined) {
-			let blockStart
-			if (start === undefined) {
-				blockStart = start = 0
-			} else {
-				blockStart = Math.floor(start / 3) * 4
-				offset = start - ((blockStart / 4) * 3)
-			}
-			let blockEnd
-			if (end === undefined) {
-				blockEnd = base64.length
-				end = (blockEnd / 4) * 3
-			} else {
-				blockEnd = Math.ceil(end / 3) * 4
-			}
-			base64 = base64.slice(blockStart, blockEnd)
-			//let targetSize = end - start
+		if (offset === undefined) {
+			// Start from begining of the 4-letter block.
+			offset = 0
+			var blockStart = 0
+			var offsetInBlock = 0
 		} else {
-			//let targetSize = (base64.length / 4) * 3
+			// Adjust offset from the start of the 4-letter block.
+			var blockStart = Math.floor(offset / 3) * 4
+			var offsetInBlock = offset - ((blockStart / 4) * 3)
 		}
+		if (length === undefined) {
+			length = this.fileSize
+		}
+		let end = offset + length
+		var blockEnd = blockStart + Math.ceil(end / 3) * 4
+		base64 = base64.slice(blockStart, blockEnd)
 
+		let clampedLength = Math.min(length, this.fileSize - offset)
 		if (hasBuffer) {
-			let slice = Buffer.from(base64, 'base64').slice(offset, size)
-			return this.set(slice, start, true)
+			let slice = Buffer.from(base64, 'base64').slice(offsetInBlock, offsetInBlock + clampedLength)
+			return this.set(slice, offset, true)
 		} else {
-			let chunk = this.subarray(start, size, true)
+			let chunk = this.subarray(offset, clampedLength, true)
 			let binary = atob(base64)
 			let uint8view = chunk.toUint8()
-			for (let i = 0; i < size; i++)
-				uint8view[i] = binary.charCodeAt(offset + i)
+			for (let i = 0; i < clampedLength; i++)
+				uint8view[i] = binary.charCodeAt(offsetInBlock + i)
 			return chunk
 		}
 	}

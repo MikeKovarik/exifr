@@ -27,6 +27,12 @@ function routePath(filePath) {
 		return 'fixtures/' + filePath
 }
 
+export var btoa
+if (typeof window !== 'undefined' && window.btoa)
+	btoa = window.btoa
+else
+	btoa = string => Buffer.from(string).toString('base64')
+
 export function getPath(filePath) {
 	filePath = routePath(filePath)
 	if (isNode && !path.isAbsolute(filePath))
