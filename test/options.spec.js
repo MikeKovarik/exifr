@@ -27,6 +27,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(simpleFile)
 				assert.isFalse(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 			it(`scattered file should read as a whole`, async () => {
@@ -34,6 +35,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(scatteredFile)
 				assert.isFalse(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 		})
@@ -51,6 +53,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(simpleFile)
 				assert.isTrue(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 			it(`scattered file should be read chunked mode`, async () => {
@@ -58,6 +61,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(scatteredFile)
 				assert.isTrue(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 		})
@@ -75,6 +79,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(simpleFile)
 				assert.isTrue(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 			it(`scattered file should be read chunked mode`, async () => {
@@ -82,6 +87,7 @@ describe('options', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(scatteredFile)
 				assert.isTrue(exifr.file.chunked)
+				await exifr.file.close()
 			})
 
 		})

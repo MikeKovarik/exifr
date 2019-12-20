@@ -175,14 +175,15 @@ User is expected to revoke the URL when not needed anymore.
 
 ### `Exifr` class
 
-Afore mentioned functions are wrappers that internally instantiate `new ExifParse(options)` class, then call `parser.read(input)`, and finally call either `parser.parse()` or `parser.extractThumbnail()`.
+Afore mentioned functions are wrappers that internally instantiate `new ExifParse(options)` class, then call `parser.read(input)` to read the file, and finally call either `parser.parse()`, `parser.extractThumbnail()`or both. In Node.js it's also necessary to close the file with `exifr.file.close()` if it's read in chunked mode. Or just call it always for a good measure if you're not sure.
 
 To do both parsing EXIF and extracting thumbnail efficiently you can use this class yourself.
 
 ```js
-let parser = new Exifr(options)
-let exif = await parser.read(input)
-let thumb = await parser.extractThumbnail()
+let exifr = new Exifr(options)
+let output = await exifr.read(input)
+let buffer = await exifr.extractThumbnail()
+await exifr.file.close()
 ```
 
 ### Arguments and options

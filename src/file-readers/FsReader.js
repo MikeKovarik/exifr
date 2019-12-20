@@ -48,7 +48,7 @@ export class FsReader extends ChunkedReader {
 
 	// TODO: auto close file handle when reading and parsing is over
 	// (app can read more chunks after parsing the first)
-	async destroy() {
+	async close() {
 		if (this.fh) {
 			let fh = this.fh
 			this.fh = undefined

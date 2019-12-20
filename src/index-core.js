@@ -99,7 +99,7 @@ export default class Exifr {
 		await Promise.all(promises)
 		output = undefinedIfEmpty(output)
 
-		if (this.file.destroy) /*await*/ this.file.destroy()
+		if (this.file.close) /*await*/ this.file.close()
 		return output
 	}
 

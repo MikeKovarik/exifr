@@ -37,7 +37,7 @@ describe('ChunkedReader', () => {
 				assert.equal(file.byteLength, firstChunkSize)
 				assert.equal(file.getUint8(0), 0xFF)
 				assert.equal(file.getUint8(1), 0xD8)
-				if (file.destroy) await file.destroy()
+				if (file.close) await file.close()
 			})
 
 			describe('readChunked()', () => {
@@ -60,7 +60,7 @@ describe('ChunkedReader', () => {
 					assert.equal(tiffChunk.getUint8(1), 0xE1)
 					assert.equal(tiffChunk.getUint8(11), 0x49)
 					assert.equal(tiffChunk.getUint8(12), 0x2a)
-					if (file.destroy) await file.destroy()
+					if (file.close) await file.close()
 				})
 
 				it(`reading additional chunks keeps extending original view`, async () => {
@@ -72,7 +72,7 @@ describe('ChunkedReader', () => {
 					let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
 					assert.equal(jfifChunk.byteLength, jfifLength)
 					assert.equal(file.byteLength, jfifEnd)
-					if (file.destroy) await file.destroy()
+					if (file.close) await file.close()
 				})
 
 				it(`reading sparsely creates second range`, async () => {
@@ -85,7 +85,7 @@ describe('ChunkedReader', () => {
 					assert.lengthOf(file.ranges, 2)
 					assert.equal(jfifChunk.byteLength, jfifLength)
 					assert.equal(file.byteLength, jfifEnd)
-					if (file.destroy) await file.destroy()
+					if (file.close) await file.close()
 				})
 
 				it(`space between sparse segments does not contain useful data`, async () => {
@@ -94,7 +94,7 @@ describe('ChunkedReader', () => {
 					await file.readChunk(jfifOffset, jfifLength)
 					assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 					assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-					if (file.destroy) await file.destroy()
+					if (file.close) await file.close()
 				})
 
 				it(`reading beyond the end of file doesn't throw or malform the view`, async () => {
@@ -105,7 +105,7 @@ describe('ChunkedReader', () => {
 					assert.equal(chunk.byteLength, chunkSize)
 					assert.equal(file.byteLength, size)
 					assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
-					if (file.destroy) await file.destroy()
+					if (file.close) await file.close()
 				})
 
 			})
