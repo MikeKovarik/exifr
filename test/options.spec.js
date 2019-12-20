@@ -25,6 +25,7 @@ describe('options', () => {
 			let exifr = new Exifr({firstChunkSize: size})
 			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
 			assert.equal(exifr.file.byteLength, size)
+			await exifr.file.close()
 		})
 
 	})
@@ -39,6 +40,7 @@ describe('options', () => {
 			assert.equal(exifr.file.byteLength, firstChunkSize)
 			await exifr.file.readNextChunk()
 			assert.equal(exifr.file.byteLength, firstChunkSize + chunkSize)
+			await exifr.file.close()
 		})
 
 	})

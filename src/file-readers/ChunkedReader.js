@@ -60,11 +60,11 @@ export class ChunkedReader extends DynamicBufferView {
 
 	async read() {
 		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
-		// Chunked reading is only available for simple exif (APP1) FTD0
+		// Chunked reading is only available for simple exif (APP1) FTD0.
 		if (this.forceWholeFile)
 			return await this.readWhole()
 		try {
-			// Read Chunk
+			// Read first chunk
 			await this.readChunked()
 		} catch {
 			// Seeking for the exif at the beginning of the file failed.

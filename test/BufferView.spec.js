@@ -157,6 +157,7 @@ describe('BufferView', () => {
 		let fh = await fs.open(getPath('IMG_20180725_163423.jpg'), 'r')
 		await fh.read(fistHalf.dataView, 0, bytesToRead, 0)
 		await fh.read(secondHalf.dataView, 0, bytesToRead, bytesToRead)
+		await fh.close()
 		assert.equal(view.getUint8(2), 0xFF)
 		assert.equal(view.getUint8(4), 0x63)
 		assert.equal(view.getUint8(6), 0x45)
