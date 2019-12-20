@@ -52,7 +52,6 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 	parseTags(offset, blockKey) {
-		console.time(blockKey)
 		let picks = new Set(this.options.getPickTags(blockKey, 'tiff'))
 		let skips = new Set(this.options.getSkipTags(blockKey, 'tiff'))
 		let onlyPick = picks.size > 0
@@ -75,7 +74,6 @@ export class TiffCore extends AppSegmentParserBase {
 			}
 			offset += 12
 		}
-		console.timeEnd(blockKey)
 		return block
 	}
 
