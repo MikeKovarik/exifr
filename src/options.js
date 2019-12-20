@@ -1,5 +1,6 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
+import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from './tags.js'
 import {tagKeys} from './tags.js'
 import {isBrowser} from './util/BufferView.js'
 
@@ -294,4 +295,19 @@ export default function optionsFactory(userOptions) {
 		return new Options(userOptions)
 	else
 		return new Options
+}
+
+
+export let gpsOnlyOptions = {
+	ifd0: false,
+	exif: false,
+	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
+	interop: false,
+	thumbnail: false,
+	// turning off all unnecessary steps and transformation to get the needed data ASAP
+	sanitize: false,
+	reviveValues: true,
+	translateKeys: false,
+	translateValues: false,
+	mergeOutput: false,
 }

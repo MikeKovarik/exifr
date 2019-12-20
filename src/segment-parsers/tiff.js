@@ -1,12 +1,11 @@
 import {AppSegmentParserBase, segmentParsers} from '../parser.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMMENT, TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
+import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.js'
+import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
 import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
 
-
-export const TIFF_LITTLE_ENDIAN = 0x4949
-export const TIFF_BIG_ENDIAN    = 0x4D4D
 
 const THUMB_OFFSET  = 0x0201
 const THUMB_LENGTH  = 0x0202
@@ -346,9 +345,9 @@ export class TiffExif extends TiffCore {
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.gpsOffset === undefined) return
 		let gps = this.gps = this.parseTags(this.gpsOffset, 'gps')
-		if (gps && gps[GPS_LAT] && gps[GPS_LON]) {
-			gps.latitude  = ConvertDMSToDD(...gps[GPS_LAT], gps[GPS_LATREF])
-			gps.longitude = ConvertDMSToDD(...gps[GPS_LON], gps[GPS_LONREF])
+		if (gps && gps[TAG_GPS_LAT] && gps[TAG_GPS_LON]) {
+			gps.latitude  = ConvertDMSToDD(...gps[TAG_GPS_LAT], gps[TAG_GPS_LATREF])
+			gps.longitude = ConvertDMSToDD(...gps[TAG_GPS_LON], gps[TAG_GPS_LONREF])
 		}
 		return gps
 	}
@@ -401,11 +400,5 @@ export class TiffExif extends TiffCore {
 	}
 
 }
-
-export const GPS_LATREF = 0x0001
-export const GPS_LAT    = 0x0002
-export const GPS_LONREF = 0x0003
-export const GPS_LON    = 0x0004
-
 
 segmentParsers.set('tiff', TiffExif)

@@ -32,3 +32,8 @@ export const TAG_ICC         = 0x8773
 export const TAG_IFD_EXIF      = 0x8769
 export const TAG_IFD_GPS       = 0x8825
 export const TAG_IFD_INTEROP   = 0xA005
+
+export const TAG_GPS_LATREF = 0x0001
+export const TAG_GPS_LAT    = 0x0002
+export const TAG_GPS_LONREF = 0x0003
+export const TAG_GPS_LON    = 0x0004

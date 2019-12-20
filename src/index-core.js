@@ -3,9 +3,9 @@ import {read} from './reader.js'
 import {segmentParsers} from './parser.js'
 export {tagKeys, tagValues, tagRevivers} from './tags.js'
 import optionsFactory from './options.js'
+import {gpsOnlyOptions} from './options.js'
 import {hasBuffer} from './util/BufferView.js'
-import {GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON} from './segment-parsers/tiff.js'
-import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './segment-parsers/tiff.js'
+import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {TiffFileParser} from './file-parsers/tif.js'
 import {JpegFileParser} from './file-parsers/jpg.js'
@@ -20,44 +20,17 @@ export default class Exifr {
 	static optionsFactory = optionsFactory
 	static segmentParsers = segmentParsers
 
-	static async parse(arg, options) {
+	static async parse(input, options) {
 		let exifr = new Exifr(options)
-		await exifr.read(arg)
+		await exifr.read(input)
 		return exifr.parse()
 	}
 
-	static async parseGps(arg) {
-		let options = {
-			ifd0: false,
-			exif: false,
-			gps: [GPS_LATREF, GPS_LAT, GPS_LONREF, GPS_LON],
-			interop: false,
-			thumbnail: false,
-			// turning off all unnecessary steps and transformation to get the needed data ASAP
-			sanitize: false,
-			reviveValues: true,
-			translateKeys: false,
-			mergeOutput: false,
-		}
-		let exifr = new Exifr(options)
-		await exifr.read(arg)
-		let output = await exifr.parse()
-		console.log('output', output)
-		console.log('exifr.tiff', exifr.tiff)
-		//console.log('exifr.tiff.gps', exifr.tiff.gps)
-		let {latitude, longitude} = exifr.tiff.gps
-		return {latitude, longitude}
-	}
-
-	static async parseAppSegments(arg, options) {
-		// TODO
-	}
-
-	static async thumbnail(arg, options = {}) {
+	static async thumbnail(input, options = {}) {
 		options.thumbnail = true
 		options.mergeOutput = true
 		let exifr = new Exifr(options)
-		await exifr.read(arg)
+		await exifr.read(input)
 		let uint8array = await exifr.extractThumbnail()
 		if (uint8array && hasBuffer)
 			return Buffer.from(uint8array)
@@ -73,6 +46,17 @@ export default class Exifr {
 			return URL.createObjectURL(blob)
 		}
 	}
+
+	static async gps(input) {
+		let exifr = new Exifr(gpsOnlyOptions)
+		await exifr.read(input)
+		let output = await exifr.parse()
+		let {latitude, longitude} = output.gps
+		return {latitude, longitude}
+	}
+
+	// to be exposed in future versions
+	//static async parseAppSegments(input, options) {}
 
 	// ------------------------- INSTANCE -------------------------
 
