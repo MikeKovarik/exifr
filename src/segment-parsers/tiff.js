@@ -52,20 +52,30 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 	parseTags(offset, blockKey) {
-		let picks = this.options.getPickTags(blockKey, 'tiff')
-		let skips = this.options.getSkipTags(blockKey, 'tiff')
-		let onlyPick = picks.length > 0
-		//if (onlyPick) picks = [...picks]// TODO: end reading when all picks were found
+		console.time(blockKey)
+		let picks = new Set(this.options.getPickTags(blockKey, 'tiff'))
+		let skips = new Set(this.options.getSkipTags(blockKey, 'tiff'))
+		let onlyPick = picks.size > 0
+		let nothingToSkip = skips.size === 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
 		let block = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
-			// TODO: end reading when all picks were found
-			if ((onlyPick && picks.includes(tag)) || (!onlyPick && !skips.includes(tag)))
+			if (onlyPick) {
+				if (picks.has(tag)) {
+					// We have a list only of tags to pick, this tag is one of them, so read it.
+					block[tag] = this.parseTag(offset)
+					picks.delete(tag)
+					if (picks.size === 0) break
+				}
+			} else if (nothingToSkip || !skips.has(tag)) {
+				// We're not limiting what tags to pick. Also this tag is not on a blacklist.
 				block[tag] = this.parseTag(offset)
+			}
 			offset += 12
 		}
+		console.timeEnd(blockKey)
 		return block
 	}
 
