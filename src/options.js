@@ -115,8 +115,6 @@ class Options {
 		}
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
-		this.allowWholeFile = this.wholeFile === true || this.wholeFile === undefined
-		this.forceWholeFile = this.wholeFile === true
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
 		if (this.mergeOutput) this.thumbnail = false
 		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
