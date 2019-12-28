@@ -19,6 +19,8 @@ export default class Exifr {
 
 	static optionsFactory = optionsFactory
 	static segmentParsers = segmentParsers
+	static fileReaders = undefined // TODO: expose fileReaders
+	static fileParsers = undefined // TODO: expose fileParsers
 
 	static async parse(input, options) {
 		let exifr = new Exifr(options)

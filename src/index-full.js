@@ -10,6 +10,7 @@ import './segment-parsers/xmp.js'
 // TIFF - Additional tags
 import './tags/tiff-interop-keys.js'
 import './tags/tiff-other-keys.js'
+import './tags/tiff-gps-values.js'
 
 // ICC
 import './tags/icc-keys.js'
