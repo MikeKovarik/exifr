@@ -3,7 +3,7 @@ import {getFile, getPath} from './test-util.js'
 import Exifr from '../src/index-full.js'
 
 
-describe('output object', () => {
+describe('output object format', () => {
 
 	it(`should return undefined if no exif was found`, async () => {
 		let output = await Exifr.parse(await getFile('img_1771_no_exif.jpg'))
@@ -116,10 +116,24 @@ describe('output object', () => {
 			assert.isUndefined(output.ifd0[propCode])
 		})
 
-		it(`is available output.${segName} when {${segName}: true, tiff: false}`, async () => {
+		it(`is available as output.${segName} when {${segName}: true, tiff: false}`, async () => {
 			let options = {mergeOutput: false, [segName]: true, tiff: false}
 			var output = await Exifr.parse(input, options) || {}
 			assert.exists(output[segName])
+		})
+
+		it(`is not available as output.${segName} when {${segName}: false, tiff: true}`, async () => {
+			let options = {mergeOutput: false, [segName]: false, tiff: true}
+			var output = await Exifr.parse(input, options) || {}
+			assert.isUndefined(output[segName])
+		})
+
+		it(`is skipped (not parsed from TIFF) when {${segName}: false, tiff: true}`, async () => {
+			let options = {mergeOutput: false, [segName]: false, tiff: true}
+			var exifr = new Exifr(options)
+			await exifr.read(input)
+			await exifr.parse(input)
+			assert.include(exifr.options.ifd0.skip, propCode)
 		})
 	}
 

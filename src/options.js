@@ -1,6 +1,7 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from './tags.js'
+import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {tagKeys} from './tags.js'
 import {isBrowser} from './util/BufferView.js'
 
@@ -133,7 +134,7 @@ class Options {
 			for (let [segKey, tags] of entries) this.addPickTags(segKey, ...tags)
 		} else if (this.skip.length) {
 			let entries = findScopesForGlobalTagArray(this.skip)
-			for (let [segKey, tags] of entries) this.addSkipTags(segKey, ...tags)
+			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
 		}
 	}
 
@@ -151,7 +152,7 @@ class Options {
 			let tags = [...this.skip]
 			if (!this.makerNote)   tags.push(TAG_MAKERNOTE)
 			if (!this.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)       opts.addSkipTags('exif', ...tags)
+			if (tags.length)       opts.addSkipTags('exif', tags)
 		}
 		if (opts.interop && (isUnwanted(this.exif) || hasPickTags(opts.exif))) {
 			// interop pointer can be often found in EXIF besides IFD0.
@@ -198,7 +199,7 @@ class Options {
 			this[segKey] = tags
 	}
 
-	addSkipTags(segKey, ...tags) {
+	addSkipTags(segKey, tags) {
 		let segOpts = this[segKey]
 		// if segment defines which tags to pick, there's no need to specify tags to skip.
 		if (hasPickTags(segOpts)) return

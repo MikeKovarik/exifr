@@ -7,11 +7,19 @@ export class TiffFileParser extends FileParserBase {
 
 	async parse() {
 		let options = this.options
-		if (options.xmp) options.addPick('ifd0', [TAG_XMP], false)
-		if (options.iptc) options.addPick('ifd0', [TAG_IPTC], false)
-		if (options.icc) options.addPick('ifd0', [TAG_ICC], false)
-		//if (options.photoshop) options.addPick('ifd0', [TAG_PHOTOSHOP], false)
 
+		if (options.xmp === false)  options.addSkipTags('ifd0', [TAG_XMP])
+		else                        options.addPick('ifd0', [TAG_XMP], false)
+		if (options.iptc === false) options.addSkipTags('ifd0', [TAG_IPTC])
+		else                        options.addPick('ifd0', [TAG_IPTC], false)
+		if (options.icc === false)  options.addSkipTags('ifd0', [TAG_ICC])
+		else                        options.addPick('ifd0', [TAG_ICC], false)
+/*
+		if (options.xmp)  options.addPick('ifd0', [TAG_XMP], false)
+		if (options.iptc) options.addPick('ifd0', [TAG_IPTC], false)
+		if (options.icc)  options.addPick('ifd0', [TAG_ICC], false)
+		//if (options.photoshop) options.addPick('ifd0', [TAG_PHOTOSHOP], false)
+*/
 		if (options.tiff || options.xmp || options.iptc || options.icc) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
