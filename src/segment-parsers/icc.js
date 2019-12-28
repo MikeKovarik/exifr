@@ -112,7 +112,7 @@ export default class IccParser extends AppSegmentParserBase {
 	translateValue(val, dict) {
 		if (dict) {
 			if (typeof val === 'string')
-				return dict[val.toLowerCase()] || val
+				return dict[val] || dict[val.toLowerCase()] || val
 			else
 				return dict[val] || val
 		}
@@ -120,7 +120,7 @@ export default class IccParser extends AppSegmentParserBase {
 
 }
 
-export const headerParsers = {
+const headerParsers = {
 	4: parseString,
 	8: parseVersion,
 	12: parseString,
