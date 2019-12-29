@@ -209,6 +209,8 @@ can be:
 
 #### Reading file from disk or fetching url
 
+TODO: update
+
 If allowed, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
 This can save lots of memory, disk reads and speed things up. But it may not suit you.
 
@@ -216,11 +218,17 @@ This can save lots of memory, disk reads and speed things up. But it may not sui
 
 ##### Chunked mode
 
+TODO: update
+
 In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
 
 ##### Whole file mode
 
+TODO: update
+
 If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
+
+TODO: update
 
 * `options.wholeFile` `bool/undefined` default `undefined`
 <br>Sets whether to read the file as a whole or just by small chunks.
@@ -235,11 +243,15 @@ If you're not concerned about performance and time (mostly in Node.js) you can t
   <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
   <br>Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.
 
+TODO: update
+
 * `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
 <br>Byte size of the first chunk that will be read and parsed for EXIF.
 <br>*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
 <br>Node.js: Used for all input types.
 <br>Browser: Used when input `arg` is buffer. Otherwise, `parseChunkSize` is used.
+
+TODO: update
 
 * `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
 <br>Size of the chunk to fetch in the browser in chunked mode.
@@ -247,12 +259,16 @@ If you're not concerned about performance and time (mostly in Node.js) you can t
 <br>Node.js: Not used.
 <br>Browser: Used when input `arg` is string URL. Otherwise, `seekChunkSize` is used.
 
+TODO: update
+
 If parsing file known to have EXIF fails try:
 * Increasing `seekChunkSize`
 * Increasing `parseChunkSize` in the browser if file URL is used as input.
 * Disabling chunked mode (read whole file)
 
 #### APP Segments & IFD Blocks
+
+TODO: update
 
 * `options.tiff: true` - APP1 - TIFF
 <br>The basic EXIF tags (image, exif, gps)
@@ -288,22 +304,42 @@ Setting `options.tiff = false` automatically disables all TIFF blocks - sets the
 
 However setting `options.tiff = true` does not automatically enables all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled.  `thumbnail` and `inerop` are left disabled
 
-#### Output format
+dictionaries
 
-* `options.postProcess` `number` default: `true`
+JFIF
+https://exiftool.org/TagNames/JFIF.html
+
+TIFF (EXIF, GPS)
+https://exiftool.org/TagNames/EXIF.html
+https://exiftool.org/TagNames/GPS.html
+
+ICC
+https://exiftool.org/TagNames/ICC_Profile.html
+
+IPTC
+https://exiftool.org/TagNames/IPTC.html
+
+### Output format
+
+TODO update
+
+* `options.postProcess` default: `true`
 <br>Translate enum values to strings, convert dates to Date instances, etc...
 
-* `options.mergeOutput` `number` default: `true`
-<br>Changes output format by merging all segments and blocks into a single object.
+#### `options.mergeOutput` default: `true`
+Changes output format by merging all segments and blocks into a single object.
 
+TODO
 <table><tr><td>
-Default
+`mergeOutput: false`
 </td><td>
-Merged
+`mergeOutput: true`
 </td></tr><tr><td><pre>
 {
   Make: 'Google',
   Model: 'Pixel',
+  FNumber: 2,
+  ISO: 50,
 }
 </pre></td><td><pre>
 {
@@ -311,11 +347,133 @@ Merged
     Make: 'Google',
     Model: 'Pixel',
   },
-  gps: {
+  exif: {
+    FNumber: 2,
+    ISO: 50,
+  },
+  iptc: {
+TODO
+  }
+  xmp: 'TODO'
+}
+</pre></td></tr></table>
+
+**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
+
+#### `options.translateKeys` default: `true`
+Translate enum values to strings, convert dates to Date instances, etc...
+
+<br><table><tr><td>
+`translateKeys: false`
+</td><td>
+`translateKeys: true`
+</td></tr><tr><td><pre>
+{
+  ifd0: {
+    256: 4048,
+    257: 3036,
+    271: 'Google',
+    272: 'Pixel',
+    0x0100: 4048,
+    0x0101: 3036,
+    0x010f: 'Google',
+    0x0110: 'Pixel',
+  },
+  iptc: {
+    92: 'Snow Peak',
+    95: 'Uttarakhand',
+    101: 'India',
+  },
+  icc: {
+    4: 'Lino',
+    8: '2.1.0',
+    12: 'Monitor',
+    16: 'RGB',
+  }
+}
+</pre></td><td><pre>
+{
+  ifd0: {
+    ImageWidth: 4048,
+    ImageHeight: 3036,
+    Make: 'Google',
+    Model: 'Pixel',
+  },
+  iptc: {
+    Sublocation: 'Snow Peak',
+    State: 'Uttarakhand',
+    Country: 'India',
+  },
+  icc: {
+    cmm: 'Lino',
+    version: '2.1.0',
+    deviceClass: 'Monitor',
+    colorSpace: 'RGB',
   }
 }
 </pre></td></tr></table>
 
+**Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
+
+Tags are numeric, refered to in hex notation.
+Javascript object type only uses string keys, so the tag code is converted to string representation of the number.
+ stored  `[0x010f]` or `['271']`
+
+#### `options.translateValues` default: `true`
+Translate enum values to strings, convert dates to Date instances, etc...
+
+<br><table><tr><td>
+`translateValues: false`
+</td><td>
+`translateValues: true`
+</td></tr><tr><td><pre>
+{
+  Orientation: 1,
+  ResolutionUnit: 2,
+  Flash: 16,
+  SceneCaptureType: 0,
+  Sharpness: 0,
+  SubjectDistanceRange: 1
+  // TODO. ICC tags, do they remain lowercase?
+  deviceClass: 'mntr',
+  platform: 'MSFT',
+  intent: 0,
+  creator: 'HP',
+}
+</pre></td><td><pre>
+{
+  Orientation: 'Horizontal (normal)',
+  ResolutionUnit: 'inches',
+  Flash: 'Flash did not fire, compulsory flash mode',
+  SceneCaptureType: 'Standard',
+  Sharpness: 'Normal',
+  SubjectDistanceRange: 'Macro'
+  // TODO. ICC tags, do they remain lowercase?
+  deviceClass: 'Monitor',
+  platform: 'Microsoft',
+  intent: 'Perceptual',
+  creator: 'Hewlett-Packard',
+}
+</pre></td></tr></table>
+
+#### `options.reviveValues` default: `true`
+Converts dates to Date instances and raw `Uint8Array` data to more readable format.
+
+<br><table><tr><td>
+`reviveValues: false`
+</td><td>
+`reviveValues: true`
+</td></tr><tr><td><pre>
+{
+  GPSVersionID: [0x02, 0x02, 0x00, 0x00],
+  ModifyDate: '2018:07:25 16:34:23',
+}
+</pre></td><td><pre>
+{
+  GPSVersionID: '2.2.0.0',
+  ModifyDate: &lt;Date instance: 2018-07-25T14:34:23.000Z&gt;,
+}
+</pre></td></tr></table>
 
 ## Modular distributions
 

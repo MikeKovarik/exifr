@@ -131,7 +131,7 @@ class Options {
 	assignGlobalFilterToLocalScopes() {
 		if (this.pick.length) {
 			let entries = findScopesForGlobalTagArray(this.pick)
-			for (let [segKey, tags] of entries) this.addPickTags(segKey, ...tags)
+			for (let [segKey, tags] of entries) this.addPickTags(segKey, tags)
 		} else if (this.skip.length) {
 			let entries = findScopesForGlobalTagArray(this.skip)
 			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
@@ -146,7 +146,7 @@ class Options {
 			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
 			if (opts.makerNote)   tags.push(TAG_MAKERNOTE)
 			if (opts.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)      opts.addPickTags('exif', ...tags)
+			if (tags.length)      opts.addPickTags('exif', tags)
 		} else if (opts.exif) {
 			// skip makernote & usercomment by default
 			let tags = [...this.skip]
@@ -156,7 +156,7 @@ class Options {
 		}
 		if (opts.interop && (isUnwanted(this.exif) || hasPickTags(opts.exif))) {
 			// interop pointer can be often found in EXIF besides IFD0.
-			opts.addPickTags('exif', TAG_IFD_INTEROP)
+			opts.addPickTags('exif', [TAG_IFD_INTEROP])
 		}
 		if ((isUnwanted(opts.ifd0) || hasPickTags(opts.ifd0) || opts.pick.length) && (opts.exif || opts.gps || opts.interop)) {
 			let tags = [...this.pick]
@@ -165,7 +165,7 @@ class Options {
 			if (opts.gps)     tags.push(TAG_IFD_GPS)
 			if (opts.interop) tags.push(TAG_IFD_INTEROP)
 			// offset of Interop IFD can be in both IFD0 and Exif IFD.
-			opts.addPickTags('ifd0', ...tags)
+			opts.addPickTags('ifd0', tags)
 		}
 		if (isUnwanted(opts.tiff) && (opts.ifd0 || opts.thumbnail)) {
 			opts.tiff = true
@@ -174,7 +174,7 @@ class Options {
 
 	addPick(segKey, tags, force = true) {
 		if (this[segKey] === true && force === false) return
-		this.addPickTags(segKey, ...tags)
+		this.addPickTags(segKey, tags)
 		if (segKey === 'exif')
 			this.addPick('ifd0', [TAG_IFD_EXIF], force)
 		if (segKey === 'gps')
@@ -187,7 +187,7 @@ class Options {
 			this.tiff = true
 	}
 
-	addPickTags(segKey, ...tags) {
+	addPickTags(segKey, tags) {
 		let segOpts = this[segKey]
 		if (Array.isArray(segOpts))
 			this[segKey] = [...segOpts, ...tags] // not pushing to prevent modification of user's array

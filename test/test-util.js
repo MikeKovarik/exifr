@@ -189,7 +189,6 @@ export function testSegmentTranslation({type, file, tags}) {
 				}
 			})
 
-
 			it(`should translate tag names & values by default`, async () => {
 				let input = await getFile(file)
 				let options = {mergeOutput: false, [type]: true}
