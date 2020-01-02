@@ -52,23 +52,22 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 	parseTags(offset, blockKey) {
-		let picks = new Set(this.options.getPickTags(blockKey, 'tiff'))
-		let skips = new Set(this.options.getSkipTags(blockKey, 'tiff'))
-		let onlyPick = picks.size > 0
-		let nothingToSkip = skips.size === 0
+		let {pick, skip} = this.options[blockKey]
+		let onlyPick = pick.size > 0
+		let nothingToSkip = skip.size === 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
 		let block = {}
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
 			if (onlyPick) {
-				if (picks.has(tag)) {
+				if (pick.has(tag)) {
 					// We have a list only of tags to pick, this tag is one of them, so read it.
 					block[tag] = this.parseTag(offset)
-					picks.delete(tag)
-					if (picks.size === 0) break
+					pick.delete(tag)
+					if (pick.size === 0) break
 				}
-			} else if (nothingToSkip || !skips.has(tag)) {
+			} else if (nothingToSkip || !skip.has(tag)) {
 				// We're not limiting what tags to pick. Also this tag is not on a blacklist.
 				block[tag] = this.parseTag(offset)
 			}
@@ -206,11 +205,11 @@ export class TiffExif extends TiffCore {
 		//global.recordBenchTime(`tiffExif.parse()`)
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
-		if (this.options.ifd0)      await this.parseIfd0Block()                                  // APP1 - IFD0
-		if (this.options.exif)      await this.parseExifBlock()      // APP1 - EXIF IFD
-		if (this.options.gps)       await this.parseGpsBlock()       // APP1 - GPS IFD
-		if (this.options.interop)   await this.parseInteropBlock()   // APP1 - Interop IFD
-		if (this.options.thumbnail) await this.parseThumbnailBlock() // APP1 - IFD1
+		if (this.options.ifd0.enabled)      await this.parseIfd0Block()                                  // APP1 - IFD0
+		if (this.options.exif.enabled)      await this.parseExifBlock()      // APP1 - EXIF IFD
+		if (this.options.gps.enabled)       await this.parseGpsBlock()       // APP1 - GPS IFD
+		if (this.options.interop.enabled)   await this.parseInteropBlock()   // APP1 - Interop IFD
+		if (this.options.thumbnail.enabled) await this.parseThumbnailBlock() // APP1 - IFD1
 		this.translate()
 		if (this.options.mergeOutput) {
 			// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
@@ -247,7 +246,7 @@ export class TiffExif extends TiffCore {
 
 	get estimatedExifSize() {
 		// note: no need to include makerNote in this condition, exif is already enabled or filtered at this point.
-		if (this.options.exif) {
+		if (this.options.exif.enabled) {
 			let bytes = 2048
 			if (this.options.makerNote)   bytes += 2048 // TODO: reevaluate
 			if (this.options.userComment) bytes += 2048 // TODO: reevaluate
@@ -261,11 +260,11 @@ export class TiffExif extends TiffCore {
 		let bytes = this.estimatedExifSize
 		//let bytes = 0
 		// All base TIFF blocks.
-		if (this.options.ifd0)      bytes += 1024
-		//if (this.options.exif)      bytes += 2048 
-		if (this.options.gps)       bytes += 512
-		if (this.options.interop)   bytes += 100
-		if (this.options.thumbnail) bytes += 1024
+		if (this.options.ifd0.enabled)      bytes += 1024
+		if (this.options.exif.enabled)      bytes += 1024 
+		if (this.options.gps.enabled)       bytes += 512
+		if (this.options.interop.enabled)   bytes += 100
+		if (this.options.thumbnail.enabled) bytes += 1024
 		// .tif files store all additional segments (what would be App segment in Jpeg) as properties in TIFF
 		if (this.file.isTiff) {
 			// usually between 1-13kb. max found in fixtures is 25.7kb.

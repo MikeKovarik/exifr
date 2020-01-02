@@ -39,7 +39,7 @@ async function main() {
 	*/
 }
 
-async function bench(name, cb, iterations = 10) {
+export async function bench(name, cb, iterations = 10) {
 	let i = 0
 	let t1
 	let t2

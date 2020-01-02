@@ -1,5 +1,5 @@
 import {BufferView} from './util/BufferView.js'
-import createOptions from './options.js'
+import {Options} from './options.js'
 import {tagKeys, tagValues, tagRevivers} from './tags.js'
 
 
@@ -86,7 +86,7 @@ export class AppSegmentParserBase {
 			start = undefined
 		}
 		let view = new BufferView(buffer, start)
-		let instance = new this(view, createOptions(options))
+		let instance = new this(view, new Options(options))
 		return instance.parse()
 	}
 

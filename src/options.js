@@ -6,272 +6,295 @@ import {tagKeys} from './tags.js'
 import {isBrowser} from './util/BufferView.js'
 
 
-const configurableSegsOrBlocks = [
-	// APP (jpg) Segments
-	'jfif', 'tiff', 'xmp', 'icc', 'iptc',
-	// TIFF Blocks
-	'ifd0', 'exif', 'gps', 'interop', 'thumbnail',
+export const readerProps = [
+	'wholeFile',
+	'firstChunkSize',
+	'firstChunkSizeNode',
+	'firstChunkSizeBrowser',
+	'chunkSize',
+	'chunkLimit',
 ]
 
-class Options {
+export const segments = ['jfif', 'tiff', 'xmp', 'icc', 'iptc']
 
-	// READING & PARSING
+export const tiffBlocks = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
-	// We're trying not to read the whole file to increase performance but certain
-	// segments (IPTC, XMP) require whole file to be buffered and parsed through.
-	//forceWholeFile = false
-	// Only the first 512 Bytes are scanned for EXIF due to performance reasons.
-	// Setting this to true enables searching through the whole file.
-	//allowWholeFile = false
+export const segmentsAndBlocks = [...segments, ...tiffBlocks]
+
+export const tiffExtractables = ['makerNote', 'userComment']
+
+export const formatOptions = [
+	'translateKeys',
+	'translateValues',
+	'reviveValues',
+	'sanitize',
+	'mergeOutput',
+]
+
+class FormatOptions {
+
+	enabled = false
+	skip = new Set
+	pick = new Set
+	translateKeys   = false
+	translateValues = false
+	reviveValues    = false
+
+	constructor(defaultValue, userValue, globalOptions) {
+		this.enabled = defaultValue
+
+		this.translateKeys   = globalOptions.translateKeys
+		this.translateValues = globalOptions.translateValues
+		this.reviveValues    = globalOptions.reviveValues
+
+		if (userValue !== undefined) {
+			if (Array.isArray(userValue)) {
+				this.enabled = true
+				this.pick = new Set([...this.pick, ...userValue])
+			} else if (typeof userValue === 'object') {
+				this.enabled = true
+				if (userValue.pick) this.pick = new Set([...this.pick, ...userValue.pick])
+				if (userValue.skip) this.skip = new Set([...this.skip, ...userValue.skip])
+				if (userValue.translateKeys   !== undefined) translateKeys   = obj.translateKeys
+				if (userValue.translateValues !== undefined) translateValues = obj.translateValues
+				if (userValue.reviveValues    !== undefined) reviveValues    = obj.reviveValues
+			} else if (userValue === true || userValue === false) {
+				this.enabled = userValue
+			} else {
+				throw new Error(`Invalid options argument: ${userValue}`)
+			}
+		}
+	}
+
+}
+
+export class Options {
+
+	// FILE READING
 
 	// true      - forces reading the whole file
 	// undefined - allows reading additional chunks of size `chunkSize` (chunked mode)
 	// false     - does not allow reading additional chunks beyond `firstChunkSize` (chunked mode)
-	wholeFile = undefined
-
+	static wholeFile = undefined
 	// TODO
-	firstChunkSize = undefined
+	static firstChunkSize = undefined
 	// Size of the chunk that can be scanned for EXIF. Used by node.js.
-	firstChunkSizeNode = 512
+	static firstChunkSizeNode = 512
 	// In browser its sometimes better to download larger chunk in hope that it contains the
 	// whole EXIF (and not just its begining like in case of firstChunkSizeNode) in prevetion
 	// of additional loading and fetching.
-	firstChunkSizeBrowser = 65536 // 64kb
+	static firstChunkSizeBrowser = 65536 // 64kb
 	// TODO
-	chunkSize = 65536 // 64kb
+	static chunkSize = 65536 // 64kb
 	// Maximum ammount of additional chunks allowed to read in chunk mode.
 	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
-	chunkLimit = 10
+	static chunkLimit = 10
+
+	// OUTPUT
 
 	// TODO
-	translateKeys = true
+	static translateKeys = true
 	// TODO
-	translateValues = true
+	static translateValues = true
 	// TODO
-	reviveValues = true
+	static reviveValues = true
 	// Removes IFD pointers and other artifacts (useless for user) from output.
-	sanitize = true
+	static sanitize = true
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
-	mergeOutput = true
+	static mergeOutput = true
 
-	// APP1 TIFF segment - The basic EXIF tags (image, exif, gps)
-	tiff = true
+	// WHAT TO PARSE
+
 	// TIFF segment - Exif IFD block.
-	ifd0 = true
+	static ifd0 = true
 	// TIFF segment - Exif IFD block.
-	exif = true
+	static exif = true
 	// TIFF segment - GPS IFD block - GPS latitue and longitude data.
-	gps = true
+	static gps = true
 	// TIFF segment - Interop IFD block - This is a thing too.
-	interop = false
+	static interop = false
 	// TIFF segment - IFD1 block - Size and other information about embeded thumbnail.
-	thumbnail = false
+	static thumbnail = false
 
 	// APP0 segment
-	jfif = false
+	static jfif = false
+	// APP1 TIFF segment - Basic EXIF tags. Consists of blocks ifd0, exif, gps, interop, thumbnail
+	static tiff = true
 	// APP1 XMP segment - XML based extension, often used by editors like Photoshop.
-	xmp = false
+	static xmp = false
 	// APP2 ICC segment
-	icc = false
+	static icc = false
 	// APP13 IPTC segment - Captions and copyrights
-	iptc = false
+	static iptc = false
 
 	// TODO = implement
-	makerNote = false
+	static makerNote = false
 	// TODO = implement
-	userComment = false
+	static userComment = false
 
 	// Array of tags that will be excluded when parsing.
 	// Saves performance because the tags aren't read at all and thus not further processed.
 	// Cannot be used along with 'pick' array.
-	skip = []
+	static skip = []
 	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
 	// Extremely saves performance because only selected few tags are processed.
 	// Useful for extracting few informations from a batch of many photos.
 	// Cannot be used along with 'skip' array.
-	pick = []
+	static pick = []
 
 	constructor(userOptions) {
-		if (userOptions === true || userOptions === false) {
-			for (let [key, val] of Object.entries(this)) {
-				if (val === undefined || typeof val === 'boolean') {
-					this[key] = userOptions
-				}
-			}
-		} else if (userOptions !== undefined) {
-			Object.assign(this, userOptions)
-			// We don't want to modify user's data. It would also break tests.
-			this.pick = [...this.pick]
-			this.skip = [...this.skip]
-			if (userOptions.tiff === false) {
-				// user disabled tiff. let's disable all of the blocks to prevent our pick/skip logic
-				// from reenabling it.
-				this.ifd0      = userOptions.ifd0      || false
-				this.exif      = userOptions.exif      || false
-				this.gps       = userOptions.gps       || false
-				this.interop   = userOptions.interop   || false
-				this.thumbnail = userOptions.thumbnail || false
-			}
+		let type = typeof userOptions
+		if (type === 'boolean')
+			this.setupFromBool(userOptions)
+		else if (type === 'object')
+			this.setupFromObject(userOptions)
+		else
+			throw new Error(`Invalid options argument`)
+	}
+
+	setupFromBool(userOptions) {
+		let key
+		let defaults = this.constructor
+		for (key of readerProps)       this[key] = defaults[key]
+		for (key of formatOptions)     this[key] = defaults[key]
+		for (key of tiffExtractables)  this[key] = userOptions
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(userOptions)
+	}
+
+	setupFromObject(userOptions) {
+		let key
+		let defaults = this.constructor
+		for (key of readerProps)       this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], userOptions[key], this)
+        console.log('-: this', this)
+		if (this.tiff.enabled === false) {
+			// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
+			this.ifd0.enabled      = userOptions.ifd0      !== false
+			this.exif.enabled      = userOptions.exif      !== false
+			this.gps.enabled       = userOptions.gps       !== false
+			this.interop.enabled   = userOptions.interop   !== false
+			this.thumbnail.enabled = userOptions.thumbnail !== false
 		}
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
-		if (this.mergeOutput) this.thumbnail = false
-		// first translate global pick/skip tags (that will later be copied to local, segment/block settings)
-		this.assignGlobalFilterToLocalScopes()
+		if (this.mergeOutput) this.thumbnail.enabled = false
+		// translate global pick/skip tags & copy them to local segment/block settings
+		let {pick, skip} = userOptions
+		if (pick && pick.length) {
+			let entries = findScopesForGlobalTagArray(pick)
+			for (let [segKey, tags] of entries) this.addPickTags(segKey, tags)
+		} else if (skip && skip.length) {
+			let entries = findScopesForGlobalTagArray(skip)
+			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
+		}
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this.normalizeFilters()
 		// now we can translate local block/segment pick/skip tags
-		for (let segKey of configurableSegsOrBlocks)
-			this.translatePickOrSkip(segKey)
-	}
-
-	assignGlobalFilterToLocalScopes() {
-		if (this.pick.length) {
-			let entries = findScopesForGlobalTagArray(this.pick)
-			for (let [segKey, tags] of entries) this.addPickTags(segKey, tags)
-		} else if (this.skip.length) {
-			let entries = findScopesForGlobalTagArray(this.skip)
-			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
-		}
+		// apply global translattion options to all segments and blocks.
+		//for (key of segmentsAndBlocks)
+		//	translateSegmentPickOrSkip(this[key], key)
 	}
 
 	// TODO: rework this using the new addPick() falling through mechanism
 	normalizeFilters() {
-		let opts = this
-		if (isUnwanted(opts.exif) || hasPickTags(opts.exif) || opts.pick.length) {
-			let tags = [...this.pick]
-			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
-			if (opts.makerNote)   tags.push(TAG_MAKERNOTE)
-			if (opts.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)      opts.addPickTags('exif', tags)
-		} else if (opts.exif) {
+		let {tiff, ifd0, exif, gps, interop, thumbnail} = this
+		if (exif.enabled && exif.pick.size) {
+			let tags = []
+			if (this.makerNote)   tags.push(TAG_MAKERNOTE)
+			if (this.userComment) tags.push(TAG_USERCOMMENT)
+			if (tags.length)      this.addPickTags('exif', tags)
+		} else if (exif.enabled) {
 			// skip makernote & usercomment by default
-			let tags = [...this.skip]
+			let tags = []
 			if (!this.makerNote)   tags.push(TAG_MAKERNOTE)
 			if (!this.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)       opts.addSkipTags('exif', tags)
+			if (tags.length)       this.addSkipTags('exif', tags)
 		}
-		if (opts.interop && (isUnwanted(this.exif) || hasPickTags(opts.exif))) {
-			// interop pointer can be often found in EXIF besides IFD0.
-			opts.addPickTags('exif', [TAG_IFD_INTEROP])
+		// interop pointer can be often found in EXIF besides IFD0.
+		if (interop.enabled && (!exif.enabled || exif.pick.size)) {
+			this.addPickTags('exif', [TAG_IFD_INTEROP])
 		}
-		if ((isUnwanted(opts.ifd0) || hasPickTags(opts.ifd0) || opts.pick.length) && (opts.exif || opts.gps || opts.interop)) {
-			let tags = [...this.pick]
-			if (Array.isArray(this.tiff)) tags.push(...this.tiff)
-			if (opts.exif)    tags.push(TAG_IFD_EXIF)
-			if (opts.gps)     tags.push(TAG_IFD_GPS)
-			if (opts.interop) tags.push(TAG_IFD_INTEROP)
+		if ((!ifd0.enabled || ifd0.pick.size) && (exif.enabled || gps.enabled || interop.enabled)) {
+			let tags = []
+			if (exif.enabled)    tags.push(TAG_IFD_EXIF)
+			if (gps.enabled)     tags.push(TAG_IFD_GPS)
+			if (interop.enabled) tags.push(TAG_IFD_INTEROP)
 			// offset of Interop IFD can be in both IFD0 and Exif IFD.
-			opts.addPickTags('ifd0', tags)
+			this.addPickTags('ifd0', tags)
 		}
-		if (isUnwanted(opts.tiff) && (opts.ifd0 || opts.thumbnail)) {
-			opts.tiff = true
+		if (!tiff.enabled && (ifd0.enabled || thumbnail.enabled)) {
+			tiff.enabled = true
+		}
+		// todo
+		if (exif.enabled)    this.addPickTags('ifd0', [TAG_IFD_EXIF], true)
+		if (gps.enabled)     this.addPickTags('ifd0', [TAG_IFD_GPS], true)
+		if (interop.enabled) {
+			this.addPick('ifd0', [TAG_IFD_INTEROP], true)
+			this.addPick('exif', [TAG_IFD_INTEROP], true)
 		}
 	}
 
-	addPick(segKey, tags, force = true) {
-		if (this[segKey] === true && force === false) return
+	addPick(segKey, tags, bubble = true) {
 		this.addPickTags(segKey, tags)
-		if (segKey === 'exif')
-			this.addPick('ifd0', [TAG_IFD_EXIF], force)
-		if (segKey === 'gps')
-			this.addPick('ifd0', [TAG_IFD_GPS], force)
-		if (segKey === 'interop') {
-			this.addPick('ifd0', [TAG_IFD_INTEROP], force)
-			this.addPick('exif', [TAG_IFD_INTEROP], force)
+		if (bubble) {
+			switch (segKey) {
+				case 'exif':
+					this.addPick('ifd0', [TAG_IFD_EXIF], true)
+					break
+				case 'gps':
+					this.addPick('ifd0', [TAG_IFD_GPS], true)
+					break
+				case 'interop':
+					this.addPick('ifd0', [TAG_IFD_INTEROP], true)
+					this.addPick('exif', [TAG_IFD_INTEROP], true)
+					break
+				case 'ifd0':
+					this.tiff.enabled = true
+			}
 		}
-		if (segKey === 'ifd0' && !this.tiff)
-			this.tiff = true
 	}
 
 	addPickTags(segKey, tags) {
-		let segOpts = this[segKey]
-		if (Array.isArray(segOpts))
-			this[segKey] = [...segOpts, ...tags] // not pushing to prevent modification of user's array
-		else if (segOpts && segOpts.pick)
-			segOpts.pick = [...segOpts.pick, ...tags] // not pushing to prevent modification of user's array
-		else if (typeof segOpts === 'object')
-			segOpts.pick = tags
-		else
-			this[segKey] = tags
+		let segment = this[segKey]
+		segment.enabled = true
+		let {pick} = segment
+		for (let tag of tags) pick.add(tag)
 	}
 
 	addSkipTags(segKey, tags) {
-		let segOpts = this[segKey]
-		// if segment defines which tags to pick, there's no need to specify tags to skip.
-		if (hasPickTags(segOpts)) return
-		if (segOpts && segOpts.skip)
-			segOpts.skip = [...segOpts.skip, ...tags] // not pushing to prevent modification of user's array
-		else if (typeof segOpts === 'object')
-			segOpts.skip = tags
-		else
-			this[segKey] = {skip: tags}
-	}
-
-	getPickTags(segKey, fallbackKey) {
-		if (Array.isArray(this[segKey])) return this[segKey]
-		if (Array.isArray(this[fallbackKey])) return this[fallbackKey]
-		return (this[segKey] && this[segKey].pick)
-			|| (this[fallbackKey] && this[fallbackKey].pick)
-			|| this.pick
-	}
-
-	getSkipTags(segKey, fallbackKey) {
-		return (this[segKey] && this[segKey].skip)
-			|| (this[fallbackKey] && this[fallbackKey].skip)
-			|| this.skip
-	}
-
-	translatePickOrSkip(segKey) {
-		let segment = this[segKey]
-		if (Array.isArray(segment)) {
-			this[segKey] = segment = {pick: segment}
-			translateSegmentPickOrSkip(segment, segKey)
-		} else if (typeof segment === 'object') {
-			translateSegmentPickOrSkip(segment, segKey)
-		}
+		let {skip} = this[segKey]
+		for (let tag of tags) skip.add(tag)
 	}
 
 }
 
-function isUnwanted(segOpts) {
-	return segOpts === undefined
-		|| segOpts === false
-}
-
-function isConfigured(segOpts) {
-	return Array.isArray(segOpts)
-		|| typeof segOpts === 'object'
-}
-
-function hasPickTags(segOpts) {
-	return Array.isArray(segOpts)
-		|| segOpts && Array.isArray(segOpts.pick)
-}
-
+// TODO rework
 function translateSegmentPickOrSkip(segment, segKey, dict) {
 	if (!dict) dict = tagKeys[segKey] || tagKeys.all
 	let {pick, skip} = segment
-	if (pick && pick.length > 0) segment.pick = translateTagArray(pick, dict)
-	if (skip && skip.length > 0) segment.skip = translateTagArray(skip, dict)
+	if (pick && pick.size > 0) segment.pick = translateTagSet(segment.pick, dict)
+	if (skip && skip.size > 0) segment.skip = translateTagSet(segment.skip, dict)
 }
 
-function translateTagArray(tags, dict) {
-	tags = tags.filter(isDefined) // clone array to avoid modification of user's array
+function translateTagSet(tags, dict) {
+	let translated = new Set
 	let dictKeys = Object.keys(dict)
 	let dictValues = Object.values(dict)
-	for (let i = 0; i < tags.length; i++) {
-		let tag = tags[i]
+	for (let tag of tags) {
 		if (typeof tag === 'string') {
 			let index = dictValues.indexOf(tag)
 			if (index === -1) index = dictKeys.indexOf(Number(tag))
-			if (index !== -1) tags[i] = Number(dictKeys[index])
+			if (index !== -1) translated.add(Number(dictKeys[index]))
+		} else {
+			translated.add(tag)
 		}
 	}
-	return unique(tags)
+	return translated
 }
 
 function findScopesForGlobalTagArray(tagArray) {
@@ -281,21 +304,16 @@ function findScopesForGlobalTagArray(tagArray) {
 		for (let [tagKey, tagName] of Object.entries(dict))
 			if (tagArray.includes(tagKey) || tagArray.includes(tagName))
 				scopedTags.push(Number(tagKey))
-		if (scopedTags.length) entries.push([segKey, scopedTags])
+		if (scopedTags.length)
+			entries.push([segKey, scopedTags])
 	}
 	return entries
 }
 
-const isDefined = item => item !== undefined
-const unique = array => Array.from(new Set(array))
-
-export default function optionsFactory(userOptions) {
-	if (userOptions)
-		return new Options(userOptions)
-	else
-		return new Options
+function getDefined(arg1, arg2) {
+	if (arg1 !== undefined) return arg1
+	if (arg2 !== undefined) return arg2
 }
-
 
 export let gpsOnlyOptions = {
 	ifd0: false,

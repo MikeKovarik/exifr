@@ -8,6 +8,15 @@ body {
 	color: rgb(80, 80, 80);
 	margin: 0;
 }
+@media (prefers-color-scheme: dark) {
+	body {
+		filter: invert(1) hue-rotate(180deg);
+		background-color: rgb(30, 30, 30);
+	}
+	img {
+		filter: invert(1) hue-rotate(180deg);
+	}
+}
 
 @media only screen and (max-width: 599px) {
 	body {
@@ -26,6 +35,10 @@ h2,
 h3,
 [accent] {
 	color: rgb(50, 80, 144);
+}
+.error {
+	color: rgb(180, 20, 5);
+	text-transform: none;
 }
 h2 {
 	font-weight: 500;

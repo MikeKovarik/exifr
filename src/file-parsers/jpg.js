@@ -84,9 +84,9 @@ export class JpegFileParser extends FileParserBase {
 			wanted    = new Set(segmentParsers.keys())
 		} else {
 			if (wanted === undefined)
-				wanted = segmentParsers.keys().filter(key => this.options[key])
+				wanted = segmentParsers.keys().filter(key => this.options[key].enabled)
 			else
-				wanted = wanted.filter(key => this.options[key] && segmentParsers.has(key))
+				wanted = wanted.filter(key => this.options[key].enabled && segmentParsers.has(key))
 			findAll = false
 			remaining = new Set(wanted)
 			wanted    = new Set(wanted)
@@ -169,7 +169,7 @@ export class JpegFileParser extends FileParserBase {
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
 		for (let segment of this.appSegments) {
 			let {type, chunk} = segment
-			if (this.options[type] !== true) continue
+			if (!this.options[type].enabled) continue
 			let parser = this.parsers[type]
 			if (parser && parser.append) {
 				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)

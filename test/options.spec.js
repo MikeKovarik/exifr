@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, isNode, isBrowser} from './test-util.js'
 import Exifr from '../src/index-full.js'
-import optionsFactory from '../src/options.js'
+import {Options} from '../src/options.js'
 
 
 describe('options', () => {
@@ -10,13 +10,13 @@ describe('options', () => {
 
 		isNode && it(`firstChunkSizeNode is a standin for node`, async () => {
 			let firstChunkSizeNode = 1234
-			let options = optionsFactory({firstChunkSizeNode})
+			let options = new Options({firstChunkSizeNode})
 			assert.equal(options.firstChunkSize, firstChunkSizeNode)
 		})
 
 		isBrowser && it(`firstChunkSizeBrowser is a standin for browser`, async () => {
 			let firstChunkSizeBrowser = 1234
-			let options = optionsFactory({firstChunkSizeBrowser})
+			let options = new Options({firstChunkSizeBrowser})
 			assert.equal(options.firstChunkSize, firstChunkSizeBrowser)
 		})
 

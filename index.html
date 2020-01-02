@@ -33,7 +33,8 @@
 
 		<h2 id="output-head">
 			Output
-			<span>parsed in ${parseTime} ms</span>
+			<span if.bind="error" class="error">ERROR: ${error}</span>
+			<span if.bind="!error">parsed in ${parseTime} ms</span>
 		</h2>
 
 		<div id="input">

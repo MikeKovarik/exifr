@@ -2,7 +2,7 @@ import './util/debug.js' // TODO: DELETEME: TO BE REMOVED BEFORE RELEASING
 import {read} from './reader.js'
 import {segmentParsers} from './parser.js'
 export {tagKeys, tagValues, tagRevivers} from './tags.js'
-import optionsFactory from './options.js'
+import {Options} from './options.js'
 import {gpsOnlyOptions} from './options.js'
 import {hasBuffer} from './util/BufferView.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
@@ -17,7 +17,7 @@ export default class Exifr {
 
 	// ------------------------- STATIC -------------------------
 
-	static optionsFactory = optionsFactory
+	static Options = Options
 	static segmentParsers = segmentParsers
 	static fileReaders = undefined // TODO: expose fileReaders
 	static fileParsers = undefined // TODO: expose fileParsers
@@ -65,7 +65,7 @@ export default class Exifr {
 	parsers = {}
 
 	constructor(options) {
-		this.options = optionsFactory(options)
+		this.options = new Options(options)
 	}
 
 	setup() {
@@ -75,8 +75,12 @@ export default class Exifr {
 		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
 		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
 		var marker = this.file.getUint16(0)
-		this.file.isTiff = marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN
-		//this.isJpeg = marker === JPEG_SOI
+		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN)
+			this.file.isTiff = true
+		else if (marker === JPEG_SOI)
+			this.file.isJpeg = true
+		else
+			throw new Error(`Unknown file format`)
 		let FileParser = this.file.isTiff ? TiffFileParser : JpegFileParser
 		this.fileParser = new FileParser(this.options, this.file, this.parsers)
 	}

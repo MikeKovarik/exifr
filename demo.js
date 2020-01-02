@@ -1,4 +1,6 @@
 import Exifr from './src/index-full.js'
+import {readBlobAsArrayBuffer} from './src/file-readers/essentials.js'
+import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from './src/options.js'
 
 
 /*
@@ -15,6 +17,9 @@ MakerNote
 0x9C9E: 'XPKeywords', //
 0x9C9F: 'XPSubject', //
 */
+
+//let demoFilePath = './test/fixtures/canon-dslr.jpg'
+let demoFilePath = './test/fixtures/IMG_20180725_163423.jpg'
 
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
@@ -58,10 +63,8 @@ let outputKeyPicks = {
 	'exif':       ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'],
 	'gps':        ['latitude', 'longitude'],
 	'interop':    ['InteropIndex', 'InteropVersion'],
-	'iptc':       ['headline', 'caption', 'source', 'country'],
+	'iptc':       ['headline', 'caption', 'source', 'country'], // TODO update
 }
-
-let configurables = ['tiff', 'ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
 class SegmentBoxCustomElement {
 	showAll = false
@@ -136,45 +139,39 @@ class ExifrDemoApp {
 	rawFullscreen = false
 
 	constructor() {
+		this.setupDom().catch(this.handleError)
+		this.setupExifr().catch(this.handleError)
+	}
 
-		this.createDefaultOptions()
-
+	async setupDom() {
 		this.thumbImg = document.querySelector('#thumb img')
 
 		// dropzone
 		document.body.addEventListener('dragenter', e => e.preventDefault())
 		document.body.addEventListener('dragover', e => e.preventDefault())
-		document.body.addEventListener('drop', e => {
-			e.preventDefault()
-			this.handleFile(e.dataTransfer.files[0])
-		})
+		document.body.addEventListener('drop', this.onDrop)
+	}
 
+	async setupExifr() {
+		this.createDefaultOptions()
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
-		//fetch('./test/fixtures/canon-dslr.jpg')
-		fetch('./test/fixtures/IMG_20180725_163423.jpg')
-			.then(res => res.arrayBuffer())
-			.then(this.handleFile)
+		this.file = await fetch(demoFilePath).then(res => res.arrayBuffer())
+		this.handleFile(this.file)
+	}
 
+	handleError = err => {
+		console.error(err)
+		this.error = err.message
 	}
 
 	createDefaultOptions() {
-		let instance = Exifr.optionsFactory()
-		let object = cloneObject(instance)
-		for (let key of configurables) {
-			let val = object[key]
-			if (val === undefined || val === false)
-				object[key] = false
-			else
-				object[key] = true
-		}
-		delete object.pick
-		delete object.skip
-		object.thumbnail = true
-		this.options = object
-		//this.options.makerNote = true
-		//this.options.userComment = true
+		this.options = {}
+		for (let key in Exifr.Options)
+			if (key !== 'pick' && key !== 'skip')
+				this.options[key] = Exifr.Options[key]
+		this.options.thumbnail = true
 	}
 
 	onCheckboxChanged = e => {
@@ -191,40 +188,42 @@ class ExifrDemoApp {
 	updateOptions(updatedField) {
 		let options = this.options
 		if (updatedField === 'tiff') {
+			let copyProps = [...tiffBlocks, ...tiffExtractables]
 			if (options.tiff === false) {
-				options.ifd0        = false
-				options.exif        = false
-				options.gps         = false
-				options.interop     = false
-				options.thumbnail   = false
-				options.makerNote   = false
-				options.userComment = false
+				for (let key in copyProps)
+					options[key] = false
 			} else {
-				let defaultOptions = Exifr.optionsFactory()
-				options.ifd0        = defaultOptions.ifd0
-				options.exif        = defaultOptions.exif
-				options.gps         = defaultOptions.gps
-				options.interop     = defaultOptions.interop
-				options.thumbnail   = defaultOptions.thumbnail
-				options.makerNote   = defaultOptions.makerNote
-				options.userComment = defaultOptions.userComment
+				for (let key in copyProps)
+					options[key] = Exifr.Options[key]
 			}
 		}
 		this.handleFile()
 	}
 
-	onPick(e) {
-		this.handleFile(e.target.files[0])
+	onDrop = async e => {
+		e.preventDefault()
+		this.processBlob(e.dataTransfer.files[0])
 	}
 
-	handleFile = async (input = this.lastFile) => {
-		if (this.lastFile !== input) {
+	onPick = async e => {
+		this.processBlob(e.target.files[0])
+	}
+
+	async processBlob(blob) {
+		this.file = await readBlobAsArrayBuffer(blob)
+		this.handleFile(this.file)
+	}
+
+	handleFile = async (file = this.file) => {
+		if (this.file !== file) {
 			this.clear()
 		}
-		await this.reparseFile(input)
-		if (this.lastFile !== input) {
-			await this.initialfullFileParse(input)
-			this.lastFile = input
+		try {
+			await this.reparseFile(file)
+			await this.initialfullFileParse(file)
+			this.error = undefined
+		} catch (err) {
+			this.handleError(err)
 		}
 	}
 
