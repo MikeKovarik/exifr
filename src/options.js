@@ -149,8 +149,19 @@ export class Options {
 			this.setupFromBool(userOptions)
 		else if (type === 'object')
 			this.setupFromObject(userOptions)
+		else if (userOptions === undefined)
+			this.setupFromUndefined()
 		else
-			throw new Error(`Invalid options argument`)
+			throw new Error(`Invalid options argument ${userOptions}`)
+	}
+
+	setupFromUndefined() {
+		let key
+		let defaults = this.constructor
+		for (key of readerProps)       this[key] = defaults[key]
+		for (key of formatOptions)     this[key] = defaults[key]
+		for (key of tiffExtractables)  this[key] = defaults[key]
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], undefined, this)
 	}
 
 	setupFromBool(userOptions) {
@@ -159,7 +170,7 @@ export class Options {
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of formatOptions)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = userOptions
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(userOptions)
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], userOptions[key], this)
 	}
 
 	setupFromObject(userOptions) {
@@ -169,7 +180,6 @@ export class Options {
 		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], userOptions[key], this)
-        console.log('-: this', this)
 		if (this.tiff.enabled === false) {
 			// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
 			this.ifd0.enabled      = userOptions.ifd0      !== false
