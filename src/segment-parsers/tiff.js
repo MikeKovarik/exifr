@@ -7,22 +7,35 @@ import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
 
 
-const THUMB_OFFSET  = 0x0201
-const THUMB_LENGTH  = 0x0202
+const THUMB_OFFSET = 0x0201
+const THUMB_LENGTH = 0x0202
+
+const BYTE      = 1
+const ASCII     = 2
+const SHORT     = 3
+const LONG      = 4
+const RATIONAL  = 5
+const SBYTE     = 6
+const UNDEFINED = 7
+const SSHORT    = 8
+const SLONG     = 9
+const SRATIONAL = 10
+const FLOAT     = 11
+const DOUBLE    = 12
 
 const SIZE_LOOKUP = {
-	1: 1, // BYTE      - 8-bit unsigned integer
-	2: 1, // ASCII     - 8-bit bytes w/ last byte null
-	3: 2, // SHORT     - 16-bit unsigned integer
-	4: 4, // LONG      - 32-bit unsigned integer
-	5: 8, // RATIONAL  - 64-bit unsigned fraction
-	6: 1, // SBYTE     - 8-bit signed integer
-	7: 1, // UNDEFINED - 8-bit untyped data
-	8: 2, // SSHORT    - 16-bit signed integer
-	9: 4, // SLONG     - 32-bit signed integer
-	10: 8, // SRATIONAL - 64-bit signed fraction (Two 32-bit signed integers)
-	11: 4, // FLOAT,    - 32-bit IEEE floating point
-	12: 8, // DOUBLE    - 64-bit IEEE floating point
+	[BYTE]      : 1, // BYTE      - 8-bit unsigned integer
+	[ASCII]     : 1, // ASCII     - 8-bit bytes w/ last byte null
+	[SHORT]     : 2, // SHORT     - 16-bit unsigned integer
+	[LONG]      : 4, // LONG      - 32-bit unsigned integer
+	[RATIONAL]  : 8, // RATIONAL  - 64-bit unsigned fraction of two 32-bit unsigned integers
+	[SBYTE]     : 1, // SBYTE     - 8-bit signed integer
+	[UNDEFINED] : 1, // UNDEFINED - 8-bit untyped data
+	[SSHORT]    : 2, // SSHORT    - 16-bit signed integer
+	[SLONG]     : 4, // SLONG     - 32-bit signed integer
+	[SRATIONAL] : 8, // SRATIONAL - 64-bit signed fraction of two 32-bit signed integers
+	[FLOAT]     : 4, // FLOAT,    - 32-bit IEEE floating point
+	[DOUBLE]    : 8, // DOUBLE    - 64-bit IEEE floating point
 	// https://sno.phy.queensu.ca/~phil/exiftool/standards.html
 	13: 4 // IFD (sometimes used instead of 4 LONG)
 }
@@ -112,9 +125,12 @@ export class TiffCore extends AppSegmentParserBase {
 			} else {
 				let ArrayType = getTypedArray(type)
 				let arr = new ArrayType(valueCount)
+				// rational numbers are stored as two integers that we divide when parsing.
+				let offsetIncrement = valueSize
+				if (type === RATIONAL || type === SRATIONAL) offsetIncrement *= 2
 				for (let i = 0; i < valueCount; i++) {
 					arr[i] = this.parseTagValue(type, offset)
-					offset += valueSize
+					offset += offsetIncrement
 				}
 				return arr
 			}
@@ -123,16 +139,16 @@ export class TiffCore extends AppSegmentParserBase {
 
 	parseTagValue(type, offset) {
 		switch (type) {
-			case 1:  return this.chunk.getUint8(offset)
-			case 3:  return this.chunk.getUint16(offset)
-			case 4:  return this.chunk.getUint32(offset)
-			case 5:  return this.chunk.getUint32(offset) / this.chunk.getUint32(offset + 4)
-			case 6:  return this.chunk.getInt8(offset)
-			case 8:  return this.chunk.getInt16(offset)
-			case 9:  return this.chunk.getInt32(offset)
-			case 10: return this.chunk.getInt32(offset) / this.chunk.getInt32(offset + 4)
-			case 11: return this.chunk.getFloat(offset)
-			case 12: return this.chunk.getDouble(offset)
+			case BYTE     : return this.chunk.getUint8(offset)
+			case SHORT    : return this.chunk.getUint16(offset)
+			case LONG     : return this.chunk.getUint32(offset)
+			case RATIONAL : return this.chunk.getUint32(offset) / this.chunk.getUint32(offset + 4)
+			case SBYTE    : return this.chunk.getInt8(offset)
+			case SSHORT   : return this.chunk.getInt16(offset)
+			case SLONG    : return this.chunk.getInt32(offset)
+			case SRATIONAL: return this.chunk.getInt32(offset) / this.chunk.getInt32(offset + 4)
+			case FLOAT    : return this.chunk.getFloat(offset)
+			case DOUBLE   : return this.chunk.getDouble(offset)
 			case 13: return this.chunk.getUint32(offset)
 			default: throw new Error(`Invalid tiff type ${type}`)
 		}
@@ -142,17 +158,16 @@ export class TiffCore extends AppSegmentParserBase {
 
 function getTypedArray(type) {
 	switch (type) {
-		case 1:  return Uint8Array
-		case 3:  return Uint16Array
-		case 4:  return Uint32Array
-		case 5:  return Array
-		case 6:  return Int8Array
-		case 8:  return Int16Array
-		case 9:  return Int32Array
-		case 10: return Array
-		case 11: return Float32Array
-		case 12: return Float64Array
-		case 13: return Array
+		case BYTE     : return Uint8Array
+		case SHORT    : return Uint16Array
+		case LONG     : return Uint32Array
+		case RATIONAL : return Array
+		case SBYTE    : return Int8Array
+		case SSHORT   : return Int16Array
+		case SLONG    : return Int32Array
+		case SRATIONAL: return Array
+		case FLOAT    : return Float32Array
+		case DOUBLE   : return Float64Array
 		default: return Array
 	}
 }
