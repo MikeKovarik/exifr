@@ -101,7 +101,7 @@ describe('TIFF Segment', () => {
 
 	describe('pick / skip', () => {
 
-		it(`only ifd0 pick are present in output`, async () => {
+		it(`only ifd0 picks are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: false, gps: false, interop: false}
 			var output = await Exifr.parse(input, options)

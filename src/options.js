@@ -17,7 +17,8 @@ export const readerProps = [
 
 export const segments = ['jfif', 'tiff', 'xmp', 'icc', 'iptc']
 
-export const tiffBlocks = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
+// WARNING: this order is necessary for correctly assigning pick tags.
+export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
 
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 
@@ -36,20 +37,26 @@ class FormatOptions {
 	enabled = false
 	skip = new Set
 	pick = new Set
+	deps = new Set // tags required by other blocks or segments (IFD pointers, makernotes)
 	translateKeys   = false
 	translateValues = false
 	reviveValues    = false
+	
+	get needed() {
+		return this.enabled
+			|| this.deps.size > 0
+	}
 
-	constructor(name, defaultValue, userValue, globalOptions) {
+	constructor(segKey, defaultValue, userValue, globalOptions) {
 		this.enabled = defaultValue
 
 		this.translateKeys   = globalOptions.translateKeys
 		this.translateValues = globalOptions.translateValues
 		this.reviveValues    = globalOptions.reviveValues
 
-		this.canBeFiltered = tiffBlocks.includes(name)
+		this.canBeFiltered = tiffBlocks.includes(segKey)
 		if (this.canBeFiltered) {
-			this.dict = tagKeys[name]
+			this.dict = tagKeys[segKey]
 			this.dictKeys   = Object.keys(this.dict)
 			this.dictValues = Object.values(this.dict)
 		}
@@ -221,11 +228,11 @@ export class Options {
 		let {pick, skip} = userOptions
 		if (pick && pick.length) {
 			let entries = findScopesForGlobalTagArray(pick)
-			for (let [segKey, tags] of entries) this.addPickTags(segKey, tags)
+			for (let [segKey, tags] of entries) this[segKey].pick.add(tags)
 			console.warn('TODO: skip and disable all other blocks with unassigned properties')
 		} else if (skip && skip.length) {
 			let entries = findScopesForGlobalTagArray(skip)
-			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
+			for (let [segKey, tags] of entries) this[segKey].skip.add(...tags)
 		}
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
@@ -238,73 +245,46 @@ export class Options {
 
 	// TODO: rework this using the new addPick() falling through mechanism
 	normalizeFilters() {
-		let {tiff, ifd0, exif, gps, interop, thumbnail} = this
-		if (exif.enabled && exif.pick.size) {
-			let tags = []
-			if (this.makerNote)   tags.push(TAG_MAKERNOTE)
-			if (this.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)      this.addPickTags('exif', tags)
-		} else if (exif.enabled) {
-			// skip makernote & usercomment by default
-			let tags = []
-			if (!this.makerNote)   tags.push(TAG_MAKERNOTE)
-			if (!this.userComment) tags.push(TAG_USERCOMMENT)
-			if (tags.length)       this.addSkipTags('exif', tags)
-		}
+		let {ifd0, exif, gps, interop} = this
+		if (this.makerNote)   exif.deps.add(TAG_MAKERNOTE)
+		else                  exif.skip.add(TAG_MAKERNOTE)
+		if (this.userComment) exif.deps.add(TAG_USERCOMMENT)
+		else                  exif.skip.add(TAG_USERCOMMENT)
+		if (gps.needed)       ifd0.deps.add(TAG_IFD_GPS)
+		if (exif.needed)      ifd0.deps.add(TAG_IFD_EXIF)
 		// interop pointer can be often found in EXIF besides IFD0.
-		if (interop.enabled && (!exif.enabled || exif.pick.size)) {
-			this.addPickTags('exif', [TAG_IFD_INTEROP])
+		if (interop.needed) {
+			exif.deps.add(TAG_IFD_INTEROP)
+			ifd0.deps.add(TAG_IFD_INTEROP)
 		}
-		if ((!ifd0.enabled || ifd0.pick.size) && (exif.enabled || gps.enabled || interop.enabled)) {
-			let tags = []
-			if (exif.enabled)    tags.push(TAG_IFD_EXIF)
-			if (gps.enabled)     tags.push(TAG_IFD_GPS)
-			if (interop.enabled) tags.push(TAG_IFD_INTEROP)
-			// offset of Interop IFD can be in both IFD0 and Exif IFD.
-			this.addPickTags('ifd0', tags)
-		}
-		if (!tiff.enabled && (ifd0.enabled || thumbnail.enabled)) {
-			tiff.enabled = true
-		}
-		// todo
-		if (exif.enabled)    this.addPickTags('ifd0', [TAG_IFD_EXIF], true)
-		if (gps.enabled)     this.addPickTags('ifd0', [TAG_IFD_GPS], true)
-		if (interop.enabled) {
-			this.addPick('ifd0', [TAG_IFD_INTEROP], true)
-			this.addPick('exif', [TAG_IFD_INTEROP], true)
-		}
-	}
 
-	addPick(segKey, tags, bubble = true) {
-		this.addPickTags(segKey, tags)
-		if (bubble) {
-			switch (segKey) {
-				case 'exif':
-					this.addPick('ifd0', [TAG_IFD_EXIF], true)
-					break
-				case 'gps':
-					this.addPick('ifd0', [TAG_IFD_GPS], true)
-					break
-				case 'interop':
-					this.addPick('ifd0', [TAG_IFD_INTEROP], true)
-					this.addPick('exif', [TAG_IFD_INTEROP], true)
-					break
-				case 'ifd0':
-					this.tiff.enabled = true
+		for (let segKey of tiffBlocks) {
+			let block = this[segKey]
+			if (!block.enabled && block.deps.size > 0) {
+				block.enabled = true
+				addToSet(block.pick, block.deps)
+			} else if (block.enabled && block.pick.size > 0) {
+				addToSet(block.pick, block.deps)
 			}
 		}
 	}
 
-	addPickTags(segKey, tags) {
-		let segment = this[segKey]
-		segment.enabled = true
-		let {pick} = segment
-		for (let tag of tags) pick.add(tag)
-	}
-
-	addSkipTags(segKey, tags) {
-		let {skip} = this[segKey]
-		for (let tag of tags) skip.add(tag)
+	addPick(segKey, tags) {
+		this[segKey].addPickTags(tags)
+		switch (segKey) {
+			case 'exif':
+				this.addPick('ifd0', [TAG_IFD_EXIF])
+				break
+			case 'gps':
+				this.addPick('ifd0', [TAG_IFD_GPS])
+				break
+			case 'interop':
+				this.addPick('ifd0', [TAG_IFD_INTEROP])
+				this.addPick('exif', [TAG_IFD_INTEROP])
+				break
+			case 'ifd0':
+				this.tiff.enabled = true
+		}
 	}
 
 }
@@ -325,6 +305,11 @@ function findScopesForGlobalTagArray(tagArray) {
 function getDefined(arg1, arg2) {
 	if (arg1 !== undefined) return arg1
 	if (arg2 !== undefined) return arg2
+}
+
+function addToSet(target, source) {
+	for (let item of source)
+		target.add(item)
 }
 
 export let gpsOnlyOptions = {

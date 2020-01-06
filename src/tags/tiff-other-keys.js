@@ -81,7 +81,8 @@ Object.assign(tagKeys.ifd0, {
 	0xc7a8: 'RawToPreviewGain',
 })
 
-tagKeys.other = {
+// NOTE: Do not assign this directly onto tagKeys object because it would get caught by tag translation in options
+let otherTiffTags = {
 	0x0111: 'StripOffsets',
 	0x0117: 'StripByteCounts',
 	0x0120: 'FreeOffsets',
@@ -312,5 +313,5 @@ tagKeys.other = {
 	0xfe00: 'KdcIFD',
 }
 
-Object.assign(tagKeys.ifd0, tagKeys.other)
-Object.assign(tagKeys.exif, tagKeys.other)
+Object.assign(tagKeys.ifd0, otherTiffTags)
+Object.assign(tagKeys.exif, otherTiffTags)
