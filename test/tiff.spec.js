@@ -109,6 +109,14 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
+		it(`only ifd0 picks are present in output 2`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: true, pick: ['Make']}
+			var output = await Exifr.parse(input, options)
+			assert.exists(output.Make)
+			assert.lengthOf(Object.keys(output), 1)
+		})
+
 		it(`only ifd0, exif & gps pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: false}

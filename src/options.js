@@ -40,24 +40,34 @@ class FormatOptions {
 	translateValues = false
 	reviveValues    = false
 
-	constructor(defaultValue, userValue, globalOptions) {
+	constructor(name, defaultValue, userValue, globalOptions) {
 		this.enabled = defaultValue
 
 		this.translateKeys   = globalOptions.translateKeys
 		this.translateValues = globalOptions.translateValues
 		this.reviveValues    = globalOptions.reviveValues
 
+		this.canBeFiltered = tiffBlocks.includes(name)
+		if (this.canBeFiltered) {
+			this.dict = tagKeys[name]
+			this.dictKeys   = Object.keys(this.dict)
+			this.dictValues = Object.values(this.dict)
+		}
+
 		if (userValue !== undefined) {
 			if (Array.isArray(userValue)) {
 				this.enabled = true
-				this.pick = new Set([...this.pick, ...userValue])
+				if (userValue.length > 0) this.translateTagSet(userValue, this.pick)
 			} else if (typeof userValue === 'object') {
 				this.enabled = true
-				if (userValue.pick) this.pick = new Set([...this.pick, ...userValue.pick])
-				if (userValue.skip) this.skip = new Set([...this.skip, ...userValue.skip])
-				if (userValue.translateKeys   !== undefined) translateKeys   = obj.translateKeys
-				if (userValue.translateValues !== undefined) translateValues = obj.translateValues
-				if (userValue.reviveValues    !== undefined) reviveValues    = obj.reviveValues
+				let {pick, skip, translateKeys, translateValues, reviveValues} = userValue
+				if (this.canBeFiltered) {
+					if (pick && pick.length > 0) this.translateTagSet(pick, this.pick)
+					if (skip && skip.length > 0) this.translateTagSet(skip, this.skip)
+				}
+				if (translateKeys   !== undefined) this.translateKeys   = translateKeys
+				if (translateValues !== undefined) this.translateValues = translateValues
+				if (reviveValues    !== undefined) this.reviveValues    = reviveValues
 			} else if (userValue === true || userValue === false) {
 				this.enabled = userValue
 			} else {
@@ -66,7 +76,22 @@ class FormatOptions {
 		}
 	}
 
+	translateTagSet(inputArray, outputSet) {
+		let {dictKeys, dictValues} = this
+		for (let tag of inputArray) {
+			if (typeof tag === 'string') {
+				let index = dictValues.indexOf(tag)
+				if (index === -1) index = dictKeys.indexOf(Number(tag))
+				if (index !== -1) outputSet.add(Number(dictKeys[index]))
+			} else {
+				outputSet.add(tag)
+			}
+		}
+	}
+
 }
+
+
 
 export class Options {
 
@@ -161,7 +186,7 @@ export class Options {
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of formatOptions)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = defaults[key]
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], undefined, this)
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], undefined, this)
 	}
 
 	setupFromBool(userOptions) {
@@ -170,7 +195,7 @@ export class Options {
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of formatOptions)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = userOptions
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], userOptions[key], this)
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
 	}
 
 	setupFromObject(userOptions) {
@@ -179,7 +204,7 @@ export class Options {
 		for (key of readerProps)       this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(defaults[key], userOptions[key], this)
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
 		if (this.tiff.enabled === false) {
 			// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
 			this.ifd0.enabled      = userOptions.ifd0      !== false
@@ -197,6 +222,7 @@ export class Options {
 		if (pick && pick.length) {
 			let entries = findScopesForGlobalTagArray(pick)
 			for (let [segKey, tags] of entries) this.addPickTags(segKey, tags)
+			console.warn('TODO: skip and disable all other blocks with unassigned properties')
 		} else if (skip && skip.length) {
 			let entries = findScopesForGlobalTagArray(skip)
 			for (let [segKey, tags] of entries) this.addSkipTags(segKey, tags)
@@ -281,30 +307,6 @@ export class Options {
 		for (let tag of tags) skip.add(tag)
 	}
 
-}
-
-// TODO rework
-function translateSegmentPickOrSkip(segment, segKey, dict) {
-	if (!dict) dict = tagKeys[segKey] || tagKeys.all
-	let {pick, skip} = segment
-	if (pick && pick.size > 0) segment.pick = translateTagSet(segment.pick, dict)
-	if (skip && skip.size > 0) segment.skip = translateTagSet(segment.skip, dict)
-}
-
-function translateTagSet(tags, dict) {
-	let translated = new Set
-	let dictKeys = Object.keys(dict)
-	let dictValues = Object.values(dict)
-	for (let tag of tags) {
-		if (typeof tag === 'string') {
-			let index = dictValues.indexOf(tag)
-			if (index === -1) index = dictKeys.indexOf(Number(tag))
-			if (index !== -1) translated.add(Number(dictKeys[index]))
-		} else {
-			translated.add(tag)
-		}
-	}
-	return translated
 }
 
 function findScopesForGlobalTagArray(tagArray) {

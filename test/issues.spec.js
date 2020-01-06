@@ -6,7 +6,7 @@ import Exifr from '../src/index-full.js'
 describe('issues (special cases)', () => {
 
     // TODO: maybe move this test to input (reader) test file and rename it to .tif file support
-    it(`#2 - 001.tif starting with 49 49`, async () => {
+    it(`#2 - 001.tif`, async () => {
         var output = await Exifr.parse(await getFile('001.tif'))
         assert.exists(output, `output is undefined`)
         assert.equal(output.Make, 'DJI')
