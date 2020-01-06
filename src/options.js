@@ -237,11 +237,11 @@ export class Options {
 		let {pick, skip} = userOptions
 		if (pick && pick.length) {
 			let entries = findScopesForGlobalTagArray(pick)
-			for (let [segKey, tags] of entries) this[segKey].pick.add(tags)
+			for (let [segKey, tags] of entries) addToSet(this[segKey].pick, tags)
 			console.warn('TODO: skip and disable all other blocks with unassigned properties')
 		} else if (skip && skip.length) {
 			let entries = findScopesForGlobalTagArray(skip)
-			for (let [segKey, tags] of entries) this[segKey].skip.add(...tags)
+			for (let [segKey, tags] of entries) addToSet(this[segKey].skip, tags)
 		}
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
@@ -268,26 +268,6 @@ export class Options {
 	finalizeFilters() {
 		for (let segKey of tiffBlocks)
 			this[segKey].finalizeFilters()
-	}
-
-	addPick(segKey, tags) {
-		console.warn('deprecate options.addPick()')
-		let pick = this[segKey].pick
-		for (let tag of tags) pick.add(tag)
-		switch (segKey) {
-			case 'exif':
-				this.addPick('ifd0', [TAG_IFD_EXIF])
-				break
-			case 'gps':
-				this.addPick('ifd0', [TAG_IFD_GPS])
-				break
-			case 'interop':
-				this.addPick('ifd0', [TAG_IFD_INTEROP])
-				this.addPick('exif', [TAG_IFD_INTEROP])
-				break
-			case 'ifd0':
-				this.tiff.enabled = true
-		}
 	}
 
 }
