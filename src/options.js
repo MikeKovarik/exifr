@@ -96,6 +96,15 @@ class FormatOptions {
 		}
 	}
 
+	finalizeFilters() {
+		if (!this.enabled && this.deps.size > 0) {
+			this.enabled = true
+			addToSet(this.pick, this.deps)
+		} else if (this.enabled && this.pick.size > 0) {
+			addToSet(this.pick, this.deps)
+		}
+	}
+
 }
 
 
@@ -237,10 +246,7 @@ export class Options {
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this.normalizeFilters()
-		// now we can translate local block/segment pick/skip tags
-		// apply global translattion options to all segments and blocks.
-		//for (key of segmentsAndBlocks)
-		//	translateSegmentPickOrSkip(this[key], key)
+		this.finalizeFilters()
 	}
 
 	// TODO: rework this using the new addPick() falling through mechanism
@@ -257,20 +263,17 @@ export class Options {
 			exif.deps.add(TAG_IFD_INTEROP)
 			ifd0.deps.add(TAG_IFD_INTEROP)
 		}
+	}
 
-		for (let segKey of tiffBlocks) {
-			let block = this[segKey]
-			if (!block.enabled && block.deps.size > 0) {
-				block.enabled = true
-				addToSet(block.pick, block.deps)
-			} else if (block.enabled && block.pick.size > 0) {
-				addToSet(block.pick, block.deps)
-			}
-		}
+	finalizeFilters() {
+		for (let segKey of tiffBlocks)
+			this[segKey].finalizeFilters()
 	}
 
 	addPick(segKey, tags) {
-		this[segKey].addPickTags(tags)
+		console.warn('deprecate options.addPick()')
+		let pick = this[segKey].pick
+		for (let tag of tags) pick.add(tag)
 		switch (segKey) {
 			case 'exif':
 				this.addPick('ifd0', [TAG_IFD_EXIF])
