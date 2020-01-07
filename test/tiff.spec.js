@@ -124,7 +124,6 @@ describe('TIFF Segment', () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, tiff: ['Make']}
 			let output = await Exifr.parse(input, options)
-            console.log('-: output', output)
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})
@@ -133,7 +132,6 @@ describe('TIFF Segment', () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, pick: ['Make']}
 			let output = await Exifr.parse(input, options)
-            console.log('-: output', output)
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})
@@ -356,7 +354,8 @@ describe('TIFF - GPS Block', () => {
 	})
 
 	it(`additional GPS block test 2 (practical latitude & longitude in output)`, async () => {
-		let output = await Exifr.parse(await getFile('IMG_20180725_163423.jpg'), {mergeOutput: false})
+		let options = {mergeOutput: false}
+		let output = await Exifr.parse(await getFile('IMG_20180725_163423.jpg'), options)
 		assert.equal(output.gps.latitude, 50.29960277777778)
 		assert.equal(output.gps.longitude, 14.820294444444444)
 	})

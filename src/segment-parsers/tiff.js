@@ -104,7 +104,7 @@ export class TiffCore extends AppSegmentParserBase {
 			throw new Error(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
 
 		// ascii strings, array of 8bits/1byte values.
-		if (type === 2) {
+		if (type === ASCII) { // type 2
 			let string = this.chunk.getString(offset, valueCount)
 			// remove null terminator
 			while (string.endsWith('\0')) string = string.slice(0, -1)
@@ -112,7 +112,7 @@ export class TiffCore extends AppSegmentParserBase {
 		}
 
 		// undefined/buffers of 8bit/1byte values.
-		if (type === 7)
+		if (type === UNDEFINED) // type 7
 			return this.chunk.getUint8Array(offset, valueCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
@@ -121,14 +121,13 @@ export class TiffCore extends AppSegmentParserBase {
 			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
-			if (type === 1) {
+			if (type === BYTE) { // type 1
 				return this.chunk.getUint8Array(offset, valueCount)
 			} else {
 				let ArrayType = getTypedArray(type)
 				let arr = new ArrayType(valueCount)
 				// rational numbers are stored as two integers that we divide when parsing.
 				let offsetIncrement = valueSize
-				if (type === RATIONAL || type === SRATIONAL) offsetIncrement *= 2
 				for (let i = 0; i < valueCount; i++) {
 					arr[i] = this.parseTagValue(type, offset)
 					offset += offsetIncrement
