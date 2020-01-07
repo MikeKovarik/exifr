@@ -238,8 +238,7 @@ export class Options {
 		// translate global pick/skip tags & copy them to local segment/block settings
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
-		this.normalizeFilters()
-		this.finalizeFilters()
+		this.traverseTiffDependencyTree()
 	}
 
 	setupGlobalFilters(pick, skip, dictKeys, scopedBlocks = dictKeys) {
@@ -260,8 +259,8 @@ export class Options {
 		}
 	}
 
-	// TODO: rework this using the new addPick() falling through mechanism
-	normalizeFilters() {
+	// INVESTIGATE: move this to Tiff Segment parser
+	traverseTiffDependencyTree() {
 		let {ifd0, exif, gps, interop} = this
 		if (this.makerNote)   exif.deps.add(TAG_MAKERNOTE)
 		else                  exif.skip.add(TAG_MAKERNOTE)
@@ -278,11 +277,8 @@ export class Options {
 		this.tiff.enabled = tiffBlocks.some(key => this[key].enabled === true)
 						|| this.makerNote
 						|| this.userComment
-	}
-
-	finalizeFilters() {
-		for (let key of tiffBlocks)
-			this[key].finalizeFilters()
+		// reenable all the blocks with pick or deps and lock in deps into picks if needed.
+		for (let key of tiffBlocks) this[key].finalizeFilters()
 	}
 
 }

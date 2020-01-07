@@ -5,17 +5,19 @@ import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 
 export class TiffFileParser extends FileParserBase {
 
+	extendOptions(options) {
+		let {ifd0, xmp, iptc, icc} = options
+		if (xmp.enabled === false)  ifd0.skip.add(TAG_XMP)
+		else                        ifd0.deps.add(TAG_XMP)
+		if (iptc.enabled === false) ifd0.skip.add(TAG_IPTC)
+		else                        ifd0.deps.add(TAG_IPTC)
+		if (icc.enabled === false)  ifd0.skip.add(TAG_ICC)
+		else                        ifd0.deps.add(TAG_ICC)
+		ifd0.finalizeFilters()
+	}
+
 	async parse() {
 		let options = this.options
-
-		if (options.xmp === false)  options.ifd0.skip.add(TAG_XMP)
-		else                        options.ifd0.deps.add(TAG_XMP)
-		if (options.iptc === false) options.ifd0.skip.add(TAG_IPTC)
-		else                        options.ifd0.deps.add(TAG_IPTC)
-		if (options.icc === false)  options.ifd0.skip.add(TAG_ICC)
-		else                        options.ifd0.deps.add(TAG_ICC)
-		options.ifd0.finalizeFilters()
-
 		if (options.tiff || options.xmp || options.iptc || options.icc) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.

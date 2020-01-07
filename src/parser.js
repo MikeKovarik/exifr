@@ -8,6 +8,8 @@ const MAX_APP_SIZE = 65536 // 64kb
 export class FileParserBase {
 
 	constructor(options, file, parsers) {
+		if (this.extendOptions)
+			this.extendOptions(options)
 		this.options = options
 		this.file = file
 		this.parsers = parsers

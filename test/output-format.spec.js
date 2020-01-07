@@ -133,7 +133,7 @@ describe('output object format', () => {
 			var exifr = new Exifr(options)
 			await exifr.read(input)
 			await exifr.parse(input)
-			assert.include(exifr.options.ifd0.skip, propCode)
+			assert.include(Array.from(exifr.options.ifd0.skip), propCode)
 		})
 	}
 
