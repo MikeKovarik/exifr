@@ -195,6 +195,8 @@ export class Options {
 			this.setupFromUndefined()
 		else
 			throw new Error(`Invalid options argument ${userOptions}`)
+		if (this.firstChunkSize === undefined)
+			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 	}
 
 	setupFromUndefined() {
@@ -231,8 +233,6 @@ export class Options {
 			this.setupGlobalFilters(userOptions.tiff, undefined, tiffBlocks)
 		else if (typeof userOptions.tiff === 'object')
 			this.setupGlobalFilters(userOptions.tiff.pick, userOptions.tiff.skip, tiffBlocks)
-		if (this.firstChunkSize === undefined)
-			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
 		if (this.mergeOutput) this.thumbnail.enabled = false
 		// translate global pick/skip tags & copy them to local segment/block settings

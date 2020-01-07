@@ -105,7 +105,7 @@ export default class Exifr {
 		await Promise.all(promises)
 		output = undefinedIfEmpty(output)
 
-		if (this.file.close) /*await*/ this.file.close()
+		if (this.file.close) this.file.close()
 		return output
 	}
 
@@ -119,7 +119,9 @@ export default class Exifr {
 		if (seg === undefined) return
 		let chunk = await this.fileParser.ensureSegmentChunk(seg)
 		let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)
-		return parser.extractThumbnail()
+		let thumb = await parser.extractThumbnail()
+		if (this.file.close) this.file.close()
+		return thumb
 	}
 
 }

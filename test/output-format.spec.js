@@ -72,6 +72,7 @@ describe('output object format', () => {
 			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
+			await exifr.file.close()
             assert.include(exifr.options.ifd0.skip, XMP)
 			assert.isObject(output)
 			assert.isUndefined(output.xmp)
@@ -83,6 +84,7 @@ describe('output object format', () => {
 			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
+			await exifr.file.close()
 			assert.isObject(output)
 			assert.isNotEmpty(output.xmp)
 		})
@@ -100,9 +102,7 @@ describe('output object format', () => {
 
 	function testSegmentFromTiffTag(segName, propName, propCode, filePath) {
 		let input
-		before(async () => {
-			input = await getFile(filePath)
-		})
+		before(async () => input = await getFile(filePath))
 
 		it(`is moved from tiff to output.${segName}`, async () => {
 			let options = {mergeOutput: false, [segName]: true}
