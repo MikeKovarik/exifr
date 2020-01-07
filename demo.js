@@ -139,6 +139,7 @@ class ExifrDemoApp {
 	rawFullscreen = false
 
 	constructor() {
+		this.setStatus('Loading image')
 		this.setupDom().catch(this.handleError)
 		this.setupExifr().catch(this.handleError)
 	}
@@ -163,7 +164,7 @@ class ExifrDemoApp {
 
 	handleError = err => {
 		console.error(err)
-		this.error = err.message
+		this.setStatus('ERROR: ' + err.message, 'red')
 	}
 
 	createDefaultOptions() {
@@ -215,19 +216,54 @@ class ExifrDemoApp {
 	}
 
 	handleFile = async (file = this.file) => {
+		//this.setStatus(`parsing`)
 		if (this.file !== file) {
 			this.clear()
 		}
 		try {
-			await this.reparseFile(file)
-			await this.initialfullFileParse(file)
-			this.error = undefined
+			await this.parseForPerf(file)
+			await this.parseForPrettyOutput(file)
 		} catch (err) {
 			this.handleError(err)
 		}
 	}
 
-	async initialfullFileParse(input) {
+	async parseForPerf(input) {
+        console.log('-: parseForPerf')
+		let options = cloneObject(this.options)
+
+		// parse with users preconfigured settings
+		let t1 = performance.now()
+		let output = await Exifr.parse(input, options)
+        console.log('-: output', output)
+		let t2 = performance.now()
+		let parseTime = (t2 - t1).toFixed(1)
+		this.setStatus(`parsed in ${parseTime} ms`)
+
+		if (output)
+			this.rawOutput = this.cleanOutput(output)
+		else
+			this.rawOutput = 'The file has no EXIF'
+	}
+
+	setStatus(text, color = '') {
+		this.status = text
+		this.color = color
+	}
+
+	cleanOutput(output = {}) {
+		output = cloneObject(output)
+		if (output.makerNote) output.makerNote = '[... OMITTED ...]'
+		if (output.userComment) output.userComment = '[... OMITTED ...]'
+		let exif = output.exif || output
+		if (exif.MakerNote) exif.MakerNote = '[... OMITTED ...]'
+		if (exif.UserComment) exif.UserComment = '[... OMITTED ...]'
+		//if (exif.ApplicationNotes) exif.ApplicationNotes = '[... OMITTED ...]'
+		return output
+	}
+
+	async parseForPrettyOutput(input) {
+        console.log('-: parseForPrettyOutput')
 		let options = cloneObject(this.options)
 
 		// now parse again for the nice boxes with clear information.
@@ -236,6 +272,8 @@ class ExifrDemoApp {
 		let parser = new Exifr(options)
 		await parser.read(input)
 		let output = await parser.parse() || {}
+        console.log('-: output', output)
+        console.log('-: output.ifd0', output.ifd0)
 		this.output = output
 
 		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote
@@ -255,21 +293,6 @@ class ExifrDemoApp {
 			this.imageUrl = input
 	}
 
-	async reparseFile(input) {
-		let options = cloneObject(this.options)
-
-		// parse with users preconfigured settings
-		let t1 = performance.now()
-		let rawOutput = await Exifr.parse(input, options)
-		let t2 = performance.now()
-		this.parseTime = (t2 - t1).toFixed(1)
-
-		if (rawOutput)
-			this.rawOutput = this.cleanOutput(rawOutput)
-		else
-			this.rawOutput = 'The file has no EXIF'
-	}
-
 	clear() {
 		if (this.thumbUrl) {
 			URL.revokeObjectURL(this.thumbUrl)
@@ -279,15 +302,6 @@ class ExifrDemoApp {
 			URL.revokeObjectURL(this.imageUrl)
 			this.imageUrl = undefined
 		}
-	}
-
-	cleanOutput(output = {}) {
-		output = cloneObject(output)
-		let exif = output.exif || output
-		if (exif.makerNote) exif.makerNote = '[... OMITTED ...]'
-		if (exif.userComment) exif.userComment = '[... OMITTED ...]'
-		//if (exif.ApplicationNotes) exif.ApplicationNotes = '[... OMITTED ...]'
-		return output
 	}
 
 	// ISO => ISO
