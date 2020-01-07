@@ -211,7 +211,7 @@ export function testSegmentTranslation({type, file, tags}) {
 export function testPickOrSkipTags(segKey, filePath, pick, skip) {
 	describe('pick / skip', () => {
 
-		it(`only tags from {pick: [...]} are in the output`, async () => {
+		it(`only tags from {pick: [...]} are in the output (global picks form)`, async () => {
 			let file = await getFile(filePath)
 			let options = {mergeOutput: false, [segKey]: true, pick}
 			let output = await Exifr.parse(file, options)
@@ -222,17 +222,26 @@ export function testPickOrSkipTags(segKey, filePath, pick, skip) {
 				assert.isUndefined(segment[tagKey])
 		})
 
-		it(`only tags from {${segKey}: {pick: [...]}} are in the output`, async () => {
+		it(`only tags from {${segKey}: [...]} are in the output (shorthand array form)`, async () => {
+			let file = await getFile(filePath)
+			let options = {mergeOutput: false, [segKey]: pick}
+			let output = await Exifr.parse(file, options)
+			let segment = output[segKey]
+			for (let tagKey of pick)
+				assert.exists(segment[tagKey])
+			for (let tagKey of skip)
+				assert.isUndefined(segment[tagKey])
+		})
+
+		it(`only tags from {${segKey}: {pick: [...]}} are in the output (full blown object form)`, async () => {
 			let file = await getFile(filePath)
 			let options = {mergeOutput: false, [segKey]: {pick}}
 			let output = await Exifr.parse(file, options)
 			let segment = output[segKey]
-			for (let tagKey of pick) {
+			for (let tagKey of pick)
 				assert.exists(segment[tagKey])
-			}
-			for (let tagKey of skip) {
+			for (let tagKey of skip)
 				assert.isUndefined(segment[tagKey])
-			}
 		})
 
 		it(`tags from {skip: [...]} are not in the output`, async () => {

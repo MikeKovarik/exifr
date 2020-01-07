@@ -10,6 +10,8 @@ function testBlockResult(output, blockName, results = {}) {
 	}
 }
 
+let allBlocks = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
+
 function testBlock({blockName, definedByDefault, results}) {
 	let fileWith = 'IMG_20180725_163423.jpg'
 	let fileWithout = 'noexif.jpg'
@@ -28,6 +30,16 @@ function testBlock({blockName, definedByDefault, results}) {
 			let input = await getFile(fileWith)
 			let output = await Exifr.parse(input, options) || {}
 			assert.exists(output[blockName], `output should contain ${blockName}`)
+		})
+
+		it(`output.${blockName} is the only defined block when {${blockName}: true, tiff: false}`, async () => {
+			let options = {mergeOutput: false, [blockName]: true, tiff: false}
+			let input = await getFile(fileWith)
+			let output = await Exifr.parse(input, options) || {}
+            console.log('-: output', output)
+			for (let key of allBlocks)
+				if (key !== blockName)
+					assert.isUndefined(output[key], `output should not contain ${key}, only ${blockName}`)
 		})
 
 		if (fileWithout) {
@@ -136,7 +148,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 2)
 		})
 
-		it(`only ifd0, exifm gps & interop pick are present in output`, async () => {
+		it(`only ifd0, exif, gps & interop pick are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			let output = await Exifr.parse(input, options)
@@ -147,7 +159,7 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 4)
 		})
 
-		it(`only ifd0, exifm gps & interop blocks with picked tags are present in output`, async () => {
+		it(`only ifd0, exif, gps & interop blocks with picked tags are present in output`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: false, ifd0: ['Make'], exif: ['ISO'], gps: ['GPSLatitude'], interop: ['InteropIndex']}
 			let output = await Exifr.parse(input, options)
@@ -195,7 +207,7 @@ describe('TIFF Segment', () => {
 			let file = await getFile('issue-metadata-extractor-152.tif')
 			let options = {tiff: true, ifd0: true}
 			let output = await Exifr.parse(file, options)
-			assert.exist(output[CODE])
+			assert.exists(output[0xC68B])
 		})
 
 	})

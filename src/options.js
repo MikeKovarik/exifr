@@ -221,14 +221,22 @@ export class Options {
 		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
-		if (this.tiff.enabled === false) {
+		if (userOptions.tiff === false) {
 			// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
-			this.ifd0.enabled      = userOptions.ifd0      !== false
-			this.exif.enabled      = userOptions.exif      !== false
-			this.gps.enabled       = userOptions.gps       !== false
-			this.interop.enabled   = userOptions.interop   !== false
-			this.thumbnail.enabled = userOptions.thumbnail !== false
+			this.ifd0.enabled      = userOptions.ifd0      === true
+			this.exif.enabled      = userOptions.exif      === true
+			this.gps.enabled       = userOptions.gps       === true
+			this.interop.enabled   = userOptions.interop   === true
+			this.thumbnail.enabled = userOptions.thumbnail === true
 		}
+		//console.log('userOptions.tiff', userOptions.tiff)
+		//console.log('userOptions.ifd0', userOptions.ifd0)
+		//console.log('userOptions.exif', userOptions.exif)
+		//console.log('userOptions.gps',  userOptions.gps)
+		//console.log('this.tiff.enabled', this.tiff.enabled)
+		//console.log('this.ifd0.enabled', this.ifd0.enabled)
+		//console.log('this.exif.enabled', this.exif.enabled)
+		//console.log('this.gps.enabled',  this.gps.enabled)
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
@@ -263,11 +271,18 @@ export class Options {
 			exif.deps.add(TAG_IFD_INTEROP)
 			ifd0.deps.add(TAG_IFD_INTEROP)
 		}
+		this.tiff.enabled = tiffBlocks.map(segKey => this[segKey].enabled).some(val => val === true)
+		//console.log('tiff', this.tiff.enabled, this.tiff.pick, this.tiff.deps)
+		//console.log('exif', this.exif.enabled, this.exif.pick, this.exif.deps)
+		//console.log('gps',  this.gps.enabled, this.gps.pick, this.gps.deps)
 	}
 
 	finalizeFilters() {
 		for (let segKey of tiffBlocks)
 			this[segKey].finalizeFilters()
+		//console.log('tiff', this.tiff.enabled, this.tiff.pick, this.tiff.deps)
+		//console.log('exif', this.exif.enabled, this.exif.pick, this.exif.deps)
+		//console.log('gps',  this.gps.enabled, this.gps.pick, this.gps.deps)
 	}
 
 }
