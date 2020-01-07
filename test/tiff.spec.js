@@ -36,7 +36,6 @@ function testBlock({blockName, definedByDefault, results}) {
 			let options = {mergeOutput: false, [blockName]: true, tiff: false}
 			let input = await getFile(fileWith)
 			let output = await Exifr.parse(input, options) || {}
-            console.log('-: output', output)
 			for (let key of allBlocks)
 				if (key !== blockName)
 					assert.isUndefined(output[key], `output should not contain ${key}, only ${blockName}`)
