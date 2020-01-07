@@ -119,7 +119,7 @@ describe('TIFF Segment', () => {
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})
-/*
+
 		it(`only ifd0 picks are present in output (tiff semi-global array form)`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, tiff: ['Make']}
@@ -128,7 +128,7 @@ describe('TIFF Segment', () => {
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})
-*/
+
 		it(`only ifd0 picks are present in output (global picks array form)`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, pick: ['Make']}

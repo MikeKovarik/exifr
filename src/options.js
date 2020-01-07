@@ -64,7 +64,8 @@ class FormatOptions {
 		if (userValue !== undefined) {
 			if (Array.isArray(userValue)) {
 				this.enabled = true
-				if (userValue.length > 0) this.translateTagSet(userValue, this.pick)
+				if (this.canBeFiltered && userValue.length > 0)
+					this.translateTagSet(userValue, this.pick)
 			} else if (typeof userValue === 'object') {
 				this.enabled = true
 				let {pick, skip, translateKeys, translateValues, reviveValues} = userValue
@@ -222,31 +223,41 @@ export class Options {
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
 		// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
+		this.setupGlobalFilters(userOptions.pick, userOptions.skip, tiffBlocks, segmentsAndBlocks)
 		if (userOptions.tiff === false)
 			for (key of tiffBlocks)
 				this[key].enabled = userOptions[key] === true
+		else if (Array.isArray(userOptions.tiff))
+			this.setupGlobalFilters(userOptions.tiff, undefined, tiffBlocks)
+		else if (typeof userOptions.tiff === 'object')
+			this.setupGlobalFilters(userOptions.tiff.pick, userOptions.tiff.skip, tiffBlocks)
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = isBrowser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
 		if (this.mergeOutput) this.thumbnail.enabled = false
 		// translate global pick/skip tags & copy them to local segment/block settings
-		let {pick, skip} = userOptions
-		if (pick && pick.length) {
-			let entries = findScopesForGlobalTagArray(pick)
-			for (key of segmentsAndBlocks)
-				this[key].enabled = false
-			for (let [key, tags] of entries) {
-				addToSet(this[key].pick, tags)
-				this[key].enabled = true
-			}
-		} else if (skip && skip.length) {
-			let entries = findScopesForGlobalTagArray(skip)
-			for (let [segKey, tags] of entries) addToSet(this[segKey].skip, tags)
-		}
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this.normalizeFilters()
 		this.finalizeFilters()
+	}
+
+	setupGlobalFilters(pick, skip, dictKeys, scopedBlocks = dictKeys) {
+		if (pick && pick.length) {
+			// if we're only picking, we can safely disable all other blocks and segments
+			for (let key of scopedBlocks)
+				this[key].enabled = false
+			let entries = findScopesForGlobalTagArray(pick, dictKeys)
+			for (let [key, tags] of entries) {
+				addToSet(this[key].pick, tags)
+				// the blocks of tags from global picks are the only blocks we'll parse.
+				this[key].enabled = true
+			}
+		} else if (skip && skip.length) {
+			let entries = findScopesForGlobalTagArray(skip, dictKeys)
+			for (let [segKey, tags] of entries)
+				addToSet(this[segKey].skip, tags)
+		}
 	}
 
 	// TODO: rework this using the new addPick() falling through mechanism
@@ -276,9 +287,11 @@ export class Options {
 
 }
 
-function findScopesForGlobalTagArray(tagArray) {
+function findScopesForGlobalTagArray(tagArray, dictKeys) {
 	let entries = []
-	for (let [key, dict] of Object.entries(tagKeys)) {
+	//dictKeys = Object.keys(tagKeys)
+	for (let key of dictKeys) {
+		let dict = tagKeys[key]
 		let scopedTags = []
 		for (let [tagKey, tagName] of Object.entries(dict))
 			if (tagArray.includes(tagKey) || tagArray.includes(tagName))
