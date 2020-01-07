@@ -66,7 +66,7 @@ export class AppSegmentParserBase {
 	// output is merged into library output or is assigned with parser id
 	static mergeOutput = false
 	// The data may span multiple APP segments.
-	static multiSegment = false
+	static multiPage = false
 
 	static canHandle = () => false
 

@@ -94,7 +94,7 @@ export class JpegFileParser extends FileParserBase {
 		if (!findAll) {
 			for (let type of wanted) {
 				let Parser = segmentParsers.get(type)
-				if (Parser.multiSegment) {
+				if (Parser.multiPage) {
 					findAll = true
 					await this.file.readWhole()
 					break
