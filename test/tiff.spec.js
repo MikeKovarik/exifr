@@ -214,7 +214,7 @@ describe('TIFF Segment', () => {
 
 		it(`edge case with .tif file`, async () => {
 			let file = await getFile('issue-metadata-extractor-152.tif')
-			let options = {tiff: true, ifd0: true}
+			let options = {tiff: true, ifd0: true, translateKeys: false}
 			let output = await Exifr.parse(file, options)
 			assert.exists(output[0xC68B])
 		})
