@@ -8,14 +8,14 @@ import './segment-parsers/icc.js'
 import './segment-parsers/xmp.js'
 
 // TIFF - Additional tags
-import './tags/tiff-interop-keys.js'
-import './tags/tiff-other-keys.js'
-import './tags/tiff-gps-values.js'
+import './dicts/tiff-interop-keys.js'
+import './dicts/tiff-other-keys.js'
+import './dicts/tiff-gps-values.js'
 
 // ICC
-import './tags/icc-keys.js'
-import './tags/icc-values.js'
+import './dicts/icc-keys.js'
+import './dicts/icc-values.js'
 
 // IPTC
-import './tags/iptc-keys.js'
-import './tags/iptc-values.js'
+import './dicts/iptc-keys.js'
+import './dicts/iptc-values.js'

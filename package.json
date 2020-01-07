@@ -64,7 +64,7 @@
       "src/options.js",
       "src/util/debug.js",
       "src/segment-parsers/tiff-tags.js",
-      "src/tags/**.*",
+      "src/dicts/**.*",
       "test/**.*"
     ],
     "reporter": [

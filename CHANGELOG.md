@@ -13,7 +13,7 @@
 #### Output format
 - renamed IFD0 in the output object from `output.image` to `output.ifd0`
 - renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
-- Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/tags/*` files for refference.
+- Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/dicts/*` files for reference.
 
 #### Options
 - removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
@@ -25,7 +25,7 @@
   - `core` bundle does not contain any parsers or dictionaries which should be cherry picked and sideloaded.
 - `package.json` defined module as `"type": "module"`. All `.js` files in `src/` are treated as ES Modules by Node.js (experimental).
   - using `.cjs` and `.mjs` file extensions instead of `.js` for exported bundles. `index.js` therefore becomes `index.cjs`
-- Moved interop & some less used IFD0 tags from default dictionary to `src/tags/tiff-other-keys.js`. It saves library size of the default bundle which caters to average usecase. These tags are still available in full bundle of the library.
+- Moved interop & some less used IFD0 tags from default dictionary to `src/dicts/tiff-other-keys.js`. It saves library size of the default bundle which caters to average usecase. These tags are still available in full bundle of the library.
 
 
 ### Added

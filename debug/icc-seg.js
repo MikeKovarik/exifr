@@ -2,8 +2,8 @@
 import {promises as fs} from 'fs'
 import {BufferView} from '../src/util/BufferView.js'
 import IccParser from '../src/segment-parsers/icc.js'
-import '../src/tags/icc-keys.js'
-import '../src/tags/icc-values.js'
+import '../src/dicts/icc-keys.js'
+import '../src/dicts/icc-values.js'
 
 fs.readFile('../test/fixtures/USWebCoatedSWOP.icc')
 	.then(async buffer => {

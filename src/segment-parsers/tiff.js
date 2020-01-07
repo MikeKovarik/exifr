@@ -3,7 +3,7 @@ import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMME
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
-import {ConvertDMSToDD} from '../tags/tiff-revivers.js'
+import {ConvertDMSToDD} from '../dicts/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
 
 
