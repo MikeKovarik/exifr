@@ -112,18 +112,28 @@ describe('TIFF Segment', () => {
 
 	describe('pick / skip', () => {
 
-		it(`only ifd0 picks are present in output`, async () => {
+		it(`only ifd0 picks are present in output (local array shorthand form)`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, ifd0: ['Make'], exif: false, gps: false, interop: false}
 			let output = await Exifr.parse(input, options)
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})
-
-		it(`only ifd0 picks are present in output 2`, async () => {
+/*
+		it(`only ifd0 picks are present in output (tiff semi-global array form)`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: true, tiff: ['Make']}
+			let output = await Exifr.parse(input, options)
+            console.log('-: output', output)
+			assert.exists(output.Make)
+			assert.lengthOf(Object.keys(output), 1)
+		})
+*/
+		it(`only ifd0 picks are present in output (global picks array form)`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
 			let options = {mergeOutput: true, pick: ['Make']}
 			let output = await Exifr.parse(input, options)
+            console.log('-: output', output)
 			assert.exists(output.Make)
 			assert.lengthOf(Object.keys(output), 1)
 		})

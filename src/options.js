@@ -233,8 +233,12 @@ export class Options {
 		let {pick, skip} = userOptions
 		if (pick && pick.length) {
 			let entries = findScopesForGlobalTagArray(pick)
-			for (let [segKey, tags] of entries) addToSet(this[segKey].pick, tags)
-			console.warn('TODO: skip and disable all other blocks with unassigned properties')
+			for (key of segmentsAndBlocks)
+				this[key].enabled = false
+			for (let [key, tags] of entries) {
+				addToSet(this[key].pick, tags)
+				this[key].enabled = true
+			}
 		} else if (skip && skip.length) {
 			let entries = findScopesForGlobalTagArray(skip)
 			for (let [segKey, tags] of entries) addToSet(this[segKey].skip, tags)
