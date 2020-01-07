@@ -94,15 +94,18 @@ describe('XMP Segment', () => {
         assert.exists(output.xmp, `output doesn't contain xmp`)
     })
 
-/*
-	it(`.tif file with scattered data segments should contain XMP (options.tiff disabled)`, async () => {
+	it(`should extract XMP from .tif file with scattered data segments when {tiff: true, xmp: true}`, async () => {
+		let options = {tiff: true, xmp: true, mergeOutput: false}
+		let input = await getFile('001.tif')
+		var output = await Exifr.parse(input, options)
+		assert.isDefined(output.xmp)
+	})
+
+	it(`should extract XMP from .tif file with scattered data segments when {tiff: false, xmp: true}`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
 		let input = await getFile('001.tif')
 		var output = await Exifr.parse(input, options)
-		console.log(output.ifd0.ApplicationNotes)
-		console.log(Buffer.from(output.ifd0.ApplicationNotes).toString())
 		assert.isDefined(output.xmp)
 	})
-*/
 
 })

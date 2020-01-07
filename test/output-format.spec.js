@@ -65,23 +65,19 @@ describe('output object format', () => {
 		let filePath = 'issue-metadata-extractor-152.tif'
 		testSegmentFromTiffTag('xmp', 'ApplicationNotes', 0x02BC, filePath)
 
-		it(`is moved from tiff to output.xmp as not parsed string despite {xmp: false}`, async () => {
-			let input = await getFile(filePath)
-			var output = await Exifr.parse(input, {mergeOutput: false, xmp: false}) || {}
-			assert.isString(output.xmp)
-		})
-
-		it(`xmp should not be empty when default options`, async () => {
+		it(`output.xmp should be empty and skipped with default options`, async () => {
+			const XMP = 0x02BC
 			let input = await getPath('issue-exif-js-124.tiff')
 			let options = {wholeFile: false, mergeOutput: false}
 			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
+            assert.include(exifr.options.ifd0.skip, XMP)
 			assert.isObject(output)
-			assert.isNotEmpty(output.xmp)
+			assert.isUndefined(output.xmp)
 		})
 
-		it(`xmp should not be empty when {xmp: true}`, async () => {
+		it(`output.xmp should not be empty when {xmp: true}`, async () => {
 			let input = await getPath('issue-exif-js-124.tiff')
 			let options = {wholeFile: false, mergeOutput: false, xmp: true}
 			let exifr = new Exifr(options)

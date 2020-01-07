@@ -1,5 +1,6 @@
 import {assert} from './test-util.js'
 import {getFile, testSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
+import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.js'
 import Exifr from '../src/index-full.js'
 
 
@@ -406,5 +407,41 @@ describe('TIFF - IFD1 / Thumbnail Block', () => {
 			1, 'Horizontal (normal)'
 		]]
 	})
+
+})
+
+describe('TIFF - Embedded XMP, ICC, IPTC in .tif files', () => {
+
+	let input
+	before(async () => input = await getFile('tif-with-iptc-icc-xmp.tif'))
+
+	describeEmbeddedSegment('xmp', TAG_XMP)
+	describeEmbeddedSegment('icc', TAG_ICC)
+	describeEmbeddedSegment('iptc', TAG_IPTC)
+
+	function describeEmbeddedSegment(segKey, TAG) {
+		let uperKey = segKey.toUpperCase()
+
+		describe(uperKey, () => {
+
+			it(`extracts only ${uperKey} {tiff: false, ${segKey}: true}`, async () => {
+				let options = {tiff: false, iptc: true, mergeOutput: false}
+				var output = await Exifr.parse(input, options)
+				assert.isDefined(output.iptc)
+				assert.lengthOf(Object.keys(output), 1)
+			})
+
+			it(`skips everything else than ${uperKey} in TIFF when {tiff: false, ${segKey}: true}`, async () => {
+				let options = {tiff: false, [segKey]: true, mergeOutput: false}
+				var exifr = new Exifr(options)
+				await exifr.read(input)
+				await exifr.parse(input)
+				assert.lengthOf(exifr.options.ifd0.pick, 1)
+				assert.include(exifr.options.ifd0.pick, TAG)
+				assert.isFalse(exifr.options.exif.enabled)
+			})
+
+		})
+	}
 
 })

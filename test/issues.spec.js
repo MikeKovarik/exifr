@@ -47,7 +47,8 @@ describe('issues (special cases)', () => {
 	// TODO: implement
     it(`metadata-extractor #152 jpg`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.jpg')
-        var output = await Exifr.parse(input, true)
+		let options = {tiff: true, xmp: true}
+        var output = await Exifr.parse(input, options)
         assert.equal(output.Make, 'Parrot')
         assert.exists(output.GPSLatitude)
         assert.exists(output.xmp)
@@ -56,7 +57,8 @@ describe('issues (special cases)', () => {
 	// TODO: implement
     it(`metadata-extractor #152 tif`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
-        var output = await Exifr.parse(input, true)
+		let options = {tiff: true, xmp: true}
+        var output = await Exifr.parse(input, options)
         assert.equal(output.Make, 'Parrot')
         assert.exists(output.GPSLatitude)
         assert.exists(output.xmp)
