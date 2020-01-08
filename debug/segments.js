@@ -23,19 +23,19 @@ const options = {
 		let exifr = new Exifr(options)
 		await exifr.read(fileBuffer)
 		exifr.parse()
-		console.log('----------------------------------------------------')
+		console.log('-'.repeat(111))
 		console.log(fileName, kb(fileBuffer.length))
 		let segments = [...exifr.fileParser.appSegments, ...exifr.fileParser.unknownSegments]
 		for (let segment of segments) {
 			//console.log(segment)
 			console.log(
-				getSegName(segment, fileBuffer).padEnd(14, ' '),
+				getSegName(segment, fileBuffer).padEnd(10, ' '),
 				'|',
-				'offset', segment.offset.toString().padStart(8, ' '),
+				'offset', segment.offset.toString().padStart(7, ' '),
 				'|',
-				'length', segment.length.toString().padStart(8, ' '),
+				'length', segment.length.toString().padStart(7, ' '),
 				'|',
-				'end', segment.end.toString().padStart(8, ' '),
+				'end', segment.end.toString().padStart(7, ' '),
 				'|',
 				fileBuffer.slice(segment.offset, segment.offset + 14)
 			)
