@@ -37,6 +37,17 @@ describe('JpegFileParser', () => {
 			assert.isUndefined(xmpSegment)
 		})
 
+		it(`multipage ICC - finds all segments`, async () => {
+			let input = await getFile('issue-metadata-extractor-65.jpg')
+			let exifr = new Exifr(true)
+			await exifr.read(input)
+			exifr.setup()
+			let jpegFileParser = exifr.fileParser
+			jpegFileParser.findAppSegments()
+			let iccSegments = jpegFileParser.appSegments.filter(segment => segment.type === 'icc')
+			assert.lengthOf(iccSegments, 9)
+		})
+
 	})
 
 })
