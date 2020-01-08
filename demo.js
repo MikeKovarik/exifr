@@ -23,8 +23,69 @@ let demoFilePath = './test/fixtures/IMG_20180725_163423.jpg'
 
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
+const jsonTypeStart = `<<||JSON-TYPE||`
+const jsonTypeEnd = `<<||JSON||>>`
+const jsonStartSeparator = '>>'
+
+function getTypeHeader(type) {
+	return jsonTypeStart + type + jsonStartSeparator
+}
+
+const jsonTypes = [
+	Uint8Array,
+	Uint16Array,
+	Uint32Array,
+	Int8Array,
+	Int16Array,
+	Int32Array,
+]
+
+const BufferReplacer = arr => Array.from(arr).join('-')
+const replacers = {
+	Uint8Array:  BufferReplacer,
+	Uint16Array: BufferReplacer,
+	Uint32Array: BufferReplacer,
+	Int8Array:   BufferReplacer,
+	Int16Array:  BufferReplacer,
+	Int32Array:  BufferReplacer,
+}
+
+const revivers = {
+	Uint8Array:  string => new Uint8Array(string.split('-').map(str => Number(str))),
+	Uint16Array: string => new Uint16Array(string.split('-').map(str => Number(str))),
+	Uint32Array: string => new Uint32Array(string.split('-').map(str => Number(str))),
+	Int8Array:   string => new Int8Array(string.split('-').map(str => Number(str))),
+	Int16Array:  string => new Int16Array(string.split('-').map(str => Number(str))),
+	Int32Array:  string => new Int32Array(string.split('-').map(str => Number(str))),
+}
+
+function cloneReplacer(key, val) {
+	if (typeof val === 'object') {
+		for (let Class of jsonTypes) {
+			if (val instanceof Class) {
+				let replacer = replacers[Class.name]
+				let serialized = replacer(val)
+				return getTypeHeader(Class.name) + serialized + jsonTypeEnd
+			}
+		}
+	}
+	return val
+}
+
+function cloneReviver(key, val) {
+	if (typeof val === 'string' && val.startsWith(jsonTypeStart) && val.endsWith(jsonTypeEnd)) {
+		let tempIndex = val.indexOf(jsonStartSeparator)
+		let type = val.slice(jsonTypeStart.length, tempIndex)
+		let serialized = val.slice(tempIndex + jsonStartSeparator.length, -jsonTypeEnd.length)
+		let reviver = revivers[type]
+		return reviver(serialized)
+	}
+	return val
+}
+
 function cloneObject(object) {
-	return JSON.parse(JSON.stringify(object))
+	let json = JSON.stringify(object, cloneReplacer)
+	return JSON.parse(json, cloneReviver)
 }
 
 function decorate(Class, key, decorator) {
@@ -49,11 +110,35 @@ class BinaryValueConverter {
     }
 }
 
+const reviverStart = '💿✨💀'
+const reviverEnd   = '💾✨⚡'
+const reviverStartRegex = new RegExp('"' + reviverStart, 'g')
+const reviverEndRegex   = new RegExp(reviverEnd + '"', 'g')
+
+function reviverWrap(string) {
+	return reviverStart + string + reviverEnd
+}
+
+Uint8Array.prototype.toJSON =
+Uint16Array.prototype.toJSON =
+Uint32Array.prototype.toJSON =
+Int8Array.prototype.toJSON =
+Int16Array.prototype.toJSON =
+Int32Array.prototype.toJSON = function() {
+	return reviverWrap(`<${this.constructor.name} ${Array.from(this).map(num => num.toString(16).padStart(2, '0')).join(' ')}>`)
+}
+
+Array.prototype.toJSON = function() {
+	return reviverWrap(`[${this.join(', ')}]`)
+}
+
 class JsonValueConverter {
     toView(arg, spaces = 2) {
 		if (arg === undefined) return
 		if (arg === null) return
 		return JSON.stringify(arg, null, spaces)
+			.replace(reviverStartRegex, '')
+			.replace(reviverEndRegex, '')
     }
 }
 
@@ -229,17 +314,16 @@ class ExifrDemoApp {
 	}
 
 	async parseForPerf(input) {
-        console.log('-: parseForPerf')
 		let options = cloneObject(this.options)
 
 		// parse with users preconfigured settings
 		let t1 = performance.now()
 		let output = await Exifr.parse(input, options)
-        console.log('-: output', output)
 		let t2 = performance.now()
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
 
+            console.log('-: output', output)
 		if (output)
 			this.rawOutput = this.cleanOutput(output)
 		else
@@ -263,7 +347,6 @@ class ExifrDemoApp {
 	}
 
 	async parseForPrettyOutput(input) {
-        console.log('-: parseForPrettyOutput')
 		let options = cloneObject(this.options)
 
 		// now parse again for the nice boxes with clear information.
@@ -272,8 +355,6 @@ class ExifrDemoApp {
 		let parser = new Exifr(options)
 		await parser.read(input)
 		let output = await parser.parse() || {}
-        console.log('-: output', output)
-        console.log('-: output.ifd0', output.ifd0)
 		this.output = output
 
 		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote
