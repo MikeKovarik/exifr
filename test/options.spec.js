@@ -6,6 +6,28 @@ import {Options} from '../src/options.js'
 
 describe('options', () => {
 
+	describe('option shorthands', () => {
+
+		it(`(true) enables all tiff blocks`, async () => {
+			let options = new Options(true)
+			assert.isTrue(options.ifd0.enabled, 'IFD0 should be enabled')
+			assert.isTrue(options.exif.enabled, 'EXIF should be enabled')
+			assert.isTrue(options.gps.enabled, 'GPS should be enabled')
+			assert.isTrue(options.interop.enabled, 'INTEROP should be enabled')
+			assert.isTrue(options.thumbnail.enabled, 'THUMBNAIL should be enabled')
+		})
+
+		it(`(true) enables all tiff segments`, async () => {
+			let options = new Options(true)
+			assert.isTrue(options.tiff.enabled, 'TIFF should be enabled')
+			assert.isTrue(options.jfif.enabled, 'JFIF should be enabled')
+			assert.isTrue(options.iptc.enabled, 'IPTC should be enabled')
+			assert.isTrue(options.xmp.enabled, 'XMP should be enabled')
+			assert.isTrue(options.icc.enabled, 'ICC should be enabled')
+		})
+
+	})
+
 	describe('options.firstChunkSize', () => {
 
 		isNode && it(`firstChunkSizeNode is a standin for node`, async () => {

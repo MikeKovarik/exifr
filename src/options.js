@@ -214,7 +214,7 @@ export class Options {
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of formatOptions)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = userOptions
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, userOptions, undefined, this)
 	}
 
 	setupFromObject(userOptions) {
