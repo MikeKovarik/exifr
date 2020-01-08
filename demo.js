@@ -132,6 +132,10 @@ Array.prototype.toJSON = function() {
 	return reviverWrap(`[${this.join(', ')}]`)
 }
 
+Date.prototype.toJSON = function() {
+	return reviverWrap(`<Date ${this.toISOString()}>`)
+}
+
 class JsonValueConverter {
     toView(arg, spaces = 2) {
 		if (arg === undefined) return
