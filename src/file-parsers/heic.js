@@ -4,6 +4,39 @@ import {FileParserBase} from '../parser.js'
 
 
 export class IsoBmffParser extends FileParserBase {
+
+	parseBoxes(offset = 0) {
+		let boxes = []
+		while (offset < this.file.byteLength - 4) {
+			let box = this.parseBoxHead(offset)
+			boxes.push(box)
+			if (box.length === 0) break
+			offset += box.length
+		}
+		return boxes
+	}
+
+	parseBoxHead(offset) {
+		let length     = this.file.getUint32(offset)
+		let kind       = this.file.getString(offset + 4, 4)
+		let start = offset + 8 // 4+4 bytes
+		// length can be larger than 32b number in which case it is the first 64bits after header
+		if (length === 1) {
+			length = this.file.getUint64(offset + 8)
+			start += 8
+		}
+		let box = {offset, length, kind, start}
+		return box
+	}
+
+	parseBoxFullHead(box) {
+		// ISO boxes come in 'old' and 'full' variants.
+		// The 'full' variant also contains version and flags information.
+		let vflags = this.file.getUint32(box.start)
+		box.version = vflags >> 24
+		box.start += 4
+	}
+
 }
 
 export class HeicFileParser extends IsoBmffParser {
@@ -46,38 +79,6 @@ export class HeicFileParser extends IsoBmffParser {
 		console.log('----------------------------------------------------')
 	}
 
-	parseBoxes(offset = 0) {
-		let boxes = []
-		while (offset < this.file.byteLength - 4) {
-			let box = this.parseBoxHead(offset)
-			boxes.push(box)
-			if (box.length === 0) break
-			offset += box.length
-		}
-		return boxes
-	}
-
-	parseBoxHead(offset) {
-		let length     = this.file.getUint32(offset)
-		let kind       = this.file.getString(offset + 4, 4)
-		let start = offset + 8 // 4+4 bytes
-		// length can be larger than 32b number in which case it is the first 64bits after header
-		if (length === 1) {
-			length = this.file.getUint64(offset + 8)
-			start += 8
-		}
-		let box = {offset, length, kind, start}
-		return box
-	}
-
-	parseBoxFullHead(box) {
-		// ISO boxes come in 'old' and 'full' variants.
-		// The 'full' variant also contains version and flags information.
-		let vflags = this.file.getUint32(box.start)
-		box.version = vflags >> 24
-		box.start += 4
-	}
-
 	findExifLocIdInIinf(box) {
 		this.parseBoxFullHead(box)
 		let offset = box.start
@@ -96,17 +97,6 @@ export class HeicFileParser extends IsoBmffParser {
 			}
 			offset += infe.length
 		}
-	}
-
-    getString(offset) {
-        let chars = []
-        let char
-        while (true) {
-            char = this.file.getUint8(offset++)
-            if (char === 0) break
-            chars.push(char)
-		}
-        return String.fromCharCode(...chars)
 	}
 
 	get8bits(offset) {
