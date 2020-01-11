@@ -11,7 +11,8 @@ export class HeicFileParser extends IsoBmffParser {
 	async parse() {
 		var metaBoxOffset = this.file.getUint32(0)
 		let meta = this.parseBoxHead(metaBoxOffset)
-		this.parseMeta(meta)
+		this.parseBoxFullHead(meta)
+		meta.boxes = this.parseBoxes(meta.start)
 		this.findIcc(meta)
 		this.findExif(meta)
 	}
@@ -19,11 +20,9 @@ export class HeicFileParser extends IsoBmffParser {
 	findIcc(meta) {
 		let iprp = meta.boxes.find(box => box.kind === 'iprp')
 		if (iprp === undefined) return
-		this.parseIprp(iprp)
-		let ipco = iprp.boxes.find(box => box.kind === 'ipco')
+		let ipco = this.parseBoxes(iprp.start).find(box => box.kind === 'ipco')
 		if (ipco === undefined) return
-		this.parseIpco(ipco)
-		let colr = ipco.boxes.find(box => box.kind === 'colr')
+		let colr = this.parseBoxes(ipco.start).find(box => box.kind === 'colr')
 		if (colr === undefined) return
 		console.log('--------------------- ICC -------------------------')
 		console.log(this.file.getString(colr.offset, colr.length))
@@ -79,44 +78,23 @@ export class HeicFileParser extends IsoBmffParser {
 		box.start += 4
 	}
 
-	// meta is new box with full head
-	parseMeta(box) {
-		this.parseBoxFullHead(box)
-		box.boxes = this.parseBoxes(box.start)
-	}
-
-	// iprp is old box with lite head
-	parseIprp(box) {
-		box.boxes = this.parseBoxes(box.start)
-		// meta -> iprp -> ipco -> colr
-	}
-
-	parseIpco(box) {
-		box.boxes = this.parseBoxes(box.start)
-	}
-
-	parseInfe(box) {
-		this.parseBoxFullHead(box)
-		box.boxes = this.parseBoxes(box.start)
-	}
-
 	findExifLocIdInIinf(box) {
 		this.parseBoxFullHead(box)
 		let offset = box.start
 		let count = this.file.getUint16(offset)
-		let infeBox, infeOffset, idSize, name
+		let infe, infeOffset, idSize, name
 		offset += 2
 		while (count--) {
-			infeBox = this.parseBoxHead(offset)
-			this.parseInfe(infeBox)
-			infeOffset = infeBox.start
-			if (infeBox.version >= 2) {
-				idSize = infeBox.version === 3 ? 4 : 2
+			infe = this.parseBoxHead(offset)
+			this.parseBoxFullHead(infe)
+			infeOffset = infe.start
+			if (infe.version >= 2) {
+				idSize = infe.version === 3 ? 4 : 2
 				name = this.file.getString(infeOffset + idSize + 2, 4)
 				if (name === 'Exif')
 					return this.file.getUintBytes(infeOffset, idSize)
 			}
-			offset += infeBox.length
+			offset += infe.length
 		}
 	}
 
