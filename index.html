@@ -47,6 +47,13 @@
 				<div class="close" click.trigger="clear()">X</div>
 			</div>
 
+			<p>Or try some of these demo files:</p>
+			<li repeat.for="file of demoFiles">
+				<a href="#" click.trigger="loadPhoto(file.name)">
+					${file.text}
+				</a>
+			</li>
+
 			<h3>Options</h3>
 			<form id="options">
 				<div>{</div>

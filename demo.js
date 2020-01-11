@@ -18,8 +18,9 @@ MakerNote
 0x9C9F: 'XPSubject', //
 */
 
-//let demoFilePath = './test/fixtures/canon-dslr.jpg'
-let demoFilePath = './test/fixtures/IMG_20180725_163423.jpg'
+//let demoFileName = './test/fixtures/canon-dslr.jpg'
+let fixtureDirPath = './test/fixtures/'
+let demoFileName = 'IMG_20180725_163423.jpg'
 
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
@@ -227,6 +228,23 @@ class ExifrDemoApp {
 
 	rawFullscreen = false
 
+	demoFiles = [{
+		text: 'JPEG Google Pixel photo',
+		name: 'IMG_20180725_163423.jpg',
+	}, {
+		text: 'JPEG Google Pixel pano',
+		name: 'PANO_20180725_162444.jpg',
+	}, {
+		text: 'HEIC iPhone photo',
+		name: 'heic-iphone7.heic',
+	}, {
+		text: 'TIFF Drone photo',
+		name: 'issue-metadata-extractor-152.tif',
+	}, {
+		text: 'Photo with IPTC descriptions',
+		name: 'iptc-independent-photographer-example.jpg',
+	}]
+
 	constructor() {
 		this.setStatus('Loading image')
 		this.setupDom().catch(this.handleError)
@@ -247,7 +265,14 @@ class ExifrDemoApp {
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
-		this.file = await fetch(demoFilePath).then(res => res.arrayBuffer())
+		this.loadPhoto(demoFileName)
+	}
+
+	async loadPhoto(fileName) {
+		let filePath = fixtureDirPath + fileName
+        console.log('-: filePath', filePath)
+		let res = await fetch(filePath)
+		this.file = await res.arrayBuffer()
 		this.handleFile(this.file)
 	}
 
