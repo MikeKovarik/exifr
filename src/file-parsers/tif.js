@@ -17,8 +17,8 @@ export class TiffFileParser extends FileParserBase {
 	}
 
 	async parse() {
-		let options = this.options
-		if (options.tiff || options.xmp || options.iptc || options.icc) {
+		let {tiff, xmp, iptc, icc} = this.options
+		if (tiff.enabled || xmp.enabled || iptc.enabled || icc.enabled) {
 			// The file starts with TIFF structure (instead of JPEGs FF D8)
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
@@ -38,17 +38,8 @@ export class TiffFileParser extends FileParserBase {
 		if (this.parsers.tiff[key]) {
 			let rawData = this.parsers.tiff[key]
 			let chunk = BufferView.from(rawData)
-			if (this.options[key])
+			if (this.options[key].enabled)
 				this.createParser(key, chunk)
-			else
-				this.createDummyParser(key, chunk.getString())
-		}
-	}
-
-	createDummyParser = (type, output) => {
-		this.parsers[type] = {
-			constructor: {type},
-			parse: () => output,
 		}
 	}
 

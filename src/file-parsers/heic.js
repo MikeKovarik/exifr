@@ -25,8 +25,7 @@ export class IsoBmffParser extends FileParserBase {
 			length = this.file.getUint64(offset + 8)
 			start += 8
 		}
-		let box = {offset, length, kind, start}
-		return box
+		return {offset, length, kind, start}
 	}
 
 	parseBoxFullHead(box) {
@@ -44,10 +43,22 @@ export class HeicFileParser extends IsoBmffParser {
 	async parse() {
 		var metaBoxOffset = this.file.getUint32(0)
 		let meta = this.parseBoxHead(metaBoxOffset)
+		await this.file.ensureRange(meta.offset, meta.length)
+		console.log('meta', meta.offset, meta.length)
 		this.parseBoxFullHead(meta)
 		meta.boxes = this.parseBoxes(meta.start)
-		this.findIcc(meta)
-		this.findExif(meta)
+		if (this.options.icc.enabled)
+			await this.registerSegment('icc',  ...this.findIcc(meta))
+		if (this.options.tiff.enabled)
+			await this.registerSegment('tiff', ...this.findExif(meta))
+	}
+
+	async registerSegment(key, offset, length) {
+		await this.file.ensureRange(offset, length)
+		let chunk = await this.file.subarray(offset, length)
+		console.log(key, offset, length)
+		console.log(chunk)
+		this.createParser(key, chunk)
 	}
 
 	findIcc(meta) {
@@ -57,9 +68,10 @@ export class HeicFileParser extends IsoBmffParser {
 		if (ipco === undefined) return
 		let colr = this.parseBoxes(ipco.start).find(box => box.kind === 'colr')
 		if (colr === undefined) return
-		console.log('--------------------- ICC -------------------------')
-		console.log(this.file.getString(colr.offset, colr.length))
-		console.log('----------------------------------------------------')
+		//console.log('--------------------- ICC -------------------------')
+		//console.log(this.file.getString(colr.offset, colr.length))
+		//console.log('----------------------------------------------------')
+		return [colr.offset, colr.length]
 	}
 
 	findExif(meta) {
@@ -74,9 +86,10 @@ export class HeicFileParser extends IsoBmffParser {
 		let extentContentShift = 4 + nameSize
 		exifOffset += extentContentShift
 		exifLength -= extentContentShift
-		console.log('--------------------- EXIF -------------------------')
-		console.log(this.file.getString(exifOffset, exifLength))
-		console.log('----------------------------------------------------')
+		//console.log('--------------------- EXIF -------------------------')
+		//console.log(this.file.getString(exifOffset, exifLength))
+		//console.log('----------------------------------------------------')
+		return [exifOffset, exifLength]
 	}
 
 	findExifLocIdInIinf(box) {

@@ -167,6 +167,9 @@ export class BufferView {
 		return this.dataView.toString(arg, this.constructor.name)
 	}
 
+	// do not delete
+	ensureRange() {}
+
 }
 
 
@@ -225,6 +228,12 @@ export class DynamicBufferView extends BufferView {
 		let chunk = super.set(arg, offset)
 		this._registerRange(offset, chunk.byteLength)
 		return chunk
+	}
+
+	async ensureRange(offset, length) {
+		if (!this.chunked) return
+		if (this.isRangeAvailable(offset, length)) return
+		await this.readChunk(offset, length)
 	}
 
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
