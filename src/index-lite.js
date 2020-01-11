@@ -2,7 +2,7 @@ import Exifr from './index-core.js'
 export default Exifr
 
 // TIFF Parser
-import './segment-parsers/tiff.js'
+import './segment-parsers/tiff-exif.js'
 
 // TIFF Keys
 import './dicts/tiff-ifd0-keys.js'

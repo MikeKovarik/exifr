@@ -270,7 +270,6 @@ class ExifrDemoApp {
 
 	async loadPhoto(fileName) {
 		let filePath = fixtureDirPath + fileName
-        console.log('-: filePath', filePath)
 		let res = await fetch(filePath)
 		this.file = await res.arrayBuffer()
 		this.handleFile(this.file)
@@ -352,7 +351,6 @@ class ExifrDemoApp {
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
 
-            console.log('-: output', output)
 		if (output)
 			this.rawOutput = this.cleanOutput(output)
 		else
