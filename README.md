@@ -57,18 +57,18 @@ https://unpkg.com/exifr
 
 ## Usage
 
-* `parse(Buffer[, options])` Node.js only
-* `parse(ArrayBuffer[, options])`
-* `parse(Uint8Array[, options])`
-* `parse(DataView[, options])`
-* `parse(urlString[, options])` Browser only
-* `parse(objectUrlString[, options])` Browser only
-* `parse(filePathString[, options])` Node.js only
-* `parse(base64String[, options])`
-* `parse(HTMLImageElement[, options])` Browser only
-* `parse(File[, options])` Browser only
-* `parse(Blob[, options])` Browser only
-* `extractThumbnail(Blob)`
+* `Exifr.parse(Buffer[, options])` Node.js only
+* `Exifr.parse(ArrayBuffer[, options])`
+* `Exifr.parse(Uint8Array[, options])`
+* `Exifr.parse(DataView[, options])`
+* `Exifr.parse(urlString[, options])` Browser only
+* `Exifr.parse(objectUrlString[, options])` Browser only
+* `Exifr.parse(filePathString[, options])` Node.js only
+* `Exifr.parse(base64String[, options])`
+* `Exifr.parse(HTMLImageElement[, options])` Browser only
+* `Exifr.parse(File[, options])` Browser only
+* `Exifr.parse(Blob[, options])` Browser only
+* `Exifr.thumbnail(Blob)`
 
 ## Examples
 
@@ -655,6 +655,12 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Browser: \<img> with Object URL as a src varies between 5ms to 30ms
 * Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
 * Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
+
+### HEIC
+
+Other libraries use brute force to read through all bytes until 'Exif' string is found. Whereas exifr recognizes the file structure which consists of nested boxes. This allows exifr to read just a few bytes here and there, to get sizes of the box and pointers to jump to next.
+
+Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. That's up to 30x faster.
 
 ## Licence
 

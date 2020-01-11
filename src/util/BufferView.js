@@ -20,7 +20,7 @@ export function uint8ArrayToAsciiString(uint8array) {
 	return utf8.decode(uint8array)
 }
 
-
+const FULL_20_BITS = parseInt('1'.repeat(20), 2)
 
 export class BufferView {
 
@@ -126,12 +126,40 @@ export class BufferView {
 	getFloat(offset,   le = this.le) {return this.dataView.getFloat32(offset, le)}
 	getDouble(offset,  le = this.le) {return this.dataView.getFloat64(offset, le)}
 
+	getUint64(offset) {
+		let part1 = this.getUint32(offset)
+		let part2 = this.getUint32(offset + 4)
+		if (part1 < FULL_20_BITS) {
+			// Warning: JS cannot handle 64-bit integers. The number will overflow and cause unexpected result
+			// if the number is larger than 53. We try to handle numbers up to 52 bits. 32+21 = 53 out of which
+			// one bit is needed for sign. Becase js only does 32 unsinged int (through bitwise operators).
+			return (part1 << 32) | part2
+		} else if (typeof BigInt !== undefined) {
+			// If the environment supports BigInt we'll try to use it. Though it may break user functionality
+			// (for example can't do mixed math with numbers & bigints)
+			console.warn(`Using BigInt because box ${kind} has length of type 64uint but JS can only handle 53b numbers.`)
+			return (BigInt(part1) << 32n) | BigInt(part2)
+		} else {
+			console.warn(`Integrity broken. Box ${kind} has length of type 64uint but JS can only handle 53b numbers.`)
+		}
+	}
 
-	getUint(bytes) {
+
+	getUintBytes(offset, bytes, le) {
 		switch (bytes) {
-			case 1: return this.getUint8()
-			case 2: return this.getUint16()
-			case 4: return this.getUint32()
+			case 1: return this.getUint8(offset, le)
+			case 2: return this.getUint16(offset, le)
+			case 4: return this.getUint32(offset, le)
+			case 8: return this.getUint64(offset, le)
+		}
+	}
+
+	getUint(offset, size, le) {
+		switch (size) {
+			case 8:  return this.getUint8(offset, le)
+			case 16: return this.getUint16(offset, le)
+			case 32: return this.getUint32(offset, le)
+			case 64: return this.getUint64(offset, le)
 		}
 	}
 

@@ -9,9 +9,21 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {TiffFileParser} from './file-parsers/tif.js'
 import {JpegFileParser} from './file-parsers/jpg.js'
+import {HeicFileParser} from './file-parsers/heic.js'
 
 
 const JPEG_SOI = 0xffd8
+
+function isHeic(file) {
+	let ftypLength = file.getUint32(0)
+	let offset = 16
+	let compatibleBrands = []
+	while (offset < ftypLength) {
+		compatibleBrands.push(file.getString(offset, 4))
+		offset += 4
+	}
+	return compatibleBrands.includes('heic')
+}
 
 export default class Exifr {
 
@@ -74,14 +86,22 @@ export default class Exifr {
 		// JPEG's exif is based on TIFF structure from .tif files.
 		// .tif files start with either 49 49 (LE) or 4D 4D (BE) which is also header for the TIFF structure.
 		// JPEG starts with with FF D8, followed by APP0 and APP1 section (FF E1 + length + 'Exif\0\0' + data) which contains the TIFF structure (49 49 / 4D 4D + data)
-		var marker = this.file.getUint16(0)
-		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN)
+		let marker = this.file.getUint16(0)
+		let FileParser
+		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN) {
 			this.file.isTiff = true
-		else if (marker === JPEG_SOI)
+			FileParser = TiffFileParser
+		} else if (marker === JPEG_SOI) {
 			this.file.isJpeg = true
-		else
+			FileParser = JpegFileParser
+		} else if (isHeic(this.file)) {
+			// NOTE: most parsers check if bytes 4-8 are 'ftyp' and then if 8-12 is one of heic/heix/hevc/hevx/heim/heis/hevm/hevs/mif1/msf1
+			//       but bytes 20-24 are actually always 'heic' for all of these formats
+			this.file.isHeic = true
+			FileParser = HeicFileParser
+		} else {
 			throw new Error(`Unknown file format`)
-		let FileParser = this.file.isTiff ? TiffFileParser : JpegFileParser
+		}
 		this.fileParser = new FileParser(this.options, this.file, this.parsers)
 	}
 

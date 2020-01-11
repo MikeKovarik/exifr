@@ -4,7 +4,7 @@ import Exifr from '../src/index-full.js'
 
 
 
-describe('JpegFileParser', () => {
+describe('JPEG - JpegFileParser', () => {
 
 	describe('.findAppSegments()', () => {
 
@@ -52,6 +52,47 @@ describe('JpegFileParser', () => {
 
 })
 /*
-describe('TiffFileParser', () => {
+describe('TIFF - TiffFileParser', () => {
 })
 */
+
+describe('HEIC - HeicFileParser', () => {
+
+	// heic-iphone.heic
+
+	it(`fixture1 iloc & only`, async () => {
+		let input = await getFile('heic-single.heic')
+		let output = await Exifr.parse(input, true)
+        console.log('-: output', output)
+		assert.isTrue(false)
+	})
+
+	it(`fixture2 iloc & only`, async () => {
+		let input = await getFile('heic-collection.heic')
+		let output = await Exifr.parse(input, true)
+        console.log('-: output', output)
+		assert.isTrue(false)
+	})
+
+	it(`fixture3 iloc & exif`, async () => {
+		let input = await getFile('heic-empty.heic')
+		let output = await Exifr.parse(input, true)
+        console.log('-: output', output)
+		assert.isTrue(false)
+	})
+
+	it(`fixture4 iloc & exif`, async () => {
+		let input = await getFile('heic-iphone.heic')
+		let output = await Exifr.parse(input, true)
+        console.log('-: output', output)
+		assert.isTrue(false)
+	})
+
+	it(`fixture5 iloc & exif`, async () => {
+		let input = await getFile('heic-iphone7.heic')
+		let output = await Exifr.parse(input, true)
+        console.log('-: output', output)
+		assert.isTrue(false)
+	})
+
+})
