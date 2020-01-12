@@ -16,6 +16,15 @@ export class IsoBmffParser extends FileParserBase {
 		return boxes
 	}
 
+	parseSubBoxes(box) {
+		box.boxes = this.parseBoxes(box.start)
+	}
+
+	findBox(box, kind) {
+		if (box.boxes === undefined) this.parseSubBoxes(box)
+		return box.boxes.find(box => box.kind === kind)
+	}
+
 	parseBoxHead(offset) {
 		let length     = this.file.getUint32(offset)
 		let kind       = this.file.getString(offset + 4, 4)
@@ -45,11 +54,9 @@ export class HeicFileParser extends IsoBmffParser {
 		let meta = this.parseBoxHead(metaBoxOffset)
 		await this.file.ensureRange(meta.offset, meta.length)
 		this.parseBoxFullHead(meta)
-		meta.boxes = this.parseBoxes(meta.start)
-		if (this.options.icc.enabled)
-			await this.registerSegment('icc',  ...this.findIcc(meta))
-		if (this.options.tiff.enabled)
-			await this.registerSegment('tiff', ...this.findExif(meta))
+		this.parseSubBoxes(meta)
+		if (this.options.icc.enabled)  await this.findIcc(meta)
+		if (this.options.tiff.enabled) await this.findExif(meta)
 	}
 
 	async registerSegment(key, offset, length) {
@@ -58,29 +65,31 @@ export class HeicFileParser extends IsoBmffParser {
 		this.createParser(key, chunk)
 	}
 
-	findIcc(meta) {
-		let iprp = meta.boxes.find(box => box.kind === 'iprp')
+	async findIcc(meta) {
+		let iprp = this.findBox(meta, 'iprp')
 		if (iprp === undefined) return
-		let ipco = this.parseBoxes(iprp.start).find(box => box.kind === 'ipco')
+		let ipco = this.findBox(iprp, 'ipco')
 		if (ipco === undefined) return
-		let colr = this.parseBoxes(ipco.start).find(box => box.kind === 'colr')
+		let colr = this.findBox(ipco, 'colr')
 		if (colr === undefined) return
-		return [colr.offset + 12, colr.length]
+		await this.registerSegment('icc',  colr.offset + 12, colr.length)
 	}
 
-	findExif(meta) {
-		let iinf = meta.boxes.find(box => box.kind === 'iinf')
+	async findExif(meta) {
+		let iinf = this.findBox(meta, 'iinf')
 		if (iinf === undefined) return
-		let iloc = meta.boxes.find(box => box.kind === 'iloc')
+		let iloc = this.findBox(meta, 'iloc')
 		if (iloc === undefined) return
 		let exifLocId = this.findExifLocIdInIinf(iinf)
-		let [exifOffset, exifLength] = this.findExtentInIloc(iloc, exifLocId)
+		let extent = this.findExtentInIloc(iloc, exifLocId)
+		if (extent === undefined) return
+		let [exifOffset, exifLength] = extent
 		let nameSize = this.file.getUint32(exifOffset)
 		//let name = this.file.getString(exifOffset + 4, nameSize)
 		let extentContentShift = 4 + nameSize
 		exifOffset += extentContentShift
 		exifLength -= extentContentShift
-		return [exifOffset, exifLength]
+		await this.registerSegment('tiff', exifOffset, exifLength)
 	}
 
 	findExifLocIdInIinf(box) {

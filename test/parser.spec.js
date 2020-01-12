@@ -58,53 +58,61 @@ describe('TIFF - TiffFileParser', () => {
 
 describe('HEIC - HeicFileParser', () => {
 
-	let options = {tiff: true, icc: true, mergeOutput: false}
+	const options = {tiff: true, icc: true, mergeOutput: false, translateKeys: false, translateValues: false, reviveValues: false}
 
-	it(`fixture1 iloc & only`, async () => {
+	const MAKE = 271
+	const MODEL = 272
+
+	it(`should not find anything in fixture1`, async () => {
 		let input = await getFile('heic-single.heic')
 		let output = await Exifr.parse(input, options)
-        console.log('-: output', output)
-		assert.exists(output.ifd0, 'output should contain TIFF')
+		assert.isUndefined(output, 'output should be undefined')
 	})
 
-	it(`fixture2 iloc & only`, async () => {
+	it(`should not find anything in fixture2`, async () => {
 		let input = await getFile('heic-collection.heic')
 		let output = await Exifr.parse(input, options)
-        console.log('-: output', output)
-		assert.exists(output.ifd0, 'output should contain TIFF')
+		assert.isUndefined(output, 'output should be undefined')
 	})
 
-	it(`fixture3 iloc & exif`, async () => {
+	it(`should extract TIFF & ICC from fixture3`, async () => {
 		let input = await getFile('heic-empty.heic')
 		let output = await Exifr.parse(input, options)
-		assert.exists(output.ifd0, 'output should contain TIFF')
+		assert.exists(output.ifd0, 'output should contain IFD0')
 		assert.exists(output.icc, 'output should contain ICC')
+		assert.equal(output.icc[16], 'RGB') // ColorSpaceData
 	})
 
 	it(`should extract TIFF & ICC from fixture4`, async () => {
 		let input = await getFile('heic-iphone.heic')
 		let output = await Exifr.parse(input, options)
-		assert.exists(output.ifd0, 'output should contain TIFF')
-		assert.exists(output.icc, 'output should contain ICC')
+		assert.exists(output.ifd0, 'output should contain IFD0')
+		assert.exists(output.exif, 'output should contain EXIF')
+		assert.exists(output.gps,  'output should contain GPS')
+		assert.exists(output.icc,  'output should contain ICC')
+		assert.equal(output.ifd0[MAKE], 'Apple')
+		assert.equal(output.ifd0[MODEL], 'iPhone XS Max')
 	})
 
 	it(`should extract TIFF & ICC from fixture5`, async () => {
 		let input = await getFile('heic-iphone7.heic')
 		let output = await Exifr.parse(input, options)
-		assert.exists(output.ifd0, 'output should contain TIFF')
-		assert.exists(output.icc, 'output should contain ICC')
+		assert.exists(output.ifd0, 'output should contain IFD0')
+		assert.exists(output.exif, 'output should contain EXIF')
+		assert.exists(output.gps,  'output should contain GPS')
+		assert.exists(output.icc,  'output should contain ICC')
 	})
 
 	it(`address of TIFF/EXIF from HEIC should slign properly`, async () => {
 		let input = await getFile('heic-iphone7.heic')
-		let output = await Exifr.parse(input, {tiff: true, mergeOutput: false, translateKeys: false, translateValues: false, reviveValues: false})
-		assert.equal(output.ifd0[271], 'Apple')
-		assert.equal(output.ifd0[272], 'iPhone 7')
+		let output = await Exifr.parse(input, options)
+		assert.equal(output.ifd0[MAKE], 'Apple')
+		assert.equal(output.ifd0[MODEL], 'iPhone 7')
 	})
 
 	it(`address of ICC from HEIC should slign properly`, async () => {
 		let input = await getFile('heic-iphone7.heic')
-		let output = await Exifr.parse(input, {tiff: false, icc: true, mergeOutput: false, translateKeys: false, translateValues: false, reviveValues: false})
+		let output = await Exifr.parse(input, options)
 		assert.equal(output.icc[4].toLowerCase(),  'appl') // ProfileCMMType
 		assert.equal(output.icc[16], 'RGB') // ColorSpaceData
 		assert.equal(output.icc[36], 'acsp') // ProfileFileSignature
