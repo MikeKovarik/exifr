@@ -63,7 +63,7 @@ describe('ICC Segment', () => {
 		{offset: 472723, length: 65490, chunkNumber: 8},
 		{offset: 538231, length: 33248, chunkNumber: 9}
 	]
-	it(`multipage ICC support`, async () => {
+	it(`multisegment ICC support`, async () => {
 		var options = {mergeOutput: false, icc: true}
 		var file = await getFile('./issue-metadata-extractor-65.jpg')
 		var output = await Exifr.parse(file, options)
