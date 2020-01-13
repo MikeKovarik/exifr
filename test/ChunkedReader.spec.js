@@ -81,11 +81,11 @@ describe('ChunkedReader', () => {
 			it(`reading sparsely creates second range`, async () => {
 				let file = new ReaderClass(input, options)
 				await file.readChunked()
-				assert.equal(file.ranges[0].end, firstChunkSize)
-				assert.lengthOf(file.ranges, 1)
+				assert.equal(file.ranges.list[0].end, firstChunkSize)
+				assert.lengthOf(file.ranges.list, 1)
 				let jfifChunk = await file.readChunk(jfifOffset, jfifLength)
-				assert.equal(file.ranges[1].end, jfifOffset + jfifLength)
-				assert.lengthOf(file.ranges, 2)
+				assert.equal(file.ranges.list[1].end, jfifOffset + jfifLength)
+				assert.lengthOf(file.ranges.list, 2)
 				assert.equal(jfifChunk.byteLength, jfifLength)
 				assert.equal(file.byteLength, jfifEnd)
 				if (file.close) await file.close()
@@ -199,9 +199,31 @@ describe('ChunkedReader', () => {
 		let exifr = new Exifr(options)
 		await exifr.read(path)
 		assert.isAtLeast(exifr.file.byteLength, 12695)
-		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges[0].end)
+		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges.list[0].end)
 		let output = await exifr.parse()
 		assert.instanceOf(output.gps.GPSLatitude, Array)
+	})
+
+	it(`issue-metadata-extractor-65.jpg - file with multisegment icc`, async () => {
+		/*
+		issue-metadata-extractor-65.jpg 567kb
+		√ tiff     | offset       2 | length    4321 | end    4323 | <Buffer ff e1 10 df 45 78 69 66 00 00 4d 4d 00 2a>
+		√ iptc     | offset    4323 | length    6272 | end   10595 | <Buffer ff ed 18 7e 50 68 6f 74 6f 73 68 6f 70 20>
+		√ xmp      | offset   10595 | length    3554 | end   14149 | <Buffer ff e1 0d e0 68 74 74 70 3a 2f 2f 6e 73 2e>
+		√ icc      | offset   14149 | length   65508 | end   79657 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset   79657 | length   65508 | end  145165 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  145165 | length   65508 | end  210673 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  210673 | length   65508 | end  276181 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  276181 | length   65508 | end  341689 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  341689 | length   65508 | end  407197 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  407197 | length   65508 | end  472705 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  472705 | length   65508 | end  538213 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+		√ icc      | offset  538213 | length   33266 | end  571479 | <Buffer ff e2 81 f0 49 43 43 5f 50 52 4f 46 49 4c>
+		? Adobed   | offset  571479 | length      16 | end  571495 | <Buffer ff ee 00 0e 41 64 6f 62 65 00 64 00 00 00>
+		*/
+		let input = await getPath('issue-metadata-extractor-65.jpg')
+		let output = await Exifr.parse(input, {icc: true, firstChunkSize: 14149  + 100})
+        console.log('-: output', output)
 	})
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {

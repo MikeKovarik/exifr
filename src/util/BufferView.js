@@ -179,11 +179,11 @@ function isBetween(min, val, max) {
 
 export class DynamicBufferView extends BufferView {
 
-	ranges = []
+	ranges = new Ranges
 
 	constructor(...args) {
 		super(...args)
-		this._registerRange(0, this.byteLength)
+		this.ranges.add(0, this.byteLength)
 	}
 
 	_tryExtend(offset, length) {
@@ -211,14 +211,14 @@ export class DynamicBufferView extends BufferView {
 			throw new Error('Invalid chunk type to extend with')
 		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
 		uintView.set(chunk, this.byteLength)
-		this._registerRange(this.byteLength, chunk.byteLength)
+		this.ranges.add(this.byteLength, chunk.byteLength)
 		this._swapDataView(dataView)
 	}
 
 	subarray(offset, length, canExtend = false) {
 		length = length || this._lengthToEnd(offset)
 		if (canExtend) this._tryExtend(offset, length)
-		this._registerRange(offset, length)
+		this.ranges.add(offset, length)
 		return super.subarray(offset, length)
 	}
 
@@ -226,26 +226,33 @@ export class DynamicBufferView extends BufferView {
 	set(arg, offset, canExtend = false) {
 		if (canExtend) this._tryExtend(offset, arg.byteLength)
 		let chunk = super.set(arg, offset)
-		this._registerRange(offset, chunk.byteLength)
+		this.ranges.add(offset, chunk.byteLength)
 		return chunk
 	}
 
 	async ensureRange(offset, length) {
 		if (!this.chunked) return
-		if (this.isRangeAvailable(offset, length)) return
+		if (this.range.available(offset, length)) return
 		await this.readChunk(offset, length)
 	}
 
 	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
 	// or if its so far only allocated & unitialized memory ready to be written into.
-	isRangeAvailable(offset, length) {
-		let end = offset + length
-		return this.ranges.some(range => range.offset <= offset && end <= range.end)
+	available(offset, length) {
+		return this.ranges.available(offset, length)
 	}
 
-	_registerRange(offset, length) {
+}
+
+export class Ranges {
+
+	list = []
+
+	// TODO: add padding - because it's better to do just one disk read instead of two
+	//       even though there are a few unused bytes between the two needed ranges
+	add(offset, length, padding = 0) {
 		let end = offset + length
-		let within = this.ranges.filter(range => isBetween(offset, range.offset, end) || isBetween(offset, range.end, end))
+		let within = this.list.filter(range => isBetween(offset, range.offset, end) || isBetween(offset, range.end, end))
 		if (within.length > 0) {
 			offset = Math.min(offset, ...within.map(range => range.offset))
 			end    = Math.max(end,    ...within.map(range => range.end))
@@ -254,10 +261,17 @@ export class DynamicBufferView extends BufferView {
 			range.offset = offset
 			range.length = length
 			range.end    = end
-			this.ranges = this.ranges.filter(range => !within.includes(range))
+			this.list = this.list.filter(range => !within.includes(range))
 		} else {
-			this.ranges.push({offset, length, end})
+			this.list.push({offset, length, end})
 		}
+	}
+
+	// Returns bool indicating wheter buffer contains useful data (read from file) at given offset/length
+	// or if its so far only allocated & unitialized memory ready to be written into.
+	available(offset, length) {
+		let end = offset + length
+		return this.list.some(range => range.offset <= offset && end <= range.end)
 	}
 
 }
