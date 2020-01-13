@@ -53,7 +53,7 @@ export class ChunkedReader extends DynamicBufferView {
 	}
 
 	get nextChunkOffset() {
-		let firstRange = this.ranges[0]
+		let firstRange = this.ranges.list[0]
 		if (firstRange && firstRange.offset === 0) return firstRange.length || 0
 		return 0
 	}

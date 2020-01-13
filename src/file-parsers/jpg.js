@@ -71,8 +71,21 @@ export class JpegFileParser extends FileParserBase {
 
 	async readSegments() {
 		//global.recordBenchTime(`exifr.readSegments()`)
+		//let ranges = new Ranges(this.appSegments)
+		//await Promise.all(ranges.list.map(range => this.file.ensureRange(range.offset, range.length)))
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
+		/*
+		// TODO: implement multi-segment
+		let multiSegments = this.appSegments.filter(seg => seg.multiSegment)
+		let types = unique(multiSegments.map(seg => seg.type))
+		for (let type of types) {
+			let segments = multiSegments
+				.filter(seg => seg.type === type)
+				.sort((a, b) => a.chunkNumber - b.chunkNumber)
+            console.log(type, segments)
+		}
+		*/
 	}
 
 	async findAppSegments(offset = 0, wanted) {
@@ -81,7 +94,7 @@ export class JpegFileParser extends FileParserBase {
 		let remaining
 		if (wanted === true) {
 			findAll = true
-			wanted    = new Set(segmentParsers.keys())
+			wanted  = new Set(segmentParsers.keys())
 		} else {
 			if (wanted === undefined)
 				wanted = segmentParsers.keys().filter(key => this.options[key].enabled)
@@ -144,7 +157,11 @@ export class JpegFileParser extends FileParserBase {
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
-						remaining.delete(type)
+						if (seg.chunkCount === undefined || seg.chunkNumber === seg.chunkCount) {
+							// only mark the segment type as done when all of its segments
+							// (if it is split into multiple) are found
+							remaining.delete(type)
+						}
 						if (remaining.size === 0) break
 					}
 				} else {
@@ -195,4 +212,8 @@ export class JpegFileParser extends FileParserBase {
 		return seg
 	}
 
+}
+
+function unique(array) {
+	return Array.from(new Set(array))
 }

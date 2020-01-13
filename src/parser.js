@@ -26,8 +26,7 @@ export class FileParserBase {
 		let start = seg.start
 		let size = seg.size || MAX_APP_SIZE
 		if (this.file.chunked) {
-			let available = this.file.isRangeAvailable(start, size)
-			if (available) {
+			if (this.file.available(start, size)) {
 				seg.chunk = this.file.subarray(start, size)
 			} else {
 				try {

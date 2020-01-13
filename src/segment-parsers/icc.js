@@ -7,6 +7,7 @@ const TAG_TYPE_DESC = 'desc'
 const TAG_TYPE_MLUC = 'mluc'
 const TAG_TYPE_TEXT = 'text'
 const TAG_TYPE_SIG  = 'sig '
+// TODO: other types 'mft2', 'XYZ '
 
 const EMPTY_VALUE = '\x00\x00\x00\x00'
 
@@ -23,15 +24,14 @@ export default class IccParser extends AppSegmentParserBase {
 
 	static findPosition(chunk, offset) {
 		let seg = super.findPosition(chunk, offset)
-		seg.chunkNumber = chunk.getUint8(offset + 16)
-		seg.chunkCount  = chunk.getUint8(offset + 17)
-		/*
+		seg.chunkNumber  = chunk.getUint8(offset + 16)
+		seg.chunkCount   = chunk.getUint8(offset + 17)
+		seg.multiSegment = seg.chunkCount > 1
 		if (seg.chunkCount > 1) {
 			// TODO: API for signalling to main parser that it should keep going through file
 			// and not stop untill all chunks are found
 			console.warn('multi-segment ICC is not yet supported')
 		}
-		*/
 		return seg
 	}
 
@@ -44,24 +44,26 @@ export default class IccParser extends AppSegmentParserBase {
 	}
 
 	parseHeader() {
+		let icc = this.output
 		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
 			throw new Error('ICC header is too short')
 		for (let [offset, parse] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = parse(this.chunk, offset)
 			if (val === EMPTY_VALUE) continue
-			this.output[offset] = val
+			icc[offset] = val
 		}
 	}
 
 	parseTags() {
+		let icc = this.output
 		let tagCount = this.chunk.getUint32(128)
 		let offset = 132
 		while (tagCount--) {
 			let code = this.chunk.getString(offset, 4)
 			let value = this.parseTag(offset)
 			// Not all the type parsers are implemented.
-			if (value !== undefined && value !== EMPTY_VALUE) this.output[code] = value
+			if (value !== undefined && value !== EMPTY_VALUE) icc[code] = value
 			offset += 12
 		}
 	}
@@ -77,7 +79,7 @@ export default class IccParser extends AppSegmentParserBase {
 			case TAG_TYPE_SIG:  return this.parseSig(offset)
 			// TODO: implement more types
 		}
-
+		//return this.file.getUint8Array(offset, size)
 	}
 
 	parseDesc(offset) {

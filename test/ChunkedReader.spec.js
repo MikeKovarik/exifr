@@ -204,7 +204,7 @@ describe('ChunkedReader', () => {
 		assert.instanceOf(output.gps.GPSLatitude, Array)
 	})
 
-	it(`issue-metadata-extractor-65.jpg - file with multisegment icc`, async () => {
+	it(`issue-metadata-extractor-65.jpg - file with multisegment icc - should read all segments`, async () => {
 		/*
 		issue-metadata-extractor-65.jpg 567kb
 		√ tiff     | offset       2 | length    4321 | end    4323 | <Buffer ff e1 10 df 45 78 69 66 00 00 4d 4d 00 2a>
@@ -222,8 +222,10 @@ describe('ChunkedReader', () => {
 		? Adobed   | offset  571479 | length      16 | end  571495 | <Buffer ff ee 00 0e 41 64 6f 62 65 00 64 00 00 00>
 		*/
 		let input = await getPath('issue-metadata-extractor-65.jpg')
-		let output = await Exifr.parse(input, {icc: true, firstChunkSize: 14149  + 100})
-        console.log('-: output', output)
+		let exifr = new Exifr({icc: true, firstChunkSize: 14149  + 100})
+		await exifr.read(input)
+		await exifr.parse()
+		assert.isAtLeast(exifr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {

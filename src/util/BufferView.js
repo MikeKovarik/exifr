@@ -232,7 +232,7 @@ export class DynamicBufferView extends BufferView {
 
 	async ensureRange(offset, length) {
 		if (!this.chunked) return
-		if (this.range.available(offset, length)) return
+		if (this.ranges.available(offset, length)) return
 		await this.readChunk(offset, length)
 	}
 
@@ -247,6 +247,18 @@ export class DynamicBufferView extends BufferView {
 export class Ranges {
 
 	list = []
+
+	constructor(list) {
+		if (list !== undefined && Array.isArray(list))
+			this.addMultiple(list)
+	}
+
+	addMultiple(list) {
+		if (Array.isArray(list[0]))
+			for (let [offset, length] of list) this.add(offset, length)
+		else
+			for (let {offset, length} of list) this.add(offset, length)
+	}
 
 	// TODO: add padding - because it's better to do just one disk read instead of two
 	//       even though there are a few unused bytes between the two needed ranges
