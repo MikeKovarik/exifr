@@ -84,6 +84,7 @@ export class HeicFileParser extends IsoBmffParser {
 		let extent = this.findExtentInIloc(iloc, exifLocId)
 		if (extent === undefined) return
 		let [exifOffset, exifLength] = extent
+		await this.file.ensureRange(exifOffset, exifLength)
 		let nameSize = this.file.getUint32(exifOffset)
 		//let name = this.file.getString(exifOffset + 4, nameSize)
 		let extentContentShift = 4 + nameSize
