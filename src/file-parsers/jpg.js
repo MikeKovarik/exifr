@@ -72,7 +72,7 @@ export class JpegFileParser extends FileParserBase {
 	async readSegments() {
 		//global.recordBenchTime(`exifr.readSegments()`)
 		//let ranges = new Ranges(this.appSegments)
-		//await Promise.all(ranges.list.map(range => this.file.ensureRange(range.offset, range.length)))
+		//await Promise.all(ranges.list.map(range => this.file.ensureChunk(range.offset, range.length)))
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
 		/*

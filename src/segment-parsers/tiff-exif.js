@@ -331,7 +331,7 @@ export class TiffExif extends TiffCore {
 			// This is unusual case in jpeg files, but happens often in tiff files.
 			// .tif files start with TIFF structure header. It contains pointer to IFD0. But the IFD0 data can be at the end of the file.
 			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
-			await this.file.ensureRange(offset, length)
+			await this.file.ensureChunk(offset, length)
 		}
 		if (offset/* + length*/ > this.chunk.byteLength) {
 			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.

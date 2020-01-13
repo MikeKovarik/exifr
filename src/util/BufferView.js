@@ -168,7 +168,7 @@ export class BufferView {
 	}
 
 	// do not delete
-	ensureRange() {}
+	ensureChunk() {}
 
 }
 
@@ -230,7 +230,7 @@ export class DynamicBufferView extends BufferView {
 		return chunk
 	}
 
-	async ensureRange(offset, length) {
+	async ensureChunk(offset, length) {
 		if (!this.chunked) return
 		if (this.ranges.available(offset, length)) return
 		await this.readChunk(offset, length)

@@ -52,7 +52,7 @@ export class HeicFileParser extends IsoBmffParser {
 	async parse() {
 		var metaBoxOffset = this.file.getUint32(0)
 		let meta = this.parseBoxHead(metaBoxOffset)
-		await this.file.ensureRange(meta.offset, meta.length)
+		await this.file.ensureChunk(meta.offset, meta.length)
 		this.parseBoxFullHead(meta)
 		this.parseSubBoxes(meta)
 		if (this.options.icc.enabled)  await this.findIcc(meta)
@@ -60,7 +60,7 @@ export class HeicFileParser extends IsoBmffParser {
 	}
 
 	async registerSegment(key, offset, length) {
-		await this.file.ensureRange(offset, length)
+		await this.file.ensureChunk(offset, length)
 		let chunk = this.file.subarray(offset, length)
 		this.createParser(key, chunk)
 	}
@@ -84,7 +84,7 @@ export class HeicFileParser extends IsoBmffParser {
 		let extent = this.findExtentInIloc(iloc, exifLocId)
 		if (extent === undefined) return
 		let [exifOffset, exifLength] = extent
-		await this.file.ensureRange(exifOffset, exifLength)
+		await this.file.ensureChunk(exifOffset, exifLength)
 		let nameSize = this.file.getUint32(exifOffset)
 		//let name = this.file.getString(exifOffset + 4, nameSize)
 		let extentContentShift = 4 + nameSize
