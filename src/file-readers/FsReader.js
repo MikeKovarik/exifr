@@ -32,9 +32,7 @@ export class FsReader extends ChunkedReader {
 		}
 	}
 
-	// todo: only read unread bytes. ignore overlaping bytes.
-	async readChunk(offset, length) {
-		this.chunksRead++
+	async _readChunk(offset, length) {
 		// reopen if needed
 		if (this.fh === undefined) await this.open()
 		// stay within file-size boundaries

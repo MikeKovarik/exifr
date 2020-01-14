@@ -49,13 +49,43 @@ export class ChunkedReader extends DynamicBufferView {
 	}
 
 	async readNextChunk(offset = this.nextChunkOffset) {
-		await this.readChunk(offset, this.options.chunkSize)
+		if (this.fullyRead) {
+			this.chunksRead++
+			return false
+		}
+		let sizeToRead = this.options.chunkSize
+		let chunk = await this.readChunk(offset, sizeToRead)
+		if (chunk) return chunk.byteLength === sizeToRead
+		return false
+	}
+
+	// todo: only read unread bytes. ignore overlaping bytes.
+	async readChunk(offset, length) {
+		this.chunksRead++
+		length = this.safeWrapAddress(offset, length)
+		if (length === 0) return undefined
+		return this._readChunk(offset, length)
+	}
+
+	safeWrapAddress(offset, length) {
+		if (this.size !== undefined && offset + length > this.size)
+			return Math.max(0, this.size - offset)
+		return length
 	}
 
 	get nextChunkOffset() {
-		let firstRange = this.ranges.list[0]
-		if (firstRange && firstRange.offset === 0) return firstRange.length || 0
+		let {offset, length} = this.ranges.list[0]
+		if (offset === 0) return Math.max(length)
 		return 0
+	}
+
+	get canReadNextChunk() {
+		return this.chunksRead < this.options.chunkLimit
+	}
+
+	get fullyRead() {
+		if (this.size === undefined) return false
+		return this.nextChunkOffset === this.size
 	}
 
 	async read() {

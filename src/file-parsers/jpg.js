@@ -83,7 +83,6 @@ export class JpegFileParser extends FileParserBase {
 			let segments = multiSegments
 				.filter(seg => seg.type === type)
 				.sort((a, b) => a.chunkNumber - b.chunkNumber)
-            console.log(type, segments)
 		}
 		*/
 	}
@@ -121,16 +120,17 @@ export class JpegFileParser extends FileParserBase {
 		if (file.chunked) {
 			// We're in chunked mode and couldn't find all wanted segments.
 			// We'll read couple more chunks and parse them until we've found everything or hit chunk limit.
-			while (remaining.size > 0 && file.chunksRead < this.options.chunkLimit) {
+			let canKeepReading = true
+			while (remaining.size > 0 && canKeepReading && file.canReadNextChunk) {
 				let {nextChunkOffset} = file
-				// We might have previously found beginning of segment, but only first half might be read in memory.
+				// We might have previously found beginning of segment, but only fitst half of it be read in memory.
 				let hasIncompleteSegments = this.appSegments.some(seg => seg.start < nextChunkOffset && seg.end >= nextChunkOffset)
 				// Start reading where we the next block begins. That way we avoid reading part of file where some jpeg image data may be.
 				// Unless there's an incomplete segment. In this case start reading right where the last chunk ends to get the whole segment.
 				if (offset > nextChunkOffset && !hasIncompleteSegments)
-					await file.readNextChunk(offset)
+					canKeepReading = await file.readNextChunk(offset)
 				else
-					await file.readNextChunk(nextChunkOffset)
+					canKeepReading = await file.readNextChunk(nextChunkOffset)
 				offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
 			}
 		}

@@ -9,15 +9,13 @@ export class Base64Reader extends ChunkedReader {
 		// Remove the mime type and base64 marker at the beginning so that we're left off with clear b64 string.
 		this.input = this.input.replace(/^data\:([^\;]+)\;base64,/gmi, '')
 		
-		this.fileSize = (this.input.length / 4) * 3
-		if (this.input.endsWith('=='))     this.fileSize -= 2
-		else if (this.input.endsWith('=')) this.fileSize -= 1
+		this.size = (this.input.length / 4) * 3
+		if (this.input.endsWith('=='))     this.size -= 2
+		else if (this.input.endsWith('=')) this.size -= 1
 	}
 
 	// Accepts base64 or base64 URL and converts it to DataView and trims if needed.
-	async readChunk(offset, length) {
-		this.chunksRead++
-
+	async _readChunk(offset, length) {
 		var base64 = this.input
 		// Base64 encodes 3 bytes of data into string of 4 characters.
 		// To extract bytes at certain offset and length we need to take that into account,
@@ -35,13 +33,13 @@ export class Base64Reader extends ChunkedReader {
 			var offsetInBlock = offset - ((blockStart / 4) * 3)
 		}
 		if (length === undefined) {
-			length = this.fileSize
+			length = this.size
 		}
 		let end = offset + length
 		var blockEnd = blockStart + Math.ceil(end / 3) * 4
 		base64 = base64.slice(blockStart, blockEnd)
 
-		let clampedLength = Math.min(length, this.fileSize - offset)
+		let clampedLength = Math.min(length, this.size - offset)
 		if (hasBuffer) {
 			let slice = Buffer.from(base64, 'base64').slice(offsetInBlock, offsetInBlock + clampedLength)
 			return this.set(slice, offset, true)

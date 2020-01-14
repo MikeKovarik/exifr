@@ -10,8 +10,12 @@ export class BlobReader extends ChunkedReader {
 		this._swapArrayBuffer(arrayBuffer)
 	}
 
-	async readChunk(offset, length) {
-		this.chunksRead++
+	readChunked() {
+		this.size = this.input.size
+		return super.readChunked()
+	}
+
+	async _readChunk(offset, length) {
 		let end = length ? offset + length : undefined
 		let blob = this.input.slice(offset, end)
 		let abChunk = await readBlobAsArrayBuffer(blob)
