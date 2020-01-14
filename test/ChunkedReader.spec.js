@@ -130,6 +130,7 @@ describe('ChunkedReader', () => {
 				assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
 				assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
+				await file.close()
 			})
 
 		})
@@ -137,17 +138,136 @@ describe('ChunkedReader', () => {
 	}
 
 
+	function testReaderClass2(fileWrapper, ReaderClass) {
+
+		let fileSize = 8318
+		let input
+		before(async () => input = await fileWrapper('noexif.jpg'))
+
+		describe('synthetic chunk reading', () => {
+
+			let options = {
+				firstChunkSize: 10
+			}
+
+			it('read chunk 0-500 (out of 8318)', async () => {
+				let offset = 0
+				let length = 500
+				let reader = new ReaderClass(input, options)
+				await reader.readChunked()
+				let chunk = await reader.readChunk(offset, length)
+				assert.equal(chunk.byteLength, length)
+				await reader.close()
+			})
+
+			it('read chunk 8000-8500 (out of 8318)', async () => {
+				let offset = 8000
+				let length = 500
+				let reader = new ReaderClass(input, options)
+				await reader.readChunked()
+				let chunk = await reader.readChunk(offset, length)
+				assert.isNumber(reader.size)
+				assert.equal(chunk.byteLength, 318)
+				await reader.close()
+			})
+
+			it('read chunk 8000-8500 & 8500-9000 (out of 8318) returns appropriate length', async () => {
+				let length = 500
+				let reader = new ReaderClass(input, options)
+				await reader.readChunked()
+				let chunk1 = await reader.readChunk(8000, length)
+				let chunk2 = await reader.readChunk(8500, length)
+				assert.isNumber(reader.size)
+				assert.equal(chunk1.byteLength, 318)
+				assert.isUndefined(chunk2)
+				await reader.close()
+			})
+
+			it('read chunk 9000-9500 (out of 8318) returns undefined', async () => {
+				let offset = 9000
+				let length = 500
+				let reader = new ReaderClass(input, options)
+				await reader.readChunked()
+				let chunk = await reader.readChunk(offset, length)
+				assert.isUndefined(chunk)
+				await reader.close()
+			})
+
+		})
+
+		describe('runtime safe-checks', () => {
+
+			it('.readNextChunk() returns false when last chunk was read', async () => {
+				let chunkSize = 3000
+				let reader = new ReaderClass(input, {
+					firstChunkSize: chunkSize,
+					chunkSize: chunkSize,
+				})
+				await reader.readChunked()
+				assert.equal(reader.byteLength, chunkSize * 1)
+				let canKeepReading1 = await reader.readNextChunk()
+				assert.isTrue(canKeepReading1)
+				assert.equal(reader.byteLength, chunkSize * 2)
+				let canKeepReading2 = await reader.readNextChunk()
+				assert.isFalse(canKeepReading2)
+				assert.equal(reader.byteLength, fileSize)
+				assert.equal(reader.size, fileSize)
+				await reader.close()
+			})
+
+			it('.nextChunkOffset tops up at file size', async () => {
+				let chunkSize = 5000
+				let reader = new ReaderClass(input, {
+					firstChunkSize: chunkSize,
+					chunkSize: chunkSize,
+				})
+				await reader.readChunked()
+				// we dont know the the file size yet so we fall back to defaut chunk size
+				assert.equal(reader.nextChunkOffset, chunkSize)
+				await reader.readNextChunk()
+				assert.equal(reader.nextChunkOffset, fileSize)
+				await reader.close()
+			})
+
+			it(`.chunksRead is 5 when reading ${fileSize} by chunkSize 2000 - only read necessary ammount of chunks`, async () => {
+				let chunkSize = 2000
+				let exifr = new Exifr({
+					firstChunkSize: chunkSize,
+					chunkSize: chunkSize,
+				})
+				await exifr.read(input)
+				await exifr.parse(input)
+				assert.equal(exifr.file.chunksRead, 5)
+				assert.equal(exifr.file.size, fileSize)
+				await exifr.file.close()
+			})
+
+		})
+
+	}
+
+
+
 	isNode && describe('FsReader', () => {
-		testReaderClass(path, FsReader)
+		testReaderClass(getPath(name), FsReader)
+		testReaderClass2(getPath, FsReader)
 	})
-	isBrowser && describe('BlobReader', () => {
-		testReaderClass(createBlob(path), BlobReader)
-	})
+
 	isBrowser && describe('UrlFetcher', () => {
-		testReaderClass(path, UrlFetcher)
+		testReaderClass(getPath(name), UrlFetcher)
+		testReaderClass2(getPath, UrlFetcher)
 	})
+
+	isBrowser && describe('BlobReader', () => {
+		testReaderClass(createBlob(name), BlobReader)
+		testReaderClass2(createBlob, BlobReader)
+	})
+
 	describe('Base64Reader', () => {
-		testReaderClass(createBase64Url(path), Base64Reader)
+
+		testReaderClass(createBase64Url(name), Base64Reader)
+		testReaderClass2(createBase64Url, Base64Reader)
+
 		it(`'YWJj' readChunk() should return 'abc'`, async () => {
 			let base64 = 'YWJj' //btoa('abc')
 			let reader = new Base64Reader(base64, {})
@@ -201,6 +321,7 @@ describe('ChunkedReader', () => {
 		assert.isAtLeast(exifr.file.byteLength, 12695)
 		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges.list[0].end)
 		let output = await exifr.parse()
+		await exifr.file.close()
 		assert.instanceOf(output.gps.GPSLatitude, Array)
 	})
 
@@ -225,6 +346,7 @@ describe('ChunkedReader', () => {
 		let exifr = new Exifr({icc: true, firstChunkSize: 14149  + 100})
 		await exifr.read(input)
 		await exifr.parse()
+		await exifr.file.close()
 		assert.isAtLeast(exifr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 
@@ -236,6 +358,7 @@ describe('ChunkedReader', () => {
 			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
+			await exifr.file.close()
 			assert.equal(output.Make, 'DJI')
 		})
 
@@ -245,6 +368,7 @@ describe('ChunkedReader', () => {
 			let exifr = new Exifr(options)
 			await exifr.read(input)
 			let output = await exifr.parse()
+			await exifr.file.close()
 			assert.equal(output.Make, 'DJI')
 		})
 
@@ -279,6 +403,7 @@ describe('ChunkedReader', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
+				await exifr.file.close()
 				assert.isObject(output)
 			})
 
@@ -288,6 +413,7 @@ describe('ChunkedReader', () => {
 				let exifr = new Exifr(options)
 				await exifr.read(input)
 				let output = await exifr.parse()
+				await exifr.file.close()
 				assert.isObject(output)
 			})
 
@@ -300,17 +426,20 @@ describe('ChunkedReader', () => {
 					let exifr = new Exifr(options)
 					await exifr.read(input)
 					let output = await exifr.parse()
+					await exifr.file.close()
 					assert.isObject(output)
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})
 
 				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
-					let input = await getFile(fileName)
+					let input = await getPath(fileName)
+					//let input = await getFile(fileName)
 					let options = {mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
 					let exifr = new Exifr(options)
 					await exifr.read(input)
 					let output = await exifr.parse()
+					await exifr.file.close()
 					assert.isObject(output)
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})

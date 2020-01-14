@@ -19,15 +19,16 @@ export async function createArrayBuffer(urlOrPath) {
 		return bufferOrAb
 }
 
-export function createBlob(url) {
-	return fetch(url).then(res => res.blob())
+export function createBlob(fileName) {
+	return fetch(getPath(fileName)).then(res => res.blob())
 }
 
-export async function createObjectUrl(url) {
-	return URL.createObjectURL(await createBlob(url))
+export async function createObjectUrl(fileName) {
+	return URL.createObjectURL(await createBlob(fileName))
 }
 
-export async function createBase64Url(url) {
+export async function createBase64Url(fileName) {
+	let url = getPath(fileName)
 	if (isBrowser) {
 		return new Promise(async (resolve, reject) => {
 			var blob = await createBlob(url)
@@ -82,7 +83,7 @@ describe('reader', () => {
 		})
 
 		isBrowser && it(`Browser: Blob`, async () => {
-			var blob = await createBlob(getPath('IMG_20180725_163423.jpg'))
+			var blob = await createBlob('IMG_20180725_163423.jpg')
 			var output = await Exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
@@ -100,13 +101,13 @@ describe('reader', () => {
 		})
 
 		isBrowser && it(`Browser: Object URL`, async () => {
-			var blob = await createObjectUrl(getPath('IMG_20180725_163423.jpg'))
+			var blob = await createObjectUrl('IMG_20180725_163423.jpg')
 			var output = await Exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		it(`Browser & Node: base64 URL`, async () => {
-			var blob = await createBase64Url(getPath('IMG_20180725_163423.jpg'))
+			var blob = await createBase64Url('IMG_20180725_163423.jpg')
 			var output = await Exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
@@ -118,7 +119,7 @@ describe('reader', () => {
 		})
 
 		isBrowser && it(`Browser: <img> element with Object URL`, async () => {
-			var img = createImg(await createObjectUrl(getPath('IMG_20180725_163423.jpg')))
+			var img = createImg(await createObjectUrl('IMG_20180725_163423.jpg'))
 			var output = await Exifr.parse(img)
 			assert.isObject(output, `output is undefined`)
 		})
