@@ -1,4 +1,5 @@
-import {FileParserBase, AppSegmentParserBase, segmentParsers} from '../parser.js'
+import {FileParserBase, AppSegmentParserBase} from '../parser.js'
+import {fileParsers, segmentParsers} from '../parser.js'
 
 
 const MARKER_1         = 0xff
@@ -189,10 +190,10 @@ export class JpegFileParser extends FileParserBase {
 			if (!this.options[type].enabled) continue
 			let parser = this.parsers[type]
 			if (parser && parser.append) {
-				// TODO: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
-				parser.append(chunk)
+				// TODO multisegment: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
+				//parser.append(chunk)
 			} else if (!parser) {
-				let Parser = segmentParsers.getSafe(type, this.options)
+				let Parser = segmentParsers.get(type, this.options)
 				let parser = new Parser(chunk, this.options, this.file)
 				this.parsers[type] = parser
 			}
@@ -214,6 +215,5 @@ export class JpegFileParser extends FileParserBase {
 
 }
 
-function unique(array) {
-	return Array.from(new Set(array))
-}
+
+fileParsers.set('jpeg', JpegFileParser)

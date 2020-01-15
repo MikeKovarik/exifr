@@ -7,6 +7,10 @@ import {Base64Reader} from './file-readers/Base64Reader.js'
 import {UrlFetcher} from './file-readers/UrlFetcher.js'
 import {BlobReader} from './file-readers/BlobReader.js'
 export {FsReader, Base64Reader, UrlFetcher, BlobReader}
+import {PluginList} from './util/helpers.js'
+
+
+export var fileReaders = new PluginList('file reader')
 
 // TODO: - API for including 3rd party XML parser
 

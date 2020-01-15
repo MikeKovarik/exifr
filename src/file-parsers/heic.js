@@ -1,6 +1,4 @@
-import {FileParserBase} from '../parser.js'
-//import {BufferView} from '../util/BufferView.js'
-
+import {fileParsers, FileParserBase} from '../parser.js'
 
 
 export class IsoBmffParser extends FileParserBase {
@@ -154,3 +152,5 @@ export class HeicFileParser extends IsoBmffParser {
 	}
 
 }
+
+fileParsers.set('heic', HeicFileParser)

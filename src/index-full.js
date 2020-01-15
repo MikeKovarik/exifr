@@ -1,7 +1,12 @@
 import Exifr from './index-lite.js'
 export default Exifr
 
-// Parsers
+
+// File Parsers
+import './file-parsers/tif.js'
+import './file-parsers/heic.js'
+
+// Segment Parsers
 import './segment-parsers/jfif.js'
 import './segment-parsers/iptc.js'
 import './segment-parsers/icc.js'

@@ -1,7 +1,11 @@
 import {BufferView} from './util/BufferView.js'
 import {Options} from './options.js'
 import {tagKeys, tagValues, tagRevivers} from './tags.js'
+import {PluginList} from './util/helpers.js'
 
+
+export var fileParsers    = new PluginList('file parser')
+export var segmentParsers = new PluginList('segment parser')
 
 const MAX_APP_SIZE = 65536 // 64kb
 
@@ -101,7 +105,7 @@ export class AppSegmentParserBase {
 		let segOptions = options[type] || {}
 		let optionProps = ['translateKeys', 'translateValues', 'reviveValues']
 		for (let prop of optionProps)
-			this[prop] = pickDefined(Ctor[prop], segOptions[prop], options[prop])
+			this[prop] = findDefined(Ctor[prop], segOptions[prop], options[prop])
 
 		this.canTranslate = this.translateKeys || this.translateValues || this.reviveValues
 	}
@@ -141,17 +145,4 @@ export class AppSegmentParserBase {
 }
 
 const isDefined = val => val !== undefined
-
-const pickDefined = (...values) => values.find(isDefined)
-
-export var segmentParsers = new class extends Map {
-	getSafe(type, options) {
-		if (options[type] && !this.has(type))
-			throw new Error(`${type} parser was not loaded, try using full build of exifr.`)
-		else
-			return this.get(type)
-	}
-	keys() {
-		return Array.from(super.keys())
-	}
-}
+const findDefined = (...values) => values.find(isDefined)

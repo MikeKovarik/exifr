@@ -1,15 +1,13 @@
 import './util/debug.js' // TODO: DELETEME: TO BE REMOVED BEFORE RELEASING
 import {read} from './reader.js'
-import {segmentParsers} from './parser.js'
 export {tagKeys, tagValues, tagRevivers} from './tags.js'
 import {Options} from './options.js'
 import {gpsOnlyOptions} from './options.js'
 import {hasBuffer} from './util/BufferView.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
-import {TiffFileParser} from './file-parsers/tif.js'
-import {JpegFileParser} from './file-parsers/jpg.js'
-import {HeicFileParser} from './file-parsers/heic.js'
+import {fileReaders} from './reader.js'
+import {fileParsers, segmentParsers} from './parser.js'
 
 
 const JPEG_SOI = 0xffd8
@@ -30,9 +28,9 @@ export default class Exifr {
 	// ------------------------- STATIC -------------------------
 
 	static Options = Options
+	static fileReaders = fileReaders
+	static fileParsers = fileParsers
 	static segmentParsers = segmentParsers
-	static fileReaders = undefined // TODO: expose fileReaders
-	static fileParsers = undefined // TODO: expose fileParsers
 
 	static async parse(input, options) {
 		let exifr = new Exifr(options)
@@ -90,15 +88,15 @@ export default class Exifr {
 		let FileParser
 		if (marker === TIFF_LITTLE_ENDIAN || marker === TIFF_BIG_ENDIAN) {
 			this.file.isTiff = true
-			FileParser = TiffFileParser
+			FileParser = fileParsers.get('tiff')
 		} else if (marker === JPEG_SOI) {
 			this.file.isJpeg = true
-			FileParser = JpegFileParser
+			FileParser = fileParsers.get('jpeg')
 		} else if (isHeic(this.file)) {
 			// NOTE: most parsers check if bytes 4-8 are 'ftyp' and then if 8-12 is one of heic/heix/hevc/hevx/heim/heis/hevm/hevs/mif1/msf1
 			//       but bytes 20-24 are actually always 'heic' for all of these formats
 			this.file.isHeic = true
-			FileParser = HeicFileParser
+			FileParser = fileParsers.get('heic')
 		} else {
 			throw new Error(`Unknown file format`)
 		}
@@ -131,7 +129,7 @@ export default class Exifr {
 
 	async extractThumbnail() {
 		this.setup()
-		let TiffParser = segmentParsers.getSafe('tiff', this.options)
+		let TiffParser = segmentParsers.get('tiff', this.options)
 		if (this.file.isTiff)
 			var seg = {start: 0, type: 'tiff'}
 		else

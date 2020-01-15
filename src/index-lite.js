@@ -1,6 +1,10 @@
 import Exifr from './index-core.js'
 export default Exifr
 
+
+// File parser
+import './file-parsers/jpg.js'
+
 // TIFF Parser
 import './segment-parsers/tiff-exif.js'
 
