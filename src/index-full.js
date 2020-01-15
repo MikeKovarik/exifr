@@ -3,7 +3,7 @@ export default Exifr
 
 
 // File Parsers
-import './file-parsers/tif.js'
+import './file-parsers/tiff.js'
 import './file-parsers/heic.js'
 
 // Segment Parsers
