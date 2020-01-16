@@ -1,22 +1,8 @@
 import Exifr from './src/index-full.js'
 import {readBlobAsArrayBuffer} from './src/file-readers/essentials.js'
 import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from './src/options.js'
+import './src/util/debug.js'
 
-
-/*
-// TODO: separate these from raw output
-Long properties
-XPComment in IFD0 in issue-exifr-13.jpg
-ImageDescription in IFD0 in Bush-dog.jpg
-MakerNote
-
-// tyhle jsou number array v ifd0 (binarni?)
-0x9C9B: 'XPTitle', //
-0x9C9C: 'XPComment', //
-0x9C9D: 'XPAuthor', // 
-0x9C9E: 'XPKeywords', //
-0x9C9F: 'XPSubject', //
-*/
 
 //let demoFileName = './test/fixtures/canon-dslr.jpg'
 let fixtureDirPath = './test/fixtures/'
@@ -120,13 +106,34 @@ function reviverWrap(string) {
 	return reviverStart + string + reviverEnd
 }
 
+const BUFFER_DISPLAY_LIMIT = 32
+
+let byteTable = {
+	Uint8Array:  2,
+	Uint16Array: 4,
+	Uint32Array: 8,
+	Int8Array:   2,
+	Int16Array:  4,
+	Int32Array:  8,
+}
 Uint8Array.prototype.toJSON =
 Uint16Array.prototype.toJSON =
 Uint32Array.prototype.toJSON =
 Int8Array.prototype.toJSON =
 Int16Array.prototype.toJSON =
 Int32Array.prototype.toJSON = function() {
-	return reviverWrap(`<${this.constructor.name} ${Array.from(this).map(num => num.toString(16).padStart(2, '0')).join(' ')}>`)
+	let name = this.constructor.name
+	let valueBytes = byteTable[name]
+	let size = Math.min(this.length, BUFFER_DISPLAY_LIMIT)
+	let values = (new Array(size))
+		.fill(0)
+		.map((val, i) => this[i])
+		.map(val => val.toString(16).padStart(valueBytes, '0'))
+		.join(' ')
+	if (size < this.length)
+		return reviverWrap(`<${name} ${values} ... ${this.length - size} more>`)
+	else
+		return reviverWrap(`<${name} ${values}>`)
 }
 
 Array.prototype.toJSON = function() {
