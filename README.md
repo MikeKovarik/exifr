@@ -3,10 +3,10 @@
 📷 The fastest and most versatile JavaScript EXIF reading library.
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
-[![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![gzip size](http://img.badgesize.io/https://unpkg.com/exifr/index.js?compression=gzip)](https://unpkg.com/exifr)
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
+[![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 [![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 
 Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
