@@ -7,8 +7,8 @@ script:
   - npm run build
   - npm test
 after_success:
-  - nyc npm test
-  - nyc report --reporter=text-lcov | coveralls
+  - c8 npm test
+  - c8 report --reporter=text-lcov | coveralls
 # only run CI on master
 # branches:
 #   only:
