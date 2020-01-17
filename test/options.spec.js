@@ -89,13 +89,14 @@ describe('options', () => {
 		// Exif is scattered throughout the file.
 		// Header at the beginning of file, data at the end.
 		// tiff offset at 0; ID0 offset at 677442
-		let scatteredFile = getPath('001.tif')
+		let scatteredFileName = '001.tif'
+		let scatteredFilePath = getPath(scatteredFileName)
 
 		describe('wholeFile: true', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
 				let exifr = new Exifr({wholeFile: true})
-				await exifr.read(await getFile(scatteredFile))
+				await exifr.read(await getFile(scatteredFileName))
 				assert.isNotTrue(exifr.file.chunked)
 			})
 
@@ -110,7 +111,7 @@ describe('options', () => {
 			it(`scattered file should read as a whole`, async () => {
 				let options = {wholeFile: true}
 				let exifr = new Exifr(options)
-				await exifr.read(scatteredFile)
+				await exifr.read(scatteredFilePath)
 				assert.isFalse(exifr.file.chunked)
 				await exifr.file.close()
 			})
@@ -121,7 +122,7 @@ describe('options', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
 				let exifr = new Exifr({wholeFile: undefined})
-				await exifr.read(await getFile(scatteredFile))
+				await exifr.read(await getFile(scatteredFileName))
 				assert.isNotTrue(exifr.file.chunked)
 			})
 
@@ -136,7 +137,7 @@ describe('options', () => {
 			it(`scattered file should be read chunked mode`, async () => {
 				let options = {wholeFile: undefined}
 				let exifr = new Exifr(options)
-				await exifr.read(scatteredFile)
+				await exifr.read(scatteredFilePath)
 				assert.isTrue(exifr.file.chunked)
 				await exifr.file.close()
 			})
@@ -147,7 +148,7 @@ describe('options', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
 				let exifr = new Exifr({wholeFile: false})
-				await exifr.read(await getFile(scatteredFile))
+				await exifr.read(await getFile(scatteredFileName))
 				assert.isNotTrue(exifr.file.chunked)
 			})
 
@@ -162,7 +163,7 @@ describe('options', () => {
 			it(`scattered file should be read chunked mode`, async () => {
 				let options = {wholeFile: false}
 				let exifr = new Exifr(options)
-				await exifr.read(scatteredFile)
+				await exifr.read(scatteredFilePath)
 				assert.isTrue(exifr.file.chunked)
 				await exifr.file.close()
 			})
