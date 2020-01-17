@@ -1,23 +1,15 @@
-<p align="center">
-	<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="200" alt="exifr">
-</p>
+<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="160" alt="exifr">
 
-<p align="center">
 📷 The fastest and most versatile JavaScript EXIF reading library.
-</p>
 
-<p align="center">
-	<a href="https://travis-ci.org/MikeKovarik/exifr"><img src="https://travis-ci.org/MikeKovarik/exifr.svg?branch=master" alt="Build Status"></a>
-	<a href="https://npmjs.org/package/exifr"><img src="https://img.shields.io/npm/v/exifr.svg?style=flat" alt="NPM Version"></a>
-	<a href="https://david-dm.org/MikeKovarik/exifr"><img src="https://david-dm.org/MikeKovarik/exifr.svg" alt="Dependency Status"></a>
-	<a href="https://david-dm.org/MikeKovarik/exifr#info=devDependencies"><img src="https://david-dm.org/MikeKovarik/exifr/dev-status.svg" alt="devDependency Status"></a>
-	<a href="https://coveralls.io/github/MikeKovarik/exifr"><img src="https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg" alt="Coverage Status"></a>
-	<a href="https://github.com/MikeKovarik/exifr/blob/master/LICENSE"><img src="http://img.shields.io/npm/l/exifr.svg?style=flat" alt="License"></a>
-</p>
+[![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
+[![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
+[![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/exifr/index.js?compression=gzip)](https://unpkg.com/exifr)
+[![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
+[![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 
-<p align="center">
-Try it yourself - <a href="https://mutiny.cz/exifr/">demo page & playground</a>
-</p>
+Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Installation
 
