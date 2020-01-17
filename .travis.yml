@@ -1,6 +1,7 @@
 language: node_js
 node_js:
-  - "12"
+#  - "12" # class properties supported since 12
+  - "13.2" # unflagged ESM
 install:
   - npm install
 script:
