@@ -35,8 +35,8 @@
     "c8": "^7.0.1",
     "chai": "^4.2.0",
     "coveralls": "^3.0.7",
-    "mocha": "^6.1.4",
-    "rollup": "^1.10.0",
+    "mocha": "^7.0.0-esm1",
+    "rollup": "^1.29.0",
     "rollup-plugin-notify": "^1.0.1"
   },
   "c8": {
