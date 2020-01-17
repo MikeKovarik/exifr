@@ -72,5 +72,10 @@ describe('issues (special cases)', () => {
     })
 */
 
+	it(`new bug`, async () => {
+		let output = await Exifr.parse('BonTonARTSTORplusIPTC.jpg', {tiff: true})
+		assert.exists(output.ifd0 || output.exif || output.gps)
+	})
+
 })
 
