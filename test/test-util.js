@@ -13,36 +13,36 @@ if (isBrowser) mocha.setup('bdd')
 // in browser we need to use Require.js version which adds it as global to window object.
 export var assert = chai.assert || window.chai.assert
 
-if (isNode) {
-	if (typeof __dirname !== 'undefined')
-		var dirname = __dirname
-	else
-		var dirname = path.dirname(import.meta.url.replace('file:///', ''))
-}
-
-function routePath(filePath) {
-	if (filePath.includes('fixtures/') || filePath.includes('fixtures\\'))
-		return filePath
-	else
-		return 'fixtures/' + filePath
-}
-
 export var btoa
 if (typeof window !== 'undefined' && window.btoa)
 	btoa = window.btoa
 else
 	btoa = string => Buffer.from(string).toString('base64')
 
-export function getPath(filePath) {
-	filePath = routePath(filePath)
-	if (isNode && !path.isAbsolute(filePath))
-		return path.join(dirname, filePath)
+if (isNode) {
+	if (typeof __dirname !== 'undefined')
+		var dirname = __dirname
 	else
+		var dirname = path.dirname(import.meta.url.replace('file:///', ''))
+	if (process.platform !== 'win32' && !path.isAbsolute(dirname))
+		dirname = '/' + dirname
+}
+
+function ensurePathInFixtures(filePath) {
+	if (filePath.includes('fixtures/') || filePath.includes('fixtures\\'))
 		return filePath
+	else
+		return 'fixtures/' + filePath
+}
+
+export function getPath(filePath) {
+	let testFolderPath = path.relative(process.cwd(), dirname)
+	let fileInFixturesPath = ensurePathInFixtures(filePath)
+	return path.join(testFolderPath, fileInFixturesPath)
 }
 
 export function getUrl(filePath) {
-	filePath = routePath(filePath)
+	filePath = ensurePathInFixtures(filePath)
 	return location.href
 		.split('/')
 		.slice(0, -1)
