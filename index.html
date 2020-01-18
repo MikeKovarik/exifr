@@ -48,12 +48,22 @@
 		<div id="input">
 
 			<h3>File</h3>
-			<div id="dropzone" class="${imageUrl ? 'with-img' : ''}" css="background-image: url(${imageUrl});">
+			<div id="dropzone">
 				<input id="picker" type="file" multiple change.trigger="onPick($event)">
-				Click to pick
-				<br>or<br>
-				drop your file here
-				<div class="close" click.trigger="clear()">X</div>
+				<img if.bind="imageUrl && browserCompatibleFile" src.bind="imageUrl">
+				<div if.bind="browserCompatibleFile">
+					Click to pick
+					<br>or<br>
+					drop your file here
+				</div>
+				<div if.bind="!browserCompatibleFile">
+					WARNING
+					<br>
+					Browsers cannot display
+					<br>
+					tif and heic images
+				</div>
+				<div if.bind="imageUrl" class="close" click.trigger="clear()">X</div if.bind="imageUrl">
 			</div>
 
 			<p>Or try some of these demo files:</p>

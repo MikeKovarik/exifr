@@ -67,13 +67,6 @@ class ExifrDemoApp {
 		this.loadPhoto(demoFileName)
 	}
 
-	async loadPhoto(fileName) {
-		let filePath = fixtureDirPath + fileName
-		let res = await fetch(filePath)
-		this.file = await res.arrayBuffer()
-		this.handleFile(this.file)
-	}
-
 	handleError = err => {
 		console.error(err)
 		this.setStatus('ERROR: ' + err.message, 'red')
@@ -113,6 +106,13 @@ class ExifrDemoApp {
 		this.handleFile()
 	}
 
+	async loadPhoto(fileName) {
+		let filePath = fixtureDirPath + fileName
+		let res = await fetch(filePath)
+		let file = await res.arrayBuffer()
+		this.handleFile(file)
+	}
+
 	onDrop = async e => {
 		e.preventDefault()
 		this.processBlob(e.dataTransfer.files[0])
@@ -123,8 +123,8 @@ class ExifrDemoApp {
 	}
 
 	async processBlob(blob) {
-		this.file = await readBlobAsArrayBuffer(blob)
-		this.handleFile(this.file)
+		let file = await readBlobAsArrayBuffer(blob)
+		this.handleFile(file)
 	}
 
 	handleFile = async (file = this.file) => {
@@ -178,16 +178,17 @@ class ExifrDemoApp {
 		// now parse again for the nice boxes with clear information.
 		options.mergeOutput = false
 		options.sanitize = true
-		let parser = new Exifr(options)
-		await parser.read(input)
-		let output = await parser.parse() || {}
+		let exifr = new Exifr(options)
+		await exifr.read(input)
+		let output = await exifr.parse() || {}
 		this.output = output
+		this.browserCompatibleFile = !!exifr.file.isJpeg
 
 		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote
 		this.userComment = output.userComment || output.UserComment || output.exif && output.exif.UserComment
 
 		if (output.thumbnail) {
-			let arrayBuffer = await parser.extractThumbnail()
+			let arrayBuffer = await exifr.extractThumbnail()
 			let blob = new Blob([arrayBuffer])
 			this.thumbUrl = URL.createObjectURL(blob)
 		}
@@ -200,7 +201,11 @@ class ExifrDemoApp {
 			this.imageUrl = input
 	}
 
+	browserCompatibleFile = true
 	clear() {
+		this.rawOutput = undefined
+		this.output = undefined
+		this.browserCompatibleFile = true
 		if (this.thumbUrl) {
 			URL.revokeObjectURL(this.thumbUrl)
 			this.thumbUrl = undefined

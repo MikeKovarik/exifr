@@ -122,43 +122,6 @@ p {
 	margin-top: 8px;
 	margin-bottom: 8px;
 }
-#dropzone.with-img {
-	height: 140px;
-	background-size: contain;
-	background-repeat: no-repeat;
-	background-position: center;
-	border-radius: 0;
-	border: none !important;
-	color: transparent !important;
-}
-	#dropzone:not(.with-img) .close {
-		display: none;
-	}
-	#dropzone .close {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		width: 24px;
-		height: 24px;
-		background-color: rgba(0,0,0,0.4);
-		color: #FFF;
-		border-radius: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-	}
-	#dropzone .close:hover {
-		background-color: rgba(0,0,0,0.6);
-	}
-	#dropzone .close::before {
-		content: '';
-		position: absolute;
-		top: -8px;
-		right: -8px;
-		bottom: -8px;
-		left: -8px;
-	}
 
 h3 {
 	display: flex;
@@ -197,12 +160,13 @@ h3 span {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+	white-space: normal;
 }
 #dropzone:hover {
 	border: 2px dashed rgba(50, 80, 144, 0.4);
 	color: rgba(50, 80, 144, 0.8);
 }
-	#picker {
+	#dropzone #picker {
 		cursor: pointer;
 		position: absolute;
 		left: 0;
@@ -213,6 +177,43 @@ h3 span {
 		height: 100%;
 		opacity: 0;
 	}
+	#dropzone .close {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		width: 24px;
+		height: 24px;
+		background-color: rgba(0,0,0,0.4);
+		color: #FFF;
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+	#dropzone .close:hover {
+		background-color: rgba(0,0,0,0.6);
+	}
+	#dropzone .close::before {
+		content: '';
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		bottom: -8px;
+		left: -8px;
+	}
+	#dropzone img {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		object-fit: cover;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		opacity: 0.1;
+	}
+
 
 #options {
 	font-family: monospace;
