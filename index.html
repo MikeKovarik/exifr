@@ -50,9 +50,8 @@
 			<h3>File</h3>
 			<div id="dropzone">
 				<input id="picker" type="file" multiple change.trigger="onPick($event)">
-				<img if.bind="imageUrl && browserCompatibleFile" src.bind="imageUrl">
 				<div if.bind="browserCompatibleFile">
-					Click to pick
+					Click to open filepicker
 					<br>or<br>
 					drop your file here
 				</div>
@@ -63,7 +62,7 @@
 					<br>
 					tif and heic images
 				</div>
-				<div if.bind="imageUrl" class="close" click.trigger="clear()">X</div if.bind="imageUrl">
+				<img if.bind="imageUrl && browserCompatibleFile" src.bind="imageUrl">
 			</div>
 
 			<p>Or try some of these demo files:</p>

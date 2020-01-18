@@ -169,6 +169,7 @@ h3 span {
 	#dropzone #picker {
 		cursor: pointer;
 		position: absolute;
+		z-index: 1;
 		left: 0;
 		top: 0;
 		right: 0;
@@ -177,35 +178,11 @@ h3 span {
 		height: 100%;
 		opacity: 0;
 	}
-	#dropzone .close {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		width: 24px;
-		height: 24px;
-		background-color: rgba(0,0,0,0.4);
-		color: #FFF;
-		border-radius: 4px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-	}
-	#dropzone .close:hover {
-		background-color: rgba(0,0,0,0.6);
-	}
-	#dropzone .close::before {
-		content: '';
-		position: absolute;
-		top: -8px;
-		right: -8px;
-		bottom: -8px;
-		left: -8px;
-	}
 	#dropzone img {
 		width: 100%;
 		height: 100%;
 		position: absolute;
+		z-index: -1;
 		object-fit: cover;
 		top: 0;
 		right: 0;
