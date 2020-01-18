@@ -20,12 +20,14 @@ else
 	btoa = string => Buffer.from(string).toString('base64')
 
 if (isNode) {
-	if (typeof __dirname !== 'undefined')
-		var dirname = __dirname
-	else
-		var dirname = path.dirname(import.meta.url.replace('file:///', ''))
-	if (process.platform !== 'win32' && !path.isAbsolute(dirname))
-		dirname = '/' + dirname
+	var testFolderPath = path.dirname(import.meta.url.replace('file:///', ''))
+	if (process.platform !== 'win32' && !path.isAbsolute(testFolderPath))
+		testFolderPath = '/' + testFolderPath
+} else {
+	var testFolderPath = location.href
+		.split('/')
+		.slice(0, -1)
+		.join('/')
 }
 
 function ensurePathInFixtures(filePath) {
@@ -36,19 +38,12 @@ function ensurePathInFixtures(filePath) {
 }
 
 export function getPath(filePath) {
-	let testFolderPath = path.relative(process.cwd(), dirname)
+	if (filePath.startsWith('http')) return filePath
 	let fileInFixturesPath = ensurePathInFixtures(filePath)
-	return path.join(testFolderPath, fileInFixturesPath)
-}
-
-export function getUrl(filePath) {
-	filePath = ensurePathInFixtures(filePath)
-	return location.href
-		.split('/')
-		.slice(0, -1)
-		.concat(filePath)
-		.join('/')
-		.replace(/\\/g, '/')
+	if (isNode)
+		return path.join(testFolderPath, fileInFixturesPath)
+	else
+		return testFolderPath + '/' + fileInFixturesPath
 }
 
 let cachedFiles = {}

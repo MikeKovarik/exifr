@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {isBrowser, isNode, getPath, getFile} from './test-util.js'
 import Exifr from '../src/index-full.js'
 
 

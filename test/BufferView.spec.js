@@ -1,6 +1,6 @@
 import {promises as fs} from 'fs'
 import {assert} from './test-util.js'
-import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {isBrowser, isNode, getPath, getFile} from './test-util.js'
 import {Ranges, BufferView, DynamicBufferView} from '../src/util/BufferView.js'
 
 

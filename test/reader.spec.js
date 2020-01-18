@@ -1,6 +1,6 @@
 import {promises as fs} from 'fs'
 import {assert} from './test-util.js'
-import {isBrowser, isNode, getPath, getUrl, getFile} from './test-util.js'
+import {isBrowser, isNode, getPath, getFile} from './test-util.js'
 import Exifr from '../src/index-full.js'
 
 
@@ -95,7 +95,7 @@ describe('reader', () => {
 		})
 
 		isBrowser && it(`Browser: string URL`, async () => {
-			let url = getUrl('IMG_20180725_163423.jpg')
+			let url = getPath('IMG_20180725_163423.jpg')
 			var output = await Exifr.parse(url)
 			assert.isObject(output, `output is undefined`)
 		})
@@ -127,7 +127,7 @@ describe('reader', () => {
 		describe('Browser: WebWoker', () => {
 
 			isBrowser && it(`MJS: string URL`, async () => {
-				let url = getUrl('IMG_20180725_163423.jpg')
+				let url = getPath('IMG_20180725_163423.jpg')
 				let output = await createWorker(url)
 				assert.isObject(output, `output is undefined`)
 			})
