@@ -92,7 +92,7 @@ header {
 		background-position: center;
 		background-repeat: no-repeat;
 		background-size: contain;
-		background-image: url('./logo/blue-small.png');
+		background-image: url('../logo/blue-small.png');
 		font-size: 0;
 	}
 @media only screen and (min-width: 750px) {
