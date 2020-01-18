@@ -1,3 +1,4 @@
+import {fileReaders} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
 import {hasBuffer} from '../util/BufferView.js'
 
@@ -54,3 +55,5 @@ export class Base64Reader extends ChunkedReader {
 	}
 
 }
+
+fileReaders.set('base64', Base64Reader)

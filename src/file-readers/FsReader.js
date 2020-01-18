@@ -1,3 +1,4 @@
+import {fileReaders} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
 import {isNode} from '../util/BufferView.js'
 
@@ -55,3 +56,5 @@ export class FsReader extends ChunkedReader {
 	}
 
 }
+
+fileReaders.set('fs', FsReader)
