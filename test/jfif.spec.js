@@ -5,7 +5,7 @@ import Exifr from '../src/index-full.js'
 
 describe('JFIF Segment', () => {
 
-	describe('enable/disable in options', () => {
+	describe('options.jfif enable/disable', () => {
 		testSegment({
 			key: 'jfif',
 			fileWith: 'issue-exifr-4.jpg',
@@ -14,12 +14,10 @@ describe('JFIF Segment', () => {
 		})
 	})
 
-	describe('options.mergeOutput', () => {
-		testMergeSegment({
-			key: 'jfif',
-			file: 'issue-exifr-4.jpg',
-			properties: ['Xdensity', 'Xthumbnail']
-		})
+	testMergeSegment({
+		key: 'jfif',
+		file: 'issue-exifr-4.jpg',
+		properties: ['Xdensity', 'Xthumbnail']
 	})
 
 	testImage('jfif', 'issue-exifr-4.jpg', {

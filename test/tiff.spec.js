@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
+import {getFile, testMergeSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.js'
 import Exifr from '../src/index-full.js'
 
@@ -17,7 +17,7 @@ function testBlock({blockName, definedByDefault, results}) {
 	let fileWith = 'IMG_20180725_163423.jpg'
 	let fileWithout = 'noexif.jpg'
 
-	describe('enable/disable in options', () => {
+	describe(`options.${blockName} enable/disable`, () => {
 
 		it(`output.${blockName} is undefined when {${blockName}: false}`, async () => {
 			let options = {mergeOutput: false, [blockName]: false}
@@ -248,6 +248,12 @@ describe('TIFF - IFD0 / Image Block', () => {
 		}
 	})
 
+	testMergeSegment({
+		key: 'ifd0',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['Make', 'Pixel']
+	})
+
 	testPickOrSkipTags('ifd0', 'IMG_20180725_163423.jpg', ['Make'], ['Model'])
 
 	testSegmentTranslation({
@@ -308,6 +314,12 @@ describe('TIFF - EXIF Block', () => {
 		}
 	})
 
+	testMergeSegment({
+		key: 'exif',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['ExposureTime', 'ISO']
+	})
+
 	testPickOrSkipTags('exif', 'IMG_20180725_163423.jpg', ['ExposureTime'], ['ISO'])
 
 	testSegmentTranslation({
@@ -336,6 +348,12 @@ describe('TIFF - GPS Block', () => {
 			GPSLongitudeRef: 'E',
 			GPSDOP: 18,
 		}
+	})
+
+	testMergeSegment({
+		key: 'gps',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['GPSLatitude', 'GPSDateStamp']
 	})
 
 	testPickOrSkipTags('gps', 'IMG_20180725_163423.jpg', ['GPSLatitude'], ['GPSDateStamp'])
@@ -373,6 +391,12 @@ describe('TIFF - Interop Block', () => {
 		}
 	})
 
+	testMergeSegment({
+		key: 'interop',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['InteropIndex', 'InteropVersion']
+	})
+
 	testPickOrSkipTags('interop', 'IMG_20180725_163423.jpg', ['InteropIndex'], ['InteropVersion'])
 
 	testSegmentTranslation({
@@ -395,6 +419,12 @@ describe('TIFF - IFD1 / Thumbnail Block', () => {
 		results: {
 			ImageHeight: 189
 		}
+	})
+
+	testMergeSegment({
+		key: 'thumbnail',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['Orientation', 'ImageHeight']
 	})
 
 	testPickOrSkipTags('thumbnail', 'IMG_20180725_163423.jpg', ['Orientation'], ['ImageHeight'])

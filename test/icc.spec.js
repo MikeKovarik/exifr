@@ -1,5 +1,5 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testSegmentTranslation, testImage} from './test-util.js'
+import {getFile, testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util.js'
 import IccParser from '../src/segment-parsers/icc.js'
 
 
@@ -16,13 +16,19 @@ function testProfile(filePath, results = {}) {
 
 describe('ICC Segment', () => {
 
-	describe('enable/disable in options', () => {
+	describe('options.icc enable/disable', () => {
 		testSegment({
 			key: 'icc',
 			fileWith: 'IMG_20180725_163423.jpg',
 			fileWithout: 'issue-exifr-3.jpg',
 			definedByDefault: false
 		})
+	})
+
+	testMergeSegment({
+		key: 'icc',
+		file: 'IMG_20180725_163423.jpg',
+		properties: ['ColorSpaceData', 'ProfileCreator']
 	})
 
 	// we won't bother implementing this for now. its way to insignificant of a use.

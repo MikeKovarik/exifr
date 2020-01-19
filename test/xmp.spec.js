@@ -6,14 +6,16 @@ import XmpParser from '../src/segment-parsers/xmp.js'
 
 describe('XMP Segment', () => {
 
-	describe('enable/disable in options', () => {
-
+	describe('options.xmp enable/disable', () => {
         testSegment({
             key: 'xmp',
             fileWith: 'cookiezen.jpg',
             fileWithout: 'img_1771_no_exif.jpg',
             definedByDefault: false
         })
+    })
+
+	describe('options.mergeOutput', () => {
 
         it(`output.xmp is string when {xmp: true, mergeOutput: true}`, async () => {
             let options = {mergeOutput: true, xmp: true}
@@ -109,14 +111,22 @@ describe('XMP Segment', () => {
 	})
 
 	// this file was buggy and did not parse properly. do not remove this test.
-	it(`should not be empty when the XMP string starts with '<x:xmpmeta'`, async () => {
+
+	it(`should not be empty when the XMP string starts with '<?xpacket><rdf:RDF>'`, async () => {
+		let options = {tiff: false, xmp: true, mergeOutput: false}
+		let input = await getFile('issue-exif-js-124.tiff')
+		var output = await Exifr.parse(input, options)
+		assert.isNotEmpty(output.xmp)
+	})
+
+	it(`should not be empty when the XMP string starts with '<x:xmpmeta><rdf:RDF>'`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
 		let input = await getFile('PANO_20180714_121453.jpg')
 		var output = await Exifr.parse(input, options)
 		assert.isNotEmpty(output.xmp)
 	})
 
-	it(`should not be empty when the XMP string starts with '<?xpacket'`, async () => {
+	it(`should not be empty when the XMP string starts with '<?xpacket><x:xmpmeta>'`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
 		let input = await getFile('cookiezen.jpg')
 		var output = await Exifr.parse(input, options)

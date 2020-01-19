@@ -105,25 +105,27 @@ export function testSegment({key, fileWith, fileWithout, definedByDefault, prope
 
 
 export function testMergeSegment({key, file, properties}) {
+	describe('options.mergeOutput', () => {
 
-	it(`mergeOutput:false keeps ${key} as separate object in output`, async () => {
-		var options = {mergeOutput: false, [key]: true}
-		var input = await getFile(file)
-		var output = await Exifr.parse(input, options) || {}
-		assert.isDefined(output[key])
-		for (let prop of properties)
-			assert.isDefined(output[key][prop])
+		it(`mergeOutput:false keeps ${key} as separate object in output`, async () => {
+			var options = {mergeOutput: false, [key]: true}
+			var input = await getFile(file)
+			var output = await Exifr.parse(input, options) || {}
+			assert.isDefined(output[key])
+			for (let prop of properties)
+				assert.isDefined(output[key][prop])
+		})
+
+		it(`mergeOutput:true combines ${key} properties into output`, async () => {
+			var options = {mergeOutput: true, [key]: true}
+			var input = await getFile(file)
+			var output = await Exifr.parse(input, options) || {}
+			assert.isUndefined(output[key])
+			for (let prop of properties)
+				assert.isDefined(output[prop])
+		})
+
 	})
-
-	it(`mergeOutput:true combines ${key} properties into output`, async () => {
-		var options = {mergeOutput: true, [key]: true}
-		var input = await getFile(file)
-		var output = await Exifr.parse(input, options) || {}
-		assert.isUndefined(output[key])
-		for (let prop of properties)
-			assert.isDefined(output[prop])
-	})
-
 }
 
 

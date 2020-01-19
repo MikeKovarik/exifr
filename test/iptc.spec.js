@@ -1,17 +1,23 @@
 import {assert} from './test-util.js'
-import {getFile, testSegment, testSegmentTranslation, testImage} from './test-util.js'
+import {getFile, testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util.js'
 import Exifr from '../src/index-full.js'
 
 
 describe('IPTC Segment', () => {
 
-	describe('enable/disable in options', () => {
+	describe('options.iptc enable/disable', () => {
 		testSegment({
 			key: 'iptc',
 			fileWith: 'Bush-dog.jpg',
 			fileWithout: 'IMG_20180725_163423.jpg',
 			definedByDefault: false
 		})
+	})
+
+	testMergeSegment({
+		key: 'iptc',
+		file: 'Bush-dog.jpg',
+		properties: ['Headline', 'Credit']
 	})
 
 	// we won't bother implementing this for now. its way to insignificant of a use.
