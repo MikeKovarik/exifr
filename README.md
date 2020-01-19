@@ -640,6 +640,24 @@ import {ExifParser} from 'exifr'
 import Exifr from 'exifr'
 ```
 
+## XMP
+
+Exifr does not come with an XML parser out of the box, because those are heavy, complicated. And there's plenty of them on npm already.
+So to keep exifr simple and light-weight, it only extract the XMP string and you have to parse it yourself.
+
+You can also inject XML parser into exifr and have it process the XMP string.
+
+```js
+// Exifr offers you an API for using your own XML parser while parsing XMP.
+// 1) get the XmlParser class.
+let XmpParser = Exifr.segmentParsers.get('xmp')
+// 2) Implement parseXml() method which takes one string argument
+//    and returns anything that ends up as output.xmp.
+XmpParser.prototype.parseXml = function(xmpString) {
+	return 'Bring Your Own XML parser here: ' + xmpString
+}
+```
+
 ## Note on performance
 
 As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
