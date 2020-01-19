@@ -35,77 +35,85 @@ describe('XMP Segment', () => {
         let options = {mergeOutput: false, xmp: true, wholeFile: true}
         let input = getPath('issue-exifr-4.jpg')
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
 	it(`should parse .tif file with scattered data segments when {xmp: true, tiff: true)`, async () => {
 		let options = {mergeOutput: false, xmp: true, tiff: true}
 		let input = await getFile('001.tif')
 		var output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
 	})
 
 	it(`should parse .tif file with scattered data segments when {xmp: true, tiff: false)`, async () => {
 		let options = {mergeOutput: false, xmp: true, tiff: false}
 		let input = await getFile('001.tif')
 		var output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
 	})
 
     it(`issue exifr #4 whole file`, async () => {
 		let input = await getFile('issue-exifr-4.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #4 chunked`, async () => {
 		let input = getPath('issue-exifr-4.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #13 whole file`, async () => {
 		let input = await getFile('issue-exifr-13.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue exifr #13 chunked`, async () => {
 		let input = getPath('issue-exifr-13.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue node-exif #58 whole file`, async () => {
 		let input = await getFile('issue-node-exif-58.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
     it(`issue node-exif #58 chunked`, async () => {
 		let input = getPath('issue-node-exif-58.jpg')
 		let options = {mergeOutput: false, xmp: true}
         let output = await Exifr.parse(input, options)
-        assert.exists(output.xmp, `output doesn't contain xmp`)
+        assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
     })
 
 	it(`should extract XMP from .tif file with scattered data segments when {tiff: true, xmp: true}`, async () => {
 		let options = {tiff: true, xmp: true, mergeOutput: false}
 		let input = await getFile('001.tif')
 		var output = await Exifr.parse(input, options)
-		assert.isDefined(output.xmp)
+		assert.isNotEmpty(output.xmp)
 	})
 
 	it(`should extract XMP from .tif file with scattered data segments when {tiff: false, xmp: true}`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
 		let input = await getFile('001.tif')
 		var output = await Exifr.parse(input, options)
-		assert.isDefined(output.xmp)
+		assert.isNotEmpty(output.xmp)
+	})
+
+	// this file was buggy and did not parse properly. do not remove this test.
+	it(`bug - should not be empty string`, async () => {
+		let options = {tiff: false, xmp: true, mergeOutput: false}
+		let input = await getFile('PANO_20180714_121453.jpg')
+		var output = await Exifr.parse(input, options)
+		assert.isNotEmpty(output.xmp)
 	})
 
 })

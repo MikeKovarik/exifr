@@ -89,7 +89,7 @@ describe('Exifr class (high level API)', () => {
 		})
 
 		it(`returns undefined if there's no thumbnail`, async () => {
-			let input = await getFile('PANO_20180725_162444.jpg')
+			let input = await getFile('PANO_20180714_121453.jpg')
 			let exifr = new Exifr()
 			await exifr.read(input)
 			var thumb = await exifr.extractThumbnail()

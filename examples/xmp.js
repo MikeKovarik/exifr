@@ -2,6 +2,13 @@ import Exifr from '../index.mjs'
 import {promises as fs} from 'fs'
 
 
+let XmpParser = Exifr.segmentParsers.get('xmp')
+console.log('-: XmpParser', XmpParser)
+XmpParser.parseXml = function(string) {
+	let parsedXml = string + ':)' // do something with the xml here
+	return parsedXml
+}
+
 // only extract the XMP segment and nothing more than is necessary.
 // i.e. Only finds TIFF segments and reads pointers, lengths, bypasses the rest
 // and jumps straight to XMP segment. Ignores GPS, Thumbnail info, IPTC, etc...

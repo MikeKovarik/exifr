@@ -32,7 +32,8 @@ class ExifrDemoApp {
 		name: 'IMG_20180725_163423.jpg',
 	}, {
 		text: 'JPEG Google Pixel pano',
-		name: 'PANO_20180725_162444.jpg',
+		name: 'PANO_20180714_121453.jpg',
+		options: ['xmp'],
 	}, {
 		text: 'HEIC iPhone photo',
 		name: 'heic-iphone7.heic',
@@ -42,6 +43,11 @@ class ExifrDemoApp {
 	}, {
 		text: 'Photo with IPTC descriptions',
 		name: 'iptc-independent-photographer-example.jpg',
+		options: ['iptc'],
+	}, {
+		text: 'Image with XMP',
+		name: 'cookiezen.jpg',
+		options: ['xmp'],
 	}]
 
 	constructor() {
@@ -137,6 +143,7 @@ class ExifrDemoApp {
 	handleFile = async (file = this.file) => {
 		//this.setStatus(`parsing`)
 		if (this.file !== file) {
+			this.file = file
 			this.clear()
 		}
 		try {

@@ -350,7 +350,7 @@ describe('TIFF - GPS Block', () => {
 	})
 
 	it(`additional GPS block test 1`, async () => {
-		let output = await Exifr.parse(await getFile('PANO_20180725_162444.jpg'), {mergeOutput: false})
+		let output = await Exifr.parse(await getFile('PANO_20180714_121453.jpg'), {mergeOutput: false})
 		assert.equal(output.gps.GPSProcessingMethod, 'fused', `output doesn't contain gps`)
 	})
 
