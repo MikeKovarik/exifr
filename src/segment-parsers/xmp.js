@@ -16,14 +16,22 @@ export default class Xmp extends AppSegmentParserBase {
 			&& buffer.getUint32(offset + 4) === 0x68747470 // 'http'
 	}
 
+	// warning: XMP can start with the http. the content may or may not be wrapped into <?xpacket.
+	// So far i've seen all of these:
+	// '<?xpacket ...'
+	// 'http://ns.adobe.com/xap/1.0/ <?xpacket ...'
+	// 'http://ns.adobe.com/xap/1.0/ <x:xmpmeta ...'
+
 	parse() {
+		console.log('parse XMP')
 		// Read XMP segment as string. We're not parsing the XML.
 		let string = this.chunk.getString()
 		// Trim the mess around.
-		let start = string.indexOf('<?xpacket')
-		let end = string.lastIndexOf('?>')
+		let start = string.indexOf('<x:xmpmeta')
+		let end = string.lastIndexOf('</x:xmpmeta>') + 12
 		string = string.slice(start, end)
 		// Parse XML if the user provided his own XMP parser.
+        console.log(string)
 		if (this.parseXml)
 			return this.parseXml(string)
 		else

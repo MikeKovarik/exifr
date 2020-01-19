@@ -109,9 +109,16 @@ describe('XMP Segment', () => {
 	})
 
 	// this file was buggy and did not parse properly. do not remove this test.
-	it(`bug - should not be empty string`, async () => {
+	it(`should not be empty when the XMP string starts with '<x:xmpmeta'`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
 		let input = await getFile('PANO_20180714_121453.jpg')
+		var output = await Exifr.parse(input, options)
+		assert.isNotEmpty(output.xmp)
+	})
+
+	it(`should not be empty when the XMP string starts with '<?xpacket'`, async () => {
+		let options = {tiff: false, xmp: true, mergeOutput: false}
+		let input = await getFile('cookiezen.jpg')
 		var output = await Exifr.parse(input, options)
 		assert.isNotEmpty(output.xmp)
 	})
