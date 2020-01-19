@@ -1,6 +1,6 @@
 import {fileReaders} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
-import {hasBuffer} from '../util/BufferView.js'
+import * as platform from '../util/platform.js'
 
 
 export class Base64Reader extends ChunkedReader {
@@ -41,7 +41,7 @@ export class Base64Reader extends ChunkedReader {
 		base64 = base64.slice(blockStart, blockEnd)
 
 		let clampedLength = Math.min(length, this.size - offset)
-		if (hasBuffer) {
+		if (platform.hasBuffer) {
 			let slice = Buffer.from(base64, 'base64').slice(offsetInBlock, offsetInBlock + clampedLength)
 			return this.set(slice, offset, true)
 		} else {

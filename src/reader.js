@@ -1,4 +1,5 @@
-import {BufferView, isBrowser, isNode, isWorker} from './util/BufferView.js'
+import * as platform from './util/platform.js'
+import {BufferView} from './util/BufferView.js'
 // TODO: use these bare functions when ChunkedReader is not included in the build
 import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './file-readers/essentials.js'
 // TODO: make optional
@@ -13,11 +14,11 @@ export function read(arg, options) {
 	//global.recordBenchTime(`exifr.read()`)
 	if (typeof arg === 'string')
 		return readString(arg, options)
-	else if (isBrowser && !isWorker && arg instanceof HTMLImageElement)
+	else if (platform.browser && !platform.worker && arg instanceof HTMLImageElement)
 		return readString(arg.src, options)
 	else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 		return new BufferView(arg)
-	else if (isBrowser && arg instanceof Blob)
+	else if (platform.browser && arg instanceof Blob)
 		return readBlob(arg, options)
 	else
 		throw new Error('Invalid input argument')
@@ -26,9 +27,9 @@ export function read(arg, options) {
 function readString(string, options) {
 	if (isBase64Url(string))
 		return readBase64(string, options)
-	else if (isBrowser)
+	else if (platform.browser)
 		return readUrl(string, options)
-	else if (isNode)
+	else if (platform.node)
 		return readFileFromDisk(string, options)
 	else
 		throw new Error('Invalid input argument')

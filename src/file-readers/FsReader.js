@@ -1,9 +1,9 @@
 import {fileReaders} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
-import {isNode} from '../util/BufferView.js'
+import * as platform from '../util/platform.js'
 
 
-if (isNode) {
+if (platform.node) {
 	if (typeof require === 'function')
 		var fsPromise = Promise.resolve(require('fs').promises)
 	else

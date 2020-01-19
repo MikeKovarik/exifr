@@ -1,7 +1,6 @@
 import './util/debug.js' // TODO: DELETEME: TO BE REMOVED BEFORE RELEASING
 import {read} from './reader.js'
 import {gpsOnlyOptions} from './options.js'
-import {hasBuffer} from './util/BufferView.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 // exposed
@@ -9,6 +8,7 @@ import {Options} from './options.js'
 import {tagKeys, tagValues, tagRevivers} from './tags.js'
 import {fileReaders} from './reader.js'
 import {fileParsers, segmentParsers} from './parser.js'
+import * as platform from './util/platform.js'
 
 
 const JPEG_SOI = 0xffd8
@@ -48,7 +48,7 @@ export default class Exifr {
 		let exifr = new Exifr(options)
 		await exifr.read(input)
 		let uint8array = await exifr.extractThumbnail()
-		if (uint8array && hasBuffer)
+		if (uint8array && platform.hasBuffer)
 			return Buffer.from(uint8array)
 		else
 			return uint8array

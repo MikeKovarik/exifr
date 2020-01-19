@@ -1,4 +1,4 @@
-import {DynamicBufferView} from '../util/BufferView.js'
+import {DynamicBufferView} from '../util/DynamicBufferView.js'
 
 
 // This method came through three iterations. Tested with 4MB file with EXIF at the beginning.
