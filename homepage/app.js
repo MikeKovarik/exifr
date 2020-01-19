@@ -25,15 +25,9 @@ class ExifrDemoApp {
 	iptcFilter =      ['headline', 'caption', 'source', 'country']
 	thumbnailFilter = ['ImageWidth', 'ImageHeight', 'ThumbnailLength']
 
-	rawFullscreen = false
-
 	demoFiles = [{
 		text: 'JPEG Google Pixel photo',
 		name: 'IMG_20180725_163423.jpg',
-	}, {
-		text: 'JPEG Google Pixel pano',
-		name: 'PANO_20180714_121453.jpg',
-		options: ['xmp'],
 	}, {
 		text: 'HEIC iPhone photo',
 		name: 'heic-iphone7.heic',
@@ -41,17 +35,20 @@ class ExifrDemoApp {
 		text: 'TIFF Drone photo',
 		name: 'issue-metadata-extractor-152.tif',
 	}, {
-		text: 'Photo with IPTC descriptions',
+		text: 'Photo Sphere / GPano',
+		name: 'PANO_20180714_121453.jpg',
+		segments: ['xmp'],
+	}, {
+		text: 'Photo with IPTC desc',
 		name: 'iptc-independent-photographer-example.jpg',
-		options: ['iptc'],
+		segments: ['iptc'],
 	}, {
 		text: 'Image with XMP',
 		name: 'cookiezen.jpg',
-		options: ['xmp'],
+		segments: ['xmp'],
 	}]
 
 	constructor() {
-		this.setStatus('Loading image')
 		this.setupDom().catch(this.handleError)
 		this.setupExifr().catch(this.handleError)
 	}
@@ -85,14 +82,16 @@ class ExifrDemoApp {
 				this.options[key] = Exifr.Options[key]
 		this.options.thumbnail = true
 	}
-/*
-	createDefaultOptions() {
-		this.options = {}
-		for (let key of segmentsAndBlocks) this.options[key] = true
-		for (let key of tiffExtractables)  this.options[key] = true
-		for (let key of formatOptions)     this.options[key] = true
+
+	toggleAllOptions() {
+		let keys = [...segmentsAndBlocks, ...tiffExtractables]
+		let values = keys.map(key => this.options[key])
+		let hasSomethingUnchecked = values.some(val => val === false)
+		for (let key of keys)
+			this.options[key] = hasSomethingUnchecked
+		this.parseFile()
 	}
-*/
+
 	onCheckboxChanged = e => {
 		let boxNode = boxNodes[e.target.name]
 		if (boxNode) {
@@ -101,29 +100,18 @@ class ExifrDemoApp {
 			else
 				boxNode.classList.add('disabled')
 		}
-		this.handleFile()
+		this.parseFile()
 	}
 
-	updateOptions(updatedField) {
-		let options = this.options
-		if (updatedField === 'tiff') {
-			let copyProps = [...tiffBlocks, ...tiffExtractables]
-			if (options.tiff === false) {
-				for (let key in copyProps)
-					options[key] = false
-			} else {
-				for (let key in copyProps)
-					options[key] = Exifr.Options[key]
-			}
-		}
-		this.handleFile()
-	}
-
-	async loadPhoto(fileName) {
+	async loadPhoto(fileName, segmentsToEnable = []) {
+		this.setStatus('Loading image')
 		let filePath = fixtureDirPath + fileName
 		let res = await fetch(filePath)
 		let file = await res.arrayBuffer()
-		this.handleFile(file)
+		let options = this.options
+		for (let key of segmentsToEnable)
+			options[key] = true
+		this.parseFile(file)
 	}
 
 	onDrop = async e => {
@@ -137,10 +125,10 @@ class ExifrDemoApp {
 
 	async processBlob(blob) {
 		let file = await readBlobAsArrayBuffer(blob)
-		this.handleFile(file)
+		this.parseFile(file)
 	}
 
-	handleFile = async (file = this.file) => {
+	parseFile = async (file = this.file) => {
 		//this.setStatus(`parsing`)
 		if (this.file !== file) {
 			this.file = file
@@ -164,26 +152,12 @@ class ExifrDemoApp {
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
 
-		if (output)
-			this.rawOutput = this.cleanOutput(output)
-		else
-			this.rawOutput = 'The file has no EXIF'
+		this.rawOutput = output || 'The file has no EXIF'
 	}
 
 	setStatus(text, color = '') {
 		this.status = text
 		this.color = color
-	}
-
-	cleanOutput(output = {}) {
-		output = cloneObject(output)
-		if (output.makerNote) output.makerNote = '[... OMITTED ...]'
-		if (output.userComment) output.userComment = '[... OMITTED ...]'
-		let exif = output.exif || output
-		if (exif.MakerNote) exif.MakerNote = '[... OMITTED ...]'
-		if (exif.UserComment) exif.UserComment = '[... OMITTED ...]'
-		//if (exif.ApplicationNotes) exif.ApplicationNotes = '[... OMITTED ...]'
-		return output
 	}
 
 	async parseForPrettyOutput(input) {
@@ -197,9 +171,6 @@ class ExifrDemoApp {
 		let output = await exifr.parse() || {}
 		this.output = output
 		this.browserCompatibleFile = !!exifr.file.isJpeg
-
-		this.makerNote = output.makerNote || output.MakerNote || output.exif && output.exif.MakerNote
-		this.userComment = output.userComment || output.UserComment || output.exif && output.exif.UserComment
 
 		if (output.thumbnail) {
 			let arrayBuffer = await exifr.extractThumbnail()

@@ -1,4 +1,4 @@
-const BUFFER_DISPLAY_LIMIT = 32
+const BUFFER_DISPLAY_LIMIT = 16
 
 const reviverStart = '💿✨💀'
 const reviverEnd   = '💾✨⚡'

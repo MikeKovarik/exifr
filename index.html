@@ -36,7 +36,7 @@
 	</header>
 
 
-	<div id="grid" class="nowrap ${rawFullscreen ? 'raw-fullscreen' : ''}">
+	<div id="grid" class="nowrap ${rawFullscreen === false ? 'raw-side' : rawFullscreen ? 'raw-fullscreen' : ''}">
 
 		<h2 id="input-head">Input</h2>
 
@@ -67,36 +67,39 @@
 
 			<p>Or try some of these demo files:</p>
 			<li repeat.for="file of demoFiles">
-				<a href="#" click.trigger="loadPhoto(file.name)">
+				<a href="#" click.trigger="loadPhoto(file.name, file.segments)">
 					${file.text}
 				</a>
 			</li>
 
-			<h3>Options</h3>
+			<h3>
+				Options
+				<span click.trigger="toggleAllOptions()">Toggle all</span>
+			</h3>
 			<form id="options">
 				<div>{</div>
 				<div muted>&nbsp;&nbsp;// APP segments</div>
-				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.tiff" change.trigger="updateOptions('tiff')">,</div>
+				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.ifd0 || options.exif || options.gps || options.interop || options.thumbnail || options.makerNote || options.userComment" disabled change.trigger="parseFile()">,</div>
 				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// TIFF blocks</div>
 				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd0:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.ifd0" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;exif:      <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.exif" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:       <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.gps" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.interop" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;thumbnail: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.thumbnail" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd0:      <input type="checkbox" checked.bind="options.ifd0" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;exif:      <input type="checkbox" checked.bind="options.exif" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:       <input type="checkbox" checked.bind="options.gps" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop:   <input type="checkbox" checked.bind="options.interop" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;thumbnail: <input type="checkbox" checked.bind="options.thumbnail" change.trigger="parseFile()">,</div>
 				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// other data</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;makerNote:   <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.makerNote" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;userComment: <input type="checkbox" disabled.bind="!options.tiff" checked.bind="options.userComment" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;icc:       <input type="checkbox" checked.bind="options.icc" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" checked.bind="options.iptc" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" checked.bind="options.jfif" change.trigger="updateOptions()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;makerNote:   <input type="checkbox" checked.bind="options.makerNote" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;userComment: <input type="checkbox" checked.bind="options.userComment" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;icc:       <input type="checkbox" checked.bind="options.icc" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" checked.bind="options.iptc" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" checked.bind="options.jfif" change.trigger="parseFile()">,</div>
 				<div muted>&nbsp;&nbsp;// output style</div>
-				<div title="combine all segments and blocks into single output object">&nbsp;&nbsp;mergeOutput: <input type="checkbox" checked.bind="options.mergeOutput" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;sanitize:        <input type="checkbox" checked.bind="options.sanitize" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;translateKeys:   <input type="checkbox" checked.bind="options.translateKeys" change.trigger="updateOptions()">,</div>
-				<div>&nbsp;&nbsp;translateValues: <input type="checkbox" checked.bind="options.translateValues" change.trigger="updateOptions()">,</div>
+				<div title="combine all segments and blocks into single output object">&nbsp;&nbsp;mergeOutput: <input type="checkbox" checked.bind="options.mergeOutput" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;sanitize:        <input type="checkbox" checked.bind="options.sanitize" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;translateKeys:   <input type="checkbox" checked.bind="options.translateKeys" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;translateValues: <input type="checkbox" checked.bind="options.translateValues" change.trigger="parseFile()">,</div>
 				<!--
 				<div muted>&nbsp;&nbsp;// skip or only pick tags</div>
 				<div>&nbsp;&nbsp;pick: [<input type="text" name="pick">],</div>
@@ -110,25 +113,22 @@
 		<div id="thumb">
 			<h3>Embedded thumbnail</h3>
 			<img if.bind="thumbUrl" src.bind="thumbUrl">
-			<p if.bind="thumbUrl === undefined">
+			<span if.bind="thumbUrl === undefined" class="small">
 				Doesn't contain thumbnail
-			</p>
+			</span>
 		</div>
-<!--
-		<div id="app1-thumb" class.bind="options.thumb ? '' : 'disabled'">
-			<h3>Thumbnail (IFD1)<span click.trigger="toggleSegment('thumbnail')">Show all</span></h3>
-			<table></table>
-		</div>
--->
-		<segment-box options.bind="options" output.bind="output" type="thumbnail"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="ifd0" title="Image"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="exif"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="gps"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="interop"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="iptc"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="xmp"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="icc"></segment-box>
-		<segment-box options.bind="options" output.bind="output" type="jfif"></segment-box>
+
+		<segment-box options.bind="options" output.bind="output" key="thumbnail"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="exif"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="iptc"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="xmp" display="string"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="icc"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="jfif"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="makerNote" display="buffer"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="userComment" display="buffer"></segment-box>
 
 		<div id="marker-notes" class.bind="options.makerNote ? '' : 'disabled'">
 			<h3>Maker Note</h3>

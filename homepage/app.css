@@ -139,9 +139,13 @@ h3 {
 }
 h2 span,
 h3 span {
+	margin-left: 16px;
+}
+.small,
+h2 span,
+h3 span {
 	font-weight: 400;
 	font-size: 12px;
-	margin-left: 16px;
 }
 
 
@@ -343,4 +347,49 @@ table {
 	background: rgba(50, 80, 144, 0.08);
 	border: 1px solid rgba(50, 80, 144, 0.2);
 	border-radius: 4px;
+}
+
+:root {
+	--easing: cubic-bezier(.16,1,.29,.99);
+	--transition-speed: 500ms;
+}
+
+/* TOGGLE FULLSCREEN ANIMATION */
+
+#grid {
+	overflow: hidden;
+}
+
+.raw-fullscreen #raw {
+	animation: from-left var(--easing) var(--transition-speed) both;
+}
+.raw-side #raw {
+	animation: from-right var(--easing) var(--transition-speed) both;
+}
+/* reverse for in-header toggle button */
+.raw-fullscreen #raw h3 span {
+	animation: from-right var(--easing) var(--transition-speed) both;
+}
+.raw-side #raw h3 span {
+	animation: from-left var(--easing) var(--transition-speed) both;
+}
+
+.raw-side #thumb,
+.raw-side segment-box {
+	animation: fade-in var(--easing) var(--transition-speed) both;
+}
+
+@keyframes from-left {
+	0%   {transform: translateX(40px)}
+	100% {transform: translateX(0)}
+}
+
+@keyframes from-right {
+	0%   {transform: translateX(-40px)}
+	100% {transform: translateX(0)}
+}
+
+@keyframes fade-in {
+	0%   {opacity: 0}
+	100% {opacity: 1}
 }

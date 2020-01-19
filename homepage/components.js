@@ -12,20 +12,28 @@ let outputKeyPicks = {
 
 export class SegmentBoxCustomElement {
 	showAll = false
+	display = 'table'
 	static template = `
-		<div class.bind="options[type] ? '' : 'disabled'">
+		<div class.bind="options[key] ? '' : 'disabled'">
 			<h3>
-				\${type}
+				\${key}
 				<span click.trigger="showAll = !showAll">\${showAll ? 'Show less' : 'Show all'}</span>
 			</h3>
-			<object-table object.bind="data" keys.bind="keys"></object-table>
+			<template if.bind="data !== undefined">
+				<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
+				<pre if.bind="display === 'buffer'">\${data | binary}</pre>
+				<pre if.bind="display === 'string'">\${data}</pre>
+			</template>
+			<span if.bind="data === undefined" class="small">
+				File doesn't contain \${key}
+			</span>
 		</div>
 	`
 	get data() {
-		return this.rawOutput && this.rawOutput[this.type]
+		return this.rawOutput && this.rawOutput[this.key]
 	}
 	get keys() {
-		return this.showAll ? undefined : outputKeyPicks[this.type]
+		return this.showAll ? undefined : outputKeyPicks[this.key]
 	}
 	// overcome aurelia's bugs
 	optionsChanged(newValue) {this.options = newValue}
@@ -35,9 +43,10 @@ export class SegmentBoxCustomElement {
 decorate(SegmentBoxCustomElement, au.inlineView(`<template>${SegmentBoxCustomElement.template}</template>`))
 decorate(SegmentBoxCustomElement, 'options', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(SegmentBoxCustomElement, 'output', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
-decorate(SegmentBoxCustomElement, 'type', au.bindable)
-decorate(SegmentBoxCustomElement, 'keys', au.computedFrom('type', 'showAll'))
-decorate(SegmentBoxCustomElement, 'data', au.computedFrom('type', 'output'))
+decorate(SegmentBoxCustomElement, 'display', au.bindable)
+decorate(SegmentBoxCustomElement, 'key', au.bindable)
+decorate(SegmentBoxCustomElement, 'keys', au.computedFrom('key', 'showAll'))
+decorate(SegmentBoxCustomElement, 'data', au.computedFrom('key', 'output'))
 
 
 
