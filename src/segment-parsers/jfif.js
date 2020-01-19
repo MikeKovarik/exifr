@@ -13,7 +13,7 @@ export default class Jfif extends AppSegmentParserBase {
 	}
 
 	parse() {
-		let jfif = {
+		return {
 			version:    this.chunk.getUint16(0),
 			units:      this.chunk.getUint8(2),
 			Xdensity:   this.chunk.getUint16(3),
@@ -21,8 +21,6 @@ export default class Jfif extends AppSegmentParserBase {
 			Xthumbnail: this.chunk.getUint8(7),
 			Ythumbnail: this.chunk.getUint8(8),
 		}
-		this.output = this.options.mergeOutput ? {jfif} : jfif
-		return this.output
 	}
 
 	static prettify(jfif) {
