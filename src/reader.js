@@ -1,8 +1,5 @@
 import * as platform from './util/platform.js'
 import {BufferView} from './util/BufferView.js'
-// TODO: use these bare functions when ChunkedReader is not included in the build
-import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './file-readers/essentials.js'
-// TODO: make optional
 import {PluginList} from './util/helpers.js'
 
 
@@ -36,37 +33,53 @@ function readString(string, options) {
 }
 
 async function readBlob(blob, options) {
-	if (fileReaders.has('blob'))
-		return readUsingReader(blob, options, 'blob')
-	else
-		return readUsingFunction(url, options, readBlobAsArrayBuffer)
+	return useReader(blob, options, 'blob', readBlobAsArrayBuffer)
 }
 
 async function readUrl(url, options) {
-	if (fileReaders.has('url'))
-		return readUsingReader(url, options, 'url')
-	else
-		return readUsingFunction(url, options, fetchUrlAsArrayBuffer)
+	return useReader(url, options, 'url', fetchUrlAsArrayBuffer)
 }
 
 async function readBase64(base64, options) {
-	return readUsingReader(base64, options, 'base64')
+	return useReaderClass(base64, options, 'base64')
 }
 
 async function readFileFromDisk(filePath, options) {
-	return readUsingReader(filePath, options, 'fs')
+	return useReaderClass(filePath, options, 'fs')
 }
 
-async function readUsingReader(input, options, readerName) {
+async function useReader(url, options, readerName, readerFn) {
+	if (fileReaders.has(readerName))
+		return useReaderClass(url, options, readerName)
+	else
+		return useReaderFunction(url, options, readerFn)
+}
+
+async function useReaderClass(input, options, readerName) {
 	let Reader = fileReaders.get(readerName)
 	let file = new Reader(input, options)
 	await file.read()
 	return file
 }
 
-async function readUsingFunction(input, options, reader) {
-	let rawData = await reader(input)
+async function useReaderFunction(input, options, readerFn) {
+	let rawData = await readerFn(input)
 	return new DataView(rawData)
+}
+
+// FALLBACK FULL-FILE READERS (when ChunkedReader and the classes aren't available)
+
+export async function fetchUrlAsArrayBuffer(url) {
+	return fetch(url).then(res => res.arrayBuffer())
+}
+
+export async function readBlobAsArrayBuffer(blob) {
+	return new Promise((resolve, reject) => {
+		let reader = new FileReader()
+		reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
+		reader.onerror = reject
+		reader.readAsArrayBuffer(blob)
+	})
 }
 
 // HELPER FUNCTIONS

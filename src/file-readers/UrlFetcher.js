@@ -1,6 +1,5 @@
-import {fileReaders} from '../reader.js'
+import {fileReaders, fetchUrlAsArrayBuffer} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
-import {fetchUrlAsArrayBuffer} from './essentials.js'
 
 
 export class UrlFetcher extends ChunkedReader {

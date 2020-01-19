@@ -1,6 +1,5 @@
-import {fileReaders} from '../reader.js'
+import {fileReaders, readBlobAsArrayBuffer} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
-import {readBlobAsArrayBuffer} from './essentials.js'
 
 
 export class BlobReader extends ChunkedReader {

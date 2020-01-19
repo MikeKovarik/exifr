@@ -1,5 +1,5 @@
 import Exifr from '../src/index-full.js'
-import {readBlobAsArrayBuffer} from '../src/file-readers/essentials.js'
+import {readBlobAsArrayBuffer} from '../src/reader.js'
 import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from '../src/options.js'
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'

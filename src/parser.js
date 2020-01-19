@@ -55,10 +55,10 @@ export class FileParserBase {
 
 /*
 offset = where FF En starts
-length = size of the whole appN segment (header/marker + content)
+length = size of the whole APPn segment (header/marker + content)
 start  = start of the content
 size   = size of the content. i.e. from start till end
-end    = end of the content (as well as the appN segment)
+end    = end of the content (as well as the APPn segment)
 */
 export class AppSegmentParserBase {
 
@@ -76,7 +76,7 @@ export class AppSegmentParserBase {
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.
 	// start  + size   === end  |  begining and end of parseable content
 	static findPosition(buffer, offset) {
-		// length at offset+2 is the size of appN content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
+		// length at offset+2 is the size of APPn content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
 		let length = buffer.getUint16(offset + 2) + 2
 		let headerLength = typeof this.headerLength === 'function' ? this.headerLength(buffer, offset, length) : this.headerLength
 		let start = offset + headerLength
