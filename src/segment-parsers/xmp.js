@@ -27,20 +27,15 @@ export default class Xmp extends AppSegmentParserBase {
 	parse() {
 		// Read XMP segment as string. We're not parsing the XML.
 		let string = this.chunk.getString()
-        console.log('before', string)
 		// Trim the mess around.
 		let start = string.indexOf('<')
 		let end = string.lastIndexOf('>') + 1
 		string = string.slice(start, end).trim()
-		console.log('----------------------------------------')
-        console.log('middle', string)
-		console.log('----------------------------------------')
 		if (string.startsWith('<?xpacket')) {
 			start = string.indexOf('>') + 1
 			end = string.lastIndexOf('<?xpacket')
 			string = string.slice(start, end).trim()
 		}
-        console.log('after', string)
 		// Parse XML if the user provided his own XMP parser.
 		if (this.parseXml)
 			return this.parseXml(string)
