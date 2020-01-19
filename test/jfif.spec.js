@@ -17,12 +17,12 @@ describe('JFIF Segment', () => {
 	testMergeSegment({
 		key: 'jfif',
 		file: 'issue-exifr-4.jpg',
-		properties: ['Xdensity', 'Xthumbnail']
+		properties: ['XResolution', 'ThumbnailWidth']
 	})
 
 	testImage('jfif', 'issue-exifr-4.jpg', {
-		Ydensity: 96,
-		Xthumbnail: 0,
+		XResolution: 96,
+		ThumbnailWidth: 0,
 	})
 
 })

@@ -1,6 +1,7 @@
 import {AppSegmentParserBase, segmentParsers} from '../parser.js'
 
 
+// tags 
 export default class Jfif extends AppSegmentParserBase {
 
 	static type = 'jfif'
@@ -14,19 +15,20 @@ export default class Jfif extends AppSegmentParserBase {
 
 	parse() {
 		return {
-			version:    this.chunk.getUint16(0),
-			units:      this.chunk.getUint8(2),
-			Xdensity:   this.chunk.getUint16(3),
-			Ydensity:   this.chunk.getUint16(5),
-			Xthumbnail: this.chunk.getUint8(7),
-			Ythumbnail: this.chunk.getUint8(8),
+			JFIFVersion:     this.chunk.getUint16(0),
+			ResolutionUnit:  this.chunk.getUint8(2),
+			XResolution:     this.chunk.getUint16(3),
+			YResolution:     this.chunk.getUint16(5),
+			ThumbnailWidth:  this.chunk.getUint8(7),
+			ThumbnailHeight: this.chunk.getUint8(8),
 		}
 	}
 
+	// TODO: hook this in
 	static prettify(jfif) {
-		let versionInt = jfif.version
-		jfif.version = ((versionInt & 0xFF00) >> 8).toString(16) + '.' + (versionInt & 0x00FF).toString(16).padStart(2, '0')
-		jfif.units = jfif.units === 2 ? 'cm' : jfif.units === 1 ? 'inches' : jfif.units
+		let versionInt = jfif.JFIFVersion
+		jfif.JFIFVersion = ((versionInt & 0xFF00) >> 8).toString(16) + '.' + (versionInt & 0x00FF).toString(16).padStart(2, '0')
+		jfif.ResolutionUnit = jfif.ResolutionUnit === 2 ? 'cm' : jfif.ResolutionUnit === 1 ? 'inches' : jfif.ResolutionUnit
 		return jfif
 	}
 
