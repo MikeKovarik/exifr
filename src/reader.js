@@ -2,11 +2,6 @@ import {BufferView, isBrowser, isNode, isWorker} from './util/BufferView.js'
 // TODO: use these bare functions when ChunkedReader is not included in the build
 import {readBlobAsArrayBuffer, fetchUrlAsArrayBuffer} from './file-readers/essentials.js'
 // TODO: make optional
-import {FsReader} from './file-readers/FsReader.js'
-import {Base64Reader} from './file-readers/Base64Reader.js'
-import {UrlFetcher} from './file-readers/UrlFetcher.js'
-import {BlobReader} from './file-readers/BlobReader.js'
-export {FsReader, Base64Reader, UrlFetcher, BlobReader}
 import {PluginList} from './util/helpers.js'
 
 
@@ -40,29 +35,37 @@ function readString(string, options) {
 }
 
 async function readBlob(blob, options) {
-	// TODO: use readBlobAsArrayBuffer() if ChunkedReader is not bundled
-	let file = new BlobReader(blob, options)
-	await file.read()
-	return file
+	if (fileReaders.has('blob'))
+		return readUsingReader(blob, options, 'blob')
+	else
+		return readUsingFunction(url, options, readBlobAsArrayBuffer)
 }
 
 async function readUrl(url, options) {
-	// TODO: use fetchUrlAsArrayBuffer() if ChunkedReader is not bundled
-	let file = new UrlFetcher(url, options)
-	await file.read()
-	return file
+	if (fileReaders.has('url'))
+		return readUsingReader(url, options, 'url')
+	else
+		return readUsingFunction(url, options, fetchUrlAsArrayBuffer)
 }
 
 async function readBase64(base64, options) {
-	let file = new Base64Reader(base64, options)
+	return readUsingReader(base64, options, 'base64')
+}
+
+async function readFileFromDisk(filePath, options) {
+	return readUsingReader(filePath, options, 'fs')
+}
+
+async function readUsingReader(input, options, readerName) {
+	let Reader = fileReaders.get(readerName)
+	let file = new Reader(input, options)
 	await file.read()
 	return file
 }
 
-async function readFileFromDisk(filePath, options) {
-	let file = new FsReader(filePath, options)
-	await file.read()
-	return file
+async function readUsingFunction(input, options, reader) {
+	let rawData = await reader(input)
+	return new DataView(rawData)
 }
 
 // HELPER FUNCTIONS

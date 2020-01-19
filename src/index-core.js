@@ -1,11 +1,12 @@
 import './util/debug.js' // TODO: DELETEME: TO BE REMOVED BEFORE RELEASING
 import {read} from './reader.js'
-export {tagKeys, tagValues, tagRevivers} from './tags.js'
-import {Options} from './options.js'
 import {gpsOnlyOptions} from './options.js'
 import {hasBuffer} from './util/BufferView.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
+// exposed
+import {Options} from './options.js'
+import {tagKeys, tagValues, tagRevivers} from './tags.js'
 import {fileReaders} from './reader.js'
 import {fileParsers, segmentParsers} from './parser.js'
 
@@ -31,6 +32,9 @@ export default class Exifr {
 	static fileReaders = fileReaders
 	static fileParsers = fileParsers
 	static segmentParsers = segmentParsers
+	static tagKeys = tagKeys
+	static tagValues = tagValues
+	static tagRevivers = tagRevivers
 
 	static async parse(input, options) {
 		let exifr = new Exifr(options)

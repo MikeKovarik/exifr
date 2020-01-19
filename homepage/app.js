@@ -79,7 +79,14 @@ class ExifrDemoApp {
 				this.options[key] = Exifr.Options[key]
 		this.options.thumbnail = true
 	}
-
+/*
+	createDefaultOptions() {
+		this.options = {}
+		for (let key of segmentsAndBlocks) this.options[key] = true
+		for (let key of tiffExtractables)  this.options[key] = true
+		for (let key of formatOptions)     this.options[key] = true
+	}
+*/
 	onCheckboxChanged = e => {
 		let boxNode = boxNodes[e.target.name]
 		if (boxNode) {

@@ -161,6 +161,7 @@ h3 span {
 	justify-content: center;
 	text-align: center;
 	white-space: normal;
+	text-shadow: 0 1px 6px rgba(255,255,255,0.7);
 }
 #dropzone:hover {
 	border: 2px dashed rgba(50, 80, 144, 0.4);

@@ -2,7 +2,13 @@ import Exifr from './index-core.js'
 export default Exifr
 
 
-// File parser
+// File Readers
+import {FsReader} from './file-readers/FsReader.js'
+import {Base64Reader} from './file-readers/Base64Reader.js'
+import {UrlFetcher} from './file-readers/UrlFetcher.js'
+import {BlobReader} from './file-readers/BlobReader.js'
+
+// File Parser
 import './file-parsers/jpeg.js'
 
 // TIFF Parser
