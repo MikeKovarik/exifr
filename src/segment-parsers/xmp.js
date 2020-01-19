@@ -23,7 +23,6 @@ export default class Xmp extends AppSegmentParserBase {
 	// 'http://ns.adobe.com/xap/1.0/ <x:xmpmeta ...'
 
 	parse() {
-		console.log('parse XMP')
 		// Read XMP segment as string. We're not parsing the XML.
 		let string = this.chunk.getString()
 		// Trim the mess around.
@@ -31,7 +30,6 @@ export default class Xmp extends AppSegmentParserBase {
 		let end = string.lastIndexOf('</x:xmpmeta>') + 12
 		string = string.slice(start, end)
 		// Parse XML if the user provided his own XMP parser.
-        console.log(string)
 		if (this.parseXml)
 			return this.parseXml(string)
 		else
