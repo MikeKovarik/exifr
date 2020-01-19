@@ -118,8 +118,8 @@
 			</span>
 		</div>
 
-		<segment-box options.bind="options" output.bind="output" key="thumbnail"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="thumbnail" title="Image (IFD1)" alias="ifd1"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image (IFD0)" alias="ifd0"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="exif"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>
@@ -129,16 +129,6 @@
 		<segment-box options.bind="options" output.bind="output" key="jfif"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="makerNote" display="buffer"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="userComment" display="buffer"></segment-box>
-
-		<div id="marker-notes" class.bind="options.makerNote ? '' : 'disabled'">
-			<h3>Maker Note</h3>
-			<pre>${makerNote | binary}</pre>
-		</div>
-
-		<div id="user-comment" class.bind="options.userComment ? '' : 'disabled'">
-			<h3>User Comment</h3>
-			<pre>${userComment | binary}</pre>
-		</div>
 
 		<div id="raw" class="wrap">
 			<h3>

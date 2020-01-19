@@ -359,6 +359,10 @@ table {
 #grid {
 	overflow: hidden;
 }
+#raw h3 span {
+	position: sticky;
+	right: 0;
+}
 
 .raw-fullscreen #raw {
 	animation: from-left var(--easing) var(--transition-speed) both;

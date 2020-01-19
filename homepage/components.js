@@ -16,16 +16,16 @@ export class SegmentBoxCustomElement {
 	static template = `
 		<div class.bind="options[key] ? '' : 'disabled'">
 			<h3>
-				\${key}
+				\${title || key}
 				<span click.trigger="showAll = !showAll">\${showAll ? 'Show less' : 'Show all'}</span>
 			</h3>
 			<template if.bind="data !== undefined">
 				<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
-				<pre if.bind="display === 'buffer'">\${data | binary}</pre>
+				<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
 				<pre if.bind="display === 'string'">\${data}</pre>
 			</template>
 			<span if.bind="data === undefined" class="small">
-				File doesn't contain \${key}
+				\${options[key] ? "File doesn't contain" : 'Not parsing'} \${alias || key}
 			</span>
 		</div>
 	`
@@ -45,6 +45,8 @@ decorate(SegmentBoxCustomElement, 'options', au.bindable({defaultBindingMode: au
 decorate(SegmentBoxCustomElement, 'output', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(SegmentBoxCustomElement, 'display', au.bindable)
 decorate(SegmentBoxCustomElement, 'key', au.bindable)
+decorate(SegmentBoxCustomElement, 'title', au.bindable)
+decorate(SegmentBoxCustomElement, 'alias', au.bindable)
 decorate(SegmentBoxCustomElement, 'keys', au.computedFrom('key', 'showAll'))
 decorate(SegmentBoxCustomElement, 'data', au.computedFrom('key', 'output'))
 
