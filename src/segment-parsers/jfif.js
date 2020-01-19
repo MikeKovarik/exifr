@@ -1,7 +1,7 @@
 import {AppSegmentParserBase, segmentParsers} from '../parser.js'
 
 
-// tags 
+// tags https://exiftool.org/TagNames/JFIF.html
 export default class Jfif extends AppSegmentParserBase {
 
 	static type = 'jfif'

@@ -251,7 +251,7 @@ describe('TIFF - IFD0 / Image Block', () => {
 	testMergeSegment({
 		key: 'ifd0',
 		file: 'IMG_20180725_163423.jpg',
-		properties: ['Make', 'Pixel']
+		properties: ['Make', 'Model']
 	})
 
 	testPickOrSkipTags('ifd0', 'IMG_20180725_163423.jpg', ['Make'], ['Model'])
