@@ -6,8 +6,7 @@
 
 ### Breaking changes
 #### Exports
-- instead of multiple named exports (`import {parse, thumbnailUrl} from 'exifr'`) the library now exports a single default object, housing all the same functions.
-- `ExifParser` class is no longer named export. It is renamed to `Exifr` and became the default export.
+- renamed `ExifParser` class to `Exifr`.
 - renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
 
 #### Output format

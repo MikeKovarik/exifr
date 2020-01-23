@@ -1,5 +1,4 @@
-import Exifr from './index-mini.js'
-export default Exifr
+export * from './index-mini.js'
 
 
 // File Readers

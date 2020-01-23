@@ -1,7 +1,7 @@
 import {promises as fs} from 'fs'
 import {assert} from './test-util.js'
 import {isBrowser, isNode, getPath, getFile} from './test-util.js'
-import Exifr from '../src/index-full.js'
+import * as exifr from '../src/index-full.js'
 
 
 export function createImg(url) {
@@ -58,81 +58,81 @@ describe('reader', () => {
 
 		it(`ArrayBuffer`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(arrayBuffer)
+			var output = await exifr.parse(arrayBuffer)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		it(`DataView`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let dataView = new DataView(arrayBuffer)
-			var output = await Exifr.parse(dataView)
+			var output = await exifr.parse(dataView)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		it(`Uint8Array`, async () => {
 			var arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 			let uint8Array = new Uint8Array(arrayBuffer)
-			var output = await Exifr.parse(uint8Array)
+			var output = await exifr.parse(uint8Array)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isNode && it(`Node: Buffer`, async () => {
 			var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
-			var output = await Exifr.parse(buffer)
+			var output = await exifr.parse(buffer)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: Blob`, async () => {
 			var blob = await createBlob('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(blob)
+			var output = await exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isNode && it(`Node: string file path`, async () => {
 			let path = getPath('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(path)
+			var output = await exifr.parse(path)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: string URL`, async () => {
 			let url = getPath('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(url)
+			var output = await exifr.parse(url)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: Object URL`, async () => {
 			var blob = await createObjectUrl('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(blob)
+			var output = await exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		it(`Browser & Node: base64 URL`, async () => {
 			var blob = await createBase64Url('IMG_20180725_163423.jpg')
-			var output = await Exifr.parse(blob)
+			var output = await exifr.parse(blob)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: <img> element with normal URL`, async () => {
 			var img = createImg(getPath('IMG_20180725_163423.jpg'))
-			var output = await Exifr.parse(img)
+			var output = await exifr.parse(img)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		isBrowser && it(`Browser: <img> element with Object URL`, async () => {
 			var img = createImg(await createObjectUrl('IMG_20180725_163423.jpg'))
-			var output = await Exifr.parse(img)
+			var output = await exifr.parse(img)
 			assert.isObject(output, `output is undefined`)
 		})
 
 		describe('Browser: WebWoker', () => {
 
-			isBrowser && it(`MJS: string URL`, async () => {
+			isBrowser && it(`string URL`, async () => {
 				let url = getPath('IMG_20180725_163423.jpg')
 				let output = await createWorker(url)
 				assert.isObject(output, `output is undefined`)
 			})
 
-			isBrowser && it(`MJS: ArrayBuffer`, async () => {
+			isBrowser && it(`ArrayBuffer`, async () => {
 				let arrayBuffer = await createArrayBuffer('IMG_20180725_163423.jpg')
 				let output = await createWorker(arrayBuffer)
 				assert.isObject(output, `output is undefined`)

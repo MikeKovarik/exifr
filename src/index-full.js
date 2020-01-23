@@ -1,5 +1,4 @@
-import Exifr from './index-lite.js'
-export default Exifr
+export * from './index-lite.js'
 
 
 // File Parsers

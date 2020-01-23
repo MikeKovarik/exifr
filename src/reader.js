@@ -8,7 +8,6 @@ export var fileReaders = new PluginList('file reader')
 // TODO: - API for including 3rd party XML parser
 
 export function read(arg, options) {
-	//global.recordBenchTime(`exifr.read()`)
 	if (typeof arg === 'string')
 		return readString(arg, options)
 	else if (platform.browser && !platform.worker && arg instanceof HTMLImageElement)

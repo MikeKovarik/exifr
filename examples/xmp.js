@@ -1,14 +1,14 @@
-import Exifr from '../index.mjs'
+import * as exifr from '../index.mjs'
 import {promises as fs} from 'fs'
 
 
-// Exifr does not come with XMP parser out of the box, because those are heavy & complicated
+// exifr does not come with XMP parser out of the box, because those are heavy & complicated
 // and not everyone needs to parse XMP/XML. So to keep exifr simple, we just extract the XMP string
 // and you have to parse it yourself.
 
-// Exifr offers you an API for using your own XML parser while parsing XMP.
+// exifr offers you an API for using your own XML parser while parsing XMP.
 // 1) get the XmlParser class.
-let XmpParser = Exifr.segmentParsers.get('xmp')
+let XmpParser = exifr.segmentParsers.get('xmp')
 // 2) Implement parseXml() method which takes one string argument
 //    and returns anything that ends up as output.xmp.
 XmpParser.prototype.parseXml = function(xmpString) {
@@ -21,7 +21,7 @@ XmpParser.prototype.parseXml = function(xmpString) {
 let options = {xmp: true}
 // Read the file from disk and feed the buffer into exifr with given options.
 fs.readFile('../test/fixtures/cookiezen.jpg')
-	.then(buffer => Exifr.parse(buffer, options))
+	.then(buffer => exifr.parse(buffer, options))
 	// NOTE ABOUT XMP: XML string is returned because exifr doesn't include XML parsing.
 	// You can use XML parser of your choice to post process XMP data.
 	.then(console.log)

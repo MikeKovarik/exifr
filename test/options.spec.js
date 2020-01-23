@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, isNode, isBrowser} from './test-util.js'
-import Exifr from '../src/index-full.js'
 import {Options} from '../src/options.js'
+import {Exifr} from '../src/index-full.js'
 
 
 describe('options', () => {
@@ -44,10 +44,10 @@ describe('options', () => {
 
 		it(`does not have any effect if input is buffer`, async () => {
 			let size = 456
-			let exifr = new Exifr({firstChunkSize: size})
-			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
-			assert.equal(exifr.file.byteLength, size)
-			await exifr.file.close()
+			let exr = new Exifr({firstChunkSize: size})
+			await exr.read(await getPath('IMG_20180725_163423.jpg'))
+			assert.equal(exr.file.byteLength, size)
+			await exr.file.close()
 		})
 
 	})
@@ -57,12 +57,12 @@ describe('options', () => {
 		it(`affects size of the chunk following firstChunkSize`, async () => {
 			let firstChunkSize = 101
 			let chunkSize = 100
-			let exifr = new Exifr({firstChunkSize, chunkSize})
-			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
-			assert.equal(exifr.file.byteLength, firstChunkSize)
-			await exifr.file.readNextChunk()
-			assert.equal(exifr.file.byteLength, firstChunkSize + chunkSize)
-			await exifr.file.close()
+			let exr = new Exifr({firstChunkSize, chunkSize})
+			await exr.read(await getPath('IMG_20180725_163423.jpg'))
+			assert.equal(exr.file.byteLength, firstChunkSize)
+			await exr.file.readNextChunk()
+			assert.equal(exr.file.byteLength, firstChunkSize + chunkSize)
+			await exr.file.close()
 		})
 
 	})
@@ -74,10 +74,10 @@ describe('options', () => {
 			let firstChunkSize = 101
 			let chunkSize = 10
 			let chunkLimit = 5
-			let exifr = new Exifr({firstChunkSize, chunkSize, chunkLimit, tiff: false, icc: true, iptc: true})
-			await exifr.read(await getPath('IMG_20180725_163423.jpg'))
-			await exifr.parse()
-			assert.equal(exifr.file.byteLength, firstChunkSize + (chunkSize * chunkLimit))
+			let exr = new Exifr({firstChunkSize, chunkSize, chunkLimit, tiff: false, icc: true, iptc: true})
+			await exr.read(await getPath('IMG_20180725_163423.jpg'))
+			await exr.parse()
+			assert.equal(exr.file.byteLength, firstChunkSize + (chunkSize * chunkLimit))
 		})
 
 	})
@@ -95,25 +95,25 @@ describe('options', () => {
 		describe('wholeFile: true', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
-				let exifr = new Exifr({wholeFile: true})
-				await exifr.read(await getFile(scatteredFileName))
-				assert.isNotTrue(exifr.file.chunked)
+				let exr = new Exifr({wholeFile: true})
+				await exr.read(await getFile(scatteredFileName))
+				assert.isNotTrue(exr.file.chunked)
 			})
 
 			it(`simple file should be read as a whole`, async () => {
 				let options = {wholeFile: true}
-				let exifr = new Exifr(options)
-				await exifr.read(simpleFile)
-				assert.isFalse(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(simpleFile)
+				assert.isFalse(exr.file.chunked)
+				await exr.file.close()
 			})
 
 			it(`scattered file should read as a whole`, async () => {
 				let options = {wholeFile: true}
-				let exifr = new Exifr(options)
-				await exifr.read(scatteredFilePath)
-				assert.isFalse(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(scatteredFilePath)
+				assert.isFalse(exr.file.chunked)
+				await exr.file.close()
 			})
 
 		})
@@ -121,25 +121,25 @@ describe('options', () => {
 		describe('wholeFile: undefined', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
-				let exifr = new Exifr({wholeFile: undefined})
-				await exifr.read(await getFile(scatteredFileName))
-				assert.isNotTrue(exifr.file.chunked)
+				let exr = new Exifr({wholeFile: undefined})
+				await exr.read(await getFile(scatteredFileName))
+				assert.isNotTrue(exr.file.chunked)
 			})
 
 			it(`simple file should be read in chunked mode`, async () => {
 				let options = {wholeFile: undefined}
-				let exifr = new Exifr(options)
-				await exifr.read(simpleFile)
-				assert.isTrue(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(simpleFile)
+				assert.isTrue(exr.file.chunked)
+				await exr.file.close()
 			})
 
 			it(`scattered file should be read chunked mode`, async () => {
 				let options = {wholeFile: undefined}
-				let exifr = new Exifr(options)
-				await exifr.read(scatteredFilePath)
-				assert.isTrue(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(scatteredFilePath)
+				assert.isTrue(exr.file.chunked)
+				await exr.file.close()
 			})
 
 		})
@@ -147,25 +147,25 @@ describe('options', () => {
 		describe('wholeFile: false', () => {
 
 			it(`does not have any effect if input is buffer`, async () => {
-				let exifr = new Exifr({wholeFile: false})
-				await exifr.read(await getFile(scatteredFileName))
-				assert.isNotTrue(exifr.file.chunked)
+				let exr = new Exifr({wholeFile: false})
+				await exr.read(await getFile(scatteredFileName))
+				assert.isNotTrue(exr.file.chunked)
 			})
 
 			it(`simple file should be read chunked mode`, async () => {
 				let options = {wholeFile: false}
-				let exifr = new Exifr(options)
-				await exifr.read(simpleFile)
-				assert.isTrue(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(simpleFile)
+				assert.isTrue(exr.file.chunked)
+				await exr.file.close()
 			})
 
 			it(`scattered file should be read chunked mode`, async () => {
 				let options = {wholeFile: false}
-				let exifr = new Exifr(options)
-				await exifr.read(scatteredFilePath)
-				assert.isTrue(exifr.file.chunked)
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(scatteredFilePath)
+				assert.isTrue(exr.file.chunked)
+				await exr.file.close()
 			})
 
 		})

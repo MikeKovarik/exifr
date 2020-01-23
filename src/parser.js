@@ -26,7 +26,6 @@ export class FileParserBase {
 	}
 
 	ensureSegmentChunk = async seg => {
-		//global.recordBenchTime(`exifr.ensureSegmentChunk(${seg.type})`)
 		let start = seg.start
 		let size = seg.size || MAX_APP_SIZE
 		if (this.file.chunked) {

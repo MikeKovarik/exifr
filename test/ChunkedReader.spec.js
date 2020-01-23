@@ -4,7 +4,7 @@ import {FsReader} from '../src/file-readers/FsReader.js'
 import {BlobReader} from '../src/file-readers/BlobReader.js'
 import {UrlFetcher} from '../src/file-readers/UrlFetcher.js'
 import {Base64Reader} from '../src/file-readers/Base64Reader.js'
-import Exifr from '../src/index-full.js'
+import {Exifr} from '../src/index-full.js'
 import {createBlob} from './reader.spec.js'
 import {createBase64Url} from './reader.spec.js'
 
@@ -233,15 +233,15 @@ describe('ChunkedReader', () => {
 
 			it(`.chunksRead is 5 when reading ${file2.size} by chunkSize 2000 - only read necessary ammount of chunks`, async () => {
 				let chunkSize = 2000
-				let exifr = new Exifr({
+				let exr = new Exifr({
 					firstChunkSize: chunkSize,
 					chunkSize: chunkSize,
 				})
-				await exifr.read(file2.input)
-				await exifr.parse(file2.input)
-				assert.equal(exifr.file.chunksRead, 5)
-				assert.equal(exifr.file.size, file2.size)
-				await exifr.file.close()
+				await exr.read(file2.input)
+				await exr.parse(file2.input)
+				assert.equal(exr.file.chunksRead, 5)
+				assert.equal(exr.file.size, file2.size)
+				await exr.file.close()
 			})
 
 		})
@@ -317,12 +317,12 @@ describe('ChunkedReader', () => {
 		let tiffLength = 25386
 		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
 		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
-		let exifr = new Exifr(options)
-		await exifr.read(getPath(name))
-		assert.isAtLeast(exifr.file.byteLength, 12695)
-		assert.isAtLeast(exifr.file.byteLength, exifr.file.ranges.list[0].end)
-		let output = await exifr.parse()
-		await exifr.file.close()
+		let exr = new Exifr(options)
+		await exr.read(getPath(name))
+		assert.isAtLeast(exr.file.byteLength, 12695)
+		assert.isAtLeast(exr.file.byteLength, exr.file.ranges.list[0].end)
+		let output = await exr.parse()
+		await exr.file.close()
 		assert.instanceOf(output.gps.GPSLatitude, Array)
 	})
 
@@ -344,11 +344,11 @@ describe('ChunkedReader', () => {
 		? Adobed   | offset  571479 | length      16 | end  571495 | <Buffer ff ee 00 0e 41 64 6f 62 65 00 64 00 00 00>
 		*/
 		let input = await getPath('issue-metadata-extractor-65.jpg')
-		let exifr = new Exifr({icc: true, firstChunkSize: 14149  + 100})
-		await exifr.read(input)
-		await exifr.parse()
-		await exifr.file.close()
-		assert.isAtLeast(exifr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
+		let exr = new Exifr({icc: true, firstChunkSize: 14149  + 100})
+		await exr.read(input)
+		await exr.parse()
+		await exr.file.close()
+		assert.isAtLeast(exr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
@@ -356,28 +356,28 @@ describe('ChunkedReader', () => {
 		it(`input path & {wholeFile: false, firstChunkSize: 100}`, async () => {
 			let input = await getPath('001.tif')
 			let options = {wholeFile: false, firstChunkSize: 100}
-			let exifr = new Exifr(options)
-			await exifr.read(input)
-			let output = await exifr.parse()
-			await exifr.file.close()
+			let exr = new Exifr(options)
+			await exr.read(input)
+			let output = await exr.parse()
+			await exr.file.close()
 			assert.equal(output.Make, 'DJI')
 		})
 
 		it(`input path & {wholeFile: false}`, async () => {
 			let input = await getPath('001.tif')
 			let options = {wholeFile: true}
-			let exifr = new Exifr(options)
-			await exifr.read(input)
-			let output = await exifr.parse()
-			await exifr.file.close()
+			let exr = new Exifr(options)
+			await exr.read(input)
+			let output = await exr.parse()
+			await exr.file.close()
 			assert.equal(output.Make, 'DJI')
 		})
 
 		it(`input buffer & no options`, async () => {
 			let input = await getFile('001.tif')
-			let exifr = new Exifr()
-			await exifr.read(input)
-			let output = await exifr.parse()
+			let exr = new Exifr()
+			await exr.read(input)
+			let output = await exr.parse()
 			assert.equal(output.Make, 'DJI')
 		})
 
@@ -401,20 +401,20 @@ describe('ChunkedReader', () => {
 			it(`reads fixture ${fileName} with default settings`, async () => {
 				let input = await getPath(fileName)
 				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
-				let exifr = new Exifr(options)
-				await exifr.read(input)
-				let output = await exifr.parse()
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(input)
+				let output = await exr.parse()
+				await exr.file.close()
 				assert.isObject(output)
 			})
 
 			it(`reads fixture ${fileName} with all segments enabled`, async () => {
 				let input = await getPath(fileName)
 				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100, xmp: true, icc: true, iptc: true}
-				let exifr = new Exifr(options)
-				await exifr.read(input)
-				let output = await exifr.parse()
-				await exifr.file.close()
+				let exr = new Exifr(options)
+				await exr.read(input)
+				let output = await exr.parse()
+				await exr.file.close()
 				assert.isObject(output)
 			})
 
@@ -424,10 +424,10 @@ describe('ChunkedReader', () => {
 					let input = await getPath(fileName)
 					let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
-					let exifr = new Exifr(options)
-					await exifr.read(input)
-					let output = await exifr.parse()
-					await exifr.file.close()
+					let exr = new Exifr(options)
+					await exr.read(input)
+					let output = await exr.parse()
+					await exr.file.close()
 					assert.isObject(output)
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})
@@ -437,10 +437,10 @@ describe('ChunkedReader', () => {
 					//let input = await getFile(fileName)
 					let options = {mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
-					let exifr = new Exifr(options)
-					await exifr.read(input)
-					let output = await exifr.parse()
-					await exifr.file.close()
+					let exr = new Exifr(options)
+					await exr.read(input)
+					let output = await exr.parse()
+					await exr.file.close()
 					assert.isObject(output)
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})

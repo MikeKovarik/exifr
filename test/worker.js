@@ -1,8 +1,8 @@
-import Exifr from '../index.mjs'
+import * as exifr from '../src/index-full.js' // import 'exifr'
 
 self.onmessage = async e => {
 	console.log('worker received task from main', e.data)
-	var output = await Exifr.parse(e.data)
+	var output = await exifr.parse(e.data)
 	console.log('worker parsed output', output)
 	postMessage(output)
 }

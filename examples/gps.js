@@ -1,11 +1,11 @@
-import Exifr from '../src/index-full.js'
+import * as exifr from '../src/index-full.js'
 
 // This is NOT just nice wrapper method that only returns GPS coords.
-// Exifr.gps uses a lot of performance improvements to only read the GPS as fast as possible.
+// exifr.gps uses a lot of performance improvements to only read the GPS as fast as possible.
 // This is fact only parses TIFF tag, in which it only reads GPS-IFD Pointer from IFD0 without extracting any other values.
 // And in GPS IFD it also only reads as little tags as possible to get the GPS coords.
 // TLDR: this is hella fast.
-Exifr.gps('../test/fixtures/IMG_20180725_163423.jpg')
+exifr.gps('../test/fixtures/IMG_20180725_163423.jpg')
 	.then(console.log)
 	.catch(console.error)
 
@@ -25,7 +25,7 @@ async function diyParseGps() {
 		interop: false,
 		thumbnail: false
 	}
-	let gps = await Exifr.parse('../test/fixtures/IMG_20180725_163423.jpg', options)
+	let gps = await exifr.parse('../test/fixtures/IMG_20180725_163423.jpg', options)
 	// raw values
 	console.log('GPSLatitude', gps.GPSLatitude, gps.GPSLatitudeRef)
 	console.log('GPSLongitude', gps.GPSLongitude, gps.GPSLongitudeRef)

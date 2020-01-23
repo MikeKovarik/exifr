@@ -1,5 +1,5 @@
 // node --experimental-modules enumerate-segments.js
-import Exifr from '../src/index-full.js'
+import {Exifr} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 import path from 'path'
 
@@ -29,14 +29,14 @@ function isImage(fileName) {
 			console.log(fileName)
 			let filePath = path.join('../test/fixtures/', fileName)
 			let fileBuffer = await fs.readFile(filePath)
-			let exifr = new Exifr({mergeOutput: false, tiff: true, ifd0: true, exif: true, gps: true, interop: true, thumbnail: true, xmp: true, iptc: true, icc: true, sanitize: true, translateKeys: false, translateValues: false})
-			await exifr.read(fileBuffer)
-			let output = await exifr.parse()
+			let exr = new Exifr({mergeOutput: false, tiff: true, ifd0: true, exif: true, gps: true, interop: true, thumbnail: true, xmp: true, iptc: true, icc: true, sanitize: true, translateKeys: false, translateValues: false})
+			await exr.read(fileBuffer)
+			let output = await exr.parse()
 			if (isJpg(fileName)) {
-				for (let seg of exifr.fileParser.appSegments)
+				for (let seg of exr.fileParser.appSegments)
 				console.log(padd(seg.type), logKb(seg.length || seg.size))
 			}
-			let tiff = exifr.parsers.tiff
+			let tiff = exr.parsers.tiff
 			if (tiff) {
 				if (output.ifd0) console.log(padd('ifd0'), logKb(getLength(output.ifd0)))
 				if (output.exif) console.log(padd('exif'), logKb(getLength(output.exif)))

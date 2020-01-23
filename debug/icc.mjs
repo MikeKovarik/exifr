@@ -1,5 +1,5 @@
 // node --experimental-modules enumerate-segments.js
-import Exifr from '../src/index-full.js'
+import * as exifr from '../src/index-full.js'
 import {promises as fs} from 'fs'
 
 //fs.readFile('../test/fixtures/issue-fast-exif-2.jpg')
@@ -7,6 +7,6 @@ import {promises as fs} from 'fs'
 //fs.readFile('../test/fixtures/Bush-dog.jpg')
 fs.readFile('../test/fixtures/tif-with-iptc-icc-xmp.tif')
 	.then(async buffer => {
-		const output = await Exifr.parse(buffer, {icc: true, mergeOutput: false})
+		const output = await exifr.parse(buffer, {icc: true, mergeOutput: false})
 		console.log('output', output.icc)
 	})

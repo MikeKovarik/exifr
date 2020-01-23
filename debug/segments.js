@@ -1,5 +1,5 @@
 // node --experimental-modules enumerate-segments.js
-import Exifr from '../src/index-full.js'
+import {Exifr} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 import path from 'path'
 
@@ -20,12 +20,12 @@ const options = {
 	for (let fileName of imageFiles) {
 		let filePath = path.join('../test/fixtures/', fileName)
 		let fileBuffer = await fs.readFile(filePath)
-		let exifr = new Exifr(options)
-		await exifr.read(fileBuffer)
-		exifr.parse()
+		let exr = new Exifr(options)
+		await exr.read(fileBuffer)
+		exr.parse()
 		console.log('-'.repeat(111))
 		console.log(fileName, kb(fileBuffer.length))
-		let segments = [...exifr.fileParser.appSegments, ...exifr.fileParser.unknownSegments]
+		let segments = [...exr.fileParser.appSegments, ...exr.fileParser.unknownSegments]
 		for (let segment of segments) {
 			//console.log(segment)
 			console.log(

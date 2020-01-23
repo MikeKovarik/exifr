@@ -1,5 +1,4 @@
-import Exifr from './index-core.js'
-export default Exifr
+export * from './index-core.js'
 
 
 // File Parser

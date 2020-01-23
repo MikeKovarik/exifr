@@ -64,14 +64,12 @@ export class JpegFileParser extends FileParserBase {
 	unknownSegments = []
 
 	async parse() {
-		//global.recordBenchTime(`exifr.parse()`)
 		await this.findAppSegments()
 		await this.readSegments()
 		this.createParsers()
 	}
 
 	async readSegments() {
-		//global.recordBenchTime(`exifr.readSegments()`)
 		//let ranges = new Ranges(this.appSegments)
 		//await Promise.all(ranges.list.map(range => this.file.ensureChunk(range.offset, range.length)))
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
@@ -89,7 +87,6 @@ export class JpegFileParser extends FileParserBase {
 	}
 
 	async findAppSegments(offset = 0, wanted) {
-		//global.recordBenchTime(`exifr.findAppSegments()`)
 		let findAll
 		let remaining
 		if (wanted === true) {
@@ -135,7 +132,6 @@ export class JpegFileParser extends FileParserBase {
 				offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
 			}
 		}
-		//global.recordBenchTime(`segments found`)
 	}
 
 	_findAppSegments(offset, end, findAll, wanted, remaining) {
@@ -181,7 +177,6 @@ export class JpegFileParser extends FileParserBase {
 	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
 	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
 	async createParsers() {
-		//global.recordBenchTime(`exifr.createParsers()`)
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.

@@ -1,4 +1,5 @@
-import Exifr from '../src/index-full.js'
+import {Exifr, Options} from '../src/index-full.js'
+import * as exifr from '../src/index-full.js'
 import {readBlobAsArrayBuffer} from '../src/reader.js'
 import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from '../src/options.js'
 import {JsonValueConverter} from './json-beautifier.js'
@@ -70,9 +71,9 @@ class ExifrDemoApp {
 
 	createDefaultOptions() {
 		this.options = {}
-		for (let key in Exifr.Options)
+		for (let key in Options)
 			if (key !== 'pick' && key !== 'skip')
-				this.options[key] = Exifr.Options[key]
+				this.options[key] = Options[key]
 		this.options.thumbnail = true
 	}
 
@@ -140,7 +141,7 @@ class ExifrDemoApp {
 
 		// parse with users preconfigured settings
 		let t1 = performance.now()
-		let output = await Exifr.parse(input, options)
+		let output = await exifr.parse(input, options)
 		let t2 = performance.now()
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
@@ -159,14 +160,14 @@ class ExifrDemoApp {
 		// now parse again for the nice boxes with clear information.
 		options.mergeOutput = false
 		options.sanitize = true
-		let exifr = new Exifr(options)
-		await exifr.read(input)
-		let output = await exifr.parse() || {}
+		let exr = new Exifr(options)
+		await exr.read(input)
+		let output = await exr.parse() || {}
 		this.output = output
-		this.browserCompatibleFile = !!exifr.file.isJpeg
+		this.browserCompatibleFile = !!exr.file.isJpeg
 
 		if (output.thumbnail) {
-			let arrayBuffer = await exifr.extractThumbnail()
+			let arrayBuffer = await exr.extractThumbnail()
 			let blob = new Blob([arrayBuffer])
 			this.thumbUrl = URL.createObjectURL(blob)
 		}

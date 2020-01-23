@@ -217,7 +217,6 @@ export class TiffExif extends TiffCore {
 
 	// APP1 includes TIFF formatted values, grouped into IFD blocks (IFD0, Exif, Interop, GPS, IFD1)
 	async parse() {
-		//global.recordBenchTime(`tiffExif.parse()`)
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
 		if (this.options.ifd0.enabled)      await this.parseIfd0Block()                                  // APP1 - IFD0
@@ -293,7 +292,6 @@ export class TiffExif extends TiffCore {
 	}
 
 	async parseIfd0Block() {
-		//global.recordBenchTime(`tiffExif.parseIfd0Block()`)
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
 		// (width, height, maker, model and pointers to another segments)

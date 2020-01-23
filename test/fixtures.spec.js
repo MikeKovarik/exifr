@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
-import Exifr from '../src/index-full.js'
+import * as exifr from '../src/index-full.js'
 
 
 function testFile(fileName, segmentsAndBlocks) {
@@ -10,14 +10,14 @@ function testFile(fileName, segmentsAndBlocks) {
 
 	it(`${fileName} - whole file`, async () => {
 		let input = await getFile(fileName)
-		let output = await Exifr.parse(input, options)
+		let output = await exifr.parse(input, options)
 		for (let key of segmentsAndBlocks)
 			assert.exists(output[key], `should parse ${key}`)
 	})
 
 	it(`${fileName} - chunked mode`, async () => {
 		let input = await getPath(fileName)
-		let output = await Exifr.parse(input, options)
+		let output = await exifr.parse(input, options)
 		for (let key of segmentsAndBlocks)
 			assert.exists(output[key], `should parse ${key}`)
 	})

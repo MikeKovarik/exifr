@@ -1,5 +1,5 @@
-// node --experimental-modules enumerate-segments.js
-import {Exifr, Tiff} from '../src/index-full.js'
+// this is broken
+import {Exifr} from '../src/index-full.js'
 import {promises as fs} from 'fs'
 
 class Flir extends Tiff {
@@ -15,10 +15,10 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 	let filePath = '../test/fixtures/issue-exifr-3.jpg'
 	let fileBuffer = await fs.readFile(filePath)
 	let options = {wholeFile: true, mergeOutput: false, jfif: false, xmp: false, exif: false}
-	let exifr = new Exifr(options)
-	await exifr.read(fileBuffer)
-	exifr.parse()
-	let segments = [...exifr.appSegments, ...exifr.unknownSegments]
+	let exr = new Exifr(options)
+	await exr.read(fileBuffer)
+	exr.parse()
+	let segments = [...exr.appSegments, ...exr.unknownSegments]
 	for (let segment of segments) {
 		console.log('-----------------')
 		console.log(segment.offset, segment.end)
@@ -27,7 +27,7 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 			let isFlir = Flir.canHandle(fileBuffer, segment.offset)
 			console.log('isFlir', isFlir)
 			let parser = new Flir(fileBuffer, segment, options)
-			//exifr.parseHeader()
+			//exr.parseHeader()
 			//console.log(parser)
 		}
 		console.log(fileBuffer.slice(segment.offset, segment.offset + 10).toString().indexOf('FLIR'))

@@ -75,9 +75,9 @@ https://unpkg.com/exifr
 ESM in Node.js
 
 ```js
-import Exifr from 'exifr'
+import * as exifr from 'exifr'
 // exifr handles disk reading. Only reads a few hundred bytes.
-Exifr.parse('./myimage.jpg')
+exifr.parse('./myimage.jpg')
   .then(exif => console.log('Camera:', exif.Make, exif.Model))
   .catch(console.error)
 ```
@@ -195,10 +195,10 @@ To both parse EXIF and extract thumbnail efficiently in one go you can use this 
 *In Node.js it's also necessary to close the file with `instance.file.close()` if it's read in chunked mode.*
 
 ```js
-let exifr = new Exifr(options)
-let output = await exifr.read(input)
-let buffer = await exifr.extractThumbnail()
-if (exifr.file.chunked) await exifr.file.close()
+let exr = new Exifr(options)
+let output = await exr.read(input)
+let buffer = await exr.extractThumbnail()
+if (exr.file.chunked) await exr.file.close()
 ```
 
 ### Arguments and options
@@ -644,15 +644,6 @@ exifr.thumbnailBuffer()
 import exifr from 'exifr'
 exifr.parse()
 exifr.thumbnail() // renamed from thumbnailBuffer()
-```
-
-2) `ExifParser` is renamed to `Exifr` and became the default export.
-
-```js
-// 2.x.x
-import {ExifParser} from 'exifr'
-// 3.0.0
-import Exifr from 'exifr'
 ```
 
 ## XMP
