@@ -182,6 +182,7 @@ function getTypedArray(type) {
 
 const blockKeys = ['ifd0', 'thumbnail', 'exif', 'gps', 'interop']
 
+const TAG_SCENE_TYPE = 0xa301
 /*
 JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
 Whereas .tif file format starts with the TIFF structure right away.
@@ -355,6 +356,9 @@ export class TiffExif extends TiffCore {
 			delete exif[TAG_MAKERNOTE]
 			delete exif[TAG_USERCOMMENT]
 		}
+		// one odd tag that is aways array of one item
+		if (exif[TAG_SCENE_TYPE] && exif[TAG_SCENE_TYPE].length === 1)
+			exif[TAG_SCENE_TYPE] = exif[TAG_SCENE_TYPE][0]
 		return exif
 	}
 
