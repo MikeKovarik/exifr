@@ -349,12 +349,10 @@ Translate enum values to strings, convert dates to Date instances, etc...
 
 TODO: update coode
 
-<br><table><tr><td>
-translateKeys: false
-</td><td>
-translateKeys: true
-</td></tr><tr><td><pre>
-{
+<table><tr>
+<td>translateKeys: false</td>
+<td>translateKeys: true</td>
+</tr><tr><td><pre>{
   ifd0: {
     256: 4048,
     257: 3036,
@@ -376,9 +374,7 @@ translateKeys: true
     12: 'Monitor',
     16: 'RGB',
   }
-}
-</pre></td><td><pre>
-{
+}</pre></td><td><pre>{
   ifd0: {
     ImageWidth: 4048,
     ImageHeight: 3036,
@@ -396,8 +392,7 @@ translateKeys: true
     deviceClass: 'Monitor',
     colorSpace: 'RGB',
   }
-}
-</pre></td></tr></table>
+}</pre></td></tr></table>
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -410,11 +405,10 @@ Translate enum values to strings, convert dates to Date instances, etc...
 
 TODO: update coode
 
-<br><table><tr><td>
-translateValues: false
-</td><td>
-translateValues: true
-</td></tr><tr><td><pre>
+<table><tr>
+<td>translateValues: false</td>
+<td>translateValues: true</td>
+</tr><tr><td><pre>
 {
   Orientation: 1,
   ResolutionUnit: 2,
@@ -447,11 +441,10 @@ translateValues: true
 #### `options.reviveValues` default: `true`
 Converts dates to Date instances and raw `Uint8Array` data to more readable format.
 
-<br><table><tr><td>
-reviveValues: false
-</td><td>
-reviveValues: true
-</td></tr><tr><td><pre>
+<table><tr>
+<td>reviveValues: false</td>
+<td>reviveValues: true</td>
+</tr><tr><td><pre>
 {
   GPSVersionID: [0x02, 0x02, 0x00, 0x00],
   ModifyDate: '2018:07:25 16:34:23',
