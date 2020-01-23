@@ -155,7 +155,7 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 ## API
 
-exifr exports `parse`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
+exifr exports `parse`, `gps`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
 
 ### `parse(input[, options])` => `Promise<object>`
 
@@ -165,7 +165,7 @@ Accepts file (in any format), parses it and returns exif object.
 
 Extracts only GPS coordinates from photo.
 
-NOTE: This uses `pick`/`skip` filters and perf improvements to only extract lat & lon tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.
+This uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.
 
 Check out [examples/gps.js](examples/gps.js) to learn more.
 
@@ -221,6 +221,8 @@ can be:
  is optional argument and can be either:
 * `object` with granular settings
 * `boolean` shortcut to enable parsing all segments and blocks
+
+### `Options` object
 
 #### Reading file from disk or fetching url
 
@@ -283,43 +285,89 @@ If parsing file known to have EXIF fails try:
 
 #### APP Segments & IFD Blocks
 
-TODO: update
+* `options.tiff` `<bool|object|Array>` default: `true`
+<br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
+* `options.ifd0` `<bool|object|Array>` default: `true`
+<br>IFD0 block inside TIFF - Basic info about photo
+* `options.exif` `<bool|object|Array>` default: `true`
+<br>EXIF block inside TIFF - Detailed info about photo
+* `options.gps` `<bool|object|Array>` default: `true`
+<br>GPS block inside TIFF - GPS coordinates
+* `options.thumbnail` `<bool|object|Array>` default: `false`
+<br>IFD1 block inside TIFF - Size and basic info about embedded thumbnail
+* `options.interop` `<bool|object|Array>` default: `false`
+<br>Interop block inside TIFF - Interoperability info
+* `options.jfif` `<bool>` default: `false`
+<br>JFIF APP0 Segment - Additional info
+* `options.xmp` `<bool>` default: `false`
+<br>XMP APP1 Segment - additional XML data
+* `options.iptc` `<bool>` default: `false`
+<br>IPTC APP13 Segment - Captions and copyrights
+* `options.icc` `<bool>` default: `false`
+<br>ICC APP2 Segment - Color profile
 
-* `options.tiff: true` - APP1 - TIFF
-<br>The basic EXIF tags (image, exif, gps)
-<br>TIFF segment contains the following blocks / is requred for reading the following block:
-  * `options.ifd0: true` - Basic info about photo.
-  * `options.exif: true` - More detailed info about photo.
-  * `options.gps: true` - GPS latitue and longitude data.
-  * `options.thumbnail: false` - Size and basic info about embedded thumbnail.
-  * `options.interop: false` - This is a thing too.
-* `options.xmp: false` - APP1 - XMP
-<br>XML based extension, often used by editors like Photoshop.
-* `options.iptc: false` - APP13 - IPTC
-<br>Captions and copyrights
-* `options.icc: false` - APP2 - ICC
-<br>Color profile
-
-Each Segment (`tiff`, `xmp`, `iptc`, `icc`) and TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) can be set to either:
+Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole TIFF segment can be set to:
 * `true` - enabled with default or inherited options.
 * `false` - disabled, not parsing
 * `object` - enabled with custom options 
-   * Subset of `options` object.
-   * Defined properties override values from `options` object.
+   * Subset of `options` object. Can define/override `pick`, `skip`, `translateKeys`, `translateValues`, `reviveValues`, `sanitize`
+   * Defined properties override global `options` values.
    * Undefined properties are inherited from `options` object.
-   * Can contain `pick`, `skip`, `translateKeys`, `translateValues`, `reviveValues`, `sanitize`
-* `Array` of tag names or codes - disabled, not parsing
+* `Array` - enabled, but only extracts specified tags
    * List of the only tags to parse. All others are skipped.
    * It's a sortcut for `{pick: ['tags', ...]}`
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
-All settings for `options.tiff` are automatically inherited by TIFF blocks (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) unless specified otherwise.
+TIFF blocks automatically inherit TIFF segment settings `options.tiff` as well as global settings `options` unless 
 
 Setting `options.tiff = false` automatically disables all TIFF blocks - sets them to false as well.
 
-However setting `options.tiff = true` does not automatically enables all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled.  `thumbnail` and `inerop` are left disabled
+Setting `options.tiff = true` does not automatically enable all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled by default.
 
-dictionaries
+##### Examples
+
+Only extracting FNumber & ISO tags from EXIF and GPSLatitude & GPSLongitude from GPS
+
+```js
+// Explicitly specified
+let options = {
+	exif: {
+		pick: ['FNumber', 'ISO']
+	},
+	gps: ['GPSLatitude', 0x0004], // 0x0004 is GPSLongitude
+}
+
+// Shortcut of same
+let options = {
+	exif: true,
+	gps: true,
+	pick: ['FNumber', 'ISO', 'GPSLatitude', 0x0004]
+}
+```
+
+Reviving values (like date string to `Date` instances) globally or scoped.
+
+```js
+// Do not revive any values
+let options = {
+	reviveValues: false,
+	exif: {
+		// inherits global `reviveValues: false`
+	}
+}
+
+// Do not revive any values except for those in EXIF block
+let options = {
+	reviveValues: false,
+	exif: {
+		reviveValues: true
+	}
+}
+```
+
+### dictionaries
+
+TODO
 
 JFIF
 https://exiftool.org/TagNames/JFIF.html
