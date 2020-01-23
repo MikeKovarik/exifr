@@ -118,9 +118,9 @@
 			</span>
 		</div>
 
-		<segment-box options.bind="options" output.bind="output" key="thumbnail" title="Image (IFD1)" alias="ifd1"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image (IFD0)" alias="ifd0"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="exif"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="thumbnail" title="Thumbnail (IFD1)" alias="ifd1"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image (IFD0)" alias="ifd0"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="iptc"></segment-box>
@@ -146,10 +146,11 @@
 	<p>They come in all forms, shapes and sizes. There are some that are:</p>
 	<li><a href="./examples/benchmark.html">Isomorphic (works the same in Node and browser)</a></li>
 	<li>specific to <a href="./examples/thumbnail.js">Node's file system API</a> and other are tailored to <a href="./examples/thumbnail.html">browser</a></li>
-	<li>various input formats like <a href="./examples/benchmark.html">Blob, ArrayBuffer, raw &lt;img&gt; tags</a>, <a href="./exampleS/base64.mjs">Base64 string</a>, etc...</a></li>
-	<li><a href="./examples/node.js">CommonJS</a> or <a href="./examples/esm.mjs">ES Modules</a></li>
+	<li>various input formats like <a href="./examples/benchmark.html">Blob, ArrayBuffer, raw &lt;img&gt; tags</a>, <a href="./examples/base64.mjs">Base64 string</a>, etc...</a></li>
+	<li><a href="./examples/node.cjs">CommonJS</a> or <a href="./examples/esm.mjs">ES Modules</a></li>
 	<li><a href="./examples/worker.html">Web worker example</a></li>
-	<li><a href="./examples/tiff.mjs">Extract the full exif</a> or <a href="./examples/xmp.js">just the one little thing you need</a></li>
+	<li><a href="./examples/tiff.js">Extract the full exif</a> or <a href="./examples/xmp.js">just single segment</a></li>
+	<li>Filters & perf improvements: <a href="./examples/gps.js">Parsing as little tags to get GPS as fast as possible</a></li>
 	<li><a href="./examples/benchmark.html">Tryna-be-scientific benchmark</a></li>
 
 	<h2>License</h2>

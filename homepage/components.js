@@ -1,13 +1,15 @@
 import decorate from '../node_modules/decorate/index.js'
 
 
-let outputKeyPicks = {
-	'ifd0':       ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software'],
-	'thumbnail':  ['ImageWidth', 'ImageHeight', 'ThumbnailLength'],
-	'exif':       ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'],
-	'gps':        ['latitude', 'longitude'],
-	'interop':    ['InteropIndex', 'InteropVersion'],
-	'iptc':       ['headline', 'caption', 'source', 'country'], // TODO update
+let outputFilters = {
+	ifd0:      ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software'],
+	exif:      ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel'],
+	gps:       ['latitude', 'longitude'],
+	interop:   ['InteropIndex', 'InteropVersion'],
+	thumbnail: ['ImageWidth', 'ImageHeight', 'ThumbnailLength'],
+	iptc:      ['Headline', 'Byline', 'Credit', 'Caption', 'Source', 'Country'],
+	icc:       ['ProfileVersion', 'ProfileClass', 'ColorSpaceData', 'ProfileConnectionSpace', 'ProfileFileSignature', 'DeviceManufacturer', 'RenderingIntent', 'ProfileCreator', 'ProfileDescription'],
+
 }
 
 export class SegmentBoxCustomElement {
@@ -33,7 +35,7 @@ export class SegmentBoxCustomElement {
 		return this.rawOutput && this.rawOutput[this.key]
 	}
 	get keys() {
-		return this.showAll ? undefined : outputKeyPicks[this.key]
+		return this.showAll ? undefined : outputFilters[this.key]
 	}
 	// overcome aurelia's bugs
 	optionsChanged(newValue) {this.options = newValue}
@@ -56,7 +58,7 @@ export class ObjectTableCustomElement {
 	static template = `
 		<table>
 			<tr repeat.for="[key, val] of map">
-				<td>\${key}</td>
+				<td>\${key | prettyCase}</td>
 				<td>\${val}</td>
 			</tr>
 		</table>

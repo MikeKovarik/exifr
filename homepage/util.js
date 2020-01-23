@@ -39,12 +39,20 @@ function formatBytes(arr) {
 // FlightRollDegree => Flight Roll Degree
 // imageWidth => Image Width
 // latitude => Latitude
-export function splitTag(string) {
+export function prettyCase(string) {
 	return string.match(matchRegex).map(capitalize).join(' ')
 }
 
 export function capitalize(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+export class PrettyCaseValueConverter {
+    toView(string) {
+		if (string === undefined) return
+		if (string === null) return
+		return prettyCase(string)
+    }
 }
 
 var matchRegex = /([A-Z]+(?=[A-Z][a-z]))|([A-Z][a-z]+)|([0-9]+)|([a-z]+)|([A-Z]+)/g

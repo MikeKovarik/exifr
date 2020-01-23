@@ -181,8 +181,8 @@ describe('ICC Segment', () => {
 		DeviceManufacturer: 'Google',
 		RenderingIntent: 'Perceptual',
 		ProfileCreator: 'Google',
-		ProfileDescription: 'sRGB IEC61966-2.1\u0000',
-		ProfileCopyright: 'Copyright (c) 2016 Google Inc.\u0000'
+		ProfileDescription: 'sRGB IEC61966-2.1',
+		ProfileCopyright: 'Copyright (c) 2016 Google Inc.'
 	})
 
 	testImage('icc', 'Bush-dog.jpg', {

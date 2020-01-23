@@ -70,25 +70,30 @@ export default class IccParser extends AppSegmentParserBase {
 
 	parseTag(cursor) {
 		let offset = this.chunk.getUint32(cursor + 4)
-		let size   = this.chunk.getUint32(cursor + 8)
+		let length = this.chunk.getUint32(cursor + 8)
 		let type   = this.chunk.getString(offset, 4)
 		switch (type) {
 			case TAG_TYPE_DESC: return this.parseDesc(offset)
 			case TAG_TYPE_MLUC: return this.parseMluc(offset)
-			case TAG_TYPE_TEXT: return this.parseText(offset, size)
+			case TAG_TYPE_TEXT: return this.parseText(offset, length)
 			case TAG_TYPE_SIG:  return this.parseSig(offset)
 			// TODO: implement more types
 		}
-		//return this.file.getUint8Array(offset, size)
+		if (offset + length > this.chunk.byteLength) {
+			// TODO: handle these when multi-segment ICC is being implemented
+			// look out for issue-metadata-extractor-65.jpg
+		} else {
+			return this.chunk.getUint8Array(offset, length)
+		}
 	}
 
 	parseDesc(offset) {
-		let size  = this.chunk.getUint32(offset + 8) - 1 // last byte is null termination
-		return this.chunk.getString(offset + 12, size).trim()
+		let length  = this.chunk.getUint32(offset + 8) - 1 // last byte is null termination
+		return this.chunk.getString(offset + 12, length).trim()
 	}
 
-	parseText(offset, size) {
-		return this.chunk.getString(offset + 8, size - 15).trim()
+	parseText(offset, length) {
+		return this.chunk.getString(offset + 8, length - 15).trim()
 	}
 
 	// NOTE: some tags end with empty space. TODO: investigate. maybe add .trim() 
@@ -108,7 +113,7 @@ export default class IccParser extends AppSegmentParserBase {
 			let country = chunk.getString(entryOffset + 2, 2)
 			let length  = chunk.getUint32(entryOffset + 4)
 			let offset  = chunk.getUint32(entryOffset + 8) + tagOffset
-			let text = chunk.getUnicodeString(offset, length)
+			let text = sanitizeTermination(chunk.getUnicodeString(offset, length))
 			values.push({lang, country, text})
 			entryOffset += entrySize
 		}
@@ -168,5 +173,10 @@ function parseDate(view, offset) {
 	return new Date(Date.UTC(year, month, day, hours, minutes, seconds))
 }
 
+function sanitizeTermination(string) {
+	while (string.endsWith('\0'))
+		string = string.slice(0, -1)
+	return string
+}
 
 segmentParsers.set('icc', IccParser)

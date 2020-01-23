@@ -159,13 +159,23 @@ exifr exports `parse`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
 
 ### `parse(input[, options])` => `Promise<object>`
 
-Accepts any input argument, parses it and returns exif object.
+Accepts file (in any format), parses it and returns exif object.
+
+### `gps(input)` => `Promise<object>`
+
+Extracts only GPS coordinates from photo.
+
+NOTE: This uses `pick`/`skip` filters and perf improvements to only extract lat & lon tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.
+
+Check out [examples/gps.js](examples/gps.js) to learn more.
 
 ### `thumbnail(input)` => `Promise<Buffer|ArrayBuffer>`
 
 Extracts embedded thumbnail from the photo and returns it as a `Buffer` (Node.JS) or an `ArrayBuffer` (browser). 
 
 Only parses as little EXIF as necessary to find offset of the thumbnail.
+
+Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.
 
 ### `thumbnailUrl(input)` => `Promise<string>`
 
@@ -175,9 +185,14 @@ User is expected to revoke the URL when not needed anymore.
 
 ### `Exifr` class
 
-Afore mentioned functions are wrappers that internally instantiate `new ExifParse(options)` class, then call `parser.read(input)` to read the file, and finally call either `parser.parse()`, `parser.extractThumbnail()`or both. In Node.js it's also necessary to close the file with `exifr.file.close()` if it's read in chunked mode.
+Afore mentioned functions are wrappers that internally:
+1) instantiate `new Exifr(options)` class
+2) call `parser.read(input)` to read the file
+3) call either `parser.parse()`, `parser.extractThumbnail()`
 
-To do both parsing EXIF and extracting thumbnail efficiently you can use this class yourself.
+To both parse EXIF and extract thumbnail efficiently in one go you can use this class yourself.
+
+*In Node.js it's also necessary to close the file with `instance.file.close()` if it's read in chunked mode.*
 
 ```js
 let exifr = new Exifr(options)
@@ -575,23 +590,23 @@ require('exifr/index.legacy.js') // imports index.legacy.js
 
 TODO - work in progress
 
-|         | Supported inputs                                             | Chunked mode | parsers                               | size  |
-|---------|--------------------------------------------------------------|--------------|---------------------------------------|-------|
-| full    | Buffer, ArrayBuffer, Uint8Array, DataView, Blob, url, base64 |      yes     | TIFF, thumbnail, IPTC, JFIF, ICC, XMP | 50 Kb |
-| default | Buffer, ArrayBuffer, Uint8Array, DataView, Blob              |      yes     | TIFF, thumbnail                       | 40 Kb |
-| lite    | Buffer, ArrayBuffer, Uint8Array, DataView,                   |      no      | TIFF                                  | 30 Kb |
+|                 | full | lite | mini | core |
+|-----------------|------|------|------|------|
+| chunked reader  | yes  | yes  | no   | no   |
+| inputs          | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string<br>base64 string or url | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string |
+| file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | none | none |
+| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
+| segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>IPTC<br>XMP | TIFF (EXIF) | none |
+| dictionaries    | ... | ... | ... | none |
+| size            | 40 Kb | 30 Kb | 20 Kb | 10 Kb |
+| file            | `dist/full.esm.js`<br>`dist/full.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
 
+**full** - Contains everything - all readers, parsers, dictionaries. Intended for use in Node.js.
+**lite** - like `mini` + support for modern `.heic` (iPhone) photos, IPTC parser (photo description and author) XMP parser (panorama & tech details)
+**mini** - Stripped down to basics, as lightweight as it can get. fetches whole file and realiably parses most useful info from jpegs.
+**core** - Build your own
 
-| | full | lite |
-|-|-|-|
-| inputs | `ArrayBuffer`<br>`Buffer` | `ArrayBuffer` |
-| file readers | BlobReader<br>Base64Reader | BlobReader |
-| file parsers | `*.jpg`<br>`*.tif` | `*.jpg`<br>`*.tif` |
-| segment parsers | TIFF<br>IPTC<br>ICC | TIFF |
-| dictionaries | ... | ... |
-| chunked reader | yes | no |
-| size | 40 Kb | 20 Kb |
-| file | `index.js` | `index2.js` |
+Of course you can use `full` version in browser, or use any other builds in Node.js. Either to save memory, or to build your own exifr with `core` and hand picking parsers you need.
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 

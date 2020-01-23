@@ -1,12 +1,6 @@
-import Exifr from './index-mini.js'
+import Exifr from './index-core.js'
 export default Exifr
 
-
-// File Readers
-import './file-readers/FsReader.js'
-import './file-readers/Base64Reader.js'
-import './file-readers/UrlFetcher.js'
-import './file-readers/BlobReader.js'
 
 // File Parser
 import './file-parsers/jpeg.js'

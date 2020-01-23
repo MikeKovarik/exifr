@@ -68,3 +68,4 @@ package-lock.json
 /core.cjs
 /core.legacy.cjs
 /experiments
+/dist

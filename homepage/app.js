@@ -4,7 +4,7 @@ import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from '..
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
-import {BinaryValueConverter} from './util.js'
+import {BinaryValueConverter, PrettyCaseValueConverter} from './util.js'
 import '../src/util/debug.js'
 
 
@@ -17,13 +17,6 @@ class ExifrDemoApp {
 
 	toggleSegment(name) {
 	}
-
-	ifd0Filter =      ['ImageWidth', 'ImageHeight', 'Make', 'Model', 'Software']
-	exifFilter =      ['ExposureTime', 'ShutterSpeedValue', 'FNumber', 'ApertureValue', 'ISO', 'LensModel']
-	gpsFilter =       ['latitude', 'longitude']
-	interopFilter =   ['InteropIndex', 'InteropVersion']
-	iptcFilter =      ['headline', 'caption', 'source', 'country']
-	thumbnailFilter = ['ImageWidth', 'ImageHeight', 'ThumbnailLength']
 
 	demoFiles = [{
 		text: 'JPEG Google Pixel photo',
@@ -213,5 +206,6 @@ au.enhance({
 		JsonValueConverter,
 		ObjectTableCustomElement,
 		SegmentBoxCustomElement,
+		PrettyCaseValueConverter,
 	]
 })

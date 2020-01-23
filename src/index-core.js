@@ -71,9 +71,6 @@ export default class Exifr {
 		return {latitude, longitude}
 	}
 
-	// to be exposed in future versions
-	//static async parseAppSegments(input, options) {}
-
 	// ------------------------- INSTANCE -------------------------
 
 	parsers = {}
