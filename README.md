@@ -627,11 +627,14 @@ If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'we
 
 Or try adding similar settings to your bundler of choice.
 
-## Breaking changes / Migration from 2.x.x to 3.0.0
+## Notable breaking changes / Migration from 2.x.x to 3.0.0
 
 Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
 
-1) Named exports are replaced by default export.
+1) Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tags should stay the same, but expect some changed. For example:
+<br>before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`
+<br>before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
+2) Renamed `ExifParser` class to `Exifr`.
 
 ```js
 // 2.x.x

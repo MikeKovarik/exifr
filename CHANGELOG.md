@@ -12,7 +12,7 @@
 #### Output format
 - renamed IFD0 in the output object from `output.image` to `output.ifd0`
 - renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
-- Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/dicts/*` files for reference.
+- Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/dicts/*` files for reference. For example: before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`; before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
 
 #### Options
 - removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
