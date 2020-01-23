@@ -308,97 +308,90 @@ let options = {
 
 ### Output format
 
-TODO update
-
 #### `options.mergeOutput` default: `true`
+
 Changes output format by merging all segments and blocks into a single object.
 
-TODO
-<table><tr><td>
-mergeOutput: false
-</td><td>
-mergeOutput: true
-</td></tr><tr><td><pre>
+**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
+
+<table><tr>
+<td>mergeOutput: false</td>
+<td>mergeOutput: true</td>
+</tr><tr><td><pre>
 {
   Make: 'Google',
   Model: 'Pixel',
   FNumber: 2,
   ISO: 50,
+  State: 'Vsetín',
+  Country: 'Czech Republic',
+  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
 }
 </pre></td><td><pre>
 {
-  exif: {
+  ifd0: {
     Make: 'Google',
-    Model: 'Pixel',
+    Model: 'Pixel'
   },
   exif: {
     FNumber: 2,
-    ISO: 50,
+    ISO: 50
   },
   iptc: {
-TODO
+    State: 'Vsetín',
+    Country: 'Czech Republic'
   }
-  xmp: 'TODO'
+  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
 }
 </pre></td></tr></table>
 
-**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
-
 #### `options.translateKeys` default: `true`
 Translate enum values to strings, convert dates to Date instances, etc...
-
-TODO: update coode
 
 <table><tr>
 <td>translateKeys: false</td>
 <td>translateKeys: true</td>
 </tr><tr><td><pre>{
   ifd0: {
-    256: 4048,
-    257: 3036,
-    271: 'Google',
-    272: 'Pixel',
-    0x0100: 4048,
-    0x0101: 3036,
     0x010f: 'Google',
-    0x0110: 'Pixel',
+    0x0110: 'Pixel'
+  },
+  exif: {
+    0x8827: 50,
+    0xa40a: 'Strong'
   },
   iptc: {
-    92: 'Snow Peak',
-    95: 'Uttarakhand',
-    101: 'India',
+    95: 'Vsetín',
+    101: 'Czech Republic',
   },
   icc: {
-    4: 'Lino',
-    8: '2.1.0',
-    12: 'Monitor',
-    16: 'RGB',
+    8: '4.0.0',
+    64: 'Perceptual',
+    desc: 'sRGB IEC61966-2.1',
   }
 }</pre></td><td><pre>{
   ifd0: {
-    ImageWidth: 4048,
-    ImageHeight: 3036,
     Make: 'Google',
     Model: 'Pixel',
   },
+  exif: {
+    ISO: 50,
+    Sharpness: 'Strong'
+  },
   iptc: {
-    Sublocation: 'Snow Peak',
-    State: 'Uttarakhand',
-    Country: 'India',
+    State: 'Vsetín',
+    Country: 'Czech Republic',
   },
   icc: {
-    cmm: 'Lino',
-    version: '2.1.0',
-    deviceClass: 'Monitor',
-    colorSpace: 'RGB',
+    ProfileVersion: '4.0.0',
+    RenderingIntent: 'Perceptual',
+    ProfileDescription: 'sRGB IEC61966-2.1',
   }
 }</pre></td></tr></table>
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
-Tags are numeric, refered to in hex notation.
-Javascript object type only uses string keys, so the tag code is converted to string representation of the number.
- stored  `[0x010f]` or `['271']`
+Tags are numeric, sometimes refered to in hex notation. To access the `output.ifd0.Make` tag use `output.ifd0[0x010f]` or `output.ifd0[271]`
 
 #### `options.translateValues` default: `true`
 Translate enum values to strings, convert dates to Date instances, etc...
