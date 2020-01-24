@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/exifr/index.js?compression=gzip)](https://unpkg.com/exifr)
+[![gzip size](http://img.badgesize.io/https://unpkg.com/exifr/dist/mini.umd.js?compression=gzip)](https://unpkg.com/exifr)
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 [![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
@@ -49,49 +49,54 @@ Works everywhere and accepts pretty much everything you throw at it.
 npm install exifr
 ```
 
-also availabe as UMD bundle transpiled for ES5
+You can pick and choose from various builds - `full`, `lite`, `mini`, `core`. For browsers we recommend `mini` or `lite` because of balance between features and file size.
 
+```js
+// node.js, uses full build by default
+import * as exifr from 'exifr'
+
+// modern browser
+import * as exifr from 'node_modules/exifr/dist/lite.esm.js'
 ```
-https://unpkg.com/exifr
+
+Also availabe as UMD bundle which exports everything as `window.exifr`. Transpiled to ES5, compatible with RequireJS and CJS (Node `require()`). 
+
+```html
+<script src="https://unpkg.com/exifr/dist/mini.umd.js"></script>
+```
+```js
+var exifr = require('exifr/dist/full.umd.js')
 ```
 
 ## Usage
 
-* `Exifr.parse(Buffer[, options])` Node.js only
-* `Exifr.parse(ArrayBuffer[, options])`
-* `Exifr.parse(Uint8Array[, options])`
-* `Exifr.parse(DataView[, options])`
-* `Exifr.parse(urlString[, options])` Browser only
-* `Exifr.parse(objectUrlString[, options])` Browser only
-* `Exifr.parse(filePathString[, options])` Node.js only
-* `Exifr.parse(base64String[, options])`
-* `Exifr.parse(HTMLImageElement[, options])` Browser only
-* `Exifr.parse(File[, options])` Browser only
-* `Exifr.parse(Blob[, options])` Browser only
-* `Exifr.thumbnail(Blob)`
+`file` can be any kind of buffer/binary format, `<img>` element, string path or url.
+
+* `exifr.parse(file[, options])` => `object`
+* `exifr.gps(file)` => `object` `{latitude, longitude}`
+* `exifr.thumbnail(file)` => `Uint8Array`
+* `exifr.thumbnailUrl(file)` => `string` object url. Browser only.
 
 ## Examples
 
-ESM in Node.js
+ESM in modern Node.js
 
 ```js
 import * as exifr from 'exifr'
-// exifr handles disk reading. Only reads a few hundred bytes.
+// exifr reads the file from disk, only a few hundred bytes.
 exifr.parse('./myimage.jpg')
-  .then(exif => console.log('Camera:', exif.Make, exif.Model))
-  .catch(console.error)
-```
-
-CJS in Node.js
-
-```js
-let exifr = require('exifr')
-let fs = require('fs').promises
+  .then(output => console.log('Camera:', output.Make, output.Model))
 // Or read the file on your own and feed the buffer into exifr.
 fs.readFile('./myimage.jpg')
   .then(exifr.parse)
-  .then(exif => console.log('lat lon', exif.latitude, exif.longitude))
-  .catch(console.error)
+  .then(output => console.log('Camera:', output.Make, output.Model))
+```
+
+UMD in old Node.js
+
+```js
+var exifr = require('exifr/dist/full.umd.js')
+exifr.gps('./myimage.jpg').then(pos => console.log(pos.latitude, pos.longitude))
 ```
 
 
@@ -99,11 +104,10 @@ UMD in Browser
 
 ```html
 <img src="./myimage.jpg">
-<script src="./node_modules/exifr/index.js"></script>
+<script src="./node_modules/exifr/dist/mini.umd.js"></script>
 <script>
-  // UMD module exposed as window.exifr
   let img = document.querySelector('img')
-  exifr.parse(img).then(exif => console.log('Exposure:', exif.ExposureTime))
+  window.exifr.parse(img).then(exif => console.log('Exposure:', exif.ExposureTime))
 </script>
 ```
 
@@ -112,12 +116,10 @@ ESM in Browser
 ```html
 <input id="filepicker" type="file" multiple>
 <script type="module">
-  import {parse} from './node_modules/exifr/index.js'
-
+  import {parse} from './node_modules/exifr/dist/mini.esm.js'
   document.querySelector('#filepicker').addEventListener('change', async e => {
     let files = Array.from(e.target.files)
-    let promises = files.map(parse)
-    let exifs = await Promise.all(promises)
+    let exifs = await Promise.all(files.map(parse))
     let dates = exifs.map(exif => exif.DateTimeOriginal.toGMTString())
     console.log(`${files.length} photos taken on:`, dates)
   })
@@ -127,20 +129,15 @@ ESM in Browser
 Extracting thumbnail
 
 ```js
-let img = document.querySelector("#thumb")
-document.querySelector('input[type="file"]').addEventListener('change', async e => {
-  let file = e.target.files[0]
-  img.src = await exifr.thumbnailUrl(file)
-})
-```
-
-```js
-let thumbBuffer = await exifr.thumbnail(imageBuffer)
+let thumbBuffer = await exifr.thumbnail(file)
+// or get object URL
+img.src = await exifr.thumbnailUrl(file)
 ```
 
 Usage in WebWorker
 
 ```js
+// main.js
 let worker = new Worker('./worker.js')
 worker.postMessage('../test/IMG_20180725_163423.jpg')
 worker.onmessage = e => console.log(e.data)
@@ -148,7 +145,7 @@ worker.onmessage = e => console.log(e.data)
 
 ```js
 // worker.js
-importScripts('./node_modules/exifr/index.js')
+importScripts('./node_modules/exifr/dist/mini.umd.js')
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
@@ -187,12 +184,12 @@ User is expected to revoke the URL when not needed anymore.
 
 Afore mentioned functions are wrappers that internally:
 1) instantiate `new Exifr(options)` class
-2) call `parser.read(input)` to read the file
-3) call either `parser.parse()`, `parser.extractThumbnail()`
+2) call `.read(input)` to read the file
+3) call `.parse()` or `.extractThumbnail()`
 
 To both parse EXIF and extract thumbnail efficiently in one go you can use this class yourself.
 
-*In Node.js it's also necessary to close the file with `instance.file.close()` if it's read in chunked mode.*
+*In Node.js it's also necessary to close the file with `.file.close()` if it's read in chunked mode.*
 
 ```js
 let exr = new Exifr(options)
@@ -201,10 +198,10 @@ let buffer = await exr.extractThumbnail()
 if (exr.file.chunked) await exr.file.close()
 ```
 
-### Arguments and options
+### file `input` argument
 
-#### `input`
 can be:
+
 * `string` file path
 * `string` URL
 * `string` Base64
@@ -217,27 +214,20 @@ can be:
 * `Blob`
 * `<img>` element
 
-#### `options`
- is optional argument and can be either:
+### `options` argument, optional
+
+can be either:
+* `true` shortcut to parse all segments and blocks
 * `object` with granular settings
-* `boolean` shortcut to enable parsing all segments and blocks
 
-### `Options` object
+#### APP & Blocks
 
-#### APP Segments & IFD Blocks
+##### APP Segments
+
+JPG stores various formats of data in structuctures called APP Segments.
 
 * `options.tiff` `<bool|object|Array>` default: `true`
 <br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
-* `options.ifd0` `<bool|object|Array>` default: `true`
-<br>IFD0 block inside TIFF - Basic info about photo
-* `options.exif` `<bool|object|Array>` default: `true`
-<br>EXIF block inside TIFF - Detailed info about photo
-* `options.gps` `<bool|object|Array>` default: `true`
-<br>GPS block inside TIFF - GPS coordinates
-* `options.thumbnail` `<bool|object|Array>` default: `false`
-<br>IFD1 block inside TIFF - Size and basic info about embedded thumbnail
-* `options.interop` `<bool|object|Array>` default: `false`
-<br>Interop block inside TIFF - Interoperability info
 * `options.jfif` `<bool>` default: `false`
 <br>JFIF APP0 Segment - Additional info
 * `options.xmp` `<bool>` default: `false`
@@ -246,6 +236,32 @@ can be:
 <br>IPTC APP13 Segment - Captions and copyrights
 * `options.icc` `<bool>` default: `false`
 <br>ICC APP2 Segment - Color profile
+
+##### TIFF IFD Blocks
+
+TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
+
+* `options.ifd0` `<bool|object|Array>` default: `true`
+<br>IFD0 IFD - Basic info about photo
+* `options.exif` `<bool|object|Array>` default: `true`
+<br>EXIF IFD - Detailed info about photo
+* `options.gps` `<bool|object|Array>` default: `true`
+<br>GPS IFD - GPS coordinates
+* `options.thumbnail` `<bool|object|Array>` default: `false`
+<br>IFD1 IFD - Info about embedded thumbnail
+* `options.interop` `<bool|object|Array>` default: `false`
+<br>Interop IFD - Interoperability info
+
+##### Notable TIFF tags
+
+Notably large tags from EXIF block that are not parsed by default but can be enabed if needed.
+
+* `options.makerNote` `<bool>` default: `false`
+<br>0x927C MakerNote tag 
+* `options.userComment` `<bool>` default: `false`
+<br>0x9286 UserComment tag
+
+##### TIFF Scoping options
 
 Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `tiff` segment can be set to:
 * `true` - enabled with default or inherited options.
@@ -259,15 +275,15 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
    * It's a sortcut for `{pick: ['tags', ...]}`
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
-TIFF blocks automatically inherit TIFF segment settings `options.tiff` as well as global settings `options` unless 
+TIFF blocks automatically inherit TIFF segment settings (from `options.tiff`) as well as global settings (from `options`) unless 
 
-Setting `options.tiff = false` automatically disables all TIFF blocks - sets them to false as well.
+`options.tiff = false` automatically disables all TIFF blocks - sets them to false as well.
 
-Setting `options.tiff = true` does not automatically enable all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled by default.
+`options.tiff = true` does not automatically enable all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled by default.
 
 ##### Examples
 
-Only extracting FNumber & ISO tags from EXIF and GPSLatitude & GPSLongitude from GPS
+Only extracting FNumber + ISO tags from EXIF and GPSLatitude + GPSLongitude from GPS
 
 ```js
 // Explicitly specified
@@ -286,7 +302,7 @@ let options = {
 }
 ```
 
-Reviving values (like date string to `Date` instances) globally or scoped.
+Reviving values (like date string to `Date` instance) globally or scoped.
 
 ```js
 // Do not revive any values
@@ -314,6 +330,8 @@ Changes output format by merging all segments and blocks into a single object.
 
 **Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
 
+##### Example
+
 <table><tr>
 <td>mergeOutput: false</td>
 <td>mergeOutput: true</td>
@@ -323,7 +341,7 @@ Changes output format by merging all segments and blocks into a single object.
   Model: 'Pixel',
   FNumber: 2,
   ISO: 50,
-  State: 'Vsetín',
+  City: 'Vsetín',
   Country: 'Czech Republic',
   xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
 }
@@ -338,7 +356,7 @@ Changes output format by merging all segments and blocks into a single object.
     ISO: 50
   },
   iptc: {
-    State: 'Vsetín',
+    City: 'Vsetín',
     Country: 'Czech Republic'
   }
   xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
@@ -353,37 +371,29 @@ Translate enum values to strings, convert dates to Date instances, etc...
 <td>translateKeys: true</td>
 </tr><tr><td><pre>{
   ifd0: {
-    0x010f: 'Google',
     0x0110: 'Pixel'
   },
   exif: {
-    0x8827: 50,
     0xa40a: 'Strong'
   },
   iptc: {
-    95: 'Vsetín',
-    101: 'Czech Republic',
+    90: 'Vsetín',
   },
   icc: {
-    8: '4.0.0',
     64: 'Perceptual',
     desc: 'sRGB IEC61966-2.1',
   }
 }</pre></td><td><pre>{
   ifd0: {
-    Make: 'Google',
     Model: 'Pixel',
   },
   exif: {
-    ISO: 50,
     Sharpness: 'Strong'
   },
   iptc: {
-    State: 'Vsetín',
-    Country: 'Czech Republic',
+    City: 'Vsetín',
   },
   icc: {
-    ProfileVersion: '4.0.0',
     RenderingIntent: 'Perceptual',
     ProfileDescription: 'sRGB IEC61966-2.1',
   }
@@ -406,28 +416,14 @@ TODO: update coode
   Orientation: 1,
   ResolutionUnit: 2,
   Flash: 16,
-  SceneCaptureType: 0,
-  Sharpness: 0,
-  SubjectDistanceRange: 1
-  // TODO. ICC tags, do they remain lowercase?
-  deviceClass: 'mntr',
-  platform: 'MSFT',
-  intent: 0,
-  creator: 'HP',
+  RenderingIntent: 0,
 }
 </pre></td><td><pre>
 {
   Orientation: 'Horizontal (normal)',
   ResolutionUnit: 'inches',
   Flash: 'Flash did not fire, compulsory flash mode',
-  SceneCaptureType: 'Standard',
-  Sharpness: 'Normal',
-  SubjectDistanceRange: 'Macro'
-  // TODO. ICC tags, do they remain lowercase?
-  deviceClass: 'Monitor',
-  platform: 'Microsoft',
-  intent: 'Perceptual',
-  creator: 'Hewlett-Packard',
+  RenderingIntent: 'Perceptual',
 }
 </pre></td></tr></table>
 
@@ -648,7 +644,7 @@ Out of the box the library comes in:
 <br>*Not bundled, index.mjs further imports few other files from src/ folder*
 <br>*You may want to bundle & treeshake this yourself*
 2) **index.js** - **UMD bundle** which
-<br>*combines the classic Node.js CommonJS `require('exifr')` with AMD/Require.js as well as browser-friendly `<script src="node_modules/exifr/index.js">`*
+<br>*combines the classic Node.js CommonJS `require('exifr')` with AMD/Require.js as well as browser-friendly `<script src="node_modules/exifrdist/mini.esmx.js">`*
 <br>*All in one file*
 <br>*Prebundled with Rollup*
 
