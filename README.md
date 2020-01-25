@@ -254,7 +254,6 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 * `options.interop` `<bool|object|Array>` default: `false`
 <br>Interop IFD - Interoperability info
 
-(#makernote-and-friends)
 ##### Notable TIFF tags
 
 Notably large tags from EXIF block that are not parsed by default but can be enabed if needed.
@@ -343,7 +342,7 @@ By default it contains [MakerNote and UserComment tags](#notable-tiff-tags).
 
 #### `options.mergeOutput` default: `true`
 
-Changes output format by merging all segments and blocks into a single object.
+Merging all parsed segments and blocks into a single object.
 
 **Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
 
@@ -381,7 +380,14 @@ Changes output format by merging all segments and blocks into a single object.
 </pre></td></tr></table>
 
 #### `options.translateKeys` default: `true`
-Translate enum values to strings, convert dates to Date instances, etc...
+
+Translate tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
+
+TODO info about dictionaries + link
+
+**Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
+
+Tags are numeric, sometimes refered to in hex notation. To access the `output.ifd0.Make` tag use `output.ifd0[0x010f]` or `output.ifd0[271]`
 
 <table><tr>
 <td>translateKeys: false</td>
@@ -389,9 +395,6 @@ Translate enum values to strings, convert dates to Date instances, etc...
 </tr><tr><td><pre>{
   ifd0: {
     0x0110: 'Pixel'
-  },
-  exif: {
-    0xa40a: 'Strong'
   },
   iptc: {
     90: 'Vsetín',
@@ -404,9 +407,6 @@ Translate enum values to strings, convert dates to Date instances, etc...
   ifd0: {
     Model: 'Pixel',
   },
-  exif: {
-    Sharpness: 'Strong'
-  },
   iptc: {
     City: 'Vsetín',
   },
@@ -416,12 +416,11 @@ Translate enum values to strings, convert dates to Date instances, etc...
   }
 }</pre></td></tr></table>
 
-**Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
-
-Tags are numeric, sometimes refered to in hex notation. To access the `output.ifd0.Make` tag use `output.ifd0[0x010f]` or `output.ifd0[271]`
-
 #### `options.translateValues` default: `true`
-Translate enum values to strings, convert dates to Date instances, etc...
+
+Translate tag values from their raw enum values to understandable strings.
+
+Todo info about dict
 
 TODO: update coode
 
