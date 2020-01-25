@@ -254,6 +254,7 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 * `options.interop` `<bool|object|Array>` default: `false`
 <br>Interop IFD - Interoperability info
 
+(#makernote-and-friends)
 ##### Notable TIFF tags
 
 Notably large tags from EXIF block that are not parsed by default but can be enabed if needed.
@@ -269,12 +270,14 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
 * `true` - enabled with default or inherited options.
 * `false` - disabled, not parsing
 * `object` - enabled with custom options 
-   * Subset of `options` object. Can override `pick`, `skip`, `translateKeys`, `translateValues`, `reviveValues`, `sanitize`
+   * Subset of `options` object.
+   * Can locally override `pick`, `skip` filters. TODO LINK
+   * Can locally override `translateKeys`, `translateValues`, `reviveValues`, `sanitize` formatters. TODO LINK
    * Defined properties override global `options` values.
    * Undefined properties are inherited from `options` object.
-* `Array` - enabled, but only extracts specified tags
-   * List of the only tags to parse. All others are skipped.
-   * It's a sortcut for `{pick: ['tags', ...]}`
+* `Array` - enabled, but only extracts tags from this array
+   * List of the only tags to parse. All others are skipped. TODO LINK
+   * Sortcut for `{pick: ['tags', ...]}`
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
 TIFF blocks automatically inherit TIFF segment settings (from `options.tiff`) as well as global settings (from `options`) unless 
@@ -323,6 +326,18 @@ let options = {
   }
 }
 ```
+
+### Tag filters
+
+#### `options.pick` `Array<string|number>`
+
+Todo text
+
+#### `options.skip` `Array<string|number>`
+
+Todo text
+
+By default it contains [MakerNote and UserComment tags](#makernote-and-friends).
 
 ### Output format
 
@@ -447,30 +462,22 @@ Converts dates to Date instances and raw `Uint8Array` data to more readable form
 }
 </pre></td></tr></table>
 
-#### Reading file from disk or fetching url
+### Chunked reader
 
 TODO: update
 
-If allowed, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
+If enabled, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
 This can save lots of memory, disk reads and speed things up. But it may not suit you.
 
 * `options.wholeFile` `bool/undefined` default `undefined`
 
-##### Chunked mode
+**Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
+
+**Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
 
 TODO: update
 
-In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
-
-##### Whole file mode
-
-TODO: update
-
-If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
-
-TODO: update
-
-* `options.wholeFile` `bool/undefined` default `undefined`
+#### `options.wholeFile` `bool/undefined` default `undefined`
 <br>Sets whether to read the file as a whole or just by small chunks.
 <br>*Used when file path or url to the image is given.*
   * `true` - whole file mode
@@ -485,19 +492,19 @@ TODO: update
 
 TODO: update
 
-* `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
-<br>Byte size of the first chunk that will be read and parsed for EXIF.
-<br>*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
-<br>Node.js: Used for all input types.
-<br>Browser: Used when input `arg` is buffer. Otherwise, `parseChunkSize` is used.
+#### `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
+Byte size of the first chunk that will be read and parsed for EXIF.
+*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
+Node.js: Used for all input types.
+Browser: Used when input `arg` is buffer. Otherwise, `parseChunkSize` is used.
 
 TODO: update
 
-* `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
-<br>Size of the chunk to fetch in the browser in chunked mode.
-<br>*Much like `seekChunkSize` but used in the browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
-<br>Node.js: Not used.
-<br>Browser: Used when input `arg` is string URL. Otherwise, `seekChunkSize` is used.
+#### `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
+Size of the chunk to fetch in the browser in chunked mode.
+*Much like `seekChunkSize` but used in the browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
+Node.js: Not used.
+Browser: Used when input `arg` is string URL. Otherwise, `seekChunkSize` is used.
 
 TODO: update
 
