@@ -271,7 +271,7 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
 * `false` - disabled, not parsing
 * `object` - enabled with custom options 
    * Subset of `options` object.
-   * Can locally override `pick`, `skip` filters. TODO LINK
+   * Can locally override `pick`, `skip` [filters](#tag-filters).
    * Can locally override `translateKeys`, `translateValues`, `reviveValues`, `sanitize` formatters. TODO LINK
    * Defined properties override global `options` values.
    * Undefined properties are inherited from `options` object.
@@ -337,7 +337,7 @@ Todo text
 
 Todo text
 
-By default it contains [MakerNote and UserComment tags](#makernote-and-friends).
+By default it contains [MakerNote and UserComment tags](#notable-tiff-tags).
 
 ### Output format
 
