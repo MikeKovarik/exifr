@@ -673,18 +673,15 @@ Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
 <br>before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`
 <br>before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
 2) Renamed `ExifParser` class to `Exifr`.
+3) Renamed `thumbnailBuffer` to `thumbnail`
 
 ```js
 // 2.x.x
-import {parse, thumbnailBuffer} from 'exifr'
-parse()
-// or
 import * as exifr from 'exifr'
 exifr.thumbnailBuffer()
 // 3.0.0
-import exifr from 'exifr'
-exifr.parse()
-exifr.thumbnail() // renamed from thumbnailBuffer()
+import * as exifr from 'exifr'
+exifr.thumbnail()
 ```
 
 ## XMP
