@@ -162,23 +162,23 @@ Accepts file (in any format), parses it and returns exif object.
 
 Extracts only GPS coordinates from photo.
 
-This uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.
+*Uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.*
 
 Check out [examples/gps.js](examples/gps.js) to learn more.
 
 ### `thumbnail(input)` => `Promise<Buffer|ArrayBuffer>`
 
-Extracts embedded thumbnail from the photo and returns it as a `Buffer` (Node.JS) or an `ArrayBuffer` (browser). 
+Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
-Only parses as little EXIF as necessary to find offset of the thumbnail.
+*Only parses as little EXIF as necessary to find offset of the thumbnail.
 
-Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.
+Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.*
 
-### `thumbnailUrl(input)` => `Promise<string>`
+### `thumbnailUrl(input)` => `Promise<string>`, browser only
 
-Browser only - exports the thumbnail wrapped in Object URL.
+Exports the thumbnail wrapped in Object URL.
 
-User is expected to revoke the URL when not needed anymore.
+User should to revoke the URL when not needed anymore. [More info here](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images)
 
 ### `Exifr` class
 
@@ -220,11 +220,15 @@ can be either:
 * `true` shortcut to parse all segments and blocks
 * `object` with granular settings
 
-#### APP & Blocks
+#### Segments & Blocks
+
+Jpeg stores various formats of data in structuctures called APP Segments. Heic and Tiff file formats use different naming conventions but here we keep referring to TIFF, XMP, IPTC, ICC and JFIF as Segments.
+
+TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
+
+*EXIF became synonymous for all metadata within image file but it's actually just one of many blocks inside TIFF segment.*
 
 ##### APP Segments
-
-JPG stores various formats of data in structuctures called APP Segments.
 
 * `options.tiff` `<bool|object|Array>` default: `true`
 <br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
@@ -238,8 +242,6 @@ JPG stores various formats of data in structuctures called APP Segments.
 <br>ICC APP2 Segment - Color profile
 
 ##### TIFF IFD Blocks
-
-TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
 * `options.ifd0` `<bool|object|Array>` default: `true`
 <br>IFD0 IFD - Basic info about photo
