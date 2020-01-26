@@ -222,13 +222,11 @@ can be either:
 
 #### Segments & Blocks
 
-Jpeg stores various formats of data in structuctures called APP Segments. Heic and Tiff file formats use different naming conventions but here we keep referring to TIFF, XMP, IPTC, ICC and JFIF as Segments.
-
-TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
-
-*EXIF became synonymous for all metadata within image file but it's actually just one of many blocks inside TIFF segment.*
+*EXIF became synonymous for all image metadata, but it's actually just one of many blocks inside TIFF segment.*
 
 ##### APP Segments
+
+Jpeg stores various formats of data in structuctures called APP Segments. Heic and Tiff file formats use different naming conventions but here we keep referring to TIFF, XMP, IPTC, ICC and JFIF as Segments.
 
 * `options.tiff` `<bool|object|Array>` default: `true`
 <br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
@@ -243,6 +241,8 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
 ##### TIFF IFD Blocks
 
+TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
+
 * `options.ifd0` `<bool|object|Array>` default: `true`
 <br>IFD0 IFD - Basic info about photo
 * `options.exif` `<bool|object|Array>` default: `true`
@@ -253,6 +253,12 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 <br>IFD1 IFD - Info about embedded thumbnail
 * `options.interop` `<bool|object|Array>` default: `false`
 <br>Interop IFD - Interoperability info
+
+`options.tiff` serves as a shortcut for managing these blocks:
+
+* `options.tiff = true` enables all TIFF blocks (sets them to `true`).
+* `options.tiff = false` disables all TIFF blocks (sets them to `false`).
+* `options.tiff = {...}` does not enable any TIFF blocks. But all options (such as `translateKeys`) from `options.tiff` are applied to all TIFF blocks that are enabled.
 
 ##### Notable TIFF tags
 
@@ -280,10 +286,6 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
 TIFF blocks automatically inherit TIFF segment settings (from `options.tiff`) as well as global settings (from `options`) unless 
-
-`options.tiff = false` automatically disables all TIFF blocks - sets them to false as well.
-
-`options.tiff = true` does not automatically enable all TIFF blocks. Only `ifd0`, `exif` and `gps` are enabled by default.
 
 ##### Examples
 
