@@ -186,10 +186,9 @@ export class Options {
 	static pick = []
 
 	constructor(userOptions) {
-		let type = typeof userOptions
-		if (type === 'boolean')
-			this.setupFromBool(userOptions)
-		else if (type === 'object')
+		if (userOptions === true)
+			this.setupFromTrue()
+		else if (typeof userOptions === 'object')
 			this.setupFromObject(userOptions)
 		else if (userOptions === undefined)
 			this.setupFromUndefined()
@@ -208,13 +207,13 @@ export class Options {
 		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], undefined, this)
 	}
 
-	setupFromBool(userOptions) {
+	setupFromTrue() {
 		let key
 		let defaults = this.constructor
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of formatOptions)     this[key] = defaults[key]
-		for (key of tiffExtractables)  this[key] = userOptions
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, userOptions, undefined, this)
+		for (key of tiffExtractables)  this[key] = true
+		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, true, undefined, this)
 	}
 
 	setupFromObject(userOptions) {
@@ -224,11 +223,11 @@ export class Options {
 		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
-		// tiff is disabled. disable all tiff blocks to prevent our pick/skip logic from reenabling it.
 		this.setupGlobalFilters(userOptions.pick, userOptions.skip, tiffBlocks, segmentsAndBlocks)
-		if (userOptions.tiff === false)
-			for (key of tiffBlocks)
-				this[key].enabled = userOptions[key] === true
+		if (userOptions.tiff === true)
+			this.batchEnableWithBool(tiffBlocks, true)
+		else if (userOptions.tiff === false)
+			this.batchEnableWithUserValue(tiffBlocks, userOptions)
 		else if (Array.isArray(userOptions.tiff))
 			this.setupGlobalFilters(userOptions.tiff, undefined, tiffBlocks)
 		else if (typeof userOptions.tiff === 'object')
@@ -239,6 +238,18 @@ export class Options {
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this.traverseTiffDependencyTree()
+	}
+
+	batchEnableWithBool(keys, value) {
+		for (let key of keys)
+			this[key].enabled = value
+	}
+
+	batchEnableWithUserValue(keys, userOptions) {
+		for (let key of keys) {
+			let userOption = userOptions[key]
+			this[key].enabled = userOption !== false && userOption !== undefined
+		}
 	}
 
 	setupGlobalFilters(pick, skip, dictKeys, scopedBlocks = dictKeys) {

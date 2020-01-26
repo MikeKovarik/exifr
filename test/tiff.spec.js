@@ -112,6 +112,66 @@ describe('TIFF Segment', () => {
 		assert.isObject(output)
 	})
 
+	describe('options.tiff = true/false shortcut', () => {
+
+		it(`{tiff: true} enables all TIFF blocks`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: false, tiff: true}
+			var output = await exifr.parse(input, options)
+			assert.isObject(output.ifd0)
+			assert.isObject(output.exif)
+			assert.isObject(output.gps)
+			assert.isObject(output.interop)
+			assert.isObject(output.thumbnail)
+		})
+
+		it(`{tiff: false} disables all TIFF blocks`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: false, tiff: false}
+			var output = await exifr.parse(input, options) || {}
+			assert.isUndefined(output.ifd0)
+			assert.isUndefined(output.exif)
+			assert.isUndefined(output.gps)
+			assert.isUndefined(output.interop)
+			assert.isUndefined(output.thumbnail)
+		})
+
+		it(`{tiff: false, makerNote: true} disables all TIFF blocks except for those needed to get MakerNote`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: false, tiff: false, makerNote: true}
+			var output = await exifr.parse(input, options)
+			assert.isUndefined(output.ifd0)
+			assert.isUndefined(output.exif)
+			assert.isUndefined(output.gps)
+			assert.isUndefined(output.interop)
+			assert.isUndefined(output.thumbnail)
+			assert.exists(output.makerNote)
+		})
+
+		it(`{tiff: false, exif: true} disables all TIFF blocks except for EXIF`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: false, tiff: false, exif: true}
+			var output = await exifr.parse(input, options)
+			assert.isUndefined(output.ifd0)
+			assert.isObject(output.exif)
+			assert.isUndefined(output.gps)
+			assert.isUndefined(output.interop)
+			assert.isUndefined(output.thumbnail)
+		})
+
+		it(`{tiff: false, thumbnail: true} disables all TIFF blocks except for thumbnail`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			let options = {mergeOutput: false, tiff: false, thumbnail: true}
+			var output = await exifr.parse(input, options)
+			assert.isUndefined(output.ifd0)
+			assert.isUndefined(output.exif)
+			assert.isUndefined(output.gps)
+			assert.isUndefined(output.interop)
+			assert.isObject(output.thumbnail)
+		})
+
+	})
+
 	describe('pick / skip', () => {
 
 		it(`only ifd0 picks are present in output (local array shorthand form)`, async () => {
