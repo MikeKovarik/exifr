@@ -138,6 +138,7 @@ class ExifrDemoApp {
 
 	async parseForPerf(input) {
 		let options = cloneObject(this.options)
+		delete options.tiff
 
 		// parse with users preconfigured settings
 		let t1 = performance.now()
@@ -156,6 +157,7 @@ class ExifrDemoApp {
 
 	async parseForPrettyOutput(input) {
 		let options = cloneObject(this.options)
+		delete options.tiff
 
 		// now parse again for the nice boxes with clear information.
 		options.mergeOutput = false
