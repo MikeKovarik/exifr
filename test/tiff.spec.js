@@ -1,5 +1,6 @@
 import {assert} from './test-util.js'
 import {getFile, testMergeSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
+import {testGlobalFormatterInheritance, testTiffFormatterInheritance} from './test-util.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.js'
 import {Exifr} from '../src/index-full.js'
 import * as exifr from '../src/index-full.js'
@@ -84,6 +85,15 @@ function testBlock({blockName, definedByDefault, results}) {
 	})
 
 }
+
+function testFormatterInheritanceInTiffBlock(argument) {
+	describe(`formatter inheritance`, () => {
+		testGlobalFormatterInheritance(argument)
+		testTiffFormatterInheritance(argument)
+	})
+}
+
+
 
 
 describe('TIFF Segment', () => {
@@ -325,6 +335,15 @@ describe('TIFF - IFD0 / Image Block', () => {
 		]]
 	})
 
+	testFormatterInheritanceInTiffBlock({
+		type: 'ifd0',
+		file: 'IMG_20180725_163423.jpg',
+		keyCode: 0x0128,
+		keyName: 'ResolutionUnit',
+		valRaw: 2,
+		valTranslated: 'inches',
+	})
+
 	describe('revive edge cases', () => {
 
 		describe('0xC68B OriginalRawFileName', () => {
@@ -392,6 +411,15 @@ describe('TIFF - EXIF Block', () => {
 		]]
 	})
 
+	testFormatterInheritanceInTiffBlock({
+		type: 'exif',
+		file: 'IMG_20180725_163423.jpg',
+		keyCode: 0x9207,
+		keyName: 'MeteringMode',
+		valRaw: 2,
+		valTranslated: 'CenterWeightedAverage',
+	})
+
 	it(`additional EXIF block test`, async () => {
 		let output = await exifr.parse(await getFile('img_1771.jpg'))
 		assert.equal(output.ApertureValue, 4.65625)
@@ -426,6 +454,14 @@ describe('TIFF - GPS Block', () => {
 			0x0001, 'GPSLatitudeRef',
 			'N',
 		]]
+	})
+
+	testFormatterInheritanceInTiffBlock({
+		type: 'gps',
+		file: 'IMG_20180725_163423.jpg',
+		keyCode: 0x0001,
+		keyName: 'GPSLatitudeRef',
+		valRaw: 'N',
 	})
 
 	it(`additional GPS block test 1`, async () => {
@@ -466,6 +502,13 @@ describe('TIFF - Interop Block', () => {
 		tags: [[
 			0x0001, 'InteropIndex',
 		]]
+	})
+
+	testFormatterInheritanceInTiffBlock({
+		type: 'interop',
+		file: 'IMG_20180725_163423.jpg',
+		keyCode: 0x0001,
+		keyName: 'InteropIndex',
 	})
 
 })
