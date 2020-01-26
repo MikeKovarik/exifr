@@ -13,35 +13,33 @@ Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Features
 
-Works everywhere and accepts pretty much everything you throw at it.
+Works everywhere, parses anything and handles everything you throw at it.
 
-* **Isomorphic**.
-<br> *Works in Node.js and Browsers.*
-* **Handles any input**
-<br> *`Buffer`, `ArrayBuffer`, `Uint8Array`, `DataView`, `<img>` elements, string URL and paths, Object URL, Base64 URL.*
-* **Blazing Fast**.
-<br> *Like really fast. Like 1-2ms fast.*
-* **Doesn't read whole file**.
+* 📷 Reads: **.jpg**, **.tif**, **.heic** photos
+* 🔎 Parses: **TIFF** (EXIF, GPS, ...), **XMP**, **ICC**, **IPTC**, **JFIF**
+* 🖼️ Extracts thumbnail
+* ✨ **Isomorphic**: Browser & Node.js
+* 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
+* 🏎️ **Blazing Fast**: Like 1-2ms fast.*
+* 📑 **Doesn't read whole file**.
 <br> *Only reads first few bytes instead of the whole file.*
-* **Configurable small builds**.
+* ⚖️ **Configurable small builds**.
 <br> *Comes in many variants so you import only the code you really need.*
-* **Fine grained parsing**
+* ⚡ **Fine grained parsing**
 <br> *Only need GPS coords? It'll only parse GPS IFD, not the whole TIFF segment.*
-* **Comes as both UMD & ESM Module**
-<br> *No need to bundle or browserify. Just `import`, `require()` or `<script>` it in your .mjs, .js or .html file.*
-* **Simple output, translated values**
-<br> *Meaningful strings instead of enum values, Date instances, converted GPS cords, etc...*
-* **Promise based**
-* **No dependencies**
+* 📋 Simple output, translated values
+* 📦 Comes as UMD/CJS & ESM
+* 🗜️ No dependencies
+* 🤙 Promise based
 
-### Supports
+## Usage
 
-* .jpg & .tif files
-* JFIF, TIFF segments
-* XMP - Additional software/photoshop related data. Returned as a string (exifr does not include XML parser).
-* IPTC - Captions & copyrights
-* ICC Color profile
-* Embedded thumbnail extraction
+`file` can be any kind of buffer/binary format, `<img>` element, string path or url.
+
+* `exifr.parse(file[, options])` => `object`
+* `exifr.gps(file)` => `object` `{latitude, longitude}`
+* `exifr.thumbnail(file)` => `Uint8Array`
+* `exifr.thumbnailUrl(file)` => `string` object url. Browser only.
 
 ## Installation
 
@@ -67,15 +65,6 @@ Also availabe as UMD bundle which exports everything as `window.exifr`. Transpil
 ```js
 var exifr = require('exifr/dist/full.umd.js')
 ```
-
-## Usage
-
-`file` can be any kind of buffer/binary format, `<img>` element, string path or url.
-
-* `exifr.parse(file[, options])` => `object`
-* `exifr.gps(file)` => `object` `{latitude, longitude}`
-* `exifr.thumbnail(file)` => `Uint8Array`
-* `exifr.thumbnailUrl(file)` => `string` object url. Browser only.
 
 ## Examples
 
@@ -198,13 +187,12 @@ let buffer = await exr.extractThumbnail()
 if (exr.file.chunked) await exr.file.close()
 ```
 
-### file `input` argument
-
-can be:
+### `input` argument
 
 * `string` file path
 * `string` URL
 * `string` Base64
+* `string` Base64 URL (starting with `data:image/jpeg;base64,`)
 * `string` Object URL / Blob URL
 * `Buffer`
 * `ArrayBuffer`
@@ -254,7 +242,7 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 * `options.interop` `<bool|object|Array>` default: `false`
 <br>Interop IFD - Interoperability info
 
-`options.tiff` serves as a shortcut for managing these blocks:
+`options.tiff` serves as a shortcut for managing TIFF blocks:
 
 * `options.tiff = true` enables all TIFF blocks (sets them to `true`).
 * `options.tiff = false` disables all TIFF blocks (sets them to `false`).
