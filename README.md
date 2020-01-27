@@ -20,15 +20,13 @@ Works everywhere, parses anything and handles everything you throw at it.
 * 🖼️ Extracts thumbnail
 * ✨ **Isomorphic**: Browser & Node.js
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
-* 🏎️ **Blazing Fast**: Like 1-2ms fast.*
-* 📑 **Doesn't read whole file**.
-<br> *Only reads first few bytes instead of the whole file.*
-* ⚖️ **Configurable small builds**.
-<br> *Comes in many variants so you import only the code you really need.*
-* ⚡ **Fine grained parsing**
-<br> *Only need GPS coords? It'll only parse GPS IFD, not the whole TIFF segment.*
-* 📋 Simple output, translated values
+* 🏎️ **Fast**: Like 1-2ms per file
+* 📑 Efficient: **Reads first few bytes** instead of whole file
+* ⚖️ Filter: **Only reads tags you want**
+* 📋 Simple output
 * 📦 Comes as UMD/CJS & ESM
+* 🧩 Configurable builds
+* 📚 Configurable tag dictionaries
 * 🗜️ No dependencies
 * 🤙 Promise based
 
