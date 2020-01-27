@@ -445,7 +445,7 @@ Merges all parsed segments and blocks into a single object.
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 
-[Tag key dictionaries](#dictionaries) can be customized.
+[Tag key dictionaries](#tag-keys) can be customized.
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -482,7 +482,7 @@ Tags are numeric, sometimes refered to in hex notation. To access the `output.if
 
 Translates tag values from raw enums to understandable strings.
 
-[Tag value dictionaries](#dictionaries) can be customized.
+[Tag value dictionaries](#tag-values) can be customized.
 
 <table><tr>
 <td>translateValues: false</td>
@@ -507,7 +507,7 @@ Translates tag values from raw enums to understandable strings.
 
 Converts dates to Date instances and modifies certain tags to more readable format.
 
-[Tag revivers](#dictionaries) can be customized.
+[Tag revivers](#tag-revivers) can be customized.
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -579,36 +579,24 @@ If parsing file known to have EXIF fails try:
 
 Exifr is modular so you can pick and choose from many builds and prevent downloading unused code. It's a good idea to start development with full version and then scale down to a lighter build of exifr with just the bare minimum of functionality, parsers and dictionary your app needs.
 
-### Dictionaries
+### Translation dictionaries
 
-TODO
+Data in EXIF are mostly numeric enums, stored under number code instead of name. Dictonaries are needed translate them into meaningful output.
 
-JFIF
-https://exiftool.org/TagNames/JFIF.html
-
-TIFF (EXIF, GPS)
-https://exiftool.org/TagNames/EXIF.html
-https://exiftool.org/TagNames/GPS.html
-
-ICC
-https://exiftool.org/TagNames/ICC_Profile.html
-
-IPTC
-https://exiftool.org/TagNames/IPTC.html
-
-Exif stores data as numerical tags and enums. To translate them into meaningful output we need dictionaries.
 Dictionaries take a good portion of the exifr's size. But you may not even need most of it.
-Tag dictionaries 
 
-<table><tr><td>
-Raw
-</td><td>
-Translated tags
-</td><td>
-Translated values
-</td><td>
-Fully translated
-</td></tr><tr><td><pre>
+Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
+[JFIF](https://exiftool.org/TagNames/JFIF.html),
+TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
+[ICC](https://exiftool.org/TagNames/ICC_Profile.html),
+[IPTC](https://exiftool.org/TagNames/IPTC.html)
+
+<table><tr>
+<td>Raw</td>
+<td>translateKeys: true<br>translateValues: false</td>
+<td>translateKeys: false<br>translateValues: true</td>
+<td>Fully translated</td>
+</tr><tr><td><pre>
 {42: 1}
 </pre></td><td><pre>
 {Sharpness: 1}
@@ -618,19 +606,79 @@ Fully translated
 {Sharpness: 'Strong'}
 </pre></td></tr></table>
 
-#### Tag keys
+#### Customizing dictionaries
 
-TODO
+```js
+import {tagKeys, tagValues, tagRevivers} from 'exifr'
+```
 
-#### Tag values
+#### Loading custom set of dictionaries 
 
-TODO
+Check out [`src/dicts/`](https://github.com/MikeKovarik/exifr/tree/master/src/dicts) for list of all dictionaries.
 
-#### Tag revivers
+```js
+// Import core build with nothing it.
+import * as exifr from 'exifr/dist/core.esm.js'
+// Only load anything related to ICC.
+import 'exifr/src/dicts/icc-keys.js'
+import 'exifr/src/dicts/icc-values.js'
+```
 
-TODO
+```js
+// Lite version only contains basic set of TIFF tags.
+import * as exifr from 'exifr/dist/lite.esm.js'
+// Load additional list of less frequently used TIFF tags.
+import 'exifr/src/dicts/tiff-other-keys.js'
+```
 
-## Distributions
+### File Readers
+
+Out of the box exifr can read any file format. `lite` and `full` builds also include `ChunkedReader` and the ability to read files by chunks. Each file format requires its own reader. `full` build includes all of them but you can start with `core` build and only load the readers you need.
+
+* `Base64Reader`
+* `BlobReader` Browser only
+* `FsReader` Node.js only
+* `UrlFetcher` Browser only
+
+#### Loading custom set of file parsers 
+
+Check out [`src/file-readers/`](https://github.com/MikeKovarik/exifr/tree/master/src/file-readers) for list of all readers.
+
+```js
+// Import core build with nothing it.
+import * as exifr from 'exifr/dist/core.esm.js'
+// We're only going to read file in Blob format, import Blob reader.
+import 'exifr/src/file-readers/BlobReader.js'
+```
+
+### File Parsers
+
+#### Loading custom set of file parsers 
+
+Check out [`src/file-parsers/`](https://github.com/MikeKovarik/exifr/tree/master/src/file-parsers) for list of all parsers.
+
+```js
+// Import core build with nothing it.
+import * as exifr from 'exifr/dist/core.esm.js'
+// Only load .heic and .tif file parsers
+import 'exifr/src/file-parsers/heic.js'
+import 'exifr/src/file-parsers/tiff.js'
+```
+
+### Segment Parsers
+
+#### Loading custom set of segment parsers 
+
+Check out [`src/segment-parsers/`](https://github.com/MikeKovarik/exifr/tree/master/src/segment-parsers) for list of all parsers.
+
+```js
+// Import core build with nothing it.
+import * as exifr from 'exifr/dist/core.esm.js'
+// Only load anything related to ICC.
+import 'exifr/src/segment-parsers/icc-keys.js'
+```
+
+## Distributions (builds)
 
 Need to cut down on file size? Try using lite build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
 
@@ -663,32 +711,6 @@ Need to support older browsers? Use legacy build along with polyfills.
 <br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
 <br>You still need to provide polyfill for Array.from, Set, TextEncoder, Object.entries and other ES6+ features
 
-### ~~By included parsers~~
-
-TODO: to be implemented
-
-### Distributions chart
-
-| Distributions                        | Modern ESM module | Modern UMD bundle | Legacy UMD bundle       |
-|--------------------------------------|-------------------|-------------------|-------------------------|
-| **Full** *(with tags dictionary)*    | `index.mjs`       | `index.js`        | `index.legacy.js`       |
-| **Lite** *(without tags dictionary)* | `lite.mjs`        | `lite.js`         | `lite.legacy.js`        |
-
-### Examples
-
-```js
-import {parse} from './node_modules/exifr/index.mjs'
-```
-```html
-<script src="./node_modules/exifr/index.legacy.js"></script>
-```
-```js
-require('exifr') // imports index.js
-```
-```js
-require('exifr/index.legacy.js') // imports index.legacy.js
-```
-
 TODO - work in progress
 
 |                 | full | lite | mini | core |
@@ -702,12 +724,25 @@ TODO - work in progress
 | size            | 40 Kb | 30 Kb | 20 Kb | 10 Kb |
 | file            | `dist/full.esm.js`<br>`dist/full.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
 
-**full** - Contains everything - all readers, parsers, dictionaries. Intended for use in Node.js.
-**lite** - like `mini` + support for modern `.heic` (iPhone) photos, IPTC parser (photo description and author) XMP parser (panorama & tech details)
-**mini** - Stripped down to basics, as lightweight as it can get. fetches whole file and realiably parses most useful info from jpegs.
-**core** - Build your own
+* **full** - Contains everything - all readers, parsers, dictionaries. Intended for use in Node.js.
+* **lite** - like `mini` + support for modern `.heic` (iPhone) photos, IPTC parser (photo description and author) XMP parser (panorama & tech details)
+* **mini** - Stripped down to basics, as lightweight as it can get. fetches whole file and realiably parses most useful info from jpegs.
+* **core** - Build your own
 
 Of course you can use `full` version in browser, or use any other builds in Node.js. Either to save memory, or to build your own exifr with `core` and hand picking parsers you need.
+
+```js
+import {parse} from './node_modules/exifr/index.mjs'
+```
+```html
+<script src="./node_modules/exifr/index.legacy.js"></script>
+```
+```js
+require('exifr') // imports index.js
+```
+```js
+require('exifr/index.legacy.js') // imports index.legacy.js
+```
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 
