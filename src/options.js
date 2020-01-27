@@ -112,7 +112,48 @@ class FormatOptions {
 
 export class Options {
 
-	// FILE READING
+	// APP Segments
+	static jfif = false
+	static tiff = true
+	static xmp = false
+	static icc = false
+	static iptc = false
+
+	// TIFF BLOCKS
+	static ifd0 = true
+	static exif = true
+	static gps = true
+	static interop = false
+	static thumbnail = false
+
+	// Notable TIFF tags
+	static makerNote = false
+	static userComment = false
+
+	// FILTERS
+
+	// Array of tags that will be excluded when parsing.
+	// Saves performance because the tags aren't read at all and thus not further processed.
+	// Cannot be used along with 'pick' array.
+	static skip = []
+	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
+	// Extremely saves performance because only selected few tags are processed.
+	// Useful for extracting few informations from a batch of many photos.
+	// Cannot be used along with 'skip' array.
+	static pick = []
+
+	// OUTPUT FORMATTERS
+
+	static translateKeys = true
+	static translateValues = true
+	static reviveValues = true
+	// Removes IFD pointers and other artifacts (useless for user) from output.
+	static sanitize = true
+	// Changes output format by merging all segments and blocks into single object.
+	// NOTE = Causes loss of thumbnail EXIF data.
+	static mergeOutput = true
+
+	// CHUNKED READER
 
 	// true      - forces reading the whole file
 	// undefined - allows reading additional chunks of size `chunkSize` (chunked mode)
@@ -131,59 +172,6 @@ export class Options {
 	// Maximum ammount of additional chunks allowed to read in chunk mode.
 	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
 	static chunkLimit = 10
-
-	// OUTPUT
-
-	// TODO
-	static translateKeys = true
-	// TODO
-	static translateValues = true
-	// TODO
-	static reviveValues = true
-	// Removes IFD pointers and other artifacts (useless for user) from output.
-	static sanitize = true
-	// Changes output format by merging all segments and blocks into single object.
-	// NOTE = Causes loss of thumbnail EXIF data.
-	static mergeOutput = true
-
-	// WHAT TO PARSE
-
-	// TIFF segment - Exif IFD block.
-	static ifd0 = true
-	// TIFF segment - Exif IFD block.
-	static exif = true
-	// TIFF segment - GPS IFD block - GPS latitue and longitude data.
-	static gps = true
-	// TIFF segment - Interop IFD block - This is a thing too.
-	static interop = false
-	// TIFF segment - IFD1 block - Size and other information about embeded thumbnail.
-	static thumbnail = false
-
-	// APP0 segment
-	static jfif = false
-	// APP1 TIFF segment - Basic EXIF tags. Consists of blocks ifd0, exif, gps, interop, thumbnail
-	static tiff = true
-	// APP1 XMP segment - XML based extension, often used by editors like Photoshop.
-	static xmp = false
-	// APP2 ICC segment
-	static icc = false
-	// APP13 IPTC segment - Captions and copyrights
-	static iptc = false
-
-	// TODO = implement
-	static makerNote = false
-	// TODO = implement
-	static userComment = false
-
-	// Array of tags that will be excluded when parsing.
-	// Saves performance because the tags aren't read at all and thus not further processed.
-	// Cannot be used along with 'pick' array.
-	static skip = []
-	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
-	// Extremely saves performance because only selected few tags are processed.
-	// Useful for extracting few informations from a batch of many photos.
-	// Cannot be used along with 'skip' array.
-	static pick = []
 
 	constructor(userOptions) {
 		if (userOptions === true)

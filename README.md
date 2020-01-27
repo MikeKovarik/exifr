@@ -16,23 +16,25 @@ Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 Works everywhere, parses anything and handles everything you throw at it.
 
 * 📷 Reads: **.jpg**, **.tif**, **.heic** photos
-* 🔎 Parses: **TIFF** (EXIF, GPS, ...), **XMP**, **ICC**, **IPTC**, **JFIF**
-* 🖼️ Extracts thumbnail
-* ✨ **Isomorphic**: Browser & Node.js
+* 🔎 Parses: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
+* 📑 Efficient: **Reads only first few bytes**
+* 🔬 Filterable: **Skips parsing tags you don't need**
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
 * 🏎️ **Fast**: Like 1-2ms per file
-* 📑 Efficient: **Reads first few bytes** instead of whole file
-* ⚖️ Filter: **Only reads tags you want**
-* 📋 Simple output
-* 📦 Comes as UMD/CJS & ESM
+* ✨ **Isomorphic**: Browser & Node.js
+* 🖼️ Extracts thumbnail
+* 📦 Bundled as UMD/CJS or ESM
 * 🧩 Configurable builds
-* 📚 Configurable tag dictionaries
+* 📚 Customizable tag dictionaries
+* 📋 Simple output
 * 🗜️ No dependencies
 * 🤙 Promise based
 
 ## Usage
 
-`file` can be any kind of buffer/binary format, `<img>` element, string path or url.
+`file` can be any kind of binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
+
+`options` specifies what segments and blocks to parse, filter what tags to pick or skip.
 
 * `exifr.parse(file[, options])` => `object`
 * `exifr.gps(file)` => `object` `{latitude, longitude}`
@@ -141,11 +143,11 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 exifr exports `parse`, `gps`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
 
-### `parse(input[, options])` => `Promise<object>`
+### `parse(file[, options])` => `Promise<object>`
 
 Accepts file (in any format), parses it and returns exif object.
 
-### `gps(input)` => `Promise<object>`
+### `gps(file)` => `Promise<object>`
 
 Extracts only GPS coordinates from photo.
 
@@ -153,7 +155,7 @@ Extracts only GPS coordinates from photo.
 
 Check out [examples/gps.js](examples/gps.js) to learn more.
 
-### `thumbnail(input)` => `Promise<Buffer|ArrayBuffer>`
+### `thumbnail(file)` => `Promise<Buffer|ArrayBuffer>`
 
 Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
@@ -161,7 +163,7 @@ Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
 Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.*
 
-### `thumbnailUrl(input)` => `Promise<string>`, browser only
+### `thumbnailUrl(file)` => `Promise<string>`, browser only
 
 Exports the thumbnail wrapped in Object URL.
 
@@ -171,21 +173,21 @@ User should to revoke the URL when not needed anymore. [More info here](https://
 
 Afore mentioned functions are wrappers that internally:
 1) instantiate `new Exifr(options)` class
-2) call `.read(input)` to read the file
+2) call `.read(file)` to read the file
 3) call `.parse()` or `.extractThumbnail()`
 
-To both parse EXIF and extract thumbnail efficiently in one go you can use this class yourself.
+You can instantiate `Exif` yourself to parse metadata and extract thumbnail efficiently at the same time.
 
 *In Node.js it's also necessary to close the file with `.file.close()` if it's read in chunked mode.*
 
 ```js
 let exr = new Exifr(options)
-let output = await exr.read(input)
+let output = await exr.read(file)
 let buffer = await exr.extractThumbnail()
 if (exr.file.chunked) await exr.file.close()
 ```
 
-### `input` argument
+### `file` argument
 
 * `string` file path
 * `string` URL
@@ -196,23 +198,102 @@ if (exr.file.chunked) await exr.file.close()
 * `ArrayBuffer`
 * `Uint8Array`
 * `DataView`
-* `File`
-* `Blob`
+* `Blob` / `File`
 * `<img>` element
 
 ### `options` argument, optional
 
-can be either:
 * `true` shortcut to parse all segments and blocks
 * `object` with granular settings
 
-#### Segments & Blocks
+If undefined, these are the default settings:
 
-*EXIF became synonymous for all image metadata, but it's actually just one of many blocks inside TIFF segment.*
+```js
+let defaultOptions = {
+  // APP Segments
+  jfif: false,
+  tiff: true,
+  xmp: false,
+  icc: false,
+  iptc: false,
+  // TIFF Blocks
+  ifd0: true,
+  exif: true,
+  gps: true,
+  interop: false,
+  thumbnail: false,
+  // Other TIFF tags
+  makerNote: false,
+  userComment: false,
+  // Filters
+  skip: [],
+  pick: [],
+  // formatters
+  translateKeys: true,
+  translateValues: true,
+  reviveValues: true,
+  sanitize: true,
+  mergeOutput: true,
+  // Chunked reader
+  wholeFile: undefined,
+  firstChunkSize: undefined,
+  firstChunkSizeNode: 512,
+  firstChunkSizeBrowser: 65536, // 64kb
+  chunkSize: 65536, // 64kb
+  chunkLimit: 10
+}
+```
 
-##### APP Segments
+### Tag filters
 
-Jpeg stores various formats of data in structuctures called APP Segments. Heic and Tiff file formats use different naming conventions but here we keep referring to TIFF, XMP, IPTC, ICC and JFIF as Segments.
+Exifr can avoid reading certain tags, instead of reading but not including them in the output, like other exif libs do. For example MakerNote tag from EXIF block is isually very large - tens of KBs. Reading such tag is a waste of time if you don't need it.
+
+*Tip: Using numeric tag codes is even faster than string names, because exifr doesn't have to look up the strings in dictionaries.*
+
+#### `options.pick` `Array<string|number>`
+
+Array of the only tags that will be parsed.
+
+```js
+let options = {
+  // Avoid reading all TIFF blocks ...
+  tiff: false,
+  // ... except for GPS block. Of which only GPSLatitude & GPSLongitude is parsed.
+  gps: ['GPSLatitude', 0x0004], // 0x0004 is GPSLongitude
+}
+```
+
+```js
+let options = {
+  gps: {
+    // Only read these two tags from gps block
+    pick: ['GPSLatitude', 0x0004],
+  }
+}
+```
+
+#### `options.skip` `Array<string|number>` default `['MakerNote', 'UserComments']`
+
+Array of the tags that will not be parsed.
+
+By default [MakerNote and UserComment tags](#notable-tiff-tags) are skipped.
+
+```js
+let options = {
+  exif: {
+    // Skip reading three tags in EXIF block
+    skip: ['ImageUniqueID', 42033, 'SubSecTimeDigitized']
+  }
+}
+```
+
+### Segments & Blocks
+
+EXIF became synonymous for all image metadata, but it's actually just one of many blocks inside TIFF segment. And there are more segment than just TIFF.
+
+#### APP Segments
+
+Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats use different structures or naming conventions but the idea is the same, so we refer to TIFF, XMP, IPTC, ICC and JFIF as Segments.
 
 * `options.tiff` `<bool|object|Array>` default: `true`
 <br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
@@ -225,7 +306,7 @@ Jpeg stores various formats of data in structuctures called APP Segments. Heic a
 * `options.icc` `<bool>` default: `false`
 <br>ICC APP2 Segment - Color profile
 
-##### TIFF IFD Blocks
+#### TIFF IFD Blocks
 
 TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
@@ -244,64 +325,71 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
 * `options.tiff = true` enables all TIFF blocks (sets them to `true`).
 * `options.tiff = false` disables all TIFF blocks (sets them to `false`).
-* `options.tiff = {...}` does not enable any TIFF blocks. But all options (such as `translateKeys`) from `options.tiff` are applied to all TIFF blocks that are enabled.
+* `options.tiff = {...}` does not enable nor disable any TIFF blocks. But all options (such as `translateKeys`) from `options.tiff` are applied to all TIFF blocks that are enabled.
 
-##### Notable TIFF tags
+`options.tiff = false` can be paired with any other block(s) to disable all other blocks except for said block.
 
-Notably large tags from EXIF block that are not parsed by default but can be enabed if needed.
+```js
+{tiff: false, thumbnail: true}
+// is a shortcut for
+{ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
+```
+
+#### Notable TIFF tags
+
+Notable large tags from EXIF block that are not parsed by default but can be enabed if needed.
 
 * `options.makerNote` `<bool>` default: `false`
 <br>0x927C MakerNote tag 
 * `options.userComment` `<bool>` default: `false`
 <br>0x9286 UserComment tag
 
-##### TIFF Scoping options
+#### TIFF Scoping options
 
 Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `tiff` segment can be set to:
 * `true` - enabled with default or inherited options.
 * `false` - disabled, not parsing
 * `object` - enabled with custom options 
    * Subset of `options` object.
-   * Can locally override `pick`, `skip` [filters](#tag-filters).
-   * Can locally override `translateKeys`, `translateValues`, `reviveValues`, `sanitize` formatters. TODO LINK
-   * Defined properties override global `options` values.
-   * Undefined properties are inherited from `options` object.
+   * Can locally override [filters](#tag-filters): `pick`, `skip`.
+   * Can locally override [formatters](#output-format): `translateKeys`, `translateValues`, `reviveValues`, `sanitize`.
+   * Undefined properties are inherited from `options` object. TIFF blocks also inherit from `options.tiff` first.
 * `Array` - enabled, but only extracts tags from this array
    * List of the only tags to parse. All others are skipped. TODO LINK
    * Sortcut for `{pick: ['tags', ...]}`
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
-TIFF blocks automatically inherit TIFF segment settings (from `options.tiff`) as well as global settings (from `options`) unless 
-
-##### Examples
-
-Only extracting FNumber + ISO tags from EXIF and GPSLatitude + GPSLongitude from GPS
+TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 
 ```js
-// Explicitly specified
+// Only extract FNumber + ISO tags from EXIF and GPSLatitude + GPSLongitude from GPS
+let options = {
+  exif: true,
+  gps: true,
+  pick: ['FNumber', 'ISO', 'GPSLatitude', 0x0004] // 0x0004 is GPSLongitude
+}
+// is a shortcut for
+let options = {
+  exif: ['FNumber', 'ISO'],
+  gps: ['GPSLatitude', 0x0004]
+}
+// which is a shortcut for
 let options = {
   exif: {
     pick: ['FNumber', 'ISO']
   },
-  gps: ['GPSLatitude', 0x0004], // 0x0004 is GPSLongitude
-}
-
-// Shortcut of same
-let options = {
-  exif: true,
-  gps: true,
-  pick: ['FNumber', 'ISO', 'GPSLatitude', 0x0004]
+  gps: {
+    pick: ['GPSLatitude', 0x0004]
+  }
 }
 ```
-
-Reviving values (like date string to `Date` instance) globally or scoped.
 
 ```js
 // Do not revive any values
 let options = {
   reviveValues: false,
   exif: {
-    // inherits global `reviveValues: false`
+    // inherits `false` from `options.reviveValues`
   }
 }
 
@@ -314,27 +402,13 @@ let options = {
 }
 ```
 
-### Tag filters
-
-#### `options.pick` `Array<string|number>`
-
-Todo text
-
-#### `options.skip` `Array<string|number>`
-
-Todo text
-
-By default it contains [MakerNote and UserComment tags](#notable-tiff-tags).
-
 ### Output format
 
 #### `options.mergeOutput` default: `true`
 
-Merging all parsed segments and blocks into a single object.
+Merges all parsed segments and blocks into a single object.
 
 **Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
-
-##### Example
 
 <table><tr>
 <td>mergeOutput: false</td>
@@ -369,9 +443,9 @@ Merging all parsed segments and blocks into a single object.
 
 #### `options.translateKeys` default: `true`
 
-Translate tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
+Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 
-TODO info about dictionaries + link
+[Tag key dictionaries](#dictionaries) can be customized.
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -406,11 +480,9 @@ Tags are numeric, sometimes refered to in hex notation. To access the `output.if
 
 #### `options.translateValues` default: `true`
 
-Translate tag values from their raw enum values to understandable strings.
+Translates tag values from raw enums to understandable strings.
 
-Todo info about dict
-
-TODO: update coode
+[Tag value dictionaries](#dictionaries) can be customized.
 
 <table><tr>
 <td>translateValues: false</td>
@@ -420,19 +492,22 @@ TODO: update coode
   Orientation: 1,
   ResolutionUnit: 2,
   Flash: 16,
-  RenderingIntent: 0,
+  DeviceManufacturer: 'GOOG'
 }
 </pre></td><td><pre>
 {
   Orientation: 'Horizontal (normal)',
   ResolutionUnit: 'inches',
   Flash: 'Flash did not fire, compulsory flash mode',
-  RenderingIntent: 'Perceptual',
+  DeviceManufacturer: 'Google'
 }
 </pre></td></tr></table>
 
 #### `options.reviveValues` default: `true`
-Converts dates to Date instances and raw `Uint8Array` data to more readable format.
+
+Converts dates to Date instances and modifies certain tags to more readable format.
+
+[Tag revivers](#dictionaries) can be customized.
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -504,17 +579,6 @@ If parsing file known to have EXIF fails try:
 
 Exifr is modular so you can pick and choose from many builds and prevent downloading unused code. It's a good idea to start development with full version and then scale down to a lighter build of exifr with just the bare minimum of functionality, parsers and dictionary your app needs.
 
-### Parsers
-
-* TIFF
-  * IFD0 aka image
-  * EXIF
-  * GPS
-  * Interop
-* XMP
-* ICC
-* IPTC
-
 ### Dictionaries
 
 TODO
@@ -553,6 +617,18 @@ Fully translated
 </pre></td><td><pre>
 {Sharpness: 'Strong'}
 </pre></td></tr></table>
+
+#### Tag keys
+
+TODO
+
+#### Tag values
+
+TODO
+
+#### Tag revivers
+
+TODO
 
 ## Distributions
 
