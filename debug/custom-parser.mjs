@@ -14,7 +14,7 @@ Flir.headerLength = 4 // todo: fix this when rollup support class properties
 ;(async function() {
 	let filePath = '../test/fixtures/issue-exifr-3.jpg'
 	let fileBuffer = await fs.readFile(filePath)
-	let options = {wholeFile: true, mergeOutput: false, jfif: false, xmp: false, exif: false}
+	let options = {chunked: false, mergeOutput: false, jfif: false, xmp: false, exif: false}
 	let exr = new Exifr(options)
 	await exr.read(fileBuffer)
 	exr.parse()

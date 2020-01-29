@@ -21,7 +21,7 @@ async function main() {
 		interop: false,
 		thumbnail: false,
 		// wat
-		wholeFile: true
+		chunked: false
 	}
 	await bench('exifr2 parse buffer', async () => {
 		await exifr2.parse(fileBuffer, options)

@@ -299,7 +299,7 @@ describe('TIFF Segment', () => {
 	// Header at the beginning of file, data at the end.
 	// tiff offset at 0; ID0 offset at 677442
 	//it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
-	//    let options = {wholeFile: true}
+	//    let options = {chunked: false}
 	//    let input = getPath('001.tif')
 	//    let output = await exifr.parse(input, options)
 	//    assert.equal(output.Make, 'DJI')

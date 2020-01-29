@@ -31,7 +31,7 @@ describe('ChunkedReader', () => {
 		const gpsPointer = 18478
 
 		const firstChunkSize = 10
-		const options = {wholeFile: false, firstChunkSize}
+		const options = {chunked: true, firstChunkSize}
 
 		let file2 = {
 			name: 'noexif.jpg',
@@ -316,7 +316,7 @@ describe('ChunkedReader', () => {
 		let tiffOffset = 2
 		let tiffLength = 25386
 		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
-		let options = {wholeFile: false, firstChunkSize, wholeFile: false, mergeOutput: false, exif: true, gps: true}
+		let options = {chunked: true, firstChunkSize, chunked: true, mergeOutput: false, exif: true, gps: true}
 		let exr = new Exifr(options)
 		await exr.read(getPath(name))
 		assert.isAtLeast(exr.file.byteLength, 12695)
@@ -353,9 +353,9 @@ describe('ChunkedReader', () => {
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
 
-		it(`input path & {wholeFile: false, firstChunkSize: 100}`, async () => {
+		it(`input path & {chunked: true, firstChunkSize: 100}`, async () => {
 			let input = await getPath('001.tif')
-			let options = {wholeFile: false, firstChunkSize: 100}
+			let options = {chunked: true, firstChunkSize: 100}
 			let exr = new Exifr(options)
 			await exr.read(input)
 			let output = await exr.parse()
@@ -363,9 +363,9 @@ describe('ChunkedReader', () => {
 			assert.equal(output.Make, 'DJI')
 		})
 
-		it(`input path & {wholeFile: false}`, async () => {
+		it(`input path & {chunked: true}`, async () => {
 			let input = await getPath('001.tif')
-			let options = {wholeFile: true}
+			let options = {chunked: false}
 			let exr = new Exifr(options)
 			await exr.read(input)
 			let output = await exr.parse()
@@ -400,7 +400,7 @@ describe('ChunkedReader', () => {
 
 			it(`reads fixture ${fileName} with default settings`, async () => {
 				let input = await getPath(fileName)
-				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
+				let options = {chunked: true, mergeOutput: false, firstChunkSize: 100}
 				let exr = new Exifr(options)
 				await exr.read(input)
 				let output = await exr.parse()
@@ -410,7 +410,7 @@ describe('ChunkedReader', () => {
 
 			it(`reads fixture ${fileName} with all segments enabled`, async () => {
 				let input = await getPath(fileName)
-				let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100, xmp: true, icc: true, iptc: true}
+				let options = {chunked: true, mergeOutput: false, firstChunkSize: 100, xmp: true, icc: true, iptc: true}
 				let exr = new Exifr(options)
 				await exr.read(input)
 				let output = await exr.parse()
@@ -422,7 +422,7 @@ describe('ChunkedReader', () => {
 
 				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
 					let input = await getPath(fileName)
-					let options = {wholeFile: false, mergeOutput: false, firstChunkSize: 100}
+					let options = {chunked: true, mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
 					let exr = new Exifr(options)
 					await exr.read(input)

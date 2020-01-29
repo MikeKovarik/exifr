@@ -4,7 +4,7 @@ import {promises as fs} from 'fs'
 import path from 'path'
 
 const options = {
-	wholeFile: true,
+	chunked: false,
 	mergeOutput: false,
 	tiff: true,
 	jfif: true,

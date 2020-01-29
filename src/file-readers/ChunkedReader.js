@@ -32,8 +32,6 @@ export class ChunkedReader extends DynamicBufferView {
 		super(0)
 		this.input = input
 		this.options = options
-		this.allowWholeFile = options.wholeFile === true || options.wholeFile === undefined
-		this.forceWholeFile = options.wholeFile === true
 	}
 
 	chunksRead = 0
@@ -88,20 +86,11 @@ export class ChunkedReader extends DynamicBufferView {
 		return this.nextChunkOffset === this.size
 	}
 
-	async read() {
-		// Reading additional segments (XMP, ICC, IPTC) requires whole file to be loaded.
-		// Chunked reading is only available for simple exif (APP1) FTD0.
-		if (this.forceWholeFile)
-			return await this.readWhole()
-		try {
-			// Read first chunk
-			await this.readChunked()
-		} catch {
-			// Seeking for the exif at the beginning of the file failed.
-			// Fall back to scanning throughout the whole file if allowed.
-			if (this.allowWholeFile)
-				return await this.readWhole()
-		}
+	read() {
+		if (this.options.chunked)
+			return this.readChunked()
+		else
+			return this.readWhole()
 	}
 
 	// DO NOT REMOVE!

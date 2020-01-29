@@ -7,7 +7,7 @@ import * as platform from './util/platform.js'
 
 
 export const readerProps = [
-	'wholeFile',
+	'chunked',
 	'firstChunkSize',
 	'firstChunkSizeNode',
 	'firstChunkSizeBrowser',
@@ -154,7 +154,7 @@ export class Options {
 	// true      - forces reading the whole file
 	// undefined - allows reading additional chunks of size `chunkSize` (chunked mode)
 	// false     - does not allow reading additional chunks beyond `firstChunkSize` (chunked mode)
-	static wholeFile = undefined
+	static chunked = true
 	// TODO
 	static firstChunkSize = undefined
 	// Size of the chunk that can be scanned for EXIF. Used by node.js.

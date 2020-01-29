@@ -34,7 +34,7 @@ describe('XMP Segment', () => {
     })
 
     it(`should parse XMP independenly (even if the file doesn't have TIFF)`, async () => {
-        let options = {mergeOutput: false, xmp: true, wholeFile: true}
+        let options = {mergeOutput: false, xmp: true, chunked: false}
         let input = getPath('issue-exifr-4.jpg')
         let output = await exifr.parse(input, options)
         assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)

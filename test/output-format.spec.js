@@ -20,7 +20,7 @@ describe('output object format', () => {
 	})
 
 	it(`contains multiple requested segments`, async () => {
-		let options = {xmp: true, jfif: true, wholeFile: true, mergeOutput: false}
+		let options = {xmp: true, jfif: true, chunked: false, mergeOutput: false}
 		let input = getPath('issue-exifr-4.jpg')
 		let output = await exifr.parse(input, options)
 		assert.isObject(output, `output is undefined`)
@@ -69,7 +69,7 @@ describe('output object format', () => {
 		it(`output.xmp should be empty and skipped with default options`, async () => {
 			const XMP = 0x02BC
 			let input = await getPath('issue-exif-js-124.tiff')
-			let options = {wholeFile: false, mergeOutput: false}
+			let options = {chunked: true, mergeOutput: false}
 			let exr = new Exifr(options)
 			await exr.read(input)
 			let output = await exr.parse()
@@ -81,7 +81,7 @@ describe('output object format', () => {
 
 		it(`output.xmp should not be empty when {xmp: true}`, async () => {
 			let input = await getPath('issue-exif-js-124.tiff')
-			let options = {wholeFile: false, mergeOutput: false, xmp: true}
+			let options = {chunked: true, mergeOutput: false, xmp: true}
 			let exr = new Exifr(options)
 			await exr.read(input)
 			let output = await exr.parse()

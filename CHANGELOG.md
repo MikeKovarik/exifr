@@ -16,6 +16,7 @@
 
 #### Options
 - removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
+- Changed behavior of `options.wholeFile` and renamed to `options.chunked`
 
 #### library bundles
 - The library now comes in multiple bundles, with varying number of parsers & tag dictonaries.

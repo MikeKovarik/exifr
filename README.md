@@ -235,7 +235,7 @@ let defaultOptions = {
   sanitize: true,
   mergeOutput: true,
   // Chunked reader
-  wholeFile: undefined,
+  chunked: true,
   firstChunkSize: undefined,
   firstChunkSizeNode: 512,
   firstChunkSizeBrowser: 65536, // 64kb
@@ -502,7 +502,7 @@ Converts dates from strings to Date instances and modifies few other tags to a m
 
 ### Chunked reader
 
-#### `options.wholeFile` `bool|undefined` default `undefined`
+#### `options.chunked` `bool|undefined` default `true`
 
 Exifr can read just a few chunks instead of the whole file. It is much faster, saves memory and unnecessary disk reads or network fetches.
 
@@ -755,6 +755,7 @@ Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
 <br>before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
 2) Renamed `ExifParser` class to `Exifr`.
 3) Renamed `thumbnailBuffer` to `thumbnail`
+4) Changed behavior of `options.wholeFile` and renamed to `options.readChunked`
 
 ```js
 // 2.x.x

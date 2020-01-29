@@ -11,6 +11,7 @@ export class BlobReader extends ChunkedReader {
 	}
 
 	readChunked() {
+		this.chunked = true
 		this.size = this.input.size
 		return super.readChunked()
 	}
