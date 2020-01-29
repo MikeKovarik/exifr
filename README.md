@@ -206,7 +206,7 @@ if (exr.file.chunked) await exr.file.close()
 * `true` shortcut to parse all segments and blocks
 * `object` with granular settings
 
-If undefined, these are the default settings:
+default options:
 
 ```js
 let defaultOptions = {
@@ -255,36 +255,32 @@ Exifr can avoid reading certain tags, instead of reading but not including them 
 Array of the only tags that will be parsed.
 
 ```js
-let options = {
-  // Avoid reading all TIFF blocks ...
-  tiff: false,
-  // ... except for GPS block. Of which only GPSLatitude & GPSLongitude is parsed.
-  gps: ['GPSLatitude', 0x0004], // 0x0004 is GPSLongitude
-}
+{pick: ['ExposureTime', 'FNumber', 'ISO']}
 ```
 
 ```js
-let options = {
-  gps: {
-    // Only read these two tags from gps block
-    pick: ['GPSLatitude', 0x0004],
-  }
-}
+// Avoid reading all TIFF blocks, except for GPS block. Of which only GPSLatitude & GPSLongitude is parsed.
+{tiff: false, gps: ['GPSLatitude', 0x0004]}
+```
+
+```js
+// Only read two tags from gps block
+{gps: {pick: ['GPSLatitude', 0x0004]}}
 ```
 
 #### `options.skip` `Array<string|number>` default `['MakerNote', 'UserComments']`
 
 Array of the tags that will not be parsed.
 
-By default [MakerNote and UserComment tags](#notable-tiff-tags) are skipped.
+By default MakerNote and UserComment tags are skipped. But taht is configured [elsewhere](#notable-tiff-tags).
 
 ```js
-let options = {
-  exif: {
-    // Skip reading three tags in EXIF block
-    skip: ['ImageUniqueID', 42033, 'SubSecTimeDigitized']
-  }
-}
+// Skip reading these three tags in any block
+{skip: ['ImageWidth', 'Model', 'FNumber', 'GPSLatitude']}
+```
+```js
+// Skip reading three tags in EXIF block
+{exif: {skip: ['ImageUniqueID', 42033, 'SubSecTimeDigitized']}}
 ```
 
 ### Segments & Blocks
@@ -363,42 +359,34 @@ TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 
 ```js
 // Only extract FNumber + ISO tags from EXIF and GPSLatitude + GPSLongitude from GPS
-let options = {
+{
   exif: true,
   gps: true,
   pick: ['FNumber', 'ISO', 'GPSLatitude', 0x0004] // 0x0004 is GPSLongitude
 }
 // is a shortcut for
-let options = {
+{
   exif: ['FNumber', 'ISO'],
   gps: ['GPSLatitude', 0x0004]
 }
-// which is a shortcut for
-let options = {
-  exif: {
-    pick: ['FNumber', 'ISO']
-  },
-  gps: {
-    pick: ['GPSLatitude', 0x0004]
-  }
+// which is another shortcut for
+{
+  exif: {pick: ['FNumber', 'ISO']},
+  gps: {pick: ['GPSLatitude', 0x0004]}
 }
 ```
 
 ```js
 // Do not revive any values
-let options = {
+{
   reviveValues: false,
-  exif: {
-    // inherits `false` from `options.reviveValues`
-  }
+  exif: {/* inherits `options.reviveValues` */}
 }
 
 // Do not revive any values except for those in EXIF block
-let options = {
+{
   reviveValues: false,
-  exif: {
-    reviveValues: true
-  }
+  exif: {reviveValues: true}
 }
 ```
 
@@ -418,8 +406,6 @@ Merges all parsed segments and blocks into a single object.
   Make: 'Google',
   Model: 'Pixel',
   FNumber: 2,
-  ISO: 50,
-  City: 'Vsetín',
   Country: 'Czech Republic',
   xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
 }
@@ -429,49 +415,39 @@ Merges all parsed segments and blocks into a single object.
     Make: 'Google',
     Model: 'Pixel'
   },
-  exif: {
-    FNumber: 2,
-    ISO: 50
-  },
-  iptc: {
-    City: 'Vsetín',
-    Country: 'Czech Republic'
-  }
+  exif: {FNumber: 2, ...},
+  iptc: {Country: 'Czech Republic', ...}
   xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
 }
 </pre></td></tr></table>
+
+#### `options.sanitize` default: `true`
+
+Removes IFD Pointer addressed from output of TIFF segment.
 
 #### `options.translateKeys` default: `true`
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 
-[Tag key dictionaries](#tag-keys) can be customized.
+[Key dictionaries](#tag-keys) can be customized. Check out [Dictionaries](#dictionaries) for more.
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
-Tags are numeric, sometimes refered to in hex notation. To access the `output.ifd0.Make` tag use `output.ifd0[0x010f]` or `output.ifd0[271]`
+*Keys are numeric, sometimes refered to in hex notation. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`*
 
 <table><tr>
 <td>translateKeys: false</td>
 <td>translateKeys: true</td>
 </tr><tr><td><pre>{
-  ifd0: {
-    0x0110: 'Pixel'
-  },
-  iptc: {
-    90: 'Vsetín',
-  },
+  ifd0: {0x0110: 'Pixel', ...},
+  iptc: {90: 'Vsetín', ...},
   icc: {
     64: 'Perceptual',
     desc: 'sRGB IEC61966-2.1',
   }
 }</pre></td><td><pre>{
-  ifd0: {
-    Model: 'Pixel',
-  },
-  iptc: {
-    City: 'Vsetín',
-  },
+  ifd0: {Model: 'Pixel', ...},
+  iptc: {City: 'Vsetín', ...},
   icc: {
     RenderingIntent: 'Perceptual',
     ProfileDescription: 'sRGB IEC61966-2.1',
@@ -482,7 +458,7 @@ Tags are numeric, sometimes refered to in hex notation. To access the `output.if
 
 Translates tag values from raw enums to understandable strings.
 
-[Tag value dictionaries](#tag-values) can be customized.
+[Value dictionaries](#tag-values) can be customized. Check out [Dictionaries](#dictionaries) for more.
 
 <table><tr>
 <td>translateValues: false</td>
@@ -505,9 +481,9 @@ Translates tag values from raw enums to understandable strings.
 
 #### `options.reviveValues` default: `true`
 
-Converts dates to Date instances and modifies certain tags to more readable format.
+Converts dates from strings to Date instances and modifies few other tags to a more readable format.
 
-[Tag revivers](#tag-revivers) can be customized.
+[Value revivers](#tag-revivers) can be customized. Check out [Dictionaries](#dictionaries) for more.
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -526,25 +502,14 @@ Converts dates to Date instances and modifies certain tags to more readable form
 
 ### Chunked reader
 
-TODO: update
+#### `options.wholeFile` `bool|undefined` default `undefined`
 
-If enabled, exifr makes an guess on whether to read the file or just chunks of it, based on typical file structure, your file type and segments you want to parse.
-This can save lots of memory, disk reads and speed things up. But it may not suit you.
-
-* `options.wholeFile` `bool/undefined` default `undefined`
-
-**Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
-
-**Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
+Exifr can read just a few chunks instead of the whole file. It is much faster, saves memory and unnecessary disk reads or network fetches.
 
 TODO: update
 
-#### `options.wholeFile` `bool/undefined` default `undefined`
-<br>Sets whether to read the file as a whole or just by small chunks.
-<br>*Used when file path or url to the image is given.*
-  * `true` - whole file mode
-  <br>forces fetching/reading whole file
-  * `undefined` - chunked mode, **default value**
+  * `true` - forces reading the whole file
+  * `undefined` - enachunked mode, **default value**
   <br>Reads first few bytes of the file to look for EXIF in (`seekChunkSize`) and allows reading/fetching additional chunks.
   <br>Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
   <br>*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
@@ -552,7 +517,11 @@ TODO: update
   <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
   <br>Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.
 
-TODO: update
+Chunked reading is only available when `string` url or disk path, `Blob` or `<img>` tag is used as an input. However it is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself.
+
+**Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
+
+**Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
 
 #### `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
 Byte size of the first chunk that will be read and parsed for EXIF.
@@ -577,7 +546,21 @@ If parsing file known to have EXIF fails try:
 
 ## Modular distributions
 
-Exifr is modular so you can pick and choose from many builds and prevent downloading unused code. It's a good idea to start development with full version and then scale down to a lighter build of exifr with just the bare minimum of functionality, parsers and dictionary your app needs.
+Exifr comes with prebuilt bundles. You can choose from four bundles based on your needs and prevent loading unused code. Especially in browsers it's a good idea to start development with `full` build and then scale down to a lighter build. Or better yet, start with `core` and only load the readers, parsers and dictionaries you need.
+
+TODO
+
+Out of the box exifr can read any file format. `lite` and `full` builds also include `ChunkedReader` and the ability to read files by chunks. Each file format requires its own reader. `full` build includes all of them but you can start with `core` build and only load the readers you need.
+
+### Plugin API
+
+Exifr was built to be modular with each
+that can be loaded and used independently.
+
+* **File readers** handle different input formats (Blob, Base64, URLs and file paths) that you feed into exifr.
+* **File parsers** look for metadata in files (.jpg, .tif, .heic)
+* **Segment parsers** extract data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
+* **Dictionaries** Affect the way parsed output looks.
 
 ### Translation dictionaries
 
