@@ -502,22 +502,21 @@ Converts dates from strings to Date instances and modifies few other tags to a m
 
 ### Chunked reader
 
-#### `options.chunked` `bool|undefined` default `true`
+#### `options.chunked` `bool` default `true`
 
 Exifr can read just a few chunks instead of the whole file. It is much faster, saves memory and unnecessary disk reads or network fetches.
 
 TODO: update
 
-  * `true` - forces reading the whole file
-  * `undefined` - enachunked mode, **default value**
-  <br>Reads first few bytes of the file to look for EXIF in (`seekChunkSize`) and allows reading/fetching additional chunks.
-  <br>Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
-  <br>*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
-  * `false` - chunked mode
-  <br>Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
-  <br>Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.
+~~undefined: Reads first few bytes of the file to look for EXIF in (`seekChunkSize`) and allows reading/fetching additional chunks.
+Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
+*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
+false: Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
+Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.~~
 
-Chunked reading is only available when `string` url or disk path, `Blob` or `<img>` tag is used as an input. However it is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself.
+Chunked reading is only available with these file inputs: `string` url or disk path, `Blob` or `<img>`. Chunked mode is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself.
+
+TODO: update
 
 **Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
 
