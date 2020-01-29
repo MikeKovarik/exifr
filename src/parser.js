@@ -118,20 +118,21 @@ export class AppSegmentParserBase {
 	}
 
 	// split into separate function so that it can be used by TIFF but shared with other parsers.
-	translateBlock(rawTags, type) {
-		let keyDict  = tagKeys[type]
-		let valDict  = tagValues[type]
-		let revivers = tagRevivers[type]
-		if (this.options.reviveValues && revivers) {
+	translateBlock(rawTags, blocKey) {
+		let keyDict  = tagKeys[blocKey]
+		let valDict  = tagValues[blocKey]
+		let revivers = tagRevivers[blocKey]
+		let blockOptions = this.options[blocKey]
+		if (blockOptions.reviveValues && revivers) {
 			for (let [tag, reviver] of Object.entries(revivers)) {
 				if (rawTags[tag] === undefined) continue
 				if (rawTags[tag]) rawTags[tag] = reviver(rawTags[tag])
 			}
 		}
 		let entries = Object.entries(rawTags)
-		if (this.options.translateValues && valDict)
+		if (blockOptions.translateValues && valDict)
 			entries = entries.map(([tag, val]) => [tag, this.translateValue(val, valDict[tag]) || val])
-		if (this.options.translateKeys && keyDict)
+		if (blockOptions.translateKeys && keyDict)
 			entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
 		return Object.fromEntries(entries)
 	}

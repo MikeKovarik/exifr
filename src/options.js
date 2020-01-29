@@ -16,23 +16,14 @@ export const readerProps = [
 ]
 
 export const segments = ['jfif', 'tiff', 'xmp', 'icc', 'iptc']
-
 // WARNING: this order is necessary for correctly assigning pick tags.
 export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
-
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
-
 export const tiffExtractables = ['makerNote', 'userComment']
+export const formatters = ['translateKeys', 'translateValues', 'reviveValues', 'sanitize']
+export const allFormatters = [...formatters, 'mergeOutput']
 
-export const formatOptions = [
-	'translateKeys',
-	'translateValues',
-	'reviveValues',
-	'sanitize',
-	'mergeOutput',
-]
-
-class FormatOptions {
+class SubOptions {
 
 	enabled = false
 	skip = new Set
@@ -47,16 +38,16 @@ class FormatOptions {
 			|| this.deps.size > 0
 	}
 
-	constructor(segKey, defaultValue, userValue, globalOptions) {
+	constructor(key, defaultValue, userValue, parent) {
+		this.key = key
 		this.enabled = defaultValue
 
-		this.translateKeys   = globalOptions.translateKeys
-		this.translateValues = globalOptions.translateValues
-		this.reviveValues    = globalOptions.reviveValues
+		this.applyFormatters(parent)
 
-		this.canBeFiltered = tiffBlocks.includes(segKey)
+		this.canBeFiltered = tiffBlocks.includes(key)
 		if (this.canBeFiltered) {
-			this.dict = tagKeys[segKey]
+			this.dict = tagKeys[key]
+			// todo: cache this, and preferably move to dicts files/object/class
 			this.dictKeys   = Object.keys(this.dict)
 			this.dictValues = Object.values(this.dict)
 		}
@@ -68,20 +59,25 @@ class FormatOptions {
 					this.translateTagSet(userValue, this.pick)
 			} else if (typeof userValue === 'object') {
 				this.enabled = true
-				let {pick, skip, translateKeys, translateValues, reviveValues} = userValue
 				if (this.canBeFiltered) {
+					let {pick, skip} = userValue
 					if (pick && pick.length > 0) this.translateTagSet(pick, this.pick)
 					if (skip && skip.length > 0) this.translateTagSet(skip, this.skip)
 				}
-				if (translateKeys   !== undefined) this.translateKeys   = translateKeys
-				if (translateValues !== undefined) this.translateValues = translateValues
-				if (reviveValues    !== undefined) this.reviveValues    = reviveValues
+				this.applyFormatters(userValue)
 			} else if (userValue === true || userValue === false) {
 				this.enabled = userValue
 			} else {
 				throw new Error(`Invalid options argument: ${userValue}`)
 			}
 		}
+	}
+
+	applyFormatters(origin) {
+		let {translateKeys, translateValues, reviveValues} = origin
+		if (translateKeys   !== undefined) this.translateKeys   = translateKeys
+		if (translateValues !== undefined) this.translateValues = translateValues
+		if (reviveValues    !== undefined) this.reviveValues    = reviveValues
 	}
 
 	translateTagSet(inputArray, outputSet) {
@@ -190,27 +186,28 @@ export class Options {
 		let key
 		let defaults = this.constructor
 		for (key of readerProps)       this[key] = defaults[key]
-		for (key of formatOptions)     this[key] = defaults[key]
+		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = defaults[key]
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], undefined, this)
+		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, defaults[key], undefined, this)
 	}
 
 	setupFromTrue() {
 		let key
 		let defaults = this.constructor
 		for (key of readerProps)       this[key] = defaults[key]
-		for (key of formatOptions)     this[key] = defaults[key]
+		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = true
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, true, undefined, this)
+		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, true, undefined, this)
 	}
 
 	setupFromObject(userOptions) {
 		let key
 		let defaults = this.constructor
 		for (key of readerProps)       this[key] = getDefined(userOptions[key], defaults[key])
-		for (key of formatOptions)     this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of allFormatters)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
-		for (key of segmentsAndBlocks) this[key] = new FormatOptions(key, defaults[key], userOptions[key], this)
+		for (key of segments)          this[key] = new SubOptions(key, defaults[key], userOptions[key], this)
+		for (key of tiffBlocks)        this[key] = new SubOptions(key, defaults[key], userOptions[key], this.tiff)
 		this.setupGlobalFilters(userOptions.pick, userOptions.skip, tiffBlocks, segmentsAndBlocks)
 		if (userOptions.tiff === true)
 			this.batchEnableWithBool(tiffBlocks, true)

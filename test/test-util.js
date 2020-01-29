@@ -228,16 +228,16 @@ export function testSegmentTranslation({type, file, tags}) {
 }
 
 export function testTranslationInheritance(argument) {
-	let {type, file, keyCode, keyName, valRaw, valTranslated} = argument
+	let {type, file, keyCode, keyName, valRaw, valTranslated, from} = argument
 
-	it(`${type} inherits translateKeys from options.tiff.translateKeys: true`, async () => {
+	it(`${type} inherits translateKeys from ${from}.translateKeys: true`, async () => {
 		let options = Object.assign({mergeOutput: false, [type]: true}, argument.optionsTranslateKeysTrue)
 		let output = await exifr.parse(await getFile(file), options)
 		assert.isUndefined(output[type][keyCode])
 		assert.isDefined(output[type][keyName])
 	})
 
-	it(`${type} inherits translateKeys from options.tiff.translateKeys: false`, async () => {
+	it(`${type} inherits translateKeys from ${from}.translateKeys: false`, async () => {
 		let options = Object.assign({mergeOutput: false, [type]: true}, argument.optionsTranslateKeysFalse)
 		let output = await exifr.parse(await getFile(file), options)
 		assert.isDefined(output[type][keyCode])
@@ -245,7 +245,7 @@ export function testTranslationInheritance(argument) {
 	})
 
 	if (valTranslated !== undefined) {
-		it(`${type} inherits translateValues from options.tiff.translateValues: true`, async () => {
+		it(`${type} inherits translateValues from ${from}.translateValues: true`, async () => {
 			let options = Object.assign({mergeOutput: false, [type]: true}, argument.optionsTranslateValuesTrue)
 			let output = await exifr.parse(await getFile(file), options)
 			assert.equal(output[type][keyName], valTranslated)
@@ -253,7 +253,7 @@ export function testTranslationInheritance(argument) {
 	}
 
 	if (valRaw !== undefined) {
-		it(`${type} inherits translateValues from options.tiff.translateValues: false`, async () => {
+		it(`${type} inherits translateValues from ${from}.translateValues: false`, async () => {
 			let options = Object.assign({mergeOutput: false, [type]: true}, argument.optionsTranslateValuesFalse)
 			let output = await exifr.parse(await getFile(file), options)
 			assert.equal(output[type][keyName], valRaw)
@@ -264,6 +264,7 @@ export function testTranslationInheritance(argument) {
 export function testGlobalFormatterInheritance(argument) {
 	testTranslationInheritance({
 		...argument,
+		from: 'options',
 		optionsTranslateKeysTrue:    {translateKeys: true},
 		optionsTranslateKeysFalse:   {translateKeys: false},
 		optionsTranslateValuesTrue:  {translateValues: true},
@@ -274,6 +275,7 @@ export function testGlobalFormatterInheritance(argument) {
 export function testTiffFormatterInheritance(argument) {
 	testTranslationInheritance({
 		...argument,
+		from: 'options.tiff',
 		optionsTranslateKeysTrue:    {tiff: {translateKeys: true}},
 		optionsTranslateKeysFalse:   {tiff: {translateKeys: false}},
 		optionsTranslateValuesTrue:  {tiff: {translateValues: true}},

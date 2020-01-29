@@ -1,7 +1,7 @@
 import {Exifr, Options} from '../src/index-full.js'
 import * as exifr from '../src/index-full.js'
 import {readBlobAsArrayBuffer} from '../src/reader.js'
-import {tiffBlocks, segmentsAndBlocks, tiffExtractables, formatOptions} from '../src/options.js'
+import {segmentsAndBlocks, tiffExtractables} from '../src/options.js'
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
