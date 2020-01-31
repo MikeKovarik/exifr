@@ -23,7 +23,7 @@ export class Exifr {
 	parsers = {}
 
 	constructor(options) {
-		this.options = new Options(options)
+		this.options = Options.useCached(options)
 	}
 
 	setup() {
@@ -77,10 +77,11 @@ export class Exifr {
 	async extractThumbnail() {
 		this.setup()
 		let TiffParser = segmentParsers.get('tiff', this.options)
+		var seg
 		if (this.file.isTiff)
-			var seg = {start: 0, type: 'tiff'}
-		else
-			var seg = await this.fileParser.getOrFindSegment('tiff')
+			seg = {start: 0, type: 'tiff'}
+		else if (this.file.isJpeg)
+			seg = await this.fileParser.getOrFindSegment('tiff')
 		if (seg === undefined) return
 		let chunk = await this.fileParser.ensureSegmentChunk(seg)
 		let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)

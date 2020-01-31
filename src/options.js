@@ -20,8 +20,9 @@ export const segments = ['jfif', 'tiff', 'xmp', 'icc', 'iptc']
 export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 export const tiffExtractables = ['makerNote', 'userComment']
-export const formatters = ['translateKeys', 'translateValues', 'reviveValues', 'sanitize']
-export const allFormatters = [...formatters, 'mergeOutput']
+export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment']
+export const allFormatters = [...inheritables, 'mergeOutput', 'sanitized']
+
 
 class SubOptions {
 
@@ -42,7 +43,7 @@ class SubOptions {
 		this.key = key
 		this.enabled = defaultValue
 
-		this.applyFormatters(parent)
+		this.applyInheritables(parent)
 
 		this.canBeFiltered = tiffBlocks.includes(key)
 		if (this.canBeFiltered) {
@@ -64,7 +65,7 @@ class SubOptions {
 					if (pick && pick.length > 0) this.translateTagSet(pick, this.pick)
 					if (skip && skip.length > 0) this.translateTagSet(skip, this.skip)
 				}
-				this.applyFormatters(userValue)
+				this.applyInheritables(userValue)
 			} else if (userValue === true || userValue === false) {
 				this.enabled = userValue
 			} else {
@@ -73,11 +74,12 @@ class SubOptions {
 		}
 	}
 
-	applyFormatters(origin) {
-		let {translateKeys, translateValues, reviveValues} = origin
-		if (translateKeys   !== undefined) this.translateKeys   = translateKeys
-		if (translateValues !== undefined) this.translateValues = translateValues
-		if (reviveValues    !== undefined) this.reviveValues    = reviveValues
+	applyInheritables(origin) {
+		let key, val
+		for (key of inheritables) {
+			val = origin[key]
+			if (val !== undefined) this[key] = val
+		}
 	}
 
 	translateTagSet(inputArray, outputSet) {
@@ -104,78 +106,95 @@ class SubOptions {
 
 }
 
-
-
-export class Options {
-
+var defaults = {
 	// APP Segments
-	static jfif = false
-	static tiff = true
-	static xmp = false
-	static icc = false
-	static iptc = false
+	jfif: false,
+	tiff: true,
+	xmp: false,
+	icc: false,
+	iptc: false,
 
 	// TIFF BLOCKS
-	static ifd0 = true
-	static exif = true
-	static gps = true
-	static interop = false
-	static thumbnail = false
+	ifd0: true,
+	exif: true,
+	gps: true,
+	interop: false,
+	thumbnail: false,
 
 	// Notable TIFF tags
-	static makerNote = false
-	static userComment = false
+	makerNote: false,
+	userComment: false,
+
+	// TODO: to be developed in future version, this is just a proposal for future api
+	multiSegment: false,
 
 	// FILTERS
 
 	// Array of tags that will be excluded when parsing.
 	// Saves performance because the tags aren't read at all and thus not further processed.
 	// Cannot be used along with 'pick' array.
-	static skip = []
+	skip: [],
 	// Array of the only tags that will be parsed. Those that are not specified will be ignored.
 	// Extremely saves performance because only selected few tags are processed.
 	// Useful for extracting few informations from a batch of many photos.
 	// Cannot be used along with 'skip' array.
-	static pick = []
+	pick: [],
 
 	// OUTPUT FORMATTERS
 
-	static translateKeys = true
-	static translateValues = true
-	static reviveValues = true
+	translateKeys: true,
+	translateValues: true,
+	reviveValues: true,
 	// Removes IFD pointers and other artifacts (useless for user) from output.
-	static sanitize = true
+	sanitize: true,
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
-	static mergeOutput = true
+	mergeOutput: true,
 
 	// CHUNKED READER
 
 	// true      - forces reading the whole file
 	// undefined - allows reading additional chunks of size `chunkSize` (chunked mode)
 	// false     - does not allow reading additional chunks beyond `firstChunkSize` (chunked mode)
-	static chunked = true
-	// TODO
-	static firstChunkSize = undefined
+	chunked: true,
+	// Size of the chunk that can be scanned for EXIF.
+	firstChunkSize: undefined,
 	// Size of the chunk that can be scanned for EXIF. Used by node.js.
-	static firstChunkSizeNode = 512
+	firstChunkSizeNode: 512,
 	// In browser its sometimes better to download larger chunk in hope that it contains the
 	// whole EXIF (and not just its begining like in case of firstChunkSizeNode) in prevetion
 	// of additional loading and fetching.
-	static firstChunkSizeBrowser = 65536 // 64kb
-	// TODO
-	static chunkSize = 65536 // 64kb
+	firstChunkSizeBrowser: 65536, // 64kb
+	// Size of subsequent chunks that are read after first chunk (if needed)
+	chunkSize: 65536, // 64kb
 	// Maximum ammount of additional chunks allowed to read in chunk mode.
 	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
-	static chunkLimit = 10
+	chunkLimit: 10,
+}
 
-	constructor(userOptions) {
+
+var existingInstances = new WeakMap
+
+export class Options {
+
+	static default = defaults
+
+	// NOTE: WeakMap cannot use `undefined` key, so we're using the `defaults` object.
+	static useCached(userOptions = defaults) {
+		let options = existingInstances.get(userOptions)
+		if (options !== undefined) return options
+		options = new this(userOptions)
+		existingInstances.set(userOptions, options)
+		return options
+	}
+
+	constructor(userOptions = empty) {
 		if (userOptions === true)
 			this.setupFromTrue()
+		else if (userOptions === undefined || userOptions === defaults) // comparing to defaults due to WeakMap in .useCached()
+			this.setupFromUndefined()
 		else if (typeof userOptions === 'object')
 			this.setupFromObject(userOptions)
-		else if (userOptions === undefined)
-			this.setupFromUndefined()
 		else
 			throw new Error(`Invalid options argument ${userOptions}`)
 		if (this.firstChunkSize === undefined)
@@ -184,7 +203,6 @@ export class Options {
 
 	setupFromUndefined() {
 		let key
-		let defaults = this.constructor
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = defaults[key]
@@ -193,7 +211,6 @@ export class Options {
 
 	setupFromTrue() {
 		let key
-		let defaults = this.constructor
 		for (key of readerProps)       this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = true
@@ -202,7 +219,6 @@ export class Options {
 
 	setupFromObject(userOptions) {
 		let key
-		let defaults = this.constructor
 		for (key of readerProps)       this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of allFormatters)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])

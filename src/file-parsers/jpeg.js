@@ -104,6 +104,7 @@ export class JpegFileParser extends FileParserBase {
 		if (!findAll) {
 			for (let type of wanted) {
 				let Parser = segmentParsers.get(type)
+				let parserOpts = this.options[type]
 				if (Parser.multiSegment) {
 					findAll = true
 					await this.file.readWhole()
@@ -122,7 +123,7 @@ export class JpegFileParser extends FileParserBase {
 			while (remaining.size > 0 && canKeepReading && file.canReadNextChunk) {
 				let {nextChunkOffset} = file
 				// We might have previously found beginning of segment, but only fitst half of it be read in memory.
-				let hasIncompleteSegments = this.appSegments.some(seg => seg.start < nextChunkOffset && seg.end >= nextChunkOffset)
+				let hasIncompleteSegments = this.appSegments.some(seg => !this.file.available(seg.offset || seg.start, seg.length || seg.size))
 				// Start reading where we the next block begins. That way we avoid reading part of file where some jpeg image data may be.
 				// Unless there's an incomplete segment. In this case start reading right where the last chunk ends to get the whole segment.
 				if (offset > nextChunkOffset && !hasIncompleteSegments)
@@ -136,12 +137,13 @@ export class JpegFileParser extends FileParserBase {
 
 	_findAppSegments(offset, end, findAll, wanted, remaining) {
 		let file = this.file
+		let marker2, isAppSegment, isJpgSegment
 		for (; offset < end; offset++) {
 			if (file.getUint8(offset) !== MARKER_1) continue
 			// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
-			let marker2 = file.getUint8(offset + 1)
-			let isAppSegment = isAppMarker(marker2)
-			let isJpgSegment = isJpgMarker(marker2)
+			marker2 = file.getUint8(offset + 1)
+			isAppSegment = isAppMarker(marker2)
+			isJpgSegment = isJpgMarker(marker2)
 			// All JPG 
 			if (!isAppSegment && !isJpgSegment) continue
 			let length = file.getUint16(offset + 2)
@@ -151,10 +153,12 @@ export class JpegFileParser extends FileParserBase {
 					// known and parseable segment found
 					let Parser = segmentParsers.get(type)
 					let seg = Parser.findPosition(file, offset)
+					let segOpts = this.options[type]
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
-						if (seg.chunkCount === undefined || seg.chunkNumber === seg.chunkCount) {
+						let canProcessMultiSegment = seg.multiSegment && segOpts.multiSegment
+						if (!canProcessMultiSegment || seg.chunkNumber === seg.chunkCount) {
 							// only mark the segment type as done when all of its segments
 							// (if it is split into multiple) are found
 							remaining.delete(type)

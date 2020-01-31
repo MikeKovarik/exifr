@@ -90,7 +90,7 @@ export class AppSegmentParserBase {
 			start = undefined
 		}
 		let view = new BufferView(buffer, start)
-		let instance = new this(view, new Options(options))
+		let instance = new this(view, Options.useCached(options))
 		return instance.parse()
 	}
 

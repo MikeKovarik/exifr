@@ -59,19 +59,25 @@ export default class IccParser extends AppSegmentParserBase {
 		let icc = this.output
 		let tagCount = this.chunk.getUint32(128)
 		let offset = 132
+		let chunkLength = this.chunk.byteLength
+		let code, valueOffset, valueLength, type, value
 		while (tagCount--) {
-			let code = this.chunk.getString(offset, 4)
-			let value = this.parseTag(offset)
+			code        = this.chunk.getString(offset, 4)
+			valueOffset = this.chunk.getUint32(offset + 4)
+			valueLength = this.chunk.getUint32(offset + 8)
+			type        = this.chunk.getString(valueOffset, 4)
+			if (valueOffset + valueLength > chunkLength) {
+				console.warn('reached the end of the first ICC chunk. multi-segment ICC is not suppported yet')
+				return
+			}
+			value = this.parseTag(type, valueOffset, valueLength)
 			// Not all the type parsers are implemented.
 			if (value !== undefined && value !== EMPTY_VALUE) icc[code] = value
 			offset += 12
 		}
 	}
 
-	parseTag(cursor) {
-		let offset = this.chunk.getUint32(cursor + 4)
-		let length = this.chunk.getUint32(cursor + 8)
-		let type   = this.chunk.getString(offset, 4)
+	parseTag(type, offset, length) {
 		switch (type) {
 			case TAG_TYPE_DESC: return this.parseDesc(offset)
 			case TAG_TYPE_MLUC: return this.parseMluc(offset)

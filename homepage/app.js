@@ -57,7 +57,8 @@ class ExifrDemoApp {
 	}
 
 	async setupExifr() {
-		this.createDefaultOptions()
+		this.options = cloneObject(Options.default)
+		this.options.thumbnail = true
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
@@ -67,14 +68,6 @@ class ExifrDemoApp {
 	handleError = err => {
 		console.error(err)
 		this.setStatus('ERROR: ' + err.message, 'red')
-	}
-
-	createDefaultOptions() {
-		this.options = {}
-		for (let key in Options)
-			if (key !== 'pick' && key !== 'skip')
-				this.options[key] = Options[key]
-		this.options.thumbnail = true
 	}
 
 	toggleAllOptions() {
