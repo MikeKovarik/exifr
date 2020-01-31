@@ -22,7 +22,7 @@ export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 export const tiffExtractables = ['makerNote', 'userComment']
 export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment']
-export const allFormatters = [...inheritables, 'mergeOutput', 'sanitized']
+export const allFormatters = [...inheritables, 'mergeOutput', 'sanitize']
 
 
 class SubOptions {
@@ -174,14 +174,13 @@ var defaults = {
 }
 
 
-var existingInstances = new WeakMap
+var existingInstances = new Map
 
 export class Options {
 
 	static default = defaults
 
-	// NOTE: WeakMap cannot use `undefined` key, so we're using the `defaults` object.
-	static useCached(userOptions = defaults) {
+	static useCached(userOptions) {
 		let options = existingInstances.get(userOptions)
 		if (options !== undefined) return options
 		options = new this(userOptions)
@@ -189,10 +188,10 @@ export class Options {
 		return options
 	}
 
-	constructor(userOptions = empty) {
+	constructor(userOptions) {
 		if (userOptions === true)
 			this.setupFromTrue()
-		else if (userOptions === undefined || userOptions === defaults) // comparing to defaults due to WeakMap in .useCached()
+		else if (userOptions === undefined)
 			this.setupFromUndefined()
 		else if (typeof userOptions === 'object')
 			this.setupFromObject(userOptions)

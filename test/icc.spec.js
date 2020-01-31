@@ -1,6 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util.js'
 import IccParser from '../src/segment-parsers/icc.js'
+import * as exifr from '../src/index-full.js'
 
 
 function testProfile(filePath, results = {}) {
@@ -71,7 +72,6 @@ describe('ICC Segment', () => {
 		let input = await getFile('issue-metadata-extractor-65.jpg')
 		let options = {tiff: false, icc: {multiSegment: true}}
 		let icc = await exifr.parse(input, options)
-        console.log('-: icc', icc)
 		assert.lengthOf(icc.MediaWhitePoint, 20)
 		assert.lengthOf(icc.A2B0, 41478)
 		assert.lengthOf(icc.A2B2, 41478)

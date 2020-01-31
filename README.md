@@ -423,7 +423,10 @@ Merges all parsed segments and blocks into a single object.
 
 #### `options.sanitize` default: `true`
 
-Removes IFD Pointer addressed from output of TIFF segment.
+Removes:
+
+* IFD Pointer addresses from output of TIFF segment
+* `ApplicationNotes` tag (raw `Uint8Array` form of XMP) in .tif files
 
 #### `options.translateKeys` default: `true`
 
