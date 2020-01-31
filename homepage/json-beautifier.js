@@ -17,12 +17,8 @@ let byteTable = {
 	Int16Array:  4,
 	Int32Array:  8,
 }
-Uint8Array.prototype.toJSON =
-Uint16Array.prototype.toJSON =
-Uint32Array.prototype.toJSON =
-Int8Array.prototype.toJSON =
-Int16Array.prototype.toJSON =
-Int32Array.prototype.toJSON = function() {
+
+function typedArrayToJson() {
 	let name = this.constructor.name
 	let valueBytes = byteTable[name]
 	let size = Math.min(this.length, BUFFER_DISPLAY_LIMIT)
@@ -37,20 +33,50 @@ Int32Array.prototype.toJSON = function() {
 		return reviverWrap(`<${name} ${values}>`)
 }
 
-Array.prototype.toJSON = function() {
+function arrayToJson() {
 	return reviverWrap(`[${this.join(', ')}]`)
 }
 
-Date.prototype.toJSON = function() {
+function dateToJson() {
 	return reviverWrap(`<Date ${this.toISOString()}>`)
+}
+
+let originalToJson = new Map([
+	[Uint8Array,  Uint8Array.prototype.toJSON],
+	[Uint16Array, Uint16Array.prototype.toJSON],
+	[Uint32Array, Uint32Array.prototype.toJSON],
+	[Int8Array,   Int8Array.prototype.toJSON],
+	[Int16Array,  Int16Array.prototype.toJSON],
+	[Int32Array,  Int32Array.prototype.toJSON],
+	[Array,       Array.prototype.toJSON],
+	[Date,        Date.prototype.toJSON],
+])
+
+let customToJson = new Map([
+	[Uint8Array,  typedArrayToJson],
+	[Uint16Array, typedArrayToJson],
+	[Uint32Array, typedArrayToJson],
+	[Int8Array,   typedArrayToJson],
+	[Int16Array,  typedArrayToJson],
+	[Int32Array,  typedArrayToJson],
+	[Array,       arrayToJson],
+	[Date,        dateToJson],
+])
+
+function applyToJsonMethods(map) {
+	for (let [Class, fn] of map)
+		Class.prototype.toJSON = fn
 }
 
 export class JsonValueConverter {
     toView(arg, spaces = 2) {
 		if (arg === undefined) return
 		if (arg === null) return
-		return JSON.stringify(arg, null, spaces)
+		applyToJsonMethods(customToJson)
+		let json = JSON.stringify(arg, null, spaces)
 			.replace(reviverStartRegex, '')
 			.replace(reviverEndRegex, '')
+		applyToJsonMethods(originalToJson)
+		return json
     }
 }

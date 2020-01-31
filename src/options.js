@@ -204,7 +204,7 @@ export class Options {
 
 	setupFromUndefined() {
 		let key
-		for (key of chunkedProps)       this[key] = defaults[key]
+		for (key of chunkedProps)      this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = defaults[key]
 		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, defaults[key], undefined, this)
@@ -212,7 +212,7 @@ export class Options {
 
 	setupFromTrue() {
 		let key
-		for (key of chunkedProps)       this[key] = defaults[key]
+		for (key of chunkedProps)      this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = true
 		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, true, undefined, this)
@@ -220,7 +220,7 @@ export class Options {
 
 	setupFromObject(userOptions) {
 		let key
-		for (key of chunkedProps)       this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of chunkedProps)      this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of allFormatters)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segments)          this[key] = new SubOptions(key, defaults[key], userOptions[key], this)
