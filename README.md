@@ -348,7 +348,7 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
 * `object` - enabled with custom options 
    * Subset of `options` object.
    * Can locally override [filters](#tag-filters): `pick`, `skip`.
-   * Can locally override [formatters](#output-format): `translateKeys`, `translateValues`, `reviveValues`, `sanitize`.
+   * Can locally override [formatters](#output-format): `translateKeys`, `translateValues`, `reviveValues`.
    * Undefined properties are inherited from `options` object. TIFF blocks also inherit from `options.tiff` first.
 * `Array` - enabled, but only extracts tags from this array
    * List of the only tags to parse. All others are skipped. TODO LINK
@@ -520,28 +520,30 @@ TODO: update
 
 **Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
 
+*Traces of EXIF can usually be found within the first few bytes of the file. If not there likely is no EXIF at all and it's not worth reading the file anymore.*
+
 **Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
 
-#### `options.seekChunkSize` `number` default: `512` Bytes (0.5 KB)
-Byte size of the first chunk that will be read and parsed for EXIF.
-*EXIF is usually within the first few bytes of the file. If not than there likely is no EXIF. It's not necessary to read through the whole file.*
-Node.js: Used for all input types.
-Browser: Used when input `arg` is buffer. Otherwise, `parseChunkSize` is used.
+#### `options.firstChunkSize` `number` default `512` in Node / `65536` in browser
 
-TODO: update
+Size (in bytes) of the first chunk that probes the file for traces of exif or metadata. 
 
-#### `options.parseChunkSize` `number` default: `64 * 1024` (64KB)
-Size of the chunk to fetch in the browser in chunked mode.
-*Much like `seekChunkSize` but used in the browser (and only if we're given URL) where subsequent chunk fetching is more expensive than fetching one larger chunk with hope that it contains the EXIF.*
-Node.js: Not used.
-Browser: Used when input `arg` is string URL. Otherwise, `seekChunkSize` is used.
+Based on platform, one of these values are used for `firstChunkSize`:
 
-TODO: update
+* `options.firstChunkSizeNode` default `512`
+* `options.firstChunkSizeBrowser` default `65536` (64 KB)
 
-If parsing file known to have EXIF fails try:
-* Increasing `seekChunkSize`
-* Increasing `parseChunkSize` in the browser if file URL is used as input.
-* Disabling chunked mode (read whole file)
+*In browser it's usually better to read just larger chunk in hope that it contains the whole EXIF (and not just the begining) instead of loading mutliple subsequent chunks. Whereas in Node.js it's prefferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
+
+#### `options.chunkSize` `number` default `65536` Bytes
+
+Size of subsequent chunks that may be read after first chunk
+
+#### `options.chunkLimit` `number` default `5`
+
+Maximum ammount of subsequent chunks allowed to read in chunk mode.
+
+*If the exif isn't found within N chunks (5\*65536 = 640kb) it probably isn't in the file and it's not worth reading anymore.*
 
 ## Modular distributions
 
@@ -783,11 +785,66 @@ XmpParser.prototype.parseXml = function(xmpString) {
 }
 ```
 
-## Note on performance
+## Performance
+
+### Tips for better performance
+
+Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large ammount of files.
+
+#### Use `options.pick` if you only need certain tags
+
+Unlike other libraries, exifr can only parse certain tags, avoid unnecessary reads and end when the last picked tag was found.
+
+```js
+// do this:
+let output = await exifr.parse(file, {exif: ['ExposureTime', 'FNumber']})
+// not this:
+let {ExposureTime, FNumber} = await exifr.parse(file)
+```
+
+#### Disable `options.ifd0` if you don't need the data
+
+`ifd0`, `exif` and `gps` blocks are enabled by default.
+
+Even though IFD0 (Image block) stores pointers to EXIF and GPS blocks and is thus necessary to be parsed to access said blocks. Exifr doesn't need to read the whole IFD0, it just looks for the pointers.
+
+```js
+// do this:
+let options = {ifd0: false, exif: true} 
+// not this:
+let options = {exif: true} 
+```
+
+#### Use `exifr.gps()`
+
+If you only need to extract GPS coords, use `exifr.gps()` because it is fine tuned to do exactly this and nothing more.
+
+```js
+// do this:
+exifr.gps(file)
+// not this:
+exifr.parse(file, {gps: true})
+```
+
+#### Cache `options` object
+
+If you parse multiple files with the same settings, you should cache the `options` object instead of inlining it. Exifr uses your `options` to create instance of `Options` class under the hood and uses `WeakMap` to find previously created instance instead of creating new one each time.
+
+```js
+// do this:
+let options = {exif: true, iptc: true}
+for (let file of files) exif.parse(file, options)
+// not this:
+for (let file of files) exif.parse(file, {exif: true, iptc: true})
+```
+
+### Remarks
 
 As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
 
 We're able to parse image within a couple of milliseconds (tens of millis on phones) thanks to selective disk reads (Node.js) and Blob / ArrayBuffer (Browser) manipulations. Because you don't need to read the whole file and parse through a MBs of data if we an educated guess can be made to only read a couple of small chunks where EXIF usually is. Plus each supported data type is approached differently to ensure the best performance.
+
+#### Benchmarks
 
 Observations from testing with +-4MB pictures (*Highest quality, highest resolution Google Pixel photos, tested on a decade old quad core CPU*). Note: These are no scientific measurements.
 
@@ -799,7 +856,7 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
 * Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
 
-### HEIC
+#### HEIC
 
 Other libraries use brute force to read through all bytes until 'Exif' string is found. Whereas exifr recognizes the file structure which consists of nested boxes. This allows exifr to read just a few bytes here and there, to get sizes of the box and pointers to jump to next.
 
