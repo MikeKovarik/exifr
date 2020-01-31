@@ -1,6 +1,7 @@
 import * as platform from './util/platform.js'
 import {BufferView} from './util/BufferView.js'
 import {PluginList} from './util/helpers.js'
+import {customError} from './util/helpers.js'
 
 
 export var fileReaders = new PluginList('file reader')
@@ -17,7 +18,7 @@ export function read(arg, options) {
 	else if (platform.browser && arg instanceof Blob)
 		return readBlob(arg, options)
 	else
-		throw new Error('Invalid input argument')
+		throw customError('Invalid input argument')
 }
 
 function readString(string, options) {
@@ -28,7 +29,7 @@ function readString(string, options) {
 	else if (platform.node)
 		return readFileFromDisk(string, options)
 	else
-		throw new Error('Invalid input argument')
+		throw customError('Invalid input argument')
 }
 
 async function readBlob(blob, options) {

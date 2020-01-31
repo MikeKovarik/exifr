@@ -2,6 +2,7 @@ import {FileParserBase} from '../parser.js'
 import {BufferView} from '../util/BufferView.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 import {fileParsers} from '../parser.js'
+import {customError} from '../util/helpers.js'
 
 
 export class TiffFileParser extends FileParserBase {
@@ -24,7 +25,7 @@ export class TiffFileParser extends FileParserBase {
 			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
 			let seg = {start: 0, type: 'tiff'}
 			let chunk = await this.ensureSegmentChunk(seg)
-			if (chunk === undefined) throw new Error(`Couldn't read chunk`)
+			if (chunk === undefined) throw customError(`Couldn't read chunk`)
 			this.createParser('tiff', chunk)
 			this.parsers.tiff.parseHeader()
 			await this.parsers.tiff.parseIfd0Block()

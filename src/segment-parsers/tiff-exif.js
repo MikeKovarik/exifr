@@ -5,6 +5,7 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
 import {ConvertDMSToDD} from '../dicts/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
+import {customError} from '../util/helpers.js'
 
 
 const THUMB_OFFSET = 0x0201
@@ -54,12 +55,12 @@ export class TiffCore extends AppSegmentParserBase {
 		else if (byteOrder === TIFF_BIG_ENDIAN)
 			this.le = false // big endian
 		else
-			throw new Error('Invalid EXIF data: expected byte order marker (0x4949 or 0x4D4D).')
+			throw customError('Invalid EXIF data: expected byte order marker (0x4949 or 0x4D4D).')
 		this.chunk.le = this.le
 
 		// Bytes 8 & 9 are expected to be 00 2A.
 		if (this.chunk.getUint16(2) !== 0x002A)
-			throw new Error('Invalid EXIF data: expected 0x002A.')
+			throw customError('Invalid EXIF data: expected 0x002A.')
 
 		this.headerParsed = true
 	}
@@ -101,7 +102,7 @@ export class TiffCore extends AppSegmentParserBase {
 			offset = this.chunk.getUint32(offset + 8)
 
 		if (offset > this.chunk.byteLength)
-			throw new Error(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
+			throw customError(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === ASCII) { // type 2
@@ -150,7 +151,7 @@ export class TiffCore extends AppSegmentParserBase {
 			case FLOAT    : return this.chunk.getFloat(offset)
 			case DOUBLE   : return this.chunk.getDouble(offset)
 			case 13: return this.chunk.getUint32(offset)
-			default: throw new Error(`Invalid tiff type ${type}`)
+			default: throw customError(`Invalid tiff type ${type}`)
 		}
 	}
 
@@ -298,9 +299,9 @@ export class TiffExif extends TiffCore {
 		// (width, height, maker, model and pointers to another segments)
 		this.findIfd0Offset()
 		if (this.ifd0Offset < 8)
-			throw new Error('Invalid EXIF data: IFD0 offset should be less than 8')
+			throw customError('Invalid EXIF data: IFD0 offset should be less than 8')
 		if (!this.file.chunked && this.ifd0Offset > this.file.byteLength)
-			throw new Error(`IFD0 offset points to outside of file.\nthis.ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
+			throw customError(`IFD0 offset points to outside of file.\nthis.ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
 		await this.ensureBlockChunk(this.ifd0Offset, this.minimalEstimatedSize)
 		// Parse IFD0 block.
 		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')

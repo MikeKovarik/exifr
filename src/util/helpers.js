@@ -12,6 +12,12 @@ export function isEmpty(object) {
     return Object.keys(object).length === 0
 }
 
+export function customError(message) {
+	let err = new Error(message)
+	delete err.stack
+	return err
+}
+
 export class PluginList extends Map {
 
 	constructor(kind) {

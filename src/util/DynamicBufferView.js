@@ -1,5 +1,6 @@
 import * as platform from './platform.js'
 import {BufferView} from './BufferView.js'
+import {customError} from './helpers.js'
 
 
 export class DynamicBufferView extends BufferView {
@@ -33,7 +34,7 @@ export class DynamicBufferView extends BufferView {
 		if (chunk instanceof DataView || chunk instanceof BufferView)
 			chunk = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
 		else if ((!chunk instanceof Uint8Array))
-			throw new Error('Invalid chunk type to extend with')
+			throw customError('Invalid chunk type to extend with')
 		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
 		uintView.set(chunk, this.byteLength)
 		this.ranges.add(this.byteLength, chunk.byteLength)

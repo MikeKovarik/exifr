@@ -1,4 +1,4 @@
-import * as platform from './platform.js'
+import {customError} from './helpers.js'
 
 
 const utf8 = new TextDecoder('utf-8')
@@ -41,14 +41,14 @@ export class BufferView {
 			if (length === undefined) length = byteLength - offset
 			offset += byteOffset
 			if (offset + length > byteOffset + byteLength)
-				throw new Error('Creating view outside of available memory in ArrayBuffer')
+				throw customError('Creating view outside of available memory in ArrayBuffer')
 			let dataView = new DataView(arg.buffer, offset, length)
 			this._swapDataView(dataView)
 		} else if (typeof arg === 'number') {
 			let dataView = new DataView(new ArrayBuffer(arg))
 			this._swapDataView(dataView)
 		} else {
-			throw new Error('Invalid input argument for BufferView: ' + arg)
+			throw customError('Invalid input argument for BufferView: ' + arg)
 		}
 	}
 
@@ -79,7 +79,7 @@ export class BufferView {
 		else if (arg instanceof ArrayBuffer)
 			arg = new Uint8Array(arg)
 		if (!(arg instanceof Uint8Array))
-			throw new Error(`BufferView.set(): Invalid data argument.`)
+			throw customError(`BufferView.set(): Invalid data argument.`)
 		let uintView = this.toUint8()
 		uintView.set(arg, offset)
 		return new Class(this, offset, arg.byteLength)

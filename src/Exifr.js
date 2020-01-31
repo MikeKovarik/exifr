@@ -3,6 +3,7 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {Options} from './options.js'
 import {fileParsers, segmentParsers} from './parser.js'
+import {customError} from './util/helpers.js'
 
 
 const JPEG_SOI = 0xffd8
@@ -45,7 +46,7 @@ export class Exifr {
 			this.file.isHeic = true
 			FileParser = fileParsers.get('heic')
 		} else {
-			throw new Error(`Unknown file format`)
+			throw customError(`Unknown file format`)
 		}
 		this.fileParser = new FileParser(this.options, this.file, this.parsers)
 	}

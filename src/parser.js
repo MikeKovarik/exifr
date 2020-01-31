@@ -2,6 +2,7 @@ import {BufferView} from './util/BufferView.js'
 import {Options} from './options.js'
 import {tagKeys, tagValues, tagRevivers} from './tags.js'
 import {PluginList} from './util/helpers.js'
+import {customError} from './util/helpers.js'
 
 
 export var fileParsers    = new PluginList('file parser')
@@ -35,7 +36,7 @@ export class FileParserBase {
 				try {
 					seg.chunk = await this.file.readChunk(start, size)
 				} catch (err) {
-					throw new Error(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
+					throw customError(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
 				}
 			}
 		} else if (this.file.byteLength > start + size) {
@@ -44,7 +45,7 @@ export class FileParserBase {
 			// we dont know the length of segment and the file is much smaller than the fallback size of 64kbs (MAX_APP_SIZE)
 			seg.chunk = this.file.subarray(start)
 		} else {
-			throw new Error(`Segment unreachable: ` + JSON.stringify(seg))
+			throw customError(`Segment unreachable: ` + JSON.stringify(seg))
 		}
 		return seg.chunk
 	}

@@ -1,4 +1,5 @@
 import {AppSegmentParserBase, segmentParsers} from '../parser.js'
+import {customError} from '../util/helpers.js'
 
 
 const PROFILE_HEADER_LENGTH = 84
@@ -41,7 +42,7 @@ export default class IccParser extends AppSegmentParserBase {
 	parseHeader() {
 		let icc = this.output
 		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
-			throw new Error('ICC header is too short')
+			throw customError('ICC header is too short')
 		for (let [offset, parse] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = parse(this.chunk, offset)

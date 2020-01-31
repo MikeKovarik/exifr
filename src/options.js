@@ -4,6 +4,7 @@ import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from './tags.j
 //import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {tagKeys} from './tags.js'
 import * as platform from './util/platform.js'
+import {customError} from './util/helpers.js'
 
 
 export const readerProps = [
@@ -69,7 +70,7 @@ class SubOptions {
 			} else if (userValue === true || userValue === false) {
 				this.enabled = userValue
 			} else {
-				throw new Error(`Invalid options argument: ${userValue}`)
+				throw customError(`Invalid options argument: ${userValue}`)
 			}
 		}
 	}
@@ -196,7 +197,7 @@ export class Options {
 		else if (typeof userOptions === 'object')
 			this.setupFromObject(userOptions)
 		else
-			throw new Error(`Invalid options argument ${userOptions}`)
+			throw customError(`Invalid options argument ${userOptions}`)
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = platform.browser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 	}
