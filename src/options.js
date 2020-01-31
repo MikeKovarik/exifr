@@ -7,7 +7,7 @@ import * as platform from './util/platform.js'
 import {customError} from './util/helpers.js'
 
 
-export const readerProps = [
+export const chunkedProps = [
 	'chunked',
 	'firstChunkSize',
 	'firstChunkSizeNode',
@@ -16,7 +16,8 @@ export const readerProps = [
 	'chunkLimit',
 ]
 
-export const segments = ['jfif', 'tiff', 'xmp', 'icc', 'iptc']
+export const otherSegments = ['jfif', 'xmp', 'icc', 'iptc']
+export const segments = ['tiff', ...otherSegments]
 // WARNING: this order is necessary for correctly assigning pick tags.
 export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
@@ -168,8 +169,8 @@ var defaults = {
 	firstChunkSizeBrowser: 65536, // 64kb
 	// Size of subsequent chunks that are read after first chunk (if needed)
 	chunkSize: 65536, // 64kb
-	// Maximum ammount of additional chunks allowed to read in chunk mode.
-	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
+	// Maximum amount of additional chunks allowed to read in chunk mode.
+	// If the requested segments aren't parsed within N chunks (64*3 = 192kb) they probably aren't in the file.
 	chunkLimit: 5,
 }
 
@@ -203,7 +204,7 @@ export class Options {
 
 	setupFromUndefined() {
 		let key
-		for (key of readerProps)       this[key] = defaults[key]
+		for (key of chunkedProps)       this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = defaults[key]
 		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, defaults[key], undefined, this)
@@ -211,7 +212,7 @@ export class Options {
 
 	setupFromTrue() {
 		let key
-		for (key of readerProps)       this[key] = defaults[key]
+		for (key of chunkedProps)       this[key] = defaults[key]
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = true
 		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, true, undefined, this)
@@ -219,7 +220,7 @@ export class Options {
 
 	setupFromObject(userOptions) {
 		let key
-		for (key of readerProps)       this[key] = getDefined(userOptions[key], defaults[key])
+		for (key of chunkedProps)       this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of allFormatters)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of segments)          this[key] = new SubOptions(key, defaults[key], userOptions[key], this)
@@ -291,6 +292,12 @@ export class Options {
 						|| this.userComment
 		// reenable all the blocks with pick or deps and lock in deps into picks if needed.
 		for (let key of tiffBlocks) this[key].finalizeFilters()
+	}
+
+	get onlyTiff() {
+		let bools = otherSegments.map(key => this[key].enabled)
+		if (bools.some(bool => bool === true)) return false
+		return this.tiff.enabled
 	}
 
 }

@@ -66,22 +66,7 @@ describe('options', () => {
 		})
 
 	})
-// This can't be tested
-/*
-	describe('options.chunkLimit', () => {
 
-		it(`affects size of the chunk following firstChunkSize`, async () => {
-			let firstChunkSize = 101
-			let chunkSize = 10
-			let chunkLimit = 5
-			let exr = new Exifr({firstChunkSize, chunkSize, chunkLimit, tiff: false, icc: true, iptc: true})
-			await exr.read(await getPath('IMG_20180725_163423.jpg'))
-			await exr.parse()
-			assert.equal(exr.file.byteLength, firstChunkSize + (chunkSize * chunkLimit))
-		})
-
-	})
-*/
 	describe('options.chunked', () => {
 
 		let simpleFile = getPath('IMG_20180725_163423.jpg')

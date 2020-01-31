@@ -109,6 +109,8 @@ export class JpegFileParser extends FileParserBase {
 		// _findAppSegments() returns offset where next segment starts. If we didn't store it, next time we continue
 		// we might start in middle of data segment and would uselessly read & parse through noise.
 		offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
+		// If user only requests TIFF it's not necessary to read any more chunks. Because EXIF in jpg is always near the start of the file.
+		if (this.options.onlyTiff) return
 		if (file.chunked) {
 			// We're in chunked mode and couldn't find all wanted segments.
 			// We'll read couple more chunks and parse them until we've found everything or hit chunk limit.

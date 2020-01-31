@@ -240,7 +240,7 @@ let defaultOptions = {
   firstChunkSizeNode: 512,
   firstChunkSizeBrowser: 65536, // 64kb
   chunkSize: 65536, // 64kb
-  chunkLimit: 10
+  chunkLimit: 5
 }
 ```
 
@@ -523,6 +523,8 @@ TODO: update
 
 **Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
 
+Chunked mode keeps reading more chunks until all requested segments and blocks (defined in options) are found. But the file maight not have some of the segments or blocks, 
+
 *Traces of EXIF can usually be found within the first few bytes of the file. If not there likely is no EXIF at all and it's not worth reading the file anymore.*
 
 **Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
@@ -538,15 +540,19 @@ Based on platform, one of these values are used for `firstChunkSize`:
 
 *In browser it's usually better to read just larger chunk in hope that it contains the whole EXIF (and not just the begining) instead of loading mutliple subsequent chunks. Whereas in Node.js it's prefferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
 
-#### `options.chunkSize` `number` default `65536` Bytes
+#### `options.chunkSize` `number` default `65536` Bytes (64 KB)
 
-Size of subsequent chunks that may be read after first chunk
+Size of subsequent chunks that may be read after first chunk.
 
 #### `options.chunkLimit` `number` default `5`
 
-Maximum ammount of subsequent chunks allowed to read in chunk mode.
+Max amount of subsequent chunks allowed to read in which exifr searches for segments and blocks.
 
-*If the exif isn't found within N chunks (5\*65536 = 640kb) it probably isn't in the file and it's not worth reading anymore.*
+This failsafe prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
+
+This limit is bypassed when Multi-segment segments are if `options.multiSegment` allows reading all of them.
+
+*If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
 
 ## Modular distributions
 
@@ -792,7 +798,7 @@ XmpParser.prototype.parseXml = function(xmpString) {
 
 ### Tips for better performance
 
-Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large ammount of files.
+Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large amount of files.
 
 #### Use `options.pick` if you only need certain tags
 
