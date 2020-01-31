@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1"/>
+	<title>Exifr legacy bundle tester</title>
+	<link rel="stylesheet" type="text/css" href="../homepage/app.css">
+</head>
+<body>
+
+	<p>View this page in IE11 to test compatibility of <code>full.legacy.umd.js</code> bundle</p>
+
+	<h3>Output:</h3>
+	<pre id="output" style="font-size: 13px;"></pre>
+
+	<script>
+		// important: dont use let - older browsers (samsung tizen tvs use arcane chromium)
+		var $output = document.querySelector('#output')
+
+		window.onerror = function(message, source, lineno, colno, error) {
+			console.log('message', message)
+			console.log('source', source)
+			console.log('lineno', lineno)
+			console.log('colno', colno)
+			console.log('error', error)
+			var output = [
+				'--------------- ERROR ---------------',
+				'message:     ' + message,
+				'source:      ' + source,
+				'lineno:      ' + lineno,
+				'colno:       ' + colno,
+				//'error: ' + error,
+			]
+			if (error) {
+				output.push('description: ' + error.description)
+				output.push('message:     ' + error.message)
+				output.push('name:        ' + error.name)
+				output.push('number:      ' + error.number)
+				output.push(error.stack)
+			}
+			$output.innerHTML += output.join('\n') + '\n\n'
+		}
+	</script>
+
+	<script src="https://unpkg.com/regenerator-runtime@0.13.3/runtime.js"></script>
+	<script src="../dist/full.legacy.umd.js"></script>
+
+	<script>
+		var filePath = '../test/fixtures/IMG_20180725_163423.jpg'
+		exifr.parse(filePath).then(function(output) {
+			$output.innerHTML += JSON.stringify(output, null, 4)
+		})
+		.catch(function(err) {
+			console.log('UNCAUGHT')
+			console.log(err)
+			var output = [
+				'--------------- UNCAUGHT ---------------',
+				err.message,
+				err.stack,
+			]
+			$output.innerHTML += output.join('\n') + '\n\n'
+		})
+	</script>
+
+</body>
+</html>
