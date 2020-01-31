@@ -63,7 +63,7 @@ export default class IccParser extends AppSegmentParserBase {
 			valueLength = this.chunk.getUint32(offset + 8)
 			type        = this.chunk.getString(valueOffset, 4)
 			if (valueOffset + valueLength > chunkLength) {
-				console.warn('reached the end of the first ICC chunk. multi-segment ICC is not suppported yet')
+				console.warn('reached the end of the first ICC chunk. Enable options.tiff.multiSegment to read all ICC segments.')
 				return
 			}
 			value = this.parseTag(type, valueOffset, valueLength)
