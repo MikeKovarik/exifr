@@ -1,5 +1,6 @@
 import {FileParserBase, AppSegmentParserBase} from '../parser.js'
 import {fileParsers, segmentParsers} from '../parser.js'
+import {BufferView} from '../util/BufferView.js'
 
 
 const MARKER_1         = 0xff
@@ -74,37 +75,30 @@ export class JpegFileParser extends FileParserBase {
 		//await Promise.all(ranges.list.map(range => this.file.ensureChunk(range.offset, range.length)))
 		let promises = this.appSegments.map(this.ensureSegmentChunk)
 		await Promise.all(promises)
-		/*
-		// TODO: implement multi-segment
-		let multiSegments = this.appSegments.filter(seg => seg.multiSegment)
-		let types = unique(multiSegments.map(seg => seg.type))
-		for (let type of types) {
-			let segments = multiSegments
-				.filter(seg => seg.type === type)
-				.sort((a, b) => a.chunkNumber - b.chunkNumber)
-		}
-		*/
 	}
 
-	async findAppSegments(offset = 0, wanted) {
-		let findAll
-		let remaining
+	setupSegmentFinderArgs(wanted) {
 		if (wanted === true) {
-			findAll = true
-			wanted  = new Set(segmentParsers.keys())
+			this.findAll = true
+			this.wanted = new Set(segmentParsers.keys())
 		} else {
 			if (wanted === undefined)
 				wanted = segmentParsers.keys().filter(key => this.options[key].enabled)
 			else
 				wanted = wanted.filter(key => this.options[key].enabled && segmentParsers.has(key))
-			findAll = false
-			remaining = new Set(wanted)
-			wanted    = new Set(wanted)
+			this.findAll = false
+			this.remaining = new Set(wanted)
+			this.wanted    = new Set(wanted)
 		}
+		this.unfinishedMultiSegment = false
+	}
+
+	async findAppSegments(offset = 0, wantedArray) {
+		this.setupSegmentFinderArgs(wantedArray)
+		let {file, findAll, wanted, remaining} = this
 		if (!findAll) {
 			for (let type of wanted) {
 				let Parser = segmentParsers.get(type)
-				let parserOpts = this.options[type]
 				if (Parser.multiSegment) {
 					findAll = true
 					await this.file.readWhole()
@@ -112,31 +106,31 @@ export class JpegFileParser extends FileParserBase {
 				}
 			}
 		}
-		let file = this.file
 		// _findAppSegments() returns offset where next segment starts. If we didn't store it, next time we continue
 		// we might start in middle of data segment and would uselessly read & parse through noise.
 		offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
 		if (file.chunked) {
 			// We're in chunked mode and couldn't find all wanted segments.
 			// We'll read couple more chunks and parse them until we've found everything or hit chunk limit.
-			let canKeepReading = true
-			while (remaining.size > 0 && canKeepReading && file.canReadNextChunk) {
+			// EOF = End Of File
+			let eof = false
+			while (remaining.size > 0 && !eof && (file.canReadNextChunk || this.unfinishedMultiSegment)) {
 				let {nextChunkOffset} = file
 				// We might have previously found beginning of segment, but only fitst half of it be read in memory.
 				let hasIncompleteSegments = this.appSegments.some(seg => !this.file.available(seg.offset || seg.start, seg.length || seg.size))
 				// Start reading where we the next block begins. That way we avoid reading part of file where some jpeg image data may be.
 				// Unless there's an incomplete segment. In this case start reading right where the last chunk ends to get the whole segment.
 				if (offset > nextChunkOffset && !hasIncompleteSegments)
-					canKeepReading = await file.readNextChunk(offset)
+					eof = !await file.readNextChunk(offset)
 				else
-					canKeepReading = await file.readNextChunk(nextChunkOffset)
-				offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
+					eof = !await file.readNextChunk(nextChunkOffset)
+				offset = this._findAppSegments(offset, file.byteLength)
 			}
 		}
 	}
 
-	_findAppSegments(offset, end, findAll, wanted, remaining) {
-		let file = this.file
+	_findAppSegments(offset, end) {
+		let {file, findAll, wanted, remaining} = this
 		let marker2, isAppSegment, isJpgSegment
 		for (; offset < end; offset++) {
 			if (file.getUint8(offset) !== MARKER_1) continue
@@ -157,10 +151,18 @@ export class JpegFileParser extends FileParserBase {
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
-						let canProcessMultiSegment = seg.multiSegment && segOpts.multiSegment
-						if (!canProcessMultiSegment || seg.chunkNumber === seg.chunkCount) {
-							// only mark the segment type as done when all of its segments
-							// (if it is split into multiple) are found
+						if (seg.multiSegment && segOpts.multiSegment) {
+							// Found multisegment segment and options allow to process these.
+							if (seg.chunkNumber < seg.chunkCount) {
+								// We've not yet reached the last one.
+								this.unfinishedMultiSegment = true
+							} else {
+								// we've reached the last multi-segment.
+								this.unfinishedMultiSegment = false
+								remaining.delete(type)
+							}
+						} else {
+							// This is notmultisegment seg or we're not allowed to process them.
 							remaining.delete(type)
 						}
 						if (remaining.size === 0) break
@@ -184,7 +186,30 @@ export class JpegFileParser extends FileParserBase {
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
-		for (let segment of this.appSegments) {
+		if (this.hasMultiSegments) {
+			var segments = []
+			let multiSegmentTypes = []
+			for (let seg of this.appSegments) {
+				if (seg.multiSegment) {
+					if (multiSegmentTypes.includes(seg.type)) break
+					multiSegmentTypes.push(seg.type)
+					let ordered = this.appSegments
+						.filter(s => s.type === seg.type)
+						.sort((a, b) => a.chunkNumber - b.chunkNumber)
+					let buffers = ordered.map(s => s.chunk.toUint8())
+					let combined = concat(...buffers)
+					segments.push({
+						type: seg.type,
+						chunk: new BufferView(combined)
+					})
+				} else {
+					segments.push(seg)
+				}
+			}
+		} else {
+			var segments = this.appSegments
+		}
+		for (let segment of segments) {
 			let {type, chunk} = segment
 			if (!this.options[type].enabled) continue
 			let parser = this.parsers[type]
@@ -197,6 +222,10 @@ export class JpegFileParser extends FileParserBase {
 				this.parsers[type] = parser
 			}
 		}
+	}
+
+	get hasMultiSegments() {
+		return this.appSegments.some(seg => seg.multiSegment)
 	}
 
 	getSegment(type) {
@@ -214,5 +243,17 @@ export class JpegFileParser extends FileParserBase {
 
 }
 
+function concat(...buffers) {
+	let ArrayType = buffers[0].constructor
+    let totalLength = 0
+    for (let buffer of buffers) totalLength += buffer.length
+    let result = new ArrayType(totalLength)
+    let offset = 0
+    for (let buffer of buffers) {
+        result.set(buffer, offset)
+        offset += buffer.length
+    }
+    return result
+}
 
 fileParsers.set('jpeg', JpegFileParser)

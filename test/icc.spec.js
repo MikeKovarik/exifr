@@ -54,29 +54,33 @@ describe('ICC Segment', () => {
 		]
 	})
 
+
 	/*
-	// https://github.com/drewnoakes/metadata-extractor/issues/65
-	NOTE: this file has multiple ICC segments but even other parsers dont seem to extract useful data from them.
-	the chunks are as follows
-	[
-		{offset: 14167, length: 65490, chunkNumber: 1},
-		{offset: 79675, length: 65490, chunkNumber: 2},
-		{offset: 145183, length: 65490, chunkNumber: 3},
-		{offset: 210691, length: 65490, chunkNumber: 4},
-		{offset: 276199, length: 65490, chunkNumber: 5},
-		{offset: 341707, length: 65490, chunkNumber: 6},
-		{offset: 407215, length: 65490, chunkNumber: 7},
-		{offset: 472723, length: 65490, chunkNumber: 8},
-		{offset: 538231, length: 33248, chunkNumber: 9}
-	]
-	it(`multisegment ICC support`, async () => {
-		var options = {mergeOutput: false, icc: true}
-		var file = await getFile('./issue-metadata-extractor-65.jpg')
-		var output = await Exifr.parse(file, options)
-		assert.isObject(output.icc)
-		console.log(output.icc)
-	})
+	√ xmp      | offset   10595 | length    3554 | end   14149 | <Buffer ff e1 0d e0 68 74 74 70 3a 2f 2f 6e 73 2e>
+	√ icc      | offset   14149 | length   65508 | end   79657 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset   79657 | length   65508 | end  145165 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  145165 | length   65508 | end  210673 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  210673 | length   65508 | end  276181 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  276181 | length   65508 | end  341689 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  341689 | length   65508 | end  407197 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  407197 | length   65508 | end  472705 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  472705 | length   65508 | end  538213 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  538213 | length   33266 | end  571479 | <Buffer ff e2 81 f0 49 43 43 5f 50 52 4f 46 49 4c>
 	*/
+	it(`should parse all segments of multisegment ICC .jpg file when {icc: {multiSegment: true}}`, async () => {
+		let input = await getFile('issue-metadata-extractor-65.jpg')
+		let options = {tiff: false, icc: {multiSegment: true}}
+		let icc = await exifr.parse(input, options)
+        console.log('-: icc', icc)
+		assert.lengthOf(icc.MediaWhitePoint, 20)
+		assert.lengthOf(icc.A2B0, 41478)
+		assert.lengthOf(icc.A2B2, 41478)
+		assert.lengthOf(icc.A2B1, 41478)
+		assert.lengthOf(icc.B2A0, 145588)
+		assert.lengthOf(icc.B2A1, 145588)
+		assert.lengthOf(icc.B2A2, 145588)
+		assert.lengthOf(icc.Gamut, 37009)
+	})
 
 
 	describe('IccParser class', () => {

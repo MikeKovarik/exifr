@@ -90,10 +90,15 @@ export class BufferView {
 		return new BufferView(this, offset, length)
 	}
 
+	// Use this for working with memory.
+	// Returns Uint8Array view over the same memory of ArrayBuffer as the internal DataView.
 	toUint8() {
 		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
 	}
 
+	// Use this for reading data.
+	// Returns Uint8Array from given point in the chunk. Properly start at the begining of the chunk,
+	// regardles of where the chunk is in the ArrayBuffer.
 	getUint8Array(offset, length) {
 		return new Uint8Array(this.buffer, this.byteOffset + offset, length)
 	}

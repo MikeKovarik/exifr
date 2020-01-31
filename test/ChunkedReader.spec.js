@@ -403,8 +403,7 @@ describe('ChunkedReader', () => {
 		await exr.read(input)
 		await exr.parse()
 		await exr.file.close()
-        console.log('appSegments.length', exr.fileParser.appSegments.length)
-		assert.equal(exr.fileParser.appSegments.length, 1, 'Should only read the first out of 9 ICC segments')
+        assert.equal(exr.fileParser.appSegments.length, 1, 'Should only read the first out of 9 ICC segments')
 	})
 
 	it(`file with multisegment ICC - should read all segments when {multiSegment: true}`, async () => {
@@ -413,7 +412,6 @@ describe('ChunkedReader', () => {
 		await exr.read(input)
 		await exr.parse()
 		await exr.file.close()
-        console.log('appSegments.length', exr.fileParser.appSegments.length)
 		assert.equal(exr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 

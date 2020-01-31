@@ -27,11 +27,6 @@ export default class IccParser extends AppSegmentParserBase {
 		seg.chunkNumber  = chunk.getUint8(offset + 16)
 		seg.chunkCount   = chunk.getUint8(offset + 17)
 		seg.multiSegment = seg.chunkCount > 1
-		if (seg.chunkCount > 1) {
-			// TODO: API for signalling to main parser that it should keep going through file
-			// and not stop untill all chunks are found
-			console.warn('multi-segment ICC is not yet supported')
-		}
 		return seg
 	}
 

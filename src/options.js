@@ -169,7 +169,7 @@ var defaults = {
 	chunkSize: 65536, // 64kb
 	// Maximum ammount of additional chunks allowed to read in chunk mode.
 	// If the requested segments aren't parsed within N chunks (64*10 = 640kb) they probably aren't in the file.
-	chunkLimit: 10,
+	chunkLimit: 5,
 }
 
 
