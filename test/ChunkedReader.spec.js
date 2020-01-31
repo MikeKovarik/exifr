@@ -11,32 +11,36 @@ import {createBase64Url} from './reader.spec.js'
 
 describe('ChunkedReader', () => {
 
+	let file1 = {
+		name: 'IMG_20180725_163423.jpg',
+		size: 4055536,
+
+		tiffOffset: 2,
+		tiffLength: 25386,
+		get tiffEnd() {return this.tiffOffset + this.tiffLength},
+
+		iccOffset: 25406,
+		iccLength: 614,
+		get iccEnd() {return this.iccOffset + this.iccLength},
+
+		jfifOffset: 25388,
+		jfifLength: 18,
+		get jfifEnd() {return this.jfifOffset + this.jfifLength},
+
+		ifd0Pointer: 8,
+		exifPointer: 239,
+		gpsPointer:  18478,
+	}
+
+	let file2 = {
+		name: 'noexif.jpg',
+		size: 8318,
+	}
+
 	function testReaderClass(fileWrapper, ReaderClass) {
-
-		let file1 = {
-			name: 'IMG_20180725_163423.jpg',
-			size: 4055536,
-		}
-
-		const tiffOffset = 2
-		const tiffLength = 25386
-		const tiffEnd    = tiffOffset + tiffLength
-
-		const jfifOffset = 25388
-		const jfifLength = 18
-		const jfifEnd    = jfifOffset + jfifLength
-
-		const ifd0Pointer = 8
-		const exifPointer = 239
-		const gpsPointer = 18478
 
 		const firstChunkSize = 10
 		const options = {chunked: true, firstChunkSize}
-
-		let file2 = {
-			name: 'noexif.jpg',
-			size: 8318,
-		}
 
 		before(async () => {
 			file1.input = await fileWrapper(file1.name)
@@ -56,7 +60,8 @@ describe('ChunkedReader', () => {
 		describe('readChunked()', () => {
 
 			it(`reading overlapping chunk does not negatively affect orignal view`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, tiffOffset, tiffLength} = file1
+				let file = new ReaderClass(input, options)
 				await file.readChunked()
 				assert.equal(file.getUint8(0), 0xFF)
 				assert.equal(file.getUint8(1), 0xD8)
@@ -77,7 +82,8 @@ describe('ChunkedReader', () => {
 			})
 
 			it(`reading additional chunks keeps extending original view`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, tiffOffset, tiffLength, tiffEnd, jfifOffset, jfifLength, jfifEnd} = file1
+				let file = new ReaderClass(input, options)
 				await file.readChunked()
 				let tiffChunk = await file.readChunk(tiffOffset, tiffLength)
 				assert.equal(tiffChunk.byteLength, tiffLength)
@@ -89,7 +95,8 @@ describe('ChunkedReader', () => {
 			})
 
 			it(`reading sparsely creates second range`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, jfifOffset, jfifLength, jfifEnd} = file1
+				let file = new ReaderClass(input, options)
 				await file.readChunked()
 				assert.equal(file.ranges.list[0].end, firstChunkSize)
 				assert.lengthOf(file.ranges.list, 1)
@@ -102,7 +109,8 @@ describe('ChunkedReader', () => {
 			})
 
 			it(`space between sparse segments does not contain useful data`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, jfifOffset, jfifLength, jfifEnd} = file1
+				let file = new ReaderClass(input, options)
 				await file.readChunked()
 				await file.readChunk(jfifOffset, jfifLength)
 				assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
@@ -126,20 +134,22 @@ describe('ChunkedReader', () => {
 		describe('readWhole()', () => {
 
 			it(`space between segments contains useful data`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, jfifOffset, size} = file1
+				let file = new ReaderClass(input, options)
 				await file.readWhole()
 				assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-				assert.equal(file.getUint32(file1.size - 4), 0xAC7FFFD9)
+				assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
 			})
 
 			it(`fallback from firstChunk of chunked mode results in fully read file`, async () => {
-				let file = new ReaderClass(file1.input, options)
+				let {input, jfifOffset, size} = file1
+				let file = new ReaderClass(input, options)
 				await file.readChunked()
 				await file.readWhole()
 				assert.equal(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
-				assert.equal(file.getUint32(file1.size - 4), 0xAC7FFFD9)
+				assert.equal(file.getUint32(size - 4), 0xAC7FFFD9)
 				await file.close()
 			})
 
@@ -310,45 +320,101 @@ describe('ChunkedReader', () => {
 		})
 	})
 
-
-	it(`reading simple .jpg file sequentially`, async () => {
-		let name = 'IMG_20180725_163423.jpg'
-		let tiffOffset = 2
-		let tiffLength = 25386
+	it(`should read file sequentially`, async () => {
+		let {name, tiffOffset, tiffLength, tiffEnd} = file1
 		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
 		let options = {chunked: true, firstChunkSize, chunked: true, mergeOutput: false, exif: true, gps: true}
 		let exr = new Exifr(options)
 		await exr.read(getPath(name))
-		assert.isAtLeast(exr.file.byteLength, 12695)
-		assert.isAtLeast(exr.file.byteLength, exr.file.ranges.list[0].end)
-		let output = await exr.parse()
+		assert.equal(exr.file.byteLength, firstChunkSize)
+		assert.equal(exr.file.ranges.list[0].end, firstChunkSize)
+		await exr.parse()
+		assert.isAtLeast(exr.file.byteLength, tiffEnd)
+		assert.isAtLeast(exr.file.ranges.list[0].end, tiffEnd)
 		await exr.file.close()
-		assert.instanceOf(output.gps.GPSLatitude, Array)
 	})
 
-	it(`issue-metadata-extractor-65.jpg - file with multisegment icc - should read all segments`, async () => {
-		/*
-		issue-metadata-extractor-65.jpg 567kb
-		√ tiff     | offset       2 | length    4321 | end    4323 | <Buffer ff e1 10 df 45 78 69 66 00 00 4d 4d 00 2a>
-		√ iptc     | offset    4323 | length    6272 | end   10595 | <Buffer ff ed 18 7e 50 68 6f 74 6f 73 68 6f 70 20>
-		√ xmp      | offset   10595 | length    3554 | end   14149 | <Buffer ff e1 0d e0 68 74 74 70 3a 2f 2f 6e 73 2e>
-		√ icc      | offset   14149 | length   65508 | end   79657 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset   79657 | length   65508 | end  145165 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  145165 | length   65508 | end  210673 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  210673 | length   65508 | end  276181 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  276181 | length   65508 | end  341689 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  341689 | length   65508 | end  407197 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  407197 | length   65508 | end  472705 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  472705 | length   65508 | end  538213 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
-		√ icc      | offset  538213 | length   33266 | end  571479 | <Buffer ff e2 81 f0 49 43 43 5f 50 52 4f 46 49 4c>
-		? Adobed   | offset  571479 | length      16 | end  571495 | <Buffer ff ee 00 0e 41 64 6f 62 65 00 64 00 00 00>
-		*/
+	it(`should only read one chunk if firstChunkSize sufficiently contains the wanted segment (TIFF)`, async () => {
+		let {name, tiffOffset, tiffLength, tiffEnd} = file1
+		let firstChunkSize = tiffOffset + tiffLength
+		let options = {chunked: true, firstChunkSize, chunked: true, tiff: true}
+		let exr = new Exifr(options)
+		await exr.read(getPath(name))
+		await exr.parse()
+		await exr.file.close()
+		assert.equal(exr.file.chunksRead, 1)
+		assert.isAtLeast(exr.file.byteLength, tiffEnd)
+	})
+
+	it(`should only read one chunk if firstChunkSize sufficiently contains the wanted segment (ICC)`, async () => {
+		let {name, iccOffset, iccLength, iccEnd} = file1
+		let firstChunkSize = iccOffset + iccLength
+		let options = {chunked: true, firstChunkSize, chunked: true, icc: true}
+		let exr = new Exifr(options)
+		await exr.read(getPath(name))
+		await exr.parse()
+		await exr.file.close()
+		assert.equal(exr.file.chunksRead, 1)
+	})
+
+	it(`should read second chunk if firstChunkSize does not fully contain the wanted segment (TIFF)`, async () => {
+		let {name, tiffOffset, tiffLength, tiffEnd} = file1
+		let firstChunkSize = tiffOffset + Math.round(tiffLength / 2)
+		let options = {chunked: true, firstChunkSize, chunked: true, mergeOutput: false, tiff: true}
+		let exr = new Exifr(options)
+		await exr.read(getPath(name))
+		await exr.parse()
+		await exr.file.close()
+		assert.equal(exr.file.chunksRead, 2)
+		assert.isAtLeast(exr.file.byteLength, tiffEnd)
+	})
+
+	it(`should read second chunk if firstChunkSize does not fully contain the wanted segment (ICC)`, async () => {
+		let {name, iccOffset, iccLength, iccEnd} = file1
+		let firstChunkSize = iccOffset + Math.round(iccLength / 2)
+		let options = {chunked: true, firstChunkSize, chunked: true, mergeOutput: false, icc: true}
+		let exr = new Exifr(options)
+		await exr.read(getPath(name))
+		await exr.parse()
+		await exr.file.close()
+		assert.equal(exr.file.chunksRead, 2)
+		assert.isAtLeast(exr.file.byteLength, iccEnd)
+	})
+
+	/*
+	issue-metadata-extractor-65.jpg 567kb
+	√ tiff     | offset       2 | length    4321 | end    4323 | <Buffer ff e1 10 df 45 78 69 66 00 00 4d 4d 00 2a>
+	√ iptc     | offset    4323 | length    6272 | end   10595 | <Buffer ff ed 18 7e 50 68 6f 74 6f 73 68 6f 70 20>
+	√ xmp      | offset   10595 | length    3554 | end   14149 | <Buffer ff e1 0d e0 68 74 74 70 3a 2f 2f 6e 73 2e>
+	√ icc      | offset   14149 | length   65508 | end   79657 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset   79657 | length   65508 | end  145165 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  145165 | length   65508 | end  210673 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  210673 | length   65508 | end  276181 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  276181 | length   65508 | end  341689 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  341689 | length   65508 | end  407197 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  407197 | length   65508 | end  472705 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  472705 | length   65508 | end  538213 | <Buffer ff e2 ff e2 49 43 43 5f 50 52 4f 46 49 4c>
+	√ icc      | offset  538213 | length   33266 | end  571479 | <Buffer ff e2 81 f0 49 43 43 5f 50 52 4f 46 49 4c>
+	? Adobed   | offset  571479 | length      16 | end  571495 | <Buffer ff ee 00 0e 41 64 6f 62 65 00 64 00 00 00>
+	*/
+	it(`file with multisegment ICC - should read only first segment when {multiSegment: undefined}`, async () => {
 		let input = await getPath('issue-metadata-extractor-65.jpg')
-		let exr = new Exifr({icc: true, firstChunkSize: 14149  + 100})
+		let exr = new Exifr({tiff: false, icc: true, firstChunkSize: 14149  + 100})
 		await exr.read(input)
 		await exr.parse()
 		await exr.file.close()
-		assert.isAtLeast(exr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
+        console.log('appSegments.length', exr.fileParser.appSegments.length)
+		assert.equal(exr.fileParser.appSegments.length, 1, 'Should only read the first out of 9 ICC segments')
+	})
+
+	it(`file with multisegment ICC - should read all segments when {multiSegment: true}`, async () => {
+		let input = await getPath('issue-metadata-extractor-65.jpg')
+		let exr = new Exifr({tiff: false, icc: true, firstChunkSize: 14149  + 100, multiSegment: true})
+		await exr.read(input)
+		await exr.parse()
+		await exr.file.close()
+        console.log('appSegments.length', exr.fileParser.appSegments.length)
+		assert.equal(exr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
