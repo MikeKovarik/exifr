@@ -182,6 +182,24 @@ describe('TIFF Segment', () => {
 
 	})
 
+	describe('notable tags', () => {
+
+		it(`MakerNote is not parsed by default`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			var output = await exifr.parse(input)
+			assert.isUndefined(output.makerNote, `output.makerNote should be undefined`)
+			assert.isUndefined(output.MakerNote, `output.MakerNote should be undefined`)
+		})
+
+		it(`UserComment is not parsed by default`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			var output = await exifr.parse(input)
+			assert.isUndefined(output.userComment, `output.userComment should be undefined`)
+			assert.isUndefined(output.UserComment, `output.UserComment should be undefined`)
+		})
+
+	})
+
 	describe('pick / skip', () => {
 
 		it(`only ifd0 picks are present in output (local array shorthand form)`, async () => {

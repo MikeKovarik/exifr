@@ -6,24 +6,94 @@ import {Exifr} from '../src/index-full.js'
 
 describe('options', () => {
 
-	describe('option shorthands', () => {
+	describe('input shorthands', () => {
 
 		it(`(true) enables all tiff blocks`, async () => {
 			let options = new Options(true)
-			assert.isTrue(options.ifd0.enabled, 'IFD0 should be enabled')
-			assert.isTrue(options.exif.enabled, 'EXIF should be enabled')
-			assert.isTrue(options.gps.enabled, 'GPS should be enabled')
-			assert.isTrue(options.interop.enabled, 'INTEROP should be enabled')
-			assert.isTrue(options.thumbnail.enabled, 'THUMBNAIL should be enabled')
+            console.log('-: options', options)
+			assert.isTrue(options.ifd0.enabled, 'IFD0 block should be enabled')
+			assert.isTrue(options.exif.enabled, 'EXIF block should be enabled')
+			assert.isTrue(options.gps.enabled, 'GPS block should be enabled')
+			assert.isTrue(options.interop.enabled, 'INTEROP block should be enabled')
+			assert.isFalse(options.thumbnail.enabled, 'THUMBNAIL block should be enabled')
 		})
 
 		it(`(true) enables all tiff segments`, async () => {
 			let options = new Options(true)
-			assert.isTrue(options.tiff.enabled, 'TIFF should be enabled')
-			assert.isTrue(options.jfif.enabled, 'JFIF should be enabled')
-			assert.isTrue(options.iptc.enabled, 'IPTC should be enabled')
-			assert.isTrue(options.xmp.enabled, 'XMP should be enabled')
-			assert.isTrue(options.icc.enabled, 'ICC should be enabled')
+			assert.isTrue(options.tiff.enabled, 'TIFF segment should be enabled')
+			assert.isTrue(options.jfif.enabled, 'JFIF segment should be enabled')
+			assert.isTrue(options.iptc.enabled, 'IPTC segment should be enabled')
+			assert.isTrue(options.xmp.enabled, 'XMP segment should be enabled')
+			assert.isTrue(options.icc.enabled, 'ICC segment should be enabled')
+		})
+
+	})
+/*
+	describe('options.pick', () => {
+	})
+*/
+
+	describe('auto filters from segments and makerNote', () => {
+
+		// ApplicationNotes tag contains XMP in .tif files.
+		it(`options.ifd0.skip should include 0x02BC ApplicationNotes/XMP when {xmp: false}`, async () => {
+			let options = new Options({xmp: false})
+			assert.isTrue(options.ifd0.skip.has(0x02BC))
+		})
+
+		it(`options.ifd0.skip should include 0x02BC ApplicationNotes/XMP when {xmp: true}`, async () => {
+			let options = new Options({xmp: true})
+			assert.isFalse(options.ifd0.skip.has(0x02BC))
+		})
+
+		it(`options.ifd0.skip should include 0x83bb IPTC when {iptc: false}`, async () => {
+			let options = new Options({iptc: false})
+			assert.isTrue(options.ifd0.skip.has(0x83bb))
+		})
+
+		it(`options.ifd0.skip should include 0x83bb IPTC when {iptc: true}`, async () => {
+			let options = new Options({iptc: true})
+			assert.isFalse(options.ifd0.skip.has(0x83bb))
+		})
+
+		it(`options.ifd0.skip should include 0x8773 ICC when {icc: false}`, async () => {
+			let options = new Options({icc: false})
+			assert.isTrue(options.ifd0.skip.has(0x8773))
+		})
+
+		it(`options.ifd0.skip should include 0x8773 ICC when {icc: true}`, async () => {
+			let options = new Options({icc: true})
+			assert.isFalse(options.ifd0.skip.has(0x8773))
+		})
+
+		it(`options.exif.skip should include 0x927C MakerNote when {makerNote: false}`, async () => {
+			let options = new Options({makerNote: false})
+			assert.isTrue(options.exif.skip.has(0x927C))
+		})
+
+		it(`options.exif.skip should not include 0x927C MakerNote when {makerNote: true}`, async () => {
+			let options = new Options({makerNote: true})
+			assert.isFalse(options.exif.skip.has(0x927C))
+		})
+
+		it(`options.exif.skip should include 0x927C MakerNote by default`, async () => {
+			let options = new Options()
+			assert.isTrue(options.exif.skip.has(0x927C))
+		})
+
+		it(`options.exif.skip should include 0x9286 UserComment when {userComment: false}`, async () => {
+			let options = new Options({userComment: false})
+			assert.isTrue(options.exif.skip.has(0x9286))
+		})
+
+		it(`options.exif.skip should not include 0x9286 UserComment when {userComment: true}`, async () => {
+			let options = new Options({userComment: true})
+			assert.isFalse(options.exif.skip.has(0x9286))
+		})
+
+		it(`options.exif.skip should include 0x9286 UserComment by default`, async () => {
+			let options = new Options()
+			assert.isTrue(options.exif.skip.has(0x9286))
 		})
 
 	})

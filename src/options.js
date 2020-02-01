@@ -1,7 +1,7 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from './tags.js'
-//import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
+import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {tagKeys} from './tags.js'
 import * as platform from './util/platform.js'
 import {customError} from './util/helpers.js'
@@ -200,6 +200,13 @@ export class Options {
 			throw customError(`Invalid options argument ${userOptions}`)
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = platform.browser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
+		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
+		if (this.mergeOutput) this.thumbnail.enabled = false
+		// translate global pick/skip tags & copy them to local segment/block settings
+		// handle the tiff->ifd0->exif->makernote pick dependency tree.
+		// this also adds picks to blocks & segments to efficiently parse through tiff.
+		this.filterNestedSegmentTags()
+		this.traverseTiffDependencyTree()
 	}
 
 	setupFromUndefined() {
@@ -234,12 +241,6 @@ export class Options {
 			this.setupGlobalFilters(userOptions.tiff, undefined, tiffBlocks)
 		else if (typeof userOptions.tiff === 'object')
 			this.setupGlobalFilters(userOptions.tiff.pick, userOptions.tiff.skip, tiffBlocks)
-		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
-		if (this.mergeOutput) this.thumbnail.enabled = false
-		// translate global pick/skip tags & copy them to local segment/block settings
-		// handle the tiff->ifd0->exif->makernote pick dependency tree.
-		// this also adds picks to blocks & segments to efficiently parse through tiff.
-		this.traverseTiffDependencyTree()
 	}
 
 	batchEnableWithBool(keys, value) {
@@ -272,13 +273,26 @@ export class Options {
 		}
 	}
 
-	// INVESTIGATE: move this to Tiff Segment parser
-	traverseTiffDependencyTree() {
-		let {ifd0, exif, gps, interop} = this
+	// XMP, IPTC can ICC can be stored as a tag in TIFF (in .tif files).
+	// This method adds them to skip list if these segments are not requested.
+	// Also applies to MakerNote and UserComment
+	filterNestedSegmentTags() {
+		let {ifd0, exif, xmp, iptc, icc} = this
+		// not segments, regular but notable TIFF tags
 		if (this.makerNote)   exif.deps.add(TAG_MAKERNOTE)
 		else                  exif.skip.add(TAG_MAKERNOTE)
 		if (this.userComment) exif.deps.add(TAG_USERCOMMENT)
 		else                  exif.skip.add(TAG_USERCOMMENT)
+		// segments that can be stored as tags (but only?? in .tiff)
+		// note: not adding as deps because that is requested only in .tif file parser
+		if (!xmp.enabled)  ifd0.skip.add(TAG_XMP)
+		if (!iptc.enabled) ifd0.skip.add(TAG_IPTC)
+		if (!icc.enabled)  ifd0.skip.add(TAG_ICC)
+	}
+
+	// INVESTIGATE: can this be moved to Tiff Segment parser?
+	traverseTiffDependencyTree() {
+		let {ifd0, exif, gps, interop} = this
 		// interop pointer can be often found in EXIF besides IFD0.
 		if (interop.needed) {
 			exif.deps.add(TAG_IFD_INTEROP)

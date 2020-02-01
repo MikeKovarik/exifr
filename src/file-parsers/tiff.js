@@ -8,13 +8,11 @@ import {customError} from '../util/helpers.js'
 export class TiffFileParser extends FileParserBase {
 
 	extendOptions(options) {
+		// note: skipping is done on global level in Options class
 		let {ifd0, xmp, iptc, icc} = options
-		if (xmp.enabled === false)  ifd0.skip.add(TAG_XMP)
-		else                        ifd0.deps.add(TAG_XMP)
-		if (iptc.enabled === false) ifd0.skip.add(TAG_IPTC)
-		else                        ifd0.deps.add(TAG_IPTC)
-		if (icc.enabled === false)  ifd0.skip.add(TAG_ICC)
-		else                        ifd0.deps.add(TAG_ICC)
+		if (xmp.enabled)  ifd0.deps.add(TAG_XMP)
+		if (iptc.enabled) ifd0.deps.add(TAG_IPTC)
+		if (icc.enabled)  ifd0.deps.add(TAG_ICC)
 		ifd0.finalizeFilters()
 	}
 
