@@ -1,6 +1,6 @@
 import {customError} from './util/helpers.js'
 
-/*
+
 class PluginList extends Map {
 
 	constructor(kind) {
@@ -33,38 +33,15 @@ class PluginList extends Map {
 	}
 
 }
-*/
 
-// This hack is ugly as hell and I would've wanted to use a class instead
-// But IE doesn't support subclassing from native types.
 
-Map.prototype._get = Map.prototype.get
 function createPluginList(kind) {
-	let map = new Map
-	map.kind = kind
-	map.get = function(key, options) {
-		if (!this.has(key))
-			this.throwNotLoaded()
-		if (options) {
-			if (!(key in options))
-				this.throwUnknown()
-			if (!options[key].enabled)
-				this.throwNotLoaded()
-		}
-		return this._get(key)
-	}
-
-	map.throwUnknown = function() {
-		throw customError(`Unknown ${this.kind} '${key}'.`)
-	}
-
-	map.throwNotLoaded = function() {
-		throw customError(`${this.kind} '${key}' was not loaded, try using full build of exifr.`)
-	}
-
-	map.keyList = function() {
-		return Array.from(this.keys())
-	}
+	let map = new PluginList(kind)
+	// Hack to get IE11 to work. IE11 has builtin Map but it doesn't support subclassing.
+	// PluginList doesn't change behavior of .get(), we just add checks that throw if key was not found.
+	// IE wont throw these errors but will work. I'm ok with this regression.
+	// We just need to copy additional custom method.
+	if (map.keyList === undefined) map.keyList = PluginList.prototype.keyList
 	return map
 }
 
