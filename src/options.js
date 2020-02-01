@@ -194,6 +194,8 @@ export class Options {
 			this.setupFromTrue()
 		else if (userOptions === undefined)
 			this.setupFromUndefined()
+		else if (Array.isArray(userOptions))
+			this.setupFromArray(userOptions)
 		else if (typeof userOptions === 'object')
 			this.setupFromObject(userOptions)
 		else
@@ -223,6 +225,15 @@ export class Options {
 		for (key of allFormatters)     this[key] = defaults[key]
 		for (key of tiffExtractables)  this[key] = true
 		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, true, undefined, this)
+	}
+
+	setupFromArray(userOptions) {
+		let key
+		for (key of chunkedProps)      this[key] = defaults[key]
+		for (key of allFormatters)     this[key] = defaults[key]
+		for (key of tiffExtractables)  this[key] = defaults[key]
+		for (key of segmentsAndBlocks) this[key] = new SubOptions(key, false, undefined, this)
+		this.setupGlobalFilters(userOptions, undefined, tiffBlocks)
 	}
 
 	setupFromObject(userOptions) {
@@ -255,16 +266,16 @@ export class Options {
 		}
 	}
 
-	setupGlobalFilters(pick, skip, dictKeys, scopedBlocks = dictKeys) {
+	setupGlobalFilters(pick, skip, dictKeys, disableableSegsAndBlocks = dictKeys) {
 		if (pick && pick.length) {
 			// if we're only picking, we can safely disable all other blocks and segments
-			for (let key of scopedBlocks)
-				this[key].enabled = false
+			for (let blockKey of disableableSegsAndBlocks)
+				this[blockKey].enabled = false
 			let entries = findScopesForGlobalTagArray(pick, dictKeys)
-			for (let [key, tags] of entries) {
-				addToSet(this[key].pick, tags)
+			for (let [blockKey, tags] of entries) {
+				addToSet(this[blockKey].pick, tags)
 				// the blocks of tags from global picks are the only blocks we'll parse.
-				this[key].enabled = true
+				this[blockKey].enabled = true
 			}
 		} else if (skip && skip.length) {
 			let entries = findScopesForGlobalTagArray(skip, dictKeys)
@@ -318,15 +329,18 @@ export class Options {
 
 function findScopesForGlobalTagArray(tagArray, dictKeys) {
 	let entries = []
-	//dictKeys = Object.keys(tagKeys)
-	for (let key of dictKeys) {
-		let dict = tagKeys[key]
-		let scopedTags = []
-		for (let [tagKey, tagName] of Object.entries(dict))
-			if (tagArray.includes(tagKey) || tagArray.includes(tagName))
-				scopedTags.push(Number(tagKey))
+	let tagCodeStr, tagCodeNum, tagName, dict, scopedTags, blockKey
+	for (blockKey of dictKeys) {
+		dict = tagKeys[blockKey]
+		scopedTags = []
+		for (tagCodeStr in dict) {
+			tagCodeNum = Number(tagCodeStr)
+			tagName = dict[tagCodeStr]
+			if (tagArray.includes(tagCodeNum) || tagArray.includes(tagName))
+				scopedTags.push(tagCodeNum)
+		}
 		if (scopedTags.length)
-			entries.push([key, scopedTags])
+			entries.push([blockKey, scopedTags])
 	}
 	return entries
 }

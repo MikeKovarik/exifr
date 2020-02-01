@@ -32,14 +32,19 @@ Works everywhere, parses anything and handles everything you throw at it.
 
 ## Usage
 
-`file` can be any kind of binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
+`file` can be any binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
 
-`options` specifies what segments and blocks to parse, filter what tags to pick or skip.
+`options` specifies what segments and blocks to parse and filters what tags to pick or skip.
 
-* `exifr.parse(file[, options])` => `object`
-* `exifr.gps(file)` => `object` `{latitude, longitude}`
-* `exifr.thumbnail(file)` => `Uint8Array`
-* `exifr.thumbnailUrl(file)` => `string` object url. Browser only.
+| API | Returns | Description |
+|-|-|-|
+|`exifr.parse(file)`|`object`|Parses IFD0, EXIF, GPS blocks|
+|`exifr.parse(file, true)`|`object`|Parses everything|
+|`exifr.parse(file, ['Model', 'FNumber', ...])`|`object`|Parses only specified tags|
+|`exifr.parse(file, {options})`|`object`|Custom settings|
+|`exifr.gps(file)`|`{latitude, longitude}`|Parses only GPS coords|
+|`exifr.thumbnail(file)`|`Uint8Array` binary|Extracts embedded thumbnail|
+|`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
 
 ## Installation
 
@@ -88,7 +93,6 @@ var exifr = require('exifr/dist/full.umd.js')
 exifr.gps('./myimage.jpg').then(pos => console.log(pos.latitude, pos.longitude))
 ```
 
-
 UMD in Browser
 
 ```html
@@ -123,7 +127,7 @@ let thumbBuffer = await exifr.thumbnail(file)
 img.src = await exifr.thumbnailUrl(file)
 ```
 
-Usage in WebWorker
+WebWorker
 
 ```js
 // main.js
@@ -203,6 +207,7 @@ if (exr.file.chunked) await exr.file.close()
 
 ### `options` argument, optional
 
+* `Array` of tags to parse
 * `true` shortcut to parse all segments and blocks
 * `object` with granular settings
 
@@ -550,7 +555,7 @@ Max amount of subsequent chunks allowed to read in which exifr searches for segm
 
 This failsafe prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
 
-This limit is bypassed when Multi-segment segments are if `options.multiSegment` allows reading all of them.
+This limit is bypassed if multi-segment segments occurs in the file and if `options.multiSegment` allows reading all of them.
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
 
