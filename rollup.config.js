@@ -2,6 +2,8 @@ import babel from 'rollup-plugin-babel'
 import notify from 'rollup-plugin-notify'
 import pkg from './package.json'
 import {builtinModules} from 'module'
+import { terser } from "rollup-plugin-terser"
+
 
 var external = [...builtinModules, ...Object.keys(pkg.dependencies || {})]
 var globals = objectFromArray(external)
@@ -26,6 +28,12 @@ function ignoreFile(fileName) {
 	};
 }
 
+const terserConfig = {
+	compress: true,
+	mangle: true,
+	toplevel: true
+}
+
 const babelShared = {
 	plugins: [
 		'@babel/plugin-proposal-class-properties',
@@ -34,37 +42,26 @@ const babelShared = {
 
 const babelModern = Object.assign({}, babelShared, {
 	presets: [
-		[
-			'@babel/preset-env', {
-				targets: '>1%, not dead, not ie 10-11'
-			}
-		],
-		/*
-		[
-			'minify', {
-				builtIns: false,
-			}
-		]
-		*/
+		['@babel/preset-env', {
+			targets: '>1%, not dead, not ie 10-11'
+		}],
+		
 	],
 	"comments": false
 })
 
 const babelLegacy = Object.assign({}, babelShared, {
 	presets: [
-		[
-			'@babel/preset-env',
-			{
-				targets: '>0.25%, not dead'
-			}
-		],
+		['@babel/preset-env', {
+			targets: '>0.25%, not dead'
+		}],
 	],
 })
 
 function createEsmBundle(inputPath, outputPath, babelConfig) {
 	return {
 		input: inputPath,
-		plugins: [notify(), babel(babelConfig)],
+		plugins: [notify(), babel(babelConfig), terser(terserConfig)],
 		external,
 		output: {
 			file: outputPath,
@@ -77,7 +74,7 @@ function createEsmBundle(inputPath, outputPath, babelConfig) {
 function createUmdBundle(inputPath, outputPath, babelConfig) {
 	return {
 		input: inputPath,
-		plugins: [ignoreFile('FsReader.js'), notify(), babel(babelConfig)],
+		plugins: [ignoreFile('FsReader.js'), notify(), babel(babelConfig), terser(terserConfig)],
 		external,
 		output: {
 			file: outputPath,
