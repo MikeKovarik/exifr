@@ -5,10 +5,24 @@
 	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1"/>
 	<title>Exifr legacy bundle tester</title>
 	<link rel="stylesheet" type="text/css" href="../homepage/app.css">
+	<style>
+		h3, h4 {
+			margin-top: 16px;
+			margin-bottom: 4px;
+		}
+	</style>
 </head>
 <body>
 
 	<p>View this page in IE11 to test compatibility of <code>full.legacy.umd.js</code> bundle</p>
+	<span id="reload">force reload</span>
+
+	<h3>Polyfills</h3>
+
+	<h4>needed</h4>
+	TextDecoder, Object.fromEntries, fetch, regeneratorRuntime (babel)
+	<h4>also used (but covered by presets)</h4>
+	Object.assign, Array.prototype.includes
 
 	<h3>Output:</h3>
 	<pre id="output" style="font-size: 13px;"></pre>
@@ -17,34 +31,38 @@
 		// important: dont use let - older browsers (samsung tizen tvs use arcane chromium)
 		var $output = document.querySelector('#output')
 
-		window.onerror = function(message, source, lineno, colno, error) {
-			console.log('message', message)
-			console.log('source', source)
-			console.log('lineno', lineno)
-			console.log('colno', colno)
-			console.log('error', error)
-			var output = [
-				'--------------- ERROR ---------------',
-				'message:     ' + message,
-				'source:      ' + source,
-				'lineno:      ' + lineno,
-				'colno:       ' + colno,
-				//'error: ' + error,
+		window.onerror = function(message, source, lone, col, error) {
+			var lines = [
+				'**************** ERROR ****************',
+				'message: ' + message,
+				'source:  ' + source,
+				'lone:    ' + lone,
+				'col:     ' + col,
 			]
 			if (error) {
-				output.push('description: ' + error.description)
-				output.push('message:     ' + error.message)
-				output.push('name:        ' + error.name)
-				output.push('number:      ' + error.number)
-				output.push(error.stack)
+				lines.push('description: ' + error.description)
+				lines.push('message:     ' + error.message)
+				lines.push('name:        ' + error.name)
+				lines.push('number:      ' + error.number)
+				lines.push(error.stack)
 			}
-			$output.innerHTML += output.join('\n') + '\n\n'
+			printOutput(lines)
+		}
+
+		function printOutput(lines) {
+			$output.innerHTML += lines.join('\n') + '\n\n'
 		}
 	</script>
 
-	<script src="https://unpkg.com/regenerator-runtime@0.13.3/runtime.js"></script>
-	<script src="../dist/full.legacy.umd.js"></script>
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es7%2Ces6%2Ces5%2Ces2018%2Ces2017%2Ces2016%2Ces2015%2Cdefault%2Cfetch%2CObject.fromEntries"></script>
 
+	<!-- TextDecoder polyfill -->
+	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding-indexes.js"></script>
+	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding.js"></script>
+	<!-- regeneratorRuntime needed by babel to make async work -->
+	<script src="https://unpkg.com/regenerator-runtime@0.13.3/runtime.js"></script>
+
+	<script src="../dist/full.legacy.umd.js"></script>
 	<script>
 		var filePath = '../test/fixtures/IMG_20180725_163423.jpg'
 		exifr.parse(filePath).then(function(output) {
@@ -53,12 +71,11 @@
 		.catch(function(err) {
 			console.log('UNCAUGHT')
 			console.log(err)
-			var output = [
-				'--------------- UNCAUGHT ---------------',
+			printOutput([
+				'**************** UNCAUGHT ****************',
 				err.message,
 				err.stack,
-			]
-			$output.innerHTML += output.join('\n') + '\n\n'
+			])
 		})
 	</script>
 

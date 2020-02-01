@@ -80,10 +80,10 @@ export class JpegFileParser extends FileParserBase {
 	setupSegmentFinderArgs(wanted) {
 		if (wanted === true) {
 			this.findAll = true
-			this.wanted = new Set(segmentParsers.keyList)
+			this.wanted = new Set(segmentParsers.keyList())
 		} else {
 			if (wanted === undefined)
-				wanted = segmentParsers.keyList.filter(key => this.options[key].enabled)
+				wanted = segmentParsers.keyList().filter(key => this.options[key].enabled)
 			else
 				wanted = wanted.filter(key => this.options[key].enabled && segmentParsers.has(key))
 			this.findAll = false

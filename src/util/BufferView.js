@@ -17,7 +17,7 @@ export function uint8ArrayToAsciiString(uint8array) {
 	return utf8.decode(uint8array)
 }
 
-const FULL_20_BITS = parseInt('1'.repeat(20), 2)
+const FULL_20_BITS = 0b11111111111111111111
 
 export class BufferView {
 

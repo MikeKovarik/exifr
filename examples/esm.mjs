@@ -9,7 +9,6 @@
 // Also the module imports 'fs' module and it fails in browsers. For that you could
 // use newly drafted importmaps.
 
-//import {parse} from '../index.mjs'
 import * as exifr from '../src/index-full.js'
 
 async function main() {

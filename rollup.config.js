@@ -1,13 +1,33 @@
 import babel from 'rollup-plugin-babel'
 import notify from 'rollup-plugin-notify'
 import pkg from './package.json'
+import {builtinModules} from 'module'
 
-var nodeCoreModules = require('repl')._builtinLibs
-var external = [...nodeCoreModules, ...Object.keys(pkg.dependencies || {})]
+var external = [...builtinModules, ...Object.keys(pkg.dependencies || {})]
 var globals = objectFromArray(external)
 
 var name = pkg.name
 var amd = {id: pkg.name}
+
+const emptyFile = 'export default {}'
+const emptyFileName = '---TO-BE-IGNORED---'
+function ignoreFile(fileName) {
+	return {
+		resolveId(importPath) {
+            console.log('resolveId()', importPath)
+			if (importPath.endsWith(fileName)) {
+				console.log('ignoring', importPath)
+				return emptyFileName
+			} else {
+				return null
+			}
+		},
+		load(importPath) {
+            console.log('load()', importPath)
+			return importPath === emptyFileName ? emptyFile : null;
+		},
+	};
+}
 
 const babelShared = {
 	plugins: [
@@ -37,7 +57,9 @@ const babelLegacy = Object.assign({}, babelShared, {
 	presets: [
 		[
 			'@babel/preset-env',
-			{targets: '>0.25%, not dead'}
+			{
+				targets: '>0.25%, not dead'
+			}
 		],
 	],
 })
@@ -58,7 +80,7 @@ function createEsmBundle(inputPath, outputPath, babelConfig) {
 function createUmdBundle(inputPath, outputPath, babelConfig) {
 	return {
 		input: inputPath,
-		plugins: [notify(), babel(babelConfig)],
+		plugins: [ignoreFile('FsReader.js'), notify(), babel(babelConfig)],
 		external,
 		output: {
 			file: outputPath,
@@ -71,9 +93,12 @@ function createUmdBundle(inputPath, outputPath, babelConfig) {
 }
 
 export default [
+	/*
 	createEsmBundle('src/index-full.js', 'dist/full.esm.js',         babelModern),
 	createUmdBundle('src/index-full.js', 'dist/full.umd.js',         babelModern),
+	*/
 	createUmdBundle('src/index-full.js', 'dist/full.legacy.umd.js',  babelLegacy),
+	/*
 	createEsmBundle('src/index-lite.js', 'dist/lite.esm.js',         babelModern),
 	createUmdBundle('src/index-lite.js', 'dist/lite.umd.js',         babelModern),
 	createUmdBundle('src/index-lite.js', 'dist/lite.legacy.umd.js',  babelLegacy),
@@ -83,6 +108,7 @@ export default [
 	createEsmBundle('src/index-core.js', 'dist/core.esm.js',         babelModern),
 	createUmdBundle('src/index-core.js', 'dist/core.umd.js',         babelModern),
 	createUmdBundle('src/index-core.js', 'dist/core.legacy.umd.js',  babelLegacy),
+	*/
 ]
 
 function objectFromArray(modules) {
