@@ -1,4 +1,5 @@
-import {AppSegmentParserBase, segmentParsers} from '../parser.js'
+import {AppSegmentParserBase} from '../parser.js'
+import {segmentParsers} from '../plugins.js'
 
 
 // TODO: modify AppSegmentParserBase to accept not only buffers,

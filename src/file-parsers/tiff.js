@@ -1,7 +1,7 @@
 import {FileParserBase} from '../parser.js'
 import {BufferView} from '../util/BufferView.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
-import {fileParsers} from '../parser.js'
+import {fileParsers} from '../plugins.js'
 import {customError} from '../util/helpers.js'
 
 

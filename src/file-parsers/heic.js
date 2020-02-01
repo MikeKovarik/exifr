@@ -1,4 +1,5 @@
-import {fileParsers, FileParserBase} from '../parser.js'
+import {fileParsers} from '../plugins.js'
+import {FileParserBase} from '../parser.js'
 
 
 export class IsoBmffParser extends FileParserBase {

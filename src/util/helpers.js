@@ -17,36 +17,3 @@ export function customError(message) {
 	delete err.stack
 	return err
 }
-
-export class PluginList extends Map {
-
-	constructor(kind) {
-		super()
-		this.kind = kind
-	}
-
-	get(key, options) {
-		if (!this.has(key))
-			this.throwNotLoaded()
-		if (options) {
-			if (!(key in options))
-				this.throwUnknown()
-			if (!options[key].enabled)
-				this.throwNotLoaded()
-		}
-		return super.get(key)
-	}
-
-	throwUnknown() {
-		throw new Error(`Unknown ${this.kind} '${key}'.`)
-	}
-
-	throwNotLoaded() {
-		throw new Error(`${this.kind} '${key}' was not loaded, try using full build of exifr.`)
-	}
-
-	keys() {
-		return Array.from(super.keys())
-	}
-
-}

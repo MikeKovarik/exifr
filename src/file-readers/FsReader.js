@@ -1,4 +1,4 @@
-import {fileReaders} from '../reader.js'
+import {fileReaders} from '../plugins.js'
 import {ChunkedReader} from './ChunkedReader.js'
 import * as platform from '../util/platform.js'
 

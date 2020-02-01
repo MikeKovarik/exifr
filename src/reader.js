@@ -1,10 +1,8 @@
 import * as platform from './util/platform.js'
 import {BufferView} from './util/BufferView.js'
-import {PluginList} from './util/helpers.js'
 import {customError} from './util/helpers.js'
+import {fileReaders} from './plugins.js'
 
-
-export var fileReaders = new PluginList('file reader')
 
 // TODO: - API for including 3rd party XML parser
 

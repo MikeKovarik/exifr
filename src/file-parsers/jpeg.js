@@ -1,5 +1,5 @@
 import {FileParserBase, AppSegmentParserBase} from '../parser.js'
-import {fileParsers, segmentParsers} from '../parser.js'
+import {fileParsers, segmentParsers} from '../plugins.js'
 import {BufferView} from '../util/BufferView.js'
 
 
@@ -80,10 +80,10 @@ export class JpegFileParser extends FileParserBase {
 	setupSegmentFinderArgs(wanted) {
 		if (wanted === true) {
 			this.findAll = true
-			this.wanted = new Set(segmentParsers.keys())
+			this.wanted = new Set(segmentParsers.keyList)
 		} else {
 			if (wanted === undefined)
-				wanted = segmentParsers.keys().filter(key => this.options[key].enabled)
+				wanted = segmentParsers.keyList.filter(key => this.options[key].enabled)
 			else
 				wanted = wanted.filter(key => this.options[key].enabled && segmentParsers.has(key))
 			this.findAll = false

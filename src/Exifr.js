@@ -2,7 +2,7 @@ import {read} from './reader.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from './util/helpers.js'
 import {undefinedIfEmpty} from './util/helpers.js'
 import {Options} from './options.js'
-import {fileParsers, segmentParsers} from './parser.js'
+import {fileParsers, segmentParsers} from './plugins.js'
 import {customError} from './util/helpers.js'
 
 

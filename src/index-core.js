@@ -1,6 +1,5 @@
 export * from './highlevel.js'
 export {Exifr} from './Exifr.js'
 export {Options} from './options.js'
-export {fileReaders} from './reader.js'
-export {fileParsers, segmentParsers} from './parser.js'
+export {fileParsers, segmentParsers, fileReaders} from './plugins.js'
 export {tagKeys, tagValues, tagRevivers} from './tags.js'

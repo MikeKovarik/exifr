@@ -1,4 +1,5 @@
-import {fileReaders, fetchUrlAsArrayBuffer} from '../reader.js'
+import {fileReaders} from '../plugins.js'
+import {fetchUrlAsArrayBuffer} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
 
 

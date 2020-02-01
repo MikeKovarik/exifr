@@ -1,4 +1,5 @@
-import {fileReaders, readBlobAsArrayBuffer} from '../reader.js'
+import {fileReaders} from '../plugins.js'
+import {readBlobAsArrayBuffer} from '../reader.js'
 import {ChunkedReader} from './ChunkedReader.js'
 
 

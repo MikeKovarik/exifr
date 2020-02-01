@@ -1,12 +1,9 @@
 import {BufferView} from './util/BufferView.js'
 import {Options} from './options.js'
 import {tagKeys, tagValues, tagRevivers} from './tags.js'
-import {PluginList} from './util/helpers.js'
 import {customError} from './util/helpers.js'
+import {segmentParsers} from './plugins.js'
 
-
-export var fileParsers    = new PluginList('file parser')
-export var segmentParsers = new PluginList('segment parser')
 
 const MAX_APP_SIZE = 65536 // 64kb
 
