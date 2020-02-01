@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
 import {getFile, getPath} from './test-util.js'
-import * as exifr from '../src/index-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 describe('issues (special cases)', () => {

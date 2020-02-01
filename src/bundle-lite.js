@@ -1,4 +1,4 @@
-export * from './index-mini.js'
+export * from './bundle-mini.js'
 
 
 // File Readers

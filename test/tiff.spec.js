@@ -2,8 +2,8 @@ import {assert} from './test-util.js'
 import {getFile, testMergeSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
 import {testGlobalFormatterInheritance, testTiffFormatterInheritance} from './test-util.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.js'
-import {Exifr} from '../src/index-full.js'
-import * as exifr from '../src/index-full.js'
+import {Exifr} from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 function testBlockResult(output, blockName, results = {}) {

@@ -1,7 +1,7 @@
 // node --experimental-modules enumerate-segments.js
 import {promises as fs} from 'fs'
 import path from 'path'
-import {Exifr} from '../src/index-full.js'
+import {Exifr} from '../src/bundle-full.js'
 
 let dir = '../test/fixtures/'
 

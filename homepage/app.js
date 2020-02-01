@@ -1,5 +1,5 @@
-import {Exifr, Options} from '../src/index-full.js'
-import * as exifr from '../src/index-full.js'
+import {Exifr, Options} from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.js'
 import {readBlobAsArrayBuffer} from '../src/reader.js'
 import {segmentsAndBlocks, tiffExtractables} from '../src/options.js'
 import {JsonValueConverter} from './json-beautifier.js'

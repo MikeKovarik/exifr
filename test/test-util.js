@@ -1,7 +1,7 @@
 import chai from 'chai'
 import path from 'path'
 import {promises as fs} from 'fs'
-import * as exifr from '../src/index-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 export var isBrowser = typeof navigator === 'object'

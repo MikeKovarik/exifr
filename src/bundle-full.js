@@ -1,4 +1,4 @@
-export * from './index-lite.js'
+export * from './bundle-lite.js'
 
 
 // File Parsers

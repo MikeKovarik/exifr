@@ -90,17 +90,17 @@ function createUmdBundle(inputPath, outputPath, babelConfig) {
 }
 
 export default [
-	createEsmBundle('src/index-full.js', 'dist/full.esm.js',         babelModern),
-	createUmdBundle('src/index-full.js', 'dist/full.umd.js',         babelModern),
-	createUmdBundle('src/index-full.js', 'dist/full.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/index-lite.js', 'dist/lite.esm.js',         babelModern),
-	createUmdBundle('src/index-lite.js', 'dist/lite.umd.js',         babelModern),
-	createUmdBundle('src/index-lite.js', 'dist/lite.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/index-mini.js', 'dist/mini.esm.js',         babelModern),
-	createUmdBundle('src/index-mini.js', 'dist/mini.umd.js',         babelModern),
-	createUmdBundle('src/index-mini.js', 'dist/mini.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/index-core.js', 'dist/core.esm.js',         babelModern),
-	createUmdBundle('src/index-core.js', 'dist/core.umd.js',         babelModern),
+	createEsmBundle('src/bundle-full.js', 'dist/full.esm.js',         babelModern),
+	createUmdBundle('src/bundle-full.js', 'dist/full.umd.js',         babelModern),
+	createUmdBundle('src/bundle-full.js', 'dist/full.legacy.umd.js',  babelLegacy),
+	createEsmBundle('src/bundle-lite.js', 'dist/lite.esm.js',         babelModern),
+	createUmdBundle('src/bundle-lite.js', 'dist/lite.umd.js',         babelModern),
+	createUmdBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js',  babelLegacy),
+	createEsmBundle('src/bundle-mini.js', 'dist/mini.esm.js',         babelModern),
+	createUmdBundle('src/bundle-mini.js', 'dist/mini.umd.js',         babelModern),
+	createUmdBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js',  babelLegacy),
+	createEsmBundle('src/bundle-core.js', 'dist/core.esm.js',         babelModern),
+	createUmdBundle('src/bundle-core.js', 'dist/core.umd.js',         babelModern),
 ]
 
 function objectFromArray(modules) {

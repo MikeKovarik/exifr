@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {isBrowser, isNode, getPath, getFile} from './test-util.js'
-import {Exifr} from '../src/index-full.js'
-import * as exifr from '../src/index-full.js'
+import {Exifr} from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 describe('JPEG - JpegFileParser', () => {

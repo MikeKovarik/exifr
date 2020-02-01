@@ -1,6 +1,6 @@
 import {assert} from './test-util.js'
 import {getPath, getFile} from './test-util.js'
-import * as exifr from '../src/index-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 function testFile(fileName, segmentsAndBlocks) {

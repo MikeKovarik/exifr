@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, getPath, isNode, isBrowser} from './test-util.js'
 import {Options} from '../src/options.js'
-import {Exifr} from '../src/index-full.js'
+import {Exifr} from '../src/bundle-full.js'
 
 
 describe('options', () => {

@@ -1,4 +1,4 @@
-export * from './index-core.js'
+export * from './bundle-core.js'
 
 
 // File Parser

@@ -1,4 +1,4 @@
-import * as exifr from '../src/index-full.js' // 'import 'exifr'
+import * as exifr from '../src/bundle-full.js' // 'import 'exifr'
 import {promises as fs} from 'fs'
 
 let options = true // force parsing anything and everything

@@ -1,7 +1,7 @@
 import {assert} from './test-util.js'
 import {getFile, testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util.js'
 import IccParser from '../src/segment-parsers/icc.js'
-import * as exifr from '../src/index-full.js'
+import * as exifr from '../src/bundle-full.js'
 
 
 function testProfile(filePath, results = {}) {

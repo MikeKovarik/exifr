@@ -1,4 +1,4 @@
-import * as exifr from '../src/index-full.js' // import 'exifr'
+import * as exifr from '../src/bundle-full.js' // import 'exifr'
 
 self.onmessage = async e => {
 	console.log('worker received task from main', e.data)
