@@ -26,6 +26,7 @@ const FLOAT     = 11
 const DOUBLE    = 12
 
 const SIZE_LOOKUP = [
+	undefined, // nothing at index 0
 	1, // BYTE      - 8-bit unsigned integer
 	1, // ASCII     - 8-bit bytes w/ last byte null
 	2, // SHORT     - 16-bit unsigned integer
