@@ -13,23 +13,24 @@ Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Features
 
-Works everywhere, parses anything and handles everything you throw at it.
+Works everywhere, parses everything and handles anything you throw at it.
 
+* 🏎️ **Fastest EXIF lib**: +-1ms per file
+* 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
 * 📷 Reads: **.jpg**, **.tif**, **.heic** photos
 * 🔎 Parses: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
 * 📑 Efficient: **Reads only first few bytes**
 * 🔬 Filterable: **Skips parsing tags you don't need**
-* 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
-* 🏎️ **Fast**: Like 1-2ms per file
-* ✨ **Isomorphic**: Browser & Node.js
 * 🖼️ Extracts thumbnail
-* 📦 Bundled as UMD/CJS or ESM
 * 🧩 Configurable builds
 * 📚 Customizable tag dictionaries
 * 📋 Simple output
 * 🗜️ No dependencies
 * ✔ Tested and benchmarked
 * 🤙 Promises
+* 📦 Bundled as UMD/CJS or ESM
+* ✨ Isomorphic: Browser & Node.js
+* 🕸 Supports even IE11
 
 ## Usage
 
@@ -71,6 +72,8 @@ Also availabe as UMD bundle which exports everything as `window.exifr`. Transpil
 ```js
 var exifr = require('exifr/dist/full.umd.js')
 ```
+
+For use in older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](https://github.com/MikeKovarik/exifr/tree/master/examples/legacy.html)
 
 ## Examples
 
@@ -679,9 +682,9 @@ import 'exifr/src/segment-parsers/icc-keys.js'
 
 ## Distributions (builds)
 
-Need to cut down on file size? Try using lite build. Suitable when you only need certain tags (such as gps coords) and looking up the tag codes yourself is worth saving some Kbs.
+Need to cut down on file size? Try using `lite`, `mini` or even `core` build. Suitable when you only need certain tags (such as gps coords) or you don't mind looking up the the tag codes yourself to save some Kbs.
 
-Need to support older browsers? Use legacy build along with polyfills.
+Need to support older browsers? Use `legacy` build along with polyfills. Learn more about usage in IE11 at [examples/legacy.html](https://github.com/MikeKovarik/exifr/tree/master/examples/legacy.html)
 
 ### By size
 
@@ -870,6 +873,15 @@ Observations from testing with +-4MB pictures (*Highest quality, highest resolut
 * Browser: \<img> with Object URL as a src varies between 5ms to 30ms
 * Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
 * Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
+
+You can run the benchmark yourself at benchmark/chunked-vs-whole.js(https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
+
+```
+user reads file            8.4846 ms
+exifr reads whole file     8.2180 ms
+exifr reads file by chunks 0.5459 ms
+only parsing, not reading  0.2571 ms
+```
 
 #### HEIC
 
