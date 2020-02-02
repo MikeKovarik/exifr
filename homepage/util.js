@@ -2,19 +2,34 @@ Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
 export class BinaryValueConverter {
     toView(arg, showAll) {
-		if (arg === undefined) return
-		if (arg === null) return
+		if (notDefined(arg)) return
 		let arr = Array.from(arg)
-		if (showAll) {
-			var values = arr
-			var remaining = 0
-		} else {
-			var [values, remaining] = sliceArray(arr, 50)
-		}
+		let [values, remaining] = clipContent(arr, showAll, 60)
 		let output = formatBytes(values)
 		if (remaining > 0) output += `\n... and ${remaining} more`
 		return output
     }
+}
+
+export class CharLimitValueConverter {
+    toView(string, showAll) {
+		if (notDefined(string)) return
+		let arr = string.split('')
+		let [values, remaining] = clipContent(arr, showAll, 300)
+		let output = values.join('')
+		if (remaining > 0) output += `\n... and ${remaining} more`
+		return output
+    }
+}
+
+function clipContent(arr, showAll, limit) {
+	if (showAll) {
+		var values = arr
+		var remaining = 0
+	} else {
+		var [values, remaining] = sliceArray(arr, limit)
+	}
+	return [values, remaining]
 }
 
 function sliceArray(arr, limit) {
@@ -49,10 +64,14 @@ export function capitalize(string) {
 
 export class PrettyCaseValueConverter {
     toView(string) {
-		if (string === undefined) return
-		if (string === null) return
+		if (notDefined(string)) return
 		return prettyCase(string)
     }
+}
+
+function notDefined(arg) {
+	return arg === undefined
+		|| arg === null
 }
 
 var matchRegex = /([A-Z]+(?=[A-Z][a-z]))|([A-Z][a-z]+)|([0-9]+)|([a-z]+)|([A-Z]+)/g

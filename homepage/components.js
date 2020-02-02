@@ -19,12 +19,14 @@ export class SegmentBoxCustomElement {
 		<div class.bind="options[key] ? '' : 'disabled'">
 			<h3>
 				\${title || key}
-				<span click.trigger="showAll = !showAll">\${showAll ? 'Show less' : 'Show all'}</span>
+				<span click.trigger="showAll = !showAll" show.bind="canShowMore">
+					\${showAll ? 'Show less' : 'Show all'}
+				</span>
 			</h3>
 			<template if.bind="data !== undefined">
 				<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
 				<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
-				<pre if.bind="display === 'string'">\${data}</pre>
+				<pre if.bind="display === 'string'">\${data | charLimit:showAll}</pre>
 			</template>
 			<span if.bind="data === undefined" class="small">
 				\${options[key] ? "File doesn't contain" : 'Not parsing'} \${alias || key}
@@ -36,6 +38,10 @@ export class SegmentBoxCustomElement {
 	}
 	get keys() {
 		return this.showAll ? undefined : outputFilters[this.key]
+	}
+	get canShowMore() {
+		return this.data !== undefined
+			&& this.key !== 'xmp'
 	}
 	// overcome aurelia's bugs
 	optionsChanged(newValue) {this.options = newValue}
@@ -51,6 +57,7 @@ decorate(SegmentBoxCustomElement, 'title', au.bindable)
 decorate(SegmentBoxCustomElement, 'alias', au.bindable)
 decorate(SegmentBoxCustomElement, 'keys', au.computedFrom('key', 'showAll'))
 decorate(SegmentBoxCustomElement, 'data', au.computedFrom('key', 'output'))
+decorate(SegmentBoxCustomElement, 'canShowMore', au.computedFrom('data', 'key'))
 
 
 

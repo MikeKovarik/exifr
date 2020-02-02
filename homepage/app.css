@@ -207,10 +207,6 @@ h3 span {
 	}
 }
 
-pre {
-	white-space: pre-wrap;
-	font-size: 10px;
-}
 img,
 table {
 	font-size: 12px;
@@ -324,29 +320,29 @@ table {
 			"input      .            .            raw"
 	}
 }
-#grid.raw-fullscreen {
-	grid-template-columns: 188px auto;
-	grid-template-areas:
-		"input-head output-head"
-		"input      raw"
-}
-	/*
-	#grid.raw-fullscreen segment-box,
-	#grid.raw-fullscreen #thumb,
-	#grid.raw-fullscreen #marker-notes,
-	#grid.raw-fullscreen #user-comment {
-	*/
-	#grid.raw-fullscreen > *:not(#input-head):not(#output-head):not(#input):not(#raw) {
+
+/* fullscreen can be only visible on larger screens. it is already fullscreen (in single col) on phones */
+@media only screen and (max-width: 749px) {
+	#raw h3 span {
 		display: none;
 	}
+}
+@media only screen and (min-width: 750px) {
+	#grid.raw-fullscreen {
+		grid-template-columns: 188px auto;
+		grid-template-areas:
+			"input-head output-head"
+			"input      raw"
+	}
+		#grid.raw-fullscreen > *:not(#input-head):not(#output-head):not(#input):not(#raw) {
+			display: none;
+		}
+}
 
-#readme pre {
+pre {
+	word-break: break-word;
 	white-space: pre-wrap;
 	font-size: 10px;
-	padding: 10px;
-	background: rgba(50, 80, 144, 0.08);
-	border: 1px solid rgba(50, 80, 144, 0.2);
-	border-radius: 4px;
 }
 
 :root {
@@ -397,3 +393,17 @@ table {
 	0%   {opacity: 0}
 	100% {opacity: 1}
 }
+
+/*
+
+TO BE IMPLEMENTED IN FUTURE VERSIONS
+
+#readme pre {
+	padding: 10px;
+	background: rgba(50, 80, 144, 0.08);
+	border: 1px solid rgba(50, 80, 144, 0.2);
+	border-radius: 4px;
+}
+
+
+*/

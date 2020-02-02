@@ -5,7 +5,7 @@ import {segmentsAndBlocks, tiffExtractables} from '../src/options.js'
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
-import {BinaryValueConverter, PrettyCaseValueConverter} from './util.js'
+import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter} from './util.js'
 import '../src/util/debug.js'
 
 
@@ -28,6 +28,7 @@ class ExifrDemoApp {
 	}, {
 		text: 'TIFF Drone photo',
 		name: 'issue-metadata-extractor-152.tif',
+		segments: ['xmp'],
 	}, {
 		text: 'Photo Sphere / GPano',
 		name: 'PANO_20180714_121453.jpg',
@@ -199,6 +200,7 @@ au.enhance({
 	host: document.body,
 	resources: [
 		BinaryValueConverter,
+		CharLimitValueConverter,
 		JsonValueConverter,
 		ObjectTableCustomElement,
 		SegmentBoxCustomElement,
