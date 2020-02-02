@@ -40,7 +40,7 @@ export function fixIeSubclassing(target, Class, methods = [], getters = []) {
 	// IE wont throw these errors but will work. I'm ok with this regression.
 	// We just need to copy additional custom method.
 	for (let key of methods)
-		if (target[key] === undefined) map[key] = Class.prototype[key]
+		if (target[key] === undefined) target[key] = Class.prototype[key]
 	for (let key of getters) {
 		let targetDesc = Object.getOwnPropertyDescriptor(target, key)
 		if (targetDesc === undefined) {
