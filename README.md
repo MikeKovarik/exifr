@@ -864,24 +864,26 @@ We're able to parse image within a couple of milliseconds (tens of millis on pho
 
 #### Benchmarks
 
-Observations from testing with +-4MB pictures (*Highest quality, highest resolution Google Pixel photos, tested on a decade old quad core CPU*). Note: These are no scientific measurements.
-
-* Node: Selective disk reads take about 1ms.
-* Node: Processing fully buffered data take about 2.5ms on average.
-* Browser: ArrayBuffer takes about 2ms
-* Browser: Blob can go up to 10ms on average.
-* Browser: \<img> with Object URL as a src varies between 5ms to 30ms
-* Drag-n-dropping gallery of 90 images took 160ms to load, parse and create exif objects. Extracting GPS data and logging it to console took another 60ms (220ms all together).
-* Phones are significantly slower. Usually 40-150ms per photo. This is seriously impacted by loading the photo into browser, not so much of a parsing problem. But real-world photo-to-exif time can be as slow as 150ms.
-
-You can run the benchmark yourself at benchmark/chunked-vs-whole.js(https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
+Try the benchmark yourself at [benchmark/chunked-vs-whole.js](https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
 
 ```
 user reads file            8.4846 ms
 exifr reads whole file     8.2180 ms
-exifr reads file by chunks 0.5459 ms
-only parsing, not reading  0.2571 ms
+exifr reads file by chunks 0.5459 ms  <--- !!!
+only parsing, not reading  0.2571 ms  <--- !!!
 ```
+
+Observations from testing with +-4MB pictures (*Highest quality Google Pixel photos. Tested on a mid range dual core i5 machine with SSD*).
+
+* Node: Parsing after `fs.readFile` = 0.3ms
+* Node: Reading & parsing by chunks = 0.5ms
+* Browser: Processing `ArrayBuffer` = 3ms
+* Browser: Processing `Blob` = 7ms
+* Browser: `<img>` with Object URL = 3ms
+* Drag-n-dropping gallery of 90 images and extracting GPS data takes about 100ms.
+* Phones are about 4x slower. Usually 4-30ms per photo.
+
+Be sure to visit [**the exifr playground**](://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
 
 #### HEIC
 
