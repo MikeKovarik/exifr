@@ -25,22 +25,22 @@ const SRATIONAL = 10
 const FLOAT     = 11
 const DOUBLE    = 12
 
-const SIZE_LOOKUP = {
-	[BYTE]      : 1, // BYTE      - 8-bit unsigned integer
-	[ASCII]     : 1, // ASCII     - 8-bit bytes w/ last byte null
-	[SHORT]     : 2, // SHORT     - 16-bit unsigned integer
-	[LONG]      : 4, // LONG      - 32-bit unsigned integer
-	[RATIONAL]  : 8, // RATIONAL  - 64-bit unsigned fraction of two 32-bit unsigned integers
-	[SBYTE]     : 1, // SBYTE     - 8-bit signed integer
-	[UNDEFINED] : 1, // UNDEFINED - 8-bit untyped data
-	[SSHORT]    : 2, // SSHORT    - 16-bit signed integer
-	[SLONG]     : 4, // SLONG     - 32-bit signed integer
-	[SRATIONAL] : 8, // SRATIONAL - 64-bit signed fraction of two 32-bit signed integers
-	[FLOAT]     : 4, // FLOAT,    - 32-bit IEEE floating point
-	[DOUBLE]    : 8, // DOUBLE    - 64-bit IEEE floating point
+const SIZE_LOOKUP = [
+	1, // BYTE      - 8-bit unsigned integer
+	1, // ASCII     - 8-bit bytes w/ last byte null
+	2, // SHORT     - 16-bit unsigned integer
+	4, // LONG      - 32-bit unsigned integer
+	8, // RATIONAL  - 64-bit unsigned fraction of two 32-bit unsigned integers
+	1, // SBYTE     - 8-bit signed integer
+	1, // UNDEFINED - 8-bit untyped data
+	2, // SSHORT    - 16-bit signed integer
+	4, // SLONG     - 32-bit signed integer
+	8, // SRATIONAL - 64-bit signed fraction of two 32-bit signed integers
+	4, // FLOAT,    - 32-bit IEEE floating point
+	8, // DOUBLE    - 64-bit IEEE floating point
 	// https://sno.phy.queensu.ca/~phil/exiftool/standards.html
-	13: 4 // IFD (sometimes used instead of 4 LONG)
-}
+	4 // IFD (sometimes used instead of 4 LONG)
+]
 
 // WARNING: In .tif files, exif can be before ifd0
 // - namely issue-metadata-extractor-152.tif offsets are: EXIF 2468122, IFD0 2468716, GPS  2468550
