@@ -4,7 +4,7 @@ var isBrowser = typeof navigator === 'object'
 if (isBrowser) {
 	var {parse} = window['exifr']
 } else if (isNode) {
-	var {parse} = require('../index.js')
+	var {parse} = require('../dist/full.umd.js')
 	var fs = require('fs').promises
 }
 

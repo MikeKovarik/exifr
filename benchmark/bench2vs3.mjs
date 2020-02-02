@@ -1,8 +1,8 @@
-import exifr2 from './exifr@2.1.1.cjs'
+import {promises as fs} from 'fs'
+import bench from './benchlib.js'
+import exifr2 from './fixtures/exifr@2.1.1.cjs'
 //import * as exifr3 from '../index.mjs'
 import * as exifr3 from '../src/index-full.js'
-import {promises as fs} from 'fs'
-import {performance} from 'perf_hooks'
 
 
 main()
