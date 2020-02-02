@@ -1,4 +1,4 @@
-import {tagValues} from '../tags.js'
+import {tagValues, createDictionary} from '../tags.js'
 
 
 // inspired by & slightly modified from
@@ -325,17 +325,17 @@ const tech = {
 }
 
 
-tagValues.icc = {
-	4:  companies,
-	12: devices,
-	40: Object.assign({}, companies, devices),
-	48: companies,
-	80: companies,
-	64: {
+createDictionary(tagValues, 'icc', [
+	[4,  companies],
+	[12, devices],
+	[40, Object.assign({}, companies, devices)],
+	[48, companies],
+	[80, companies],
+	[64, {
 		0: 'Perceptual',
 		1: 'Relative Colorimetric',
 		2: 'Saturation',
 		3: 'Absolute Colorimetric',
-	},
-	tech,
-}
+	}],
+	['tech', tech],
+])

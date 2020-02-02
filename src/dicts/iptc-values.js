@@ -1,11 +1,12 @@
-import {tagValues} from '../tags.js'
+import {tagValues, createDictionary} from '../tags.js'
 
 
 // Taken from
 // https://exiftool.org/TagNames/IPTC.html
 
-tagValues.iptc = {
-    10: {
+createDictionary(tagValues, 'iptc', [
+
+    [10, {
         0: '0 (reserved)',
         1: '1 (most urgent)',
         2: '2',
@@ -16,19 +17,23 @@ tagValues.iptc = {
         7: '7',
         8: '8 (least urgent)',
         9: '9 (user-defined priority)',
-    },
+    }],
+
     // TODO 42
-    75: {
+
+    [75, {
         'a': 'Morning',
         'b': 'Both Morning and Evening',
         'p': 'Evening',
-    },
-    131: {
+    }],
+
+    [131, {
         'L': 'Landscape',
         'P': 'Portrait',
         'S': 'Square',
-    },
-    150: {
+    }],
+
+    [150, {
         '0T': 'Text Only',
         '1A': 'Mono Actuality',
         '1C': 'Mono Question and Answer Session',
@@ -46,8 +51,9 @@ tagValues.iptc = {
         '2S': 'Stereo Scener',
         '2V': 'Stereo Voicer',
         '2W': 'Stereo Wrap',
-    },
-    200: {
+    }],
+
+    [200, {
         0: 'No ObjectData',
         1: 'IPTC-NAA Digital Newsphoto Parameter Record',
         2: 'IPTC7901 Recommended Message Format',
@@ -78,5 +84,6 @@ tagValues.iptc = {
         27: 'Tidningarnas Telegrambyra NITF version (TTNITF DTD)',
         28: 'Ritzaus Bureau NITF version (RBNITF DTD)',
         29: 'Corel Draw [.CDR]',
-    }
-}
+    }],
+
+])

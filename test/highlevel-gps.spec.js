@@ -31,8 +31,8 @@ describe('exifr.gps()', () => {
 			let exr = new Exifr(gpsOnlyOptions)
 			await exr.read(input)
 			await exr.parse()
-			assert.isBelow(Object.keys(exr.parsers.tiff.gps).length, 8)
-			assert.lengthOf(Object.keys(exr.parsers.tiff.ifd0), 1)
+			assert.isBelow(exr.parsers.tiff.gps.size, 8)
+			assert.lengthOf(exr.parsers.tiff.ifd0, 1)
 		})
 
 		it('other blocks are not parsed at all', async () => {

@@ -1,19 +1,21 @@
-import {tagValues} from '../tags.js'
+import {tagValues, createDictionary} from '../tags.js'
 
-
-let tags = tagValues.gps = {}
 
 // TODO https://exiftool.org/TagNames/GPS.html
 
-// GPSDestBearingRef
-tags[0x0017] = {
-	M: 'Magnetic North',
-	T: 'True North',
-}
+createDictionary(tagValues, 'gps', [
 
-// GPSDestDistanceRef
-tags[0x0019] = {
-	K: 'Kilometers',
-	M: 'Miles',
-	N: 'Nautical Miles',
-}
+	// GPSDestBearingRef
+	[0x0017, {
+		M: 'Magnetic North',
+		T: 'True North',
+	}],
+
+	// GPSDestDistanceRef
+	[0x0019, {
+		K: 'Kilometers',
+		M: 'Miles',
+		N: 'Nautical Miles',
+	}],
+
+])

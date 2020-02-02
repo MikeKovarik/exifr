@@ -26,7 +26,17 @@ export const inheritables = ['translateKeys', 'translateValues', 'reviveValues',
 export const allFormatters = [...inheritables, 'mergeOutput', 'sanitize']
 
 
-class SubOptions {
+class SharedOptions {
+
+	get translate() {
+		return this.translateKeys
+			|| this.translateValues
+			|| this.reviveValues
+	}
+
+}
+
+class SubOptions extends SharedOptions {
 
 	enabled = false
 	skip = new Set
@@ -35,25 +45,22 @@ class SubOptions {
 	translateKeys   = false
 	translateValues = false
 	reviveValues    = false
-	
+
 	get needed() {
 		return this.enabled
 			|| this.deps.size > 0
 	}
 
 	constructor(key, defaultValue, userValue, parent) {
+		super()
 		this.key = key
 		this.enabled = defaultValue
 
 		this.applyInheritables(parent)
 
 		this.canBeFiltered = tiffBlocks.includes(key)
-		if (this.canBeFiltered) {
-			this.dict = tagKeys[key]
-			// todo: cache this, and preferably move to dicts files/object/class
-			this.dictKeys   = Object.keys(this.dict)
-			this.dictValues = Object.values(this.dict)
-		}
+		if (this.canBeFiltered)
+			this.dict = tagKeys.get(key)
 
 		if (userValue !== undefined) {
 			if (Array.isArray(userValue)) {
@@ -85,12 +92,13 @@ class SubOptions {
 	}
 
 	translateTagSet(inputArray, outputSet) {
-		let {dictKeys, dictValues} = this
-		for (let tag of inputArray) {
+		let {tagKeys, tagValues} = this.dict
+		let tag, index
+		for (tag of inputArray) {
 			if (typeof tag === 'string') {
-				let index = dictValues.indexOf(tag)
-				if (index === -1) index = dictKeys.indexOf(Number(tag))
-				if (index !== -1) outputSet.add(Number(dictKeys[index]))
+				index = tagValues.indexOf(tag)
+				if (index === -1) index = tagKeys.indexOf(Number(tag))
+				if (index !== -1) outputSet.add(Number(tagKeys[index]))
 			} else {
 				outputSet.add(tag)
 			}
@@ -177,7 +185,7 @@ var defaults = {
 
 var existingInstances = new Map
 
-export class Options {
+export class Options extends SharedOptions {
 
 	static default = defaults
 
@@ -190,6 +198,7 @@ export class Options {
 	}
 
 	constructor(userOptions) {
+		super()
 		if (userOptions === true)
 			this.setupFromTrue()
 		else if (userOptions === undefined)
@@ -328,21 +337,20 @@ export class Options {
 }
 
 function findScopesForGlobalTagArray(tagArray, dictKeys) {
-	let entries = []
-	let tagCodeStr, tagCodeNum, tagName, dict, scopedTags, blockKey
+	let scopes = []
+	let dict, scopedTags, blockKey, tagEntry
 	for (blockKey of dictKeys) {
-		dict = tagKeys[blockKey]
+		dict = tagKeys.get(blockKey)
 		scopedTags = []
-		for (tagCodeStr in dict) {
-			tagCodeNum = Number(tagCodeStr)
-			tagName = dict[tagCodeStr]
-			if (tagArray.includes(tagCodeNum) || tagArray.includes(tagName))
-				scopedTags.push(tagCodeNum)
+		for (tagEntry of dict) {
+			// NOTE: not expading tagEntry into [key, val] because of performance
+			if (tagArray.includes(tagEntry[0]) || tagArray.includes(tagEntry[1]))
+				scopedTags.push(tagEntry[0])
 		}
 		if (scopedTags.length)
-			entries.push([blockKey, scopedTags])
+			scopes.push([blockKey, scopedTags])
 	}
-	return entries
+	return scopes
 }
 
 function getDefined(arg1, arg2) {

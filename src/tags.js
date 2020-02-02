@@ -1,26 +1,33 @@
-let allKeys
+import {fixIeSubclassing} from './plugins.js'
 
-// Exposed object of tag dictionaries that either user specifies or exifr loads into.
-class TagKeys {
 
-	get all() {
-		if (allKeys) return allKeys
-		allKeys = {}
-		for (let [key, dict] of Object.entries(tagKeys)) {
-			if (key === 'all') continue
-			Object.assign(allKeys, dict)
-		}
-		return allKeys
+const KEYS = Symbol('keys')
+const VALUES = Symbol('values')
+
+class Dictionary extends Map {
+
+	get tagKeys() {
+		if (!this[KEYS]) this[KEYS] = Array.from(this.keys())
+		return this[KEYS]
 	}
 
-	// TODO: move findTag from options here
-	//find(tag) {}
+	get tagValues() {
+		if (!this[VALUES]) this[VALUES] = Array.from(this.values())
+		return this[VALUES]
+	}
 
 }
 
-export const tagKeys = new TagKeys
-export const tagValues = {}
-export const tagRevivers = {}
+export function createDictionary(group, key, entries) {
+	let dict = new Dictionary(entries)
+	fixIeSubclassing(dict, Dictionary, undefined, ['tagKeys', 'tagValues'])
+	group.set(key, dict)
+	return dict
+}
+
+export const tagKeys     = new Map
+export const tagValues   = new Map
+export const tagRevivers = new Map
 
 export const TAG_MAKERNOTE   = 0x927C
 export const TAG_USERCOMMENT = 0x9286

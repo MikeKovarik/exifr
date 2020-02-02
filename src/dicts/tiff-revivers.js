@@ -1,24 +1,24 @@
-import {tagRevivers} from '../tags.js'
+import {tagRevivers, createDictionary} from '../tags.js'
 import {toAsciiString} from '../util/BufferView.js'
 
+const ifd0 = createDictionary(tagRevivers, 'ifd0', [
+	[0xC68B, toAsciiString],
+	[0x0132, reviveDate],
+])
 
-tagRevivers.ifd0 =
-tagRevivers.thumbnail = {
-	0xC68B: toAsciiString,
-	0x0132: reviveDate,
-}
+tagRevivers.set('thumbnail', ifd0)
 
-tagRevivers.exif = {
-	0xA000: toAsciiString,
-	0x9000: toAsciiString,
-	0x9003: reviveDate,
-	0x9004: reviveDate,
-}
+createDictionary(tagRevivers, 'exif', [
+	[0xA000, toAsciiString],
+	[0x9000, toAsciiString],
+	[0x9003, reviveDate],
+	[0x9004, reviveDate],
+])
 
-tagRevivers.gps = {
-	0x0000: val => Array.from(val).join('.'), // GPSVersionID
-	0x0007: val => Array.from(val).join(':'), // GPSTimeStamp
-}
+createDictionary(tagRevivers, 'gps', [
+	[0x0000, val => Array.from(val).join('.')], // GPSVersionID
+	[0x0007, val => Array.from(val).join(':')], // GPSTimeStamp
+])
 
 export function reviveDate(string) {
 	if (typeof string !== 'string') return null

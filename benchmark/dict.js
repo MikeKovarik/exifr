@@ -146,6 +146,46 @@ async function main() {
 		tagNames = tagCodes.map(code => dict.get(code))
 	})
 
+	// SUITE - CONCAT MAP
+
+	//let firstHalf  = dictEntries.slice(0, dictEntries.length / 2)
+	//let secondHalf = dictEntries.slice(dictEntries.length / 2, dictEntries.length)
+	let firstHalf  = new Map([[1, 'a'], [2, 'b']])
+	let secondHalf = [[3, 'c'], [4, 'd']]
+	//let secondHalf = new Map([[3, 'c'], [4, 'd']])
+	let mergedMap
+
+	await bench('map concatenation 1', () => {
+		mergedMap = new Map([...firstHalf].concat([...secondHalf]))
+	})
+
+	await bench('map concatenation 2', () => {
+		mergedMap = new Map([...firstHalf, ...secondHalf])
+	})
+
+	await bench('map concatenation 3', () => {
+		mergedMap = new Map([...firstHalf])
+		for (let entry of secondHalf) mergedMap.set(entry[0], entry[1])
+	})
+
+	// SUITE - CONCAT MAP
+
+	let outputObject
+	await bench('map to object - loop assign  ', () => {
+		outputObject = {}
+		let entry
+		for (entry of dictMap)
+			outputObject[entry[0], entry[1]]
+	})
+
+	await bench('map to object - fromEntries 1', () => {
+		outputObject = Object.fromEntries(dictMap)
+	})
+
+	await bench('map to object - fromEntries 2', () => {
+		outputObject = Object.fromEntries(dictMap.entries())
+	})
+
 }
 
 function findTagCodeInObject(dictObject, key) {

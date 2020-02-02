@@ -8,8 +8,12 @@ export function undefinedIfEmpty(object) {
         return object
 }
 
-export function isEmpty(object) {
-    return Object.keys(object).length === 0
+export function isEmpty(arg) {
+	if (arg === undefined) return true
+	if (arg instanceof Map)
+		return arg.size === 0
+	else
+	    return Object.keys(arg).length === 0
 }
 
 export function customError(message) {

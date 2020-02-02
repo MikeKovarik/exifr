@@ -49,7 +49,7 @@ export default class Iptc extends AppSegmentParserBase {
 	}
 
 	parse() {
-		let iptc = this.output = {}
+		let {raw} = this
 		let length = this.chunk.byteLength
 		for (let offset = 0; offset < length; offset++) {
 			// reading Uint8 and then another to prevent unnecessarry read of two subsequent bytes, when iterating
@@ -57,23 +57,23 @@ export default class Iptc extends AppSegmentParserBase {
 				let size = this.chunk.getUint16(offset + 3)
 				let key = this.chunk.getUint8(offset + 2)
 				let val = this.chunk.getString(offset + 5, size)
-				iptc[key] = this.setValueOrArrayOfValues(val, iptc[key])
+				raw.set(key, this.pluralizeValue(raw.get(key), val))
 			}
 		}
 		this.translate()
 		return this.output
 	}
 
-	setValueOrArrayOfValues(newValue, existingValue) {
-		if (existingValue !== undefined) {
-			if (existingValue instanceof Array) {
-				existingValue.push(newValue)
-				return existingValue
+	pluralizeValue(existingVal, newVal) {
+		if (existingVal !== undefined) {
+			if (existingVal instanceof Array) {
+				existingVal.push(newVal)
+				return existingVal
 			} else {
-				return [existingValue, newValue]
+				return [existingVal, newVal]
 			}
 		} else {
-			return newValue
+			return newVal
 		}
 	}
 

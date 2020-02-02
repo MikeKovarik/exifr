@@ -74,19 +74,19 @@ export class TiffCore extends AppSegmentParserBase {
 		let nothingToSkip = skip.size === 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
-		let block = {}
+		let block = new Map
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
 			if (onlyPick) {
 				if (pick.has(tag)) {
 					// We have a list only of tags to pick, this tag is one of them, so read it.
-					block[tag] = this.parseTag(offset)
+					block.set(tag, this.parseTag(offset))
 					pick.delete(tag)
 					if (pick.size === 0) break
 				}
 			} else if (nothingToSkip || !skip.has(tag)) {
 				// We're not limiting what tags to pick. Also this tag is not on a blacklist.
-				block[tag] = this.parseTag(offset)
+				block.set(tag, this.parseTag(offset))
 			}
 			offset += 12
 		}
@@ -228,23 +228,8 @@ export class TiffExif extends TiffCore {
 		if (this.options.gps.enabled)       await this.parseGpsBlock()       // APP1 - GPS IFD
 		if (this.options.interop.enabled)   await this.parseInteropBlock()   // APP1 - Interop IFD
 		if (this.options.thumbnail.enabled) await this.parseThumbnailBlock() // APP1 - IFD1
-		this.translate()
-		if (this.options.mergeOutput) {
-			// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
-			let {ifd0, exif, gps, interop} = this
-			this.output = Object.assign({}, ifd0, exif, gps, interop)
-		} else {
-			//this.output = {ifd0, exif, gps, interop, thumbnail}
-			this.output = {}
-			for (let key of blockKeys) {
-				let blockOutput = this[key]
-				if (blockOutput && !isEmpty(blockOutput))
-					this.output[key] = blockOutput
-			}
-		}
-		if (this.makerNote)   this.output.makerNote   = this.makerNote
-		if (this.userComment) this.output.userComment = this.userComment
-		return this.output
+		return this.createOutput()
+		//return this.output
 	}
 
 	findIfd0Offset() {
@@ -308,22 +293,22 @@ export class TiffExif extends TiffCore {
 		// Parse IFD0 block.
 		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
-		if (Object.keys(ifd0).length === 0) return
+		if (ifd0.size === 0) return
 		// Store offsets of other blocks in the TIFF segment.
-		this.exifOffset    = ifd0[TAG_IFD_EXIF]
-		this.interopOffset = ifd0[TAG_IFD_INTEROP]
-		this.gpsOffset     = ifd0[TAG_IFD_GPS]
-		this.xmp           = ifd0[TAG_XMP]
-		this.iptc          = ifd0[TAG_IPTC]
-		this.icc           = ifd0[TAG_ICC]
+		this.exifOffset    = ifd0.get(TAG_IFD_EXIF)
+		this.interopOffset = ifd0.get(TAG_IFD_INTEROP)
+		this.gpsOffset     = ifd0.get(TAG_IFD_GPS)
+		this.xmp           = ifd0.get(TAG_XMP)
+		this.iptc          = ifd0.get(TAG_IPTC)
+		this.icc           = ifd0.get(TAG_ICC)
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		if (this.options.sanitize) {
-			delete ifd0[TAG_IFD_EXIF]
-			delete ifd0[TAG_IFD_INTEROP]
-			delete ifd0[TAG_IFD_GPS]
-			delete ifd0[TAG_XMP]
-			delete ifd0[TAG_IPTC]
-			delete ifd0[TAG_ICC]
+			ifd0.delete(TAG_IFD_EXIF)
+			ifd0.delete(TAG_IFD_INTEROP)
+			ifd0.delete(TAG_IFD_GPS)
+			ifd0.delete(TAG_XMP)
+			ifd0.delete(TAG_IPTC)
+			ifd0.delete(TAG_ICC)
 		}
 		return ifd0
 	}
@@ -351,17 +336,18 @@ export class TiffExif extends TiffCore {
 		if (this.exifOffset === undefined) return
 		await this.ensureBlockChunk(this.exifOffset, this.estimatedExifSize)
 		let exif = this.exif = this.parseTags(this.exifOffset, 'exif')
-		if (!this.interopOffset) this.interopOffset = exif[TAG_IFD_INTEROP]
-		this.makerNote   = exif[TAG_MAKERNOTE]
-		this.userComment = exif[TAG_USERCOMMENT]
+		if (!this.interopOffset) this.interopOffset = exif.get(TAG_IFD_INTEROP)
+		this.makerNote   = exif.get(TAG_MAKERNOTE)
+		this.userComment = exif.get(TAG_USERCOMMENT)
 		if (this.options.sanitize) {
-			delete exif[TAG_IFD_INTEROP]
-			delete exif[TAG_MAKERNOTE]
-			delete exif[TAG_USERCOMMENT]
+			exif.delete(TAG_IFD_INTEROP)
+			exif.delete(TAG_MAKERNOTE)
+			exif.delete(TAG_USERCOMMENT)
 		}
 		// one odd tag that is aways array of one item
-		if (exif[TAG_SCENE_TYPE] && exif[TAG_SCENE_TYPE].length === 1)
-			exif[TAG_SCENE_TYPE] = exif[TAG_SCENE_TYPE][0]
+		let sceneType = exif.get(TAG_SCENE_TYPE)
+		if (sceneType && sceneType.length === 1)
+			exif.set(TAG_SCENE_TYPE, sceneType[0])
 		return exif
 	}
 
@@ -372,9 +358,12 @@ export class TiffExif extends TiffCore {
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.gpsOffset === undefined) return
 		let gps = this.gps = this.parseTags(this.gpsOffset, 'gps')
-		if (gps && gps[TAG_GPS_LAT] && gps[TAG_GPS_LON]) {
-			gps.latitude  = ConvertDMSToDD(...gps[TAG_GPS_LAT], gps[TAG_GPS_LATREF])
-			gps.longitude = ConvertDMSToDD(...gps[TAG_GPS_LON], gps[TAG_GPS_LONREF])
+		if (gps && gps.has(TAG_GPS_LAT) && gps.has(TAG_GPS_LON)) {
+			// TODO: assign this to this.translated or this.output when blocks are broken down to separate classes
+			//gps.latitude  = ConvertDMSToDD(...gps.get(TAG_GPS_LAT), gps.get(TAG_GPS_LATREF))
+			//gps.longitude = ConvertDMSToDD(...gps.get(TAG_GPS_LON), gps.get(TAG_GPS_LONREF))
+			gps.set('latitude',  ConvertDMSToDD(...gps.get(TAG_GPS_LAT), gps.get(TAG_GPS_LATREF)))
+			gps.set('longitude', ConvertDMSToDD(...gps.get(TAG_GPS_LON), gps.get(TAG_GPS_LONREF)))
 		}
 		return gps
 	}
@@ -410,20 +399,33 @@ export class TiffExif extends TiffCore {
 		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
 		if (this.thumbnail === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
-		let offset = this.thumbnail[THUMB_OFFSET]
-		let length = this.thumbnail[THUMB_LENGTH]
+		let offset = this.thumbnail.get(THUMB_OFFSET)
+		let length = this.thumbnail.get(THUMB_LENGTH)
 		// TODO: should this be checked and ensured with ensureBlockChunk?
 		return this.chunk.getUint8Array(offset, length)
 	}
 
-	translate() {
-		if (this.canTranslate) {
-			for (let block of blockKeys) {
-				if (block in this) {
-					this[block] = this.translateBlock(this[block], block)
-				}
+	createOutput() {
+		let output = {}
+		let block, blockKey, blockOutput
+		for (blockKey of blockKeys) {
+			block = this[blockKey]
+			if (isEmpty(block)) continue
+			if (this.canTranslate)
+				blockOutput = this.translateBlock(block, blockKey)
+			else
+				blockOutput = Object.fromEntries(block)
+			if (this.options.mergeOutput) {
+				// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
+				if (blockKey === 'thumbnail') continue
+				Object.assign(output, blockOutput)
+			} else {
+				output[blockKey] = blockOutput
 			}
 		}
+		if (this.makerNote)   output.makerNote   = this.makerNote
+		if (this.userComment) output.userComment = this.userComment
+		return output
 	}
 
 }

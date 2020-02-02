@@ -96,48 +96,51 @@ export class AppSegmentParserBase {
 		this.chunk = chunk
 		this.options = options
 		this.file = file
-
-		let Ctor = this.constructor
-		let type = Ctor.type
-		let segOptions = options[type] || {}
-		let optionProps = ['translateKeys', 'translateValues', 'reviveValues']
-		for (let prop of optionProps)
-			this[prop] = findDefined(Ctor[prop], segOptions[prop], options[prop])
-
-		this.canTranslate = this.translateKeys || this.translateValues || this.reviveValues
+		this.type = this.constructor.type
+		this.segOptions = options[this.type]
+		this.canTranslate = this.segOptions.translate
+		// raw parsed tags
+		this.raw = new Map
 	}
 
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
 	translate() {
-		if (this.canTranslate) {
-			let type = this.constructor.type
-			this.output = this.translateBlock(this.output, type)
-		}
+		if (this.canTranslate)
+			this.translated = this.translateBlock(this.raw, this.type)
+	}
+
+	get output() {
+		if (this.translated)
+			return this.translated
+		else if (this.raw)
+			return Object.fromEntries(this.raw)
 	}
 
 	// split into separate function so that it can be used by TIFF but shared with other parsers.
 	translateBlock(rawTags, blocKey) {
-		let keyDict  = tagKeys[blocKey]
-		let valDict  = tagValues[blocKey]
-		let revivers = tagRevivers[blocKey]
+		let revivers = tagRevivers.get(blocKey)
+		let valDict  = tagValues.get(blocKey)
+		let keyDict  = tagKeys.get(blocKey)
 		let blockOptions = this.options[blocKey]
-		if (blockOptions.reviveValues && revivers) {
-			for (let [tag, reviver] of Object.entries(revivers)) {
-				if (rawTags[tag] === undefined) continue
-				if (rawTags[tag]) rawTags[tag] = reviver(rawTags[tag])
-			}
+		let canRevive       = blockOptions.reviveValues    && revivers
+		let canTranslateVal = blockOptions.translateValues && valDict
+		let canTranslateKey = blockOptions.translateKeys   && keyDict
+		let output = {}
+		for (let [key, val] of rawTags) {
+			if (canRevive && revivers.has(key))
+				val = revivers.get(key)(val)
+			else if (canTranslateVal && valDict.has(key))
+				val = this.translateValue(val, valDict.get(key))
+			if (canTranslateKey && keyDict.has(key))
+				key = keyDict.get(key) || key
+			output[key] = val
 		}
-		let entries = Object.entries(rawTags)
-		if (blockOptions.translateValues && valDict)
-			entries = entries.map(([tag, val]) => [tag, this.translateValue(val, valDict[tag]) || val])
-		if (blockOptions.translateKeys && keyDict)
-			entries = entries.map(([tag, val]) => [keyDict[tag] || tag, val])
-		return Object.fromEntries(entries)
+		return output
 	}
 
 	// can be overriden by parses (namely ICC) that inherits from this base class.
-	translateValue(val, dict) {
-		return dict && dict[val]
+	translateValue(val, tagEnum) {
+		return tagEnum[val] || val
 	}
 
 }

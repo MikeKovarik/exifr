@@ -70,7 +70,6 @@ export class Exifr {
 		})
 		await Promise.all(promises)
 		output = undefinedIfEmpty(output)
-
 		if (this.file.close) this.file.close()
 		return output
 	}

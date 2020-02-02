@@ -33,7 +33,7 @@ export default class IccParser extends AppSegmentParserBase {
 	}
 
 	parse() {
-		this.output = {}
+		this.raw = new Map
 		this.parseHeader()
 		this.parseTags()
 		this.translate()
@@ -41,19 +41,19 @@ export default class IccParser extends AppSegmentParserBase {
 	}
 
 	parseHeader() {
-		let icc = this.output
+		let {raw} = this
 		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
 			throw customError('ICC header is too short')
 		for (let [offset, parse] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = parse(this.chunk, offset)
 			if (val === EMPTY_VALUE) continue
-			icc[offset] = val
+			raw.set(offset, val)
 		}
 	}
 
 	parseTags() {
-		let icc = this.output
+		let {raw} = this
 		let tagCount = this.chunk.getUint32(128)
 		let offset = 132
 		let chunkLength = this.chunk.byteLength
@@ -69,7 +69,8 @@ export default class IccParser extends AppSegmentParserBase {
 			}
 			value = this.parseTag(type, valueOffset, valueLength)
 			// Not all the type parsers are implemented.
-			if (value !== undefined && value !== EMPTY_VALUE) icc[code] = value
+			if (value !== undefined && value !== EMPTY_VALUE)
+				raw.set(code, value)
 			offset += 12
 		}
 	}
@@ -126,13 +127,11 @@ export default class IccParser extends AppSegmentParserBase {
 			return values
 	}
 
-	translateValue(val, dict) {
-		if (dict) {
-			if (typeof val === 'string')
-				return dict[val] || dict[val.toLowerCase()] || val
-			else
-				return dict[val] || val
-		}
+	translateValue(val, tagEnum) {
+		if (typeof val === 'string')
+			return tagEnum[val] || tagEnum[val.toLowerCase()] || val
+		else
+			return tagEnum[val] || val
 	}
 
 }
