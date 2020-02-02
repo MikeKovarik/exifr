@@ -28,7 +28,8 @@ Works everywhere, parses anything and handles everything you throw at it.
 * 📚 Customizable tag dictionaries
 * 📋 Simple output
 * 🗜️ No dependencies
-* 🤙 Promise based
+* ✔ Tested and benchmarked
+* 🤙 Promises
 
 ## Usage
 
