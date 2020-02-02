@@ -117,11 +117,11 @@ export class AppSegmentParserBase {
 	}
 
 	// split into separate function so that it can be used by TIFF but shared with other parsers.
-	translateBlock(rawTags, blocKey) {
-		let revivers = tagRevivers.get(blocKey)
-		let valDict  = tagValues.get(blocKey)
-		let keyDict  = tagKeys.get(blocKey)
-		let blockOptions = this.options[blocKey]
+	translateBlock(rawTags, blockKey) {
+		let revivers = tagRevivers.get(blockKey)
+		let valDict  = tagValues.get(blockKey)
+		let keyDict  = tagKeys.get(blockKey)
+		let blockOptions = this.options[blockKey]
 		let canRevive       = blockOptions.reviveValues    && revivers
 		let canTranslateVal = blockOptions.translateValues && valDict
 		let canTranslateKey = blockOptions.translateKeys   && keyDict

@@ -115,11 +115,39 @@ describe('TIFF Segment', () => {
 		assert.exists(output.gps.GPSLatitude)
 	})
 
-	it(`random issue {ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}`, async () => {
-		let input = await getFile('canon-dslr.jpg')
-		let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
-		var output = await exifr.parse(input, options)
-		assert.isObject(output)
+	describe('random tests', () => {
+
+		it(`random issue {ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}`, async () => {
+			let input = await getFile('canon-dslr.jpg')
+			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
+			var output = await exifr.parse(input, options)
+			assert.isObject(output)
+		})
+
+		it(`empty spaces in string are trimmed`, async () => {
+			let input = await getFile('empty-imagedesc-in-ifd0.jpg') // this file has some weird string values
+			var output = await exifr.parse(input, {ifd0: true})
+			assert.equal(output.ImageDescription, undefined)
+		})
+
+		it(`empty strings are left undefined`, async () => {
+			let input = await getFile('empty-imagedesc-in-ifd0.jpg') // this file has some weird string values
+			var output = await exifr.parse(input, {gps: true})
+			assert.equal(output.GPSMapDatum, 'WGS-84')
+		})
+
+		it(`FileSource is unpacked to single value`, async () => {
+			let input = await getFile('empty-imagedesc-in-ifd0.jpg')
+			var output = await exifr.parse(input, {exif: true})
+			assert.notInstanceOf(output.FileSource, Uint8Array)
+		})
+
+		it(`SceneType is unpacked to single value`, async () => {
+			let input = await getFile('empty-imagedesc-in-ifd0.jpg')
+			var output = await exifr.parse(input, {exif: true})
+			assert.notInstanceOf(output.SceneType, Uint8Array)
+		})
+
 	})
 
 	describe('options.tiff = true/false shortcut', () => {

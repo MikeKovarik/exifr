@@ -111,7 +111,9 @@ export class TiffCore extends AppSegmentParserBase {
 			let string = this.chunk.getString(offset, valueCount)
 			// remove null terminator
 			while (string.endsWith('\0')) string = string.slice(0, -1)
-			return string
+			// remove remaining spaces (need to be after null termination)
+			string = string.trim()
+			return string === '' ? undefined : string
 		}
 
 		// undefined/buffers of 8bit/1byte values.
@@ -185,7 +187,6 @@ function getTypedArray(type) {
 
 const blockKeys = ['ifd0', 'thumbnail', 'exif', 'gps', 'interop']
 
-const TAG_SCENE_TYPE = 0xa301
 /*
 JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
 Whereas .tif file format starts with the TIFF structure right away.
@@ -344,10 +345,6 @@ export class TiffExif extends TiffCore {
 			exif.delete(TAG_MAKERNOTE)
 			exif.delete(TAG_USERCOMMENT)
 		}
-		// one odd tag that is aways array of one item
-		let sceneType = exif.get(TAG_SCENE_TYPE)
-		if (sceneType && sceneType.length === 1)
-			exif.set(TAG_SCENE_TYPE, sceneType[0])
 		return exif
 	}
 

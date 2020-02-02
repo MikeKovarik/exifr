@@ -9,9 +9,9 @@ import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter}
 import '../src/util/debug.js'
 
 
-//let demoFileName = './test/fixtures/canon-dslr.jpg'
 let fixtureDirPath = './test/fixtures/'
-let demoFileName = 'IMG_20180725_163423.jpg'
+let demoFileName = 'IMG_20180725_163423-tiny.jpg'
+//let demoFileName = 'IMG_20180725_163423.jpg'
 
 
 class ExifrDemoApp {
