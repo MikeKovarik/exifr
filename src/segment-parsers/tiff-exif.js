@@ -43,6 +43,22 @@ const SIZE_LOOKUP = [
 	4 // IFD (sometimes used instead of 4 LONG)
 ]
 
+function getTypedArray(type) {
+	switch (type) {
+		case BYTE     : return Uint8Array
+		case SHORT    : return Uint16Array
+		case LONG     : return Uint32Array
+		case RATIONAL : return Array
+		case SBYTE    : return Int8Array
+		case SSHORT   : return Int16Array
+		case SLONG    : return Int32Array
+		case SRATIONAL: return Array
+		case FLOAT    : return Float32Array
+		case DOUBLE   : return Float64Array
+		default: return Array
+	}
+}
+
 // WARNING: In .tif files, exif can be before ifd0
 // - namely issue-metadata-extractor-152.tif offsets are: EXIF 2468122, IFD0 2468716, GPS  2468550
 
@@ -160,28 +176,6 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 }
-
-function getTypedArray(type) {
-	switch (type) {
-		case BYTE     : return Uint8Array
-		case SHORT    : return Uint16Array
-		case LONG     : return Uint32Array
-		case RATIONAL : return Array
-		case SBYTE    : return Int8Array
-		case SSHORT   : return Int16Array
-		case SLONG    : return Int32Array
-		case SRATIONAL: return Array
-		case FLOAT    : return Float32Array
-		case DOUBLE   : return Float64Array
-		default: return Array
-	}
-}
-
-
-
-
-
-
 
 
 
@@ -379,25 +373,25 @@ export class TiffExif extends TiffCore {
 	// parsing this block is skipped when mergeOutput is true because thumbnail block contains with the same tags like ifd0 block
 	// and one would override the other. 
 	parseThumbnailBlock(force = false) {
-		if (this.thumbnail || this.thumbnailParsed) return
+		if (this.ifd1 || this.ifd1Parsed) return
 		if (this.options.mergeOutput && !force) return
 		this.findIfd1Offset()
 		if (this.ifd1Offset > 0) {
 			this.ifd1 = this.parseTags(this.ifd1Offset, 'thumbnail')
-			this.thumbnail = this.ifd1
-			this.thumbnailParsed = true
+			this.ifd1 = this.ifd1
+			this.ifd1Parsed = true
 		}
-		return this.thumbnail
+		return this.ifd1
 	}
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
 	extractThumbnail() {
 		if (!this.headerParsed) this.parseHeader()
-		if (!this.thumbnailParsed) this.parseThumbnailBlock(true)
-		if (this.thumbnail === undefined) return 
+		if (!this.ifd1Parsed) this.parseThumbnailBlock(true)
+		if (this.ifd1 === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
-		let offset = this.thumbnail.get(THUMB_OFFSET)
-		let length = this.thumbnail.get(THUMB_LENGTH)
+		let offset = this.ifd1.get(THUMB_OFFSET)
+		let length = this.ifd1.get(THUMB_LENGTH)
 		// TODO: should this be checked and ensured with ensureBlockChunk?
 		return this.chunk.getUint8Array(offset, length)
 	}
