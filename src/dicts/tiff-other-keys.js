@@ -1,4 +1,4 @@
-import {tagKeys} from '../tags.js'
+import {tagKeys, extendDictionary} from '../tags.js'
 
 
 // all other uncathegorized or SubIFD tags from:
@@ -6,7 +6,7 @@ import {tagKeys} from '../tags.js'
 // https://metacpan.org/pod/distribution/Image-ExifTool/lib/Image/ExifTool/TagNames.pod#EXIF-Tags
 
 // Additional and barely used, but known tags in IFD0
-let extendedIfd0 = [
+extendDictionary(tagKeys, 'ifd0', [
 	[0x8480, 'IntergraphMatrix'],
 	[0x8482, 'ModelTiePoint'],
 	[0x8546, 'SEMInfo'],
@@ -79,7 +79,7 @@ let extendedIfd0 = [
 	[0xc7a6, 'DefaultBlackRender'],
 	[0xc7a7, 'NewRawImageDigest'],
 	[0xc7a8, 'RawToPreviewGain'],
-]
+])
 
 let otherTiffTags = [
 	[0x0111, 'StripOffsets'],
@@ -312,12 +312,5 @@ let otherTiffTags = [
 	[0xfe00, 'KdcIFD'],
 ]
 
-extend('ifd0', extendedIfd0)
-extend('ifd0', otherTiffTags)
-extend('exif', otherTiffTags)
-
-function extend(blockName, newTags) {
-	let map = tagKeys.get(blockName)
-	let entry
-	for (entry of newTags) map.set(entry[0], entry[1])
-}
+extendDictionary(tagKeys, 'ifd0', otherTiffTags)
+extendDictionary(tagKeys, 'exif', otherTiffTags)

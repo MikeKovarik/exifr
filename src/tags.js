@@ -25,6 +25,12 @@ export function createDictionary(group, key, entries) {
 	return dict
 }
 
+export function extendDictionary(group, blockName, newTags) {
+	let map = group.get(blockName)
+	let entry
+	for (entry of newTags) map.set(entry[0], entry[1])
+}
+
 export const tagKeys     = new Map
 export const tagValues   = new Map
 export const tagRevivers = new Map
