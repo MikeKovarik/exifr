@@ -73,7 +73,7 @@ Also availabe as UMD bundle which exports everything as `window.exifr`. Transpil
 var exifr = require('exifr/dist/full.umd.js')
 ```
 
-For use in older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](https://github.com/MikeKovarik/exifr/tree/master/examples/legacy.html)
+For use in older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](examples/legacy.html)
 
 ## Examples
 
@@ -153,7 +153,7 @@ exifr exports `parse`, `gps`, `thumbnail`, `thumbnailUrl` functions and `Exifr` 
 
 ### `parse(file[, options])` => `Promise<object>`
 
-Accepts file (in any format), parses it and returns exif object.
+Accepts [file](#file-argument) (in any format), parses it and returns exif object. Optional [options](#options-argument) argument can be specified.
 
 ### `gps(file)` => `Promise<object>`
 
@@ -167,9 +167,9 @@ Check out [examples/gps.js](examples/gps.js) to learn more.
 
 Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
-*Only parses as little EXIF as necessary to find offset of the thumbnail.
+*Only parses as little EXIF as necessary to find offset of the thumbnail.*
 
-Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.*
+Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.
 
 ### `thumbnailUrl(file)` => `Promise<string>`, browser only
 
@@ -179,14 +179,12 @@ User should to revoke the URL when not needed anymore. [More info here](https://
 
 ### `Exifr` class
 
-Afore mentioned functions are wrappers that internally:
+Aforementioned functions are wrappers that internally:
 1) instantiate `new Exifr(options)` class
 2) call `.read(file)` to read the file
 3) call `.parse()` or `.extractThumbnail()`
 
-You can instantiate `Exif` yourself to parse metadata and extract thumbnail efficiently at the same time.
-
-*In Node.js it's also necessary to close the file with `.file.close()` if it's read in chunked mode.*
+You can instantiate `Exif` yourself to parse metadata and extract thumbnail efficiently at the same time. In Node.js it's also necessary to close the file with `.file.close()` if it's read in chunked mode.
 
 ```js
 let exr = new Exifr(options)
@@ -209,13 +207,11 @@ if (exr.file.chunked) await exr.file.close()
 * `Blob` / `File`
 * `<img>` element
 
-### `options` argument, optional
+### `options` argument
 
 * `Array` of tags to parse
 * `true` shortcut to parse all segments and blocks
 * `object` with granular settings
-
-default options:
 
 ```js
 let defaultOptions = {
@@ -281,7 +277,7 @@ Array of the only tags that will be parsed.
 
 Array of the tags that will not be parsed.
 
-By default MakerNote and UserComment tags are skipped. But taht is configured [elsewhere](#notable-tiff-tags).
+By default MakerNote and UserComment tags are skipped. But that is configured [elsewhere](#notable-tiff-tags).
 
 ```js
 // Skip reading these three tags in any block
@@ -516,27 +512,31 @@ Converts dates from strings to Date instances and modifies few other tags to a m
 
 #### `options.chunked` `bool` default `true`
 
-Exifr can read just a few chunks instead of the whole file. It is much faster, saves memory and unnecessary disk reads or network fetches.
+Exifr can read only few chunks instead of the whole file. It's much faster, saves memory and unnecessary disk reads or network fetches.
 
-TODO: update
+Just a few bytes and up to few hundreds of kilobytes will be read, depending on the segments you want to extract and traces of metadata found in the file.
 
-~~undefined: Reads first few bytes of the file to look for EXIF in (`seekChunkSize`) and allows reading/fetching additional chunks.
-Ends up with multiple small disk reads for each segment (xmp, icc, iptc)
-*NOTE: Very efficient in Node.js, especially with SSD. Not ideal for browsers*
-false: Reads only one much larger chunk (`parseChunkSize`) in hopes that the EXIF isn't larger then the chunk.
-Disallows further disk reads. i.e. ignores any EXIF found beyond the chunk.~~
+Chunked reading also works with complicated file structures, like .tif files, which points to metadata scattered throughout the file, usually near the end.
 
-Chunked reading is only available with these file inputs: `string` url or disk path, `Blob` or `<img>`. Chunked mode is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself.
+#### How does it work
 
-TODO: update
+First small chunk (of `firstChunkSize`) is read to determine if the file contains any data at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
 
-**Chunked mode** - In browser it's sometimes better to fetch a larger chunk in hope that it contains the whole EXIF (and not just its beginning like in case of `options.seekChunkSize`) in prevention of additional loading and fetching. `options.parseChunkSize` sets that number of bytes to download at once. Node.js only relies on the `options.seekChunkSize`.
+#### Supported inputs
 
-Chunked mode keeps reading more chunks until all requested segments and blocks (defined in options) are found. But the file maight not have some of the segments or blocks, 
+Chunked mode is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself. Supported inputs are: 
+* `string` url / path
+* Base64 `string` / base64 data url
+* `Blob`
+* `<img>`
 
-*Traces of EXIF can usually be found within the first few bytes of the file. If not there likely is no EXIF at all and it's not worth reading the file anymore.*
+#### Reading whole file
 
-**Whole file mode** - If you're not concerned about performance and time (mostly in Node.js) you can tell `exifr` to just read the whole file into memory at once.`
+If you're not concerned about performance and time (mostly in Node.js) you can opt out of chunked reading by `{chunked: false}` to just read the whole file into memory at once
+
+#### Beware
+
+Fetching chunks (implemented in `UrlFetcher`) from web server uses [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). Range request may fail if your server does not support ranges, if it's not configured properly or if the fetched file is smaller than the first chunk size. Test your web server or disable chunked reader with `{chunked: false}` when in doubt.
 
 #### `options.firstChunkSize` `number` default `512` in Node / `65536` in browser
 
@@ -616,7 +616,7 @@ import {tagKeys, tagValues, tagRevivers} from 'exifr'
 
 #### Loading custom set of dictionaries 
 
-Check out [`src/dicts/`](https://github.com/MikeKovarik/exifr/tree/master/src/dicts) for list of all dictionaries.
+Check out [`src/dicts/`](src/dicts) for list of all dictionaries.
 
 ```js
 // Import core build with nothing it.
@@ -644,7 +644,7 @@ Out of the box exifr can read any file format. `lite` and `full` builds also inc
 
 #### Loading custom set of file parsers 
 
-Check out [`src/file-readers/`](https://github.com/MikeKovarik/exifr/tree/master/src/file-readers) for list of all readers.
+Check out [`src/file-readers/`](src/file-readers) for list of all readers.
 
 ```js
 // Import core build with nothing it.
@@ -657,7 +657,7 @@ import 'exifr/src/file-readers/BlobReader.js'
 
 #### Loading custom set of file parsers 
 
-Check out [`src/file-parsers/`](https://github.com/MikeKovarik/exifr/tree/master/src/file-parsers) for list of all parsers.
+Check out [`src/file-parsers/`](src/file-parsers) for list of all parsers.
 
 ```js
 // Import core build with nothing it.
@@ -671,7 +671,7 @@ import 'exifr/src/file-parsers/tiff.js'
 
 #### Loading custom set of segment parsers 
 
-Check out [`src/segment-parsers/`](https://github.com/MikeKovarik/exifr/tree/master/src/segment-parsers) for list of all parsers.
+Check out [`src/segment-parsers/`](src/segment-parsers) for list of all parsers.
 
 ```js
 // Import core build with nothing it.
@@ -684,7 +684,7 @@ import 'exifr/src/segment-parsers/icc-keys.js'
 
 Need to cut down on file size? Try using `lite`, `mini` or even `core` build. Suitable when you only need certain tags (such as gps coords) or you don't mind looking up the the tag codes yourself to save some Kbs.
 
-Need to support older browsers? Use `legacy` build along with polyfills. Learn more about usage in IE11 at [examples/legacy.html](https://github.com/MikeKovarik/exifr/tree/master/examples/legacy.html)
+Need to support older browsers? Use `legacy` build along with polyfills. Learn more about usage in IE11 at [examples/legacy.html](examples/legacy.html)
 
 ### By size
 
