@@ -1,6 +1,6 @@
 import {promises as fs} from 'fs'
-import {assert} from './test-util.js'
-import {isNode, getPath} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {isNode, getPath} from './test-util-core.js'
 import {BufferView} from '../src/util/BufferView.js'
 
 

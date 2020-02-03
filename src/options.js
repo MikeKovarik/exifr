@@ -5,6 +5,7 @@ import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {tagKeys} from './tags.js'
 import * as platform from './util/platform.js'
 import {customError} from './util/helpers.js'
+import {segmentParsers, throwNotLoaded} from './plugins.js'
 
 
 export const chunkedProps = [
@@ -218,6 +219,7 @@ export class Options extends SharedOptions {
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
 		this.filterNestedSegmentTags()
 		this.traverseTiffDependencyTree()
+		this.checkLoadedPlugins()
 	}
 
 	setupFromUndefined() {
@@ -332,6 +334,12 @@ export class Options extends SharedOptions {
 		let bools = otherSegments.map(key => this[key].enabled)
 		if (bools.some(bool => bool === true)) return false
 		return this.tiff.enabled
+	}
+
+	checkLoadedPlugins() {
+		for (let key of segments)
+			if (this[key].enabled && !segmentParsers.has(key))
+				throwNotLoaded('segment parser', key)
 	}
 
 }

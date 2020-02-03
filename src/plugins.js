@@ -1,6 +1,14 @@
 import {customError} from './util/helpers.js'
 
 
+export function throwUnknown(kind, key) {
+	throw customError(`Unknown ${kind} '${key}'.`)
+}
+
+export function throwNotLoaded(kind, key) {
+	throw customError(`${kind} '${key}' was not loaded, try using full build of exifr.`)
+}
+
 class PluginList extends Map {
 
 	constructor(kind) {
@@ -8,24 +16,17 @@ class PluginList extends Map {
 		this.kind = kind
 	}
 
+	// INVESTIGATE: move this check from runtime to options constructor
 	get(key, options) {
 		if (!this.has(key))
-			this.throwNotLoaded()
+			throwNotLoaded(this.kind, key)
 		if (options) {
 			if (!(key in options))
-				this.throwUnknown()
+				throwUnknown(this.kind, key)
 			if (!options[key].enabled)
-				this.throwNotLoaded()
+				throwNotLoaded(this.kind, key)
 		}
 		return super.get(key)
-	}
-
-	throwUnknown() {
-		throw customError(`Unknown ${this.kind} '${key}'.`)
-	}
-
-	throwNotLoaded() {
-		throw customError(`${this.kind} '${key}' was not loaded, try using full build of exifr.`)
 	}
 
 	keyList() {

@@ -1,5 +1,5 @@
-import {assert} from './test-util.js'
-import {getFile, testSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {getFile} from './test-util-core.js'
 import {Exifr} from '../src/bundle-full.js'
 import * as exifr from '../src/bundle-full.js'
 import {gpsOnlyOptions} from '../src/options.js'

@@ -1,4 +1,4 @@
-import {assert} from './test-util.js'
+import {assert} from './test-util-core.js'
 import {Ranges, DynamicBufferView} from '../src/util/DynamicBufferView.js'
 
 

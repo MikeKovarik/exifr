@@ -1,5 +1,6 @@
-import {assert} from './test-util.js'
-import {getFile, getPath, testSegment} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {getFile, getPath} from './test-util-core.js'
+import {testSegment} from './test-util-suites.js'
 import * as exifr from '../src/bundle-full.js'
 import XmpParser from '../src/segment-parsers/xmp.js'
 

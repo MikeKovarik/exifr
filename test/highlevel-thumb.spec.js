@@ -1,5 +1,5 @@
-import {assert} from './test-util.js'
-import {getFile, getPath, isNode, isBrowser} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {getFile, getPath, isNode, isBrowser} from './test-util-core.js'
 import {Exifr} from '../src/bundle-full.js'
 import * as exifr from '../src/bundle-full.js'
 

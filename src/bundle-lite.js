@@ -2,16 +2,17 @@ export * from './bundle-mini.js'
 
 
 // File Readers
-import './file-readers/FsReader.js'
-import './file-readers/Base64Reader.js'
 import './file-readers/UrlFetcher.js'
 import './file-readers/BlobReader.js'
 
 // File Parser
 import './file-parsers/jpeg.js'
+import './file-parsers/heic.js'
 
 // TIFF Parser
 import './segment-parsers/tiff-exif.js'
+import './segment-parsers/iptc.js'
+import './segment-parsers/xmp.js'
 
 // TIFF Keys
 import './dicts/tiff-ifd0-keys.js'

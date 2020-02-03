@@ -1,5 +1,5 @@
-import {assert, isNode, isBrowser} from './test-util.js'
-import {getPath, getFile, btoa} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {getPath, getFile, isNode, isBrowser} from './test-util-core.js'
 import {FsReader} from '../src/file-readers/FsReader.js'
 import {BlobReader} from '../src/file-readers/BlobReader.js'
 import {UrlFetcher} from '../src/file-readers/UrlFetcher.js'

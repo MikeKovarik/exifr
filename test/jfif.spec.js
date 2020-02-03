@@ -1,5 +1,5 @@
-import {assert} from './test-util.js'
-import {getFile, testSegment, testMergeSegment, testImage} from './test-util.js'
+import {assert} from './test-util-core.js'
+import {testSegment, testMergeSegment, testImage} from './test-util-suites.js'
 import {Exifr} from '../src/bundle-full.js'
 import * as exifr from '../src/bundle-full.js'
 

@@ -33,6 +33,9 @@ createDictionary(tagValues, 'iptc', [
         'S': 'Square',
     }],
 
+	// not useful in images
+
+/*
     [150, {
         '0T': 'Text Only',
         '1A': 'Mono Actuality',
@@ -85,5 +88,5 @@ createDictionary(tagValues, 'iptc', [
         28: 'Ritzaus Bureau NITF version (RBNITF DTD)',
         29: 'Corel Draw [.CDR]',
     }],
-
+*/
 ])

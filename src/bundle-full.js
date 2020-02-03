@@ -1,15 +1,17 @@
 export * from './bundle-lite.js'
 
 
+// File Readers
+import './file-readers/FsReader.js'
+import './file-readers/Base64Reader.js'
+
 // File Parsers
 import './file-parsers/tiff.js'
 import './file-parsers/heic.js'
 
 // Segment Parsers
 import './segment-parsers/jfif.js'
-import './segment-parsers/iptc.js'
 import './segment-parsers/icc.js'
-import './segment-parsers/xmp.js'
 
 // TIFF - Additional tags
 import './dicts/tiff-interop-keys.js'
