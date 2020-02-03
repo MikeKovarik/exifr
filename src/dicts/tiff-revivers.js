@@ -10,7 +10,11 @@ tagRevivers.set('thumbnail', ifd0)
 
 createDictionary(tagRevivers, 'exif', [
 	[0xA000, toAsciiString],
-	[0x9000, toAsciiString],
+	[0x9000, bytes => {
+		let array = Array.from(bytes).slice(1)
+		if (array[2] === 0) array.pop()
+		return array.join('.')
+	}],
 	[0x9003, reviveDate],
 	[0x9004, reviveDate],
 ])
