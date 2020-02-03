@@ -32,11 +32,11 @@
   "type": "module",
   "types": "index.d.ts",
   "scripts": {
-    "test": "mocha test/**.spec.js --exclude test/bundle*.spec.js",
-    "test-bundles": "mocha ./test/bundle-mini.spec.js && mocha ./test/bundle-lite.spec.js && mocha ./test/bundle-full.spec.js",
-    "test-full": "mocha ./test/bundle-full.spec.js",
-    "test-lite": "mocha ./test/bundle-lite.spec.js",
-    "test-mini": "mocha ./test/bundle-mini.spec.js",
+    "test": "mocha test/**.spec.js --exclude test/bundle-mini.spec.js --exclude test/bundle-lite.spec.js --exclude test/bundle-full.spec.js",
+    "test-bundles": "mocha test/bundle-mini.spec.js && mocha test/bundle-lite.spec.js && mocha test/bundle-full.spec.js",
+    "test-full": "mocha test/bundle-full.spec.js",
+    "test-lite": "mocha test/bundle-lite.spec.js",
+    "test-mini": "mocha test/bundle-mini.spec.js",
     "coverage": "c8 npm test",
     "build": "rollup -c rollup.config.js"
   },
