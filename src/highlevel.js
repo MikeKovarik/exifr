@@ -34,6 +34,8 @@ export async function gps(input) {
 	let exr = new Exifr(gpsOnlyOptions)
 	await exr.read(input)
 	let output = await exr.parse()
-	let {latitude, longitude} = output.gps
-	return {latitude, longitude}
+	if (output && output.gps) {
+		let {latitude, longitude} = output.gps
+		return {latitude, longitude}
+	}
 }
