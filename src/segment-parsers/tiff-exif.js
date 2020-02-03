@@ -396,6 +396,9 @@ export class TiffExif extends TiffCore {
 		return this.chunk.getUint8Array(offset, length)
 	}
 
+	get image()     {return this.ifd0}
+	get thumbnail() {return this.ifd1}
+
 	createOutput() {
 		let output = {}
 		let block, blockKey, blockOutput
