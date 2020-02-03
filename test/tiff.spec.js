@@ -122,7 +122,6 @@ describe('TIFF Segment', () => {
 			let input = await getFile('canon-dslr.jpg')
 			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
 			var output = await exifr.parse(input, options)
-            console.log('-: output', output)
 			assert.isObject(output)
 		})
 
