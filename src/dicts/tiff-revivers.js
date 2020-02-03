@@ -9,12 +9,8 @@ const ifd0 = createDictionary(tagRevivers, 'ifd0', [
 tagRevivers.set('thumbnail', ifd0)
 
 createDictionary(tagRevivers, 'exif', [
-	[0xA000, toAsciiString],
-	[0x9000, bytes => {
-		let array = Array.from(bytes).slice(1)
-		if (array[2] === 0) array.pop()
-		return array.join('.')
-	}],
+	[0xA000, reviveVersion],
+	[0x9000, reviveVersion],
 	[0x9003, reviveDate],
 	[0x9004, reviveDate],
 ])
@@ -23,6 +19,14 @@ createDictionary(tagRevivers, 'gps', [
 	[0x0000, val => Array.from(val).join('.')], // GPSVersionID
 	[0x0007, val => Array.from(val).join(':')], // GPSTimeStamp
 ])
+
+function reviveVersion(bytes) {
+	let array = Array.from(bytes)
+		.slice(1)
+		.map(code => String.fromCharCode(code))
+	if (array[2] === '0') array.pop()
+	return array.join('.')
+}
 
 export function reviveDate(string) {
 	if (typeof string !== 'string') return null
