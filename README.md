@@ -54,17 +54,22 @@ Works everywhere, parses everything and handles anything you throw at it.
 npm install exifr
 ```
 
-You can pick and choose from various builds - `full`, `lite`, `mini`, `core`. For browsers we recommend `mini` or `lite` because of balance between features and file size.
+You can pick from various builds - `full`, `lite`, `mini`, `core`. In browsers we recommend `mini` or `lite` because of balance between features and file size.
+
+TODO: link to distributions
 
 ```js
-// node.js, uses full build by default
-import * as exifr from 'exifr'
+// node.js
+import * as exifr from 'exifr' // loads 'full' build by default
 
 // modern browser
 import * as exifr from 'node_modules/exifr/dist/lite.esm.js'
 ```
 
-Also availabe as UMD bundle which exports everything as `window.exifr`. Transpiled to ES5, compatible with RequireJS and CJS (Node `require()`). 
+Also availabe as UMD bundle
+* transpiled to ES5
+* compatible with RequireJS and CJS (Node `require()`)
+* exports everything as `window.exifr`
 
 ```html
 <script src="https://unpkg.com/exifr/dist/mini.umd.js"></script>
@@ -73,7 +78,7 @@ Also availabe as UMD bundle which exports everything as `window.exifr`. Transpil
 var exifr = require('exifr/dist/full.umd.js')
 ```
 
-For use in older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](examples/legacy.html)
+In older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](examples/legacy.html)
 
 ## Examples
 
@@ -146,6 +151,15 @@ importScripts('./node_modules/exifr/dist/mini.umd.js')
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
+### Demos & more examples
+
+* [playground](://mutiny.cz/exifr)
+* examples/thumbnail.html - [demo](://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
+* examples/worker.html - [demo](://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
+* examples/legacy.html - [demo](://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
+* examples/benchmark.html - [demo](://mutiny.cz/exifr/examples/benchmark.html), [code](examples/benchmark.html) (tests speed of processing of various input types)
+
+and a lot more in the [examples/](examples/) folder
 
 ## API
 
@@ -395,119 +409,6 @@ TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 }
 ```
 
-### Output format
-
-#### `options.mergeOutput` default: `true`
-
-Merges all parsed segments and blocks into a single object.
-
-**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
-
-<table><tr>
-<td>mergeOutput: false</td>
-<td>mergeOutput: true</td>
-</tr><tr><td><pre>
-{
-  Make: 'Google',
-  Model: 'Pixel',
-  FNumber: 2,
-  Country: 'Czech Republic',
-  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
-}
-</pre></td><td><pre>
-{
-  ifd0: {
-    Make: 'Google',
-    Model: 'Pixel'
-  },
-  exif: {FNumber: 2, ...},
-  iptc: {Country: 'Czech Republic', ...}
-  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
-}
-</pre></td></tr></table>
-
-#### `options.sanitize` default: `true`
-
-Removes:
-
-* IFD Pointer addresses from output of TIFF segment
-* `ApplicationNotes` tag (raw `Uint8Array` form of XMP) in .tif files
-
-#### `options.translateKeys` default: `true`
-
-Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
-
-[Key dictionaries](#tag-keys) can be customized. Check out [Dictionaries](#dictionaries) for more.
-
-**Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
-
-*Keys are numeric, sometimes refered to in hex notation. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`*
-
-<table><tr>
-<td>translateKeys: false</td>
-<td>translateKeys: true</td>
-</tr><tr><td><pre>{
-  ifd0: {0x0110: 'Pixel', ...},
-  iptc: {90: 'Vsetín', ...},
-  icc: {
-    64: 'Perceptual',
-    desc: 'sRGB IEC61966-2.1',
-  }
-}</pre></td><td><pre>{
-  ifd0: {Model: 'Pixel', ...},
-  iptc: {City: 'Vsetín', ...},
-  icc: {
-    RenderingIntent: 'Perceptual',
-    ProfileDescription: 'sRGB IEC61966-2.1',
-  }
-}</pre></td></tr></table>
-
-#### `options.translateValues` default: `true`
-
-Translates tag values from raw enums to understandable strings.
-
-[Value dictionaries](#tag-values) can be customized. Check out [Dictionaries](#dictionaries) for more.
-
-<table><tr>
-<td>translateValues: false</td>
-<td>translateValues: true</td>
-</tr><tr><td><pre>
-{
-  Orientation: 1,
-  ResolutionUnit: 2,
-  Flash: 16,
-  DeviceManufacturer: 'GOOG'
-}
-</pre></td><td><pre>
-{
-  Orientation: 'Horizontal (normal)',
-  ResolutionUnit: 'inches',
-  Flash: 'Flash did not fire, compulsory flash mode',
-  DeviceManufacturer: 'Google'
-}
-</pre></td></tr></table>
-
-#### `options.reviveValues` default: `true`
-
-Converts dates from strings to Date instances and modifies few other tags to a more readable format.
-
-[Value revivers](#tag-revivers) can be customized. Check out [Dictionaries](#dictionaries) for more.
-
-<table><tr>
-<td>reviveValues: false</td>
-<td>reviveValues: true</td>
-</tr><tr><td><pre>
-{
-  GPSVersionID: [0x02, 0x02, 0x00, 0x00],
-  ModifyDate: '2018:07:25 16:34:23',
-}
-</pre></td><td><pre>
-{
-  GPSVersionID: '2.2.0.0',
-  ModifyDate: &lt;Date instance: 2018-07-25T14:34:23.000Z&gt;,
-}
-</pre></td></tr></table>
-
 ### Chunked reader
 
 #### `options.chunked` `bool` default `true`
@@ -563,121 +464,237 @@ This limit is bypassed if multi-segment segments occurs in the file and if `opti
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
 
-## Modular distributions
+### Output format
 
-Exifr comes with prebuilt bundles. You can choose from four bundles based on your needs and prevent loading unused code. Especially in browsers it's a good idea to start development with `full` build and then scale down to a lighter build. Or better yet, start with `core` and only load the readers, parsers and dictionaries you need.
+#### `options.mergeOutput` default: `true`
 
-TODO
+Merges all parsed segments and blocks into a single object.
 
-Out of the box exifr can read any file format. `lite` and `full` builds also include `ChunkedReader` and the ability to read files by chunks. Each file format requires its own reader. `full` build includes all of them but you can start with `core` build and only load the readers you need.
+**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
 
-### Plugin API
+<table><tr>
+<td>mergeOutput: false</td>
+<td>mergeOutput: true</td>
+</tr><tr><td><pre>
+{
+  Make: 'Google',
+  Model: 'Pixel',
+  FNumber: 2,
+  Country: 'Czech Republic',
+  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
+}
+</pre></td><td><pre>
+{
+  ifd0: {
+    Make: 'Google',
+    Model: 'Pixel'
+  },
+  exif: {FNumber: 2, ...},
+  iptc: {Country: 'Czech Republic', ...}
+  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
+}
+</pre></td></tr></table>
 
-Exifr was built to be modular with each
-that can be loaded and used independently.
+#### `options.sanitize` default: `true`
+
+Removes:
+
+* IFD Pointer addresses from output of TIFF segment
+* `ApplicationNotes` tag (raw `Uint8Array` form of XMP) in .tif files
+
+#### `options.translateKeys` default: `true`
+
+Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
+
+[Key dictionaries](#tag-keys) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+
+**Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
+
+*Keys are numeric, sometimes refered to in hex notation. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`*
+
+<table><tr>
+<td>translateKeys: false</td>
+<td>translateKeys: true</td>
+</tr><tr><td><pre>{
+  ifd0: {0x0110: 'Pixel', ...},
+  iptc: {90: 'Vsetín', ...},
+  icc: {
+    64: 'Perceptual',
+    desc: 'sRGB IEC61966-2.1',
+  }
+}</pre></td><td><pre>{
+  ifd0: {Model: 'Pixel', ...},
+  iptc: {City: 'Vsetín', ...},
+  icc: {
+    RenderingIntent: 'Perceptual',
+    ProfileDescription: 'sRGB IEC61966-2.1',
+  }
+}</pre></td></tr></table>
+
+#### `options.translateValues` default: `true`
+
+Translates tag values from raw enums to understandable strings.
+
+[Value dictionaries](#tag-values) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+
+<table><tr>
+<td>translateValues: false</td>
+<td>translateValues: true</td>
+</tr><tr><td><pre>
+{
+  Orientation: 1,
+  ResolutionUnit: 2,
+  Flash: 16,
+  DeviceManufacturer: 'GOOG'
+}
+</pre></td><td><pre>
+{
+  Orientation: 'Horizontal (normal)',
+  ResolutionUnit: 'inches',
+  Flash: 'Flash did not fire, compulsory flash mode',
+  DeviceManufacturer: 'Google'
+}
+</pre></td></tr></table>
+
+#### `options.reviveValues` default: `true`
+
+Converts dates from strings to Date instances and modifies few other tags to a more readable format.
+
+[Value revivers](#tag-revivers) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+
+<table><tr>
+<td>reviveValues: false</td>
+<td>reviveValues: true</td>
+</tr><tr><td><pre>
+{
+  GPSVersionID: [0x02, 0x02, 0x00, 0x00],
+  ModifyDate: '2018:07:25 16:34:23',
+}
+</pre></td><td><pre>
+{
+  GPSVersionID: '2.2.0.0',
+  ModifyDate: &lt;Date instance: 2018-07-25T14:34:23.000Z&gt;,
+}
+</pre></td></tr></table>
+
+### Modularity, Pugin API
+
+This is mostly **relevant for Web Browsers**, where file size and unused code elimination is important.
+
+Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
+
+The library's functionality is divided into four categories: 
 
 * **File readers** handle different input formats (Blob, Base64, URLs and file paths) that you feed into exifr.
 * **File parsers** look for metadata in files (.jpg, .tif, .heic)
 * **Segment parsers** extract data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
 * **Dictionaries** Affect the way parsed output looks.
 
-### Translation dictionaries
+Each reader, parser and dictionary is broken down into separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and safe tens of KBs of unused dictionaries.
 
-Data in EXIF are mostly numeric enums, stored under number code instead of name. Dictonaries are needed translate them into meaningful output.
+### File Readers (based on chunked reader)
 
-Dictionaries take a good portion of the exifr's size. But you may not even need most of it.
+Exifr can read any file format out of the box. But to read the file by chunks a custom reader class is needed for each format.
 
-Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
-[JFIF](https://exiftool.org/TagNames/JFIF.html),
-TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
-[ICC](https://exiftool.org/TagNames/ICC_Profile.html),
-[IPTC](https://exiftool.org/TagNames/IPTC.html)
-
-<table><tr>
-<td>Raw</td>
-<td>translateKeys: true<br>translateValues: false</td>
-<td>translateKeys: false<br>translateValues: true</td>
-<td>Fully translated</td>
-</tr><tr><td><pre>
-{42: 1}
-</pre></td><td><pre>
-{Sharpness: 1}
-</pre></td><td><pre>
-{42: 'Strong'}
-</pre></td><td><pre>
-{Sharpness: 'Strong'}
-</pre></td></tr></table>
-
-#### Customizing dictionaries
-
-```js
-import {tagKeys, tagValues, tagRevivers} from 'exifr'
-```
-
-#### Loading custom set of dictionaries 
-
-Check out [`src/dicts/`](src/dicts) for list of all dictionaries.
-
-```js
-// Import core build with nothing it.
-import * as exifr from 'exifr/dist/core.esm.js'
-// Only load anything related to ICC.
-import 'exifr/src/dicts/icc-keys.js'
-import 'exifr/src/dicts/icc-values.js'
-```
-
-```js
-// Lite version only contains basic set of TIFF tags.
-import * as exifr from 'exifr/dist/lite.esm.js'
-// Load additional list of less frequently used TIFF tags.
-import 'exifr/src/dicts/tiff-other-keys.js'
-```
-
-### File Readers
-
-Out of the box exifr can read any file format. `lite` and `full` builds also include `ChunkedReader` and the ability to read files by chunks. Each file format requires its own reader. `full` build includes all of them but you can start with `core` build and only load the readers you need.
+Complete list at: [`src/file-parsers/`](src/file-readers).
 
 * `Base64Reader`
 * `BlobReader` Browser only
 * `FsReader` Node.js only
 * `UrlFetcher` Browser only
 
-#### Loading custom set of file parsers 
-
-Check out [`src/file-readers/`](src/file-readers) for list of all readers.
-
-```js
-// Import core build with nothing it.
-import * as exifr from 'exifr/dist/core.esm.js'
-// We're only going to read file in Blob format, import Blob reader.
-import 'exifr/src/file-readers/BlobReader.js'
-```
-
 ### File Parsers
 
-#### Loading custom set of file parsers 
+Complete list at: [`src/file-parsers/`](src/file-parsers).
 
-Check out [`src/file-parsers/`](src/file-parsers) for list of all parsers.
-
-```js
-// Import core build with nothing it.
-import * as exifr from 'exifr/dist/core.esm.js'
-// Only load .heic and .tif file parsers
-import 'exifr/src/file-parsers/heic.js'
-import 'exifr/src/file-parsers/tiff.js'
-```
+* jpeg
+* tiff
+* heic
 
 ### Segment Parsers
 
-#### Loading custom set of segment parsers 
+Complete list at: [`src/file-parsers/`](src/segment-parsers).
 
-Check out [`src/segment-parsers/`](src/segment-parsers) for list of all parsers.
+* TIFF/EXIF (IFD0, EXIF, GPS)
+* XMP
+* IPTC
+* ICC
+* JFIF
+
+### Translation dictionaries
+
+EXIF Data are mostly numeric enums, stored under numeric code. Dictonaries are needed to translate them into meaningful output.
+
+Dictionaries take a good portion of the exifr's size. But you may not even need some of them.
+
+Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
+TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
+[ICC](https://exiftool.org/TagNames/ICC_Profile.html),
+[IPTC](https://exiftool.org/TagNames/IPTC.html),
+[JFIF](https://exiftool.org/TagNames/JFIF.html)
+
+### Examples - Dictionary customization
 
 ```js
-// Import core build with nothing it.
+import {tagKeys, tagValues} from 'exifr'
+// Sharpness tag of EXIF block
+let TAG = 0xa409
+// get dictionaries
+let exifKeys   = tagRevivers.get('exif')
+let exifValues = tagKeys.get('exif')
+// extend or edit dictionaries
+exifKeys.set(TAG, 'Saturation')
+exifValues.set(TAG, {
+	0: 'Normal',
+	1: 'Low',
+	2: 'High'
+})
+```
+
+```js
+import {tagRevivers} from 'exifr'
+// modify how GPSDateStamp value is processed
+let gpsRevivers = tagRevivers.get('gps')
+gpsRevivers.set(0x001D, rawValue => {
+	let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
+	return new Date(year, month - 1, day)
+})
+```
+
+### Examples - Build your own exifr
+
+Check out [examples/custom-build.js](examples/custom-build.js).
+
+Scenario 1: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human readable format. For that we'll need dictionaries for ICC segment.
+
+```js
+// Core bundle has nothing in it
 import * as exifr from 'exifr/dist/core.esm.js'
-// Only load anything related to ICC.
-import 'exifr/src/segment-parsers/icc-keys.js'
+// Now we import what we need
+import 'exifr/src/file-readers/BlobReader.js'
+import 'exifr/src/file-parsers/jpeg.js'
+import 'exifr/src/segment-parsers/icc.js'
+import 'exifr/src/dicts/icc-keys.js'
+import 'exifr/src/dicts/icc-values.js'
+```
+
+Scenario 2: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we dont mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also we're not importing any (chunked) file reader because we only work with Uint8Array data.
+
+```js
+import * as exifr from 'exifr/dist/core.esm.js'
+import 'exifr/src/file-parsers/heic.js'
+import 'exifr/src/file-parsers/tiff.js'
+import 'exifr/src/segment-parsers/tiff.js'
+import 'exifr/src/dicts/tiff-exif-values.js'
+```
+
+Scenario 3: We're using `lite` build and it's ok, but some tags are left untranslated. To fix that we need to import extension of TIFF dictionary with less frequent tags.
+
+```js
+// Lite bundle only contains basic set of TIFF tags
+import * as exifr from 'exifr/dist/lite.esm.js'
+// Load TIFF dict extension with names of less frequent tags.
+import 'exifr/src/dicts/tiff-other-keys.js'
 ```
 
 ## Distributions (builds)
@@ -685,6 +702,12 @@ import 'exifr/src/segment-parsers/icc-keys.js'
 Need to cut down on file size? Try using `lite`, `mini` or even `core` build. Suitable when you only need certain tags (such as gps coords) or you don't mind looking up the the tag codes yourself to save some Kbs.
 
 Need to support older browsers? Use `legacy` build along with polyfills. Learn more about usage in IE11 at [examples/legacy.html](examples/legacy.html)
+
+
+* **full** - Contains everything. Intended for use in Node.js.
+* **lite** - Reads `.jpg` and `.heic` photos. Parses TIFF/EXIF and XMP. Includes chunked reader.
+* **mini** - Stripped down to basics. Fetches whole file and realiably parses most useful TIFF/EXIF info from `.jpg`s. Does not include any dictonaries, nor chunked reader. 
+* **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 ### By size
 
@@ -721,15 +744,10 @@ TODO - work in progress
 | inputs          | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string<br>base64 string or url | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string |
 | file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | none | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
-| segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>IPTC<br>XMP | TIFF (EXIF) | none |
-| dictionaries    | ... | ... | ... | none |
-| size            | 40 Kb | 30 Kb | 20 Kb | 10 Kb |
-| file            | `dist/full.esm.js`<br>`dist/full.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
-
-* **full** - Contains everything - all readers, parsers, dictionaries. Intended for use in Node.js.
-* **lite** - like `mini` + support for modern `.heic` (iPhone) photos, IPTC parser (photo description and author) XMP parser (panorama & tech details)
-* **mini** - Stripped down to basics, as lightweight as it can get. fetches whole file and realiably parses most useful info from jpegs.
-* **core** - Build your own
+| segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
+| dictionaries    | extended TIFF (everything, including less frequent tags)<br>IPTC<br>ICC | basic TIFF (IFD0, EXIF, GPS) | none | none |
+| size +-         | 60 Kb | 35 Kb | 25 Kb | 10 Kb |
+| file            | `dist/full.esm.js`<br>`dist/full.umd.js`<br>`dist/full.legacy.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js`<br>`dist/lite.legacy.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js`<br>`dist/mini.legacy.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
 
 Of course you can use `full` version in browser, or use any other builds in Node.js. Either to save memory, or to build your own exifr with `core` and hand picking parsers you need.
 
@@ -747,6 +765,8 @@ require('exifr/index.legacy.js') // imports index.legacy.js
 ```
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
+
+TODO: rewrite
 
 Out of the box the library comes in:
 1) **index.mjs** - the modern **ES Module** format
