@@ -246,6 +246,7 @@ describe('ChunkedReader', () => {
 				let exr = new Exifr({
 					firstChunkSize: chunkSize,
 					chunkSize: chunkSize,
+					stopAfterSos: false, // disabled JPEG optimization
 					iptc: true // NEEDED! this bypasses onlyTiff optimizatin which cuts off reading more chunks
 				})
 				await exr.read(file2.input)
@@ -384,7 +385,7 @@ describe('ChunkedReader', () => {
 
 	it(`should only read one chunk if only TIFF is wanted, when parsing file without exif`, async () => {
 		const chunkSize = 1000
-		let options = {chunked: true, tiff: true, icc: false, iptc: false, xmp: false, jfif: false, firstChunkSize: chunkSize, chunkSize}
+		let options = {chunked: true, tiff: true, icc: false, iptc: false, xmp: false, jfif: false, firstChunkSize: chunkSize, chunkSize, stopAfterSos: false}
 		let exr = new Exifr(options)
 		await exr.read(getPath(file2.name))
 		await exr.parse()
@@ -392,10 +393,10 @@ describe('ChunkedReader', () => {
 		assert.equal(exr.file.chunksRead, 1)
 	})
 
-	it(`reads 'chunkLimit' chunks if more than TIFF is wanted, when parsing file without exif`, async () => {
+	it(`reads up to 'chunkLimit' chunks if more than TIFF is wanted, when parsing file without exif`, async () => {
 		const chunkSize = 1000
 		const chunkLimit = 4
-		let options = {chunked: true, tiff: true, icc: false, iptc: true, xmp: false, jfif: false, firstChunkSize: chunkSize, chunkSize, chunkLimit}
+		let options = {chunked: true, tiff: true, icc: false, iptc: true, xmp: false, jfif: false, firstChunkSize: chunkSize, chunkSize, chunkLimit, stopAfterSos: false}
 		let exr = new Exifr(options)
 		await exr.read(getPath(file2.name))
 		await exr.parse()
