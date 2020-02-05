@@ -4,7 +4,6 @@ import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMME
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
-import {ConvertDMSToDD} from '../dicts/tiff-revivers.js'
 import {isEmpty} from '../util/helpers.js'
 import {customError} from '../util/helpers.js'
 
@@ -422,6 +421,14 @@ export class TiffExif extends TiffCore {
 		return output
 	}
 
+}
+
+function ConvertDMSToDD(degrees, minutes, seconds, direction) {
+	var dd = degrees + (minutes / 60) + (seconds / (60*60))
+	// Don't do anything for N or E
+	if (direction == 'S' || direction == 'W')
+		dd *= -1
+	return dd
 }
 
 segmentParsers.set('tiff', TiffExif)

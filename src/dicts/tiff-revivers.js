@@ -28,7 +28,7 @@ function reviveVersion(bytes) {
 	return array.join('.')
 }
 
-export function reviveDate(string) {
+function reviveDate(string) {
 	if (typeof string !== 'string') return null
 	string = string.trim()
 	var [dateString, timeString] = string.split(' ')
@@ -41,12 +41,4 @@ export function reviveDate(string) {
 		date.setSeconds(seconds)
 	}
 	return date
-}
-
-export function ConvertDMSToDD(degrees, minutes, seconds, direction) {
-	var dd = degrees + (minutes / 60) + (seconds / (60*60))
-	// Don't do anything for N or E
-	if (direction == 'S' || direction == 'W')
-		dd *= -1
-	return dd
 }
