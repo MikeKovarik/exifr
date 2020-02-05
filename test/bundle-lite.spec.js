@@ -19,6 +19,6 @@ testBundle('lite', exifr, {
 		jfif: false,
 		xmp: true,
 		icc: false,
-		iptc: true,
+		iptc: false,
 	}
 })
