@@ -61,7 +61,7 @@ function getSegmentType(buffer, offset) {
 export class JpegFileParser extends FileParserBase {
 
 	appSegments = []
-	jpgSegments = []
+	jpegSegments = []
 	unknownSegments = []
 
 	async parse() {
@@ -127,12 +127,16 @@ export class JpegFileParser extends FileParserBase {
 				else
 					eof = !await file.readNextChunk(nextChunkOffset)
 				offset = this._findAppSegments(offset, file.byteLength)
+				if (offset === undefined) {
+					// search for APP segments was cancelled because we reach raw jpeg image data.
+					return
+				}
 			}
 		}
 	}
 
 	_findAppSegments(offset, end) {
-		let {file, findAll, wanted, remaining} = this
+		let {file, findAll, wanted, remaining, options} = this
 		let marker2, isAppSegment, isJpgSegment
 		for (; offset < end; offset++) {
 			if (file.getUint8(offset) !== MARKER_1) continue
@@ -149,7 +153,7 @@ export class JpegFileParser extends FileParserBase {
 					// known and parseable segment found
 					let Parser = segmentParsers.get(type)
 					let seg = Parser.findPosition(file, offset)
-					let segOpts = this.options[type]
+					let segOpts = options[type]
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
@@ -172,10 +176,21 @@ export class JpegFileParser extends FileParserBase {
 				} else {
 					// either unknown/supported appN segment or just a noise.
 					let seg = AppSegmentParserBase.findPosition(file, offset)
-					this.unknownSegments.push(seg)
+					if (options.recordUnknownSegments) {
+						this.unknownSegments.push(seg)
+					}
 				}
-			} else if (isJpgSegment) {
-				this.jpgSegments.push({offset, length})
+			} else {
+				if (marker2 === MARKER_2_SOS && options.stopAfterSos !== false) {
+					// Compressed data follows after SOS. SOS marker does not have length bytes.
+					// (it acutally does but its usually 12 - useless). Lot of FF00 markes also
+					// follow but those do not have any length either. It's better to stop reading
+					// the file here.
+					return undefined
+				}
+				if (options.recordJpegSegments) {
+					this.jpegSegments.push({offset, length, marker: marker2})
+				}
 			}
 			offset += length + 1
 		}

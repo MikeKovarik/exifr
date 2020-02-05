@@ -249,6 +249,8 @@ export class Options extends SharedOptions {
 
 	setupFromObject(userOptions) {
 		let key
+		// needed for adding additional (and internal options properties like stopAfterSos for jpg)
+		Object.assign(this, userOptions)
 		for (key of chunkedProps)      this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of allFormatters)     this[key] = getDefined(userOptions[key], defaults[key])
 		for (key of tiffExtractables)  this[key] = getDefined(userOptions[key], defaults[key])
