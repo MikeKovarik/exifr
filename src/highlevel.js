@@ -14,18 +14,18 @@ export async function thumbnail(input, options = {}) {
 	options.mergeOutput = true
 	let exr = new Exifr(options)
 	await exr.read(input)
-	let uint8array = await exr.extractThumbnail()
-	if (uint8array && platform.hasBuffer)
-		return Buffer.from(uint8array)
+	let u8arr = await exr.extractThumbnail()
+	if (u8arr && platform.hasBuffer)
+		return Buffer.from(u8arr)
 	else
-		return uint8array
+		return u8arr
 }
 
 // only available in browser
 export async function thumbnailUrl(...args) {
-	let uint8array = await this.thumbnail(...args)
-	if (uint8array !== undefined) {
-		let blob = new Blob([uint8array.buffer])
+	let u8arr = await this.thumbnail(...args)
+	if (u8arr !== undefined) {
+		let blob = new Blob([u8arr]) // note: dont use AB directly, because of byteOffset
 		return URL.createObjectURL(blob)
 	}
 }

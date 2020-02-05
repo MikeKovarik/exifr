@@ -103,21 +103,31 @@ describe('thumbnail', () => {
 
 		it(`returns thumbnail`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await exifr.thumbnail(input, options)
+			var thumb = await exifr.thumbnail(input)
 			assertThumbnailData(thumb)
 			assertThumbnailLength(thumb)
 		})
 
 		isBrowser && it(`returns Uint8Array in browser`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await exifr.thumbnail(input, options)
+			var thumb = await exifr.thumbnail(input)
 			assert.instanceOf(thumb, Uint8Array)
 		})
 
 		isNode && it(`returns Buffer in node`, async () => {
 			let input = await getFile(fileName)
-			var thumb = await exifr.thumbnail(input, options)
+			var thumb = await exifr.thumbnail(input)
 			assert.instanceOf(thumb, Buffer)
+		})
+
+		it(`points to proper position in memory`, async () => {
+			let input = await getFile(fileName)
+			var u8arr = await exifr.thumbnail(input)
+			assert.equal(u8arr.byteLength, 5448, 'thumbnail should be 5448 bytes long')
+			assert.equal(u8arr[0], 255, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[1], 216, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[2], 255, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[3], 219, 'thumbnail contains incorrect data')
 		})
 
     })
@@ -126,9 +136,21 @@ describe('thumbnail', () => {
 
 		it(`returns string url`, async () => {
 			let input = await getFile(fileName)
-			var url = await exifr.thumbnailUrl(input, options)
+			var url = await exifr.thumbnailUrl(input)
 			assert.typeOf(url, 'string')
 			assert.isTrue(url.startsWith('blob:http'))
+		})
+
+		it(`points to proper position in memory`, async () => {
+			let input = await getFile(fileName)
+			var url = await exifr.thumbnailUrl(input)
+			let arrayBuffer = await fetch(url).then(res => res.arrayBuffer())
+			let u8arr = new Uint8Array(arrayBuffer)
+			assert.equal(u8arr.byteLength, 5448, 'thumbnail should be 5448 bytes long')
+			assert.equal(u8arr[0], 255, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[1], 216, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[2], 255, 'thumbnail contains incorrect data')
+			assert.equal(u8arr[3], 219, 'thumbnail contains incorrect data')
 		})
 
     })
