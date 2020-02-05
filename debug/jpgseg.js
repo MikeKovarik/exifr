@@ -3,21 +3,30 @@ import {Exifr} from '../src/bundle-full.js'
 import {promises as fs} from 'fs'
 import path from 'path'
 
-(async function() {
+
+let options = {
+	stopAfterSos: false,
+	recordJpegSegments: true,
+	recordUnknownSegments: true,
+}
+
+async function main() {
 	let filePath = path.join('../test/fixtures/IMG_20180725_163423.jpg')
 	let fileBuffer = await fs.readFile(filePath)
-	let exr = new Exifr()
+	let exr = new Exifr(options)
 	await exr.read(fileBuffer)
 	exr.setup()
 	await exr.fileParser.findAppSegments(0, true)
     console.log('----- appSegments -----')
     console.log(exr.fileParser.appSegments)
-    console.log('----- jpgSegments -----')
-    console.log(exr.fileParser.jpgSegments)
+    console.log('----- jpegSegments -----')
+    console.log(exr.fileParser.jpegSegments)
     console.log('----- unknownSegments -----')
     console.log(exr.fileParser.unknownSegments)
 	//exr.parse()
-})()
+}
+
+main()
 
 function kb(bytes) {
 	return Math.round(bytes / 1024) + 'kb'
