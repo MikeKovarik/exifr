@@ -180,6 +180,9 @@ export class TiffCore extends AppSegmentParserBase {
 
 const blockKeys = ['ifd0', 'thumbnail', 'exif', 'gps', 'interop']
 
+const TAG_FILESOURCE = 0xa300
+const TAG_SCENETYPE  = 0xa301
+
 /*
 JPEG with EXIF segment starts with App1 header (FF E1, length, 'Exif\0\0') and then follows the TIFF.
 Whereas .tif file format starts with the TIFF structure right away.
@@ -338,7 +341,15 @@ export class TiffExif extends TiffCore {
 			exif.delete(TAG_MAKERNOTE)
 			exif.delete(TAG_USERCOMMENT)
 		}
+		this.unpack(exif, TAG_FILESOURCE)
+		this.unpack(exif, TAG_SCENETYPE)
 		return exif
+	}
+
+	unpack(map, key) {
+		let value = map.get(key)
+		if (value && value.length === 1)
+			map.set(key, value[0])
 	}
 
 	// GPS block of TIFF of APP1 segment
