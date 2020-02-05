@@ -1,4 +1,4 @@
-importScripts('../index.js')
+importScripts('../dist/lite.umd.js')
 
 self.onmessage = async e => {
 	console.log('worker received task from main')

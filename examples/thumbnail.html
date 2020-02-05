@@ -13,24 +13,39 @@
 	pre {
 		white-space: pre-line;
 	}
+	.layout {
+		display: flex;
+	}
+	.box + .box {
+		margin-left: 20px;
+	}
 	</style>
 </head>
 <body>
 
 	<input id="fileinput" type="file">
 
-	<h3>Original image</h3>
-	<img id="original">
-	<pre id="original-desc"></pre>
+	<div class="layout">
 
-	<h3>Extracted thumbnail</h3>
-	<img id="thumbnail">
-	<pre id="thumbnail-desc"></pre>
+		<div class="box">
+			<h3>Original image</h3>
+			<img id="original">
+			<pre id="original-desc"></pre>
+		</div>
+
+		<div class="box">
+			<h3>Extracted thumbnail</h3>
+			<img id="thumbnail">
+			<pre id="thumbnail-desc"></pre>
+		</div>
+
+	</div>
 
 	<!-- UMD module that exports itself to window.exifr -->
-	<script src="../index.js"></script>
+	<script src="../dist/lite.umd.js"></script>
 
 	<script>
+
 		function promiseImg(img) {
 			if (img.naturalWidth !== 0)
 				return Promise.resolve()
@@ -49,15 +64,21 @@
 		let originalDesc = document.querySelector("#original-desc")
 		let thumbnailDesc = document.querySelector("#thumbnail-desc")
 
-		processUrl('../test/IMG_20180725_163423.jpg')
+		processFile('../test/fixtures/IMG_20180725_163423.jpg')
 
-		async function processUrl(url) {
+		async function processFile(arg) {
+			let url
+			if (arg instanceof Blob)
+				url = URL.createObjectURL(e.target.files[0])
+			else
+				url = arg
 			original.src = url
 			await promiseImg(original)
 			// original image loaded, extract thumb
 			let t0 = performance.now()
 			thumbnail.src = await exifr.thumbnailUrl(original)
-			console.log(thumbnail.src)
+			console.log('original ', original.src)
+			console.log('thumbnail', thumbnail.src)
 			let t1 = performance.now()
 			// thumb extracted
 			printImgInfo(original, originalDesc)
@@ -75,14 +96,8 @@
 		}
 
 		filePicker.addEventListener('change', async e => {
-			let url = URL.createObjectURL(e.target.files[0])
-			processUrl(url)
+			processFile(url)
 		})
-
-		function arrayBufferToUrl(arrayBuffer) {
-			let thumbBlob = new Blob([arrayBuffer], {type: 'image/jpeg'})
-			return URL.createObjectURL(thumbBlob)
-		}
 
 	</script>
 

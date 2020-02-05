@@ -1,4 +1,7 @@
-var exifr = require('../index.cjs')
+// NOTE: run this outside of this library, because we use {"type": "module"} in package.json
+// which makes node interpret all *.js files as ES Modules.
+
+var exifr = require('../dist/full.umd.js')
 var fs = require('fs').promises
 
 fs.readFile('../test/fixtures/IMG_20180725_163423.jpg')
