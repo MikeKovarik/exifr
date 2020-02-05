@@ -585,47 +585,29 @@ Exifr comes in four prebuilt bundles. It's a good idea to start development with
 
 The library's functionality is divided into four categories: 
 
-* **File readers** handle different input formats (Blob, Base64, URLs and file paths) that you feed into exifr.
-* **File parsers** look for metadata in files (.jpg, .tif, .heic)
-* **Segment parsers** extract data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
-* **Dictionaries** Affect the way parsed output looks.
+* **File reader**
+<br>reads different input data structures by chunks.
+<br>`BlobReader` (Browsers), `FsReader` (Node.js), `UrlFetcher` (Browsers), `Base64Reader`
+<br>Complete list at: [`src/file-parsers/`](src/file-readers).
+* **File parser**
+<br>looks for metadata in different file formats
+<br>`.jpg`, `.tiff`, `.heic`
+<br>Complete list at: [`src/file-parsers/`](src/file-parsers).
+* **Segment parser**
+<br>extract data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
+<br>TIFF/EXIF (IFD0, EXIF, GPS), XMP, IPTC, ICC, JFIF
+<br>Complete list at: [`src/segment-parsers/`](src/segment-parsers).
+* **Dictionary**
+<br>affects the way parsed output looks.
+<br>Complete list at: [`src/dicts/`](src/dicts).
 
 Each reader, parser and dictionary is broken down into separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and safe tens of KBs of unused dictionaries.
 
-### File Readers (based on chunked reader)
-
-Exifr can read any file format out of the box. But to read the file by chunks a custom reader class is needed for each format.
-
-Complete list at: [`src/file-parsers/`](src/file-readers).
-
-* `Base64Reader`
-* `BlobReader` Browser only
-* `FsReader` Node.js only
-* `UrlFetcher` Browser only
-
-### File Parsers
-
-Complete list at: [`src/file-parsers/`](src/file-parsers).
-
-* jpeg
-* tiff
-* heic
-
-### Segment Parsers
-
-Complete list at: [`src/file-parsers/`](src/segment-parsers).
-
-* TIFF/EXIF (IFD0, EXIF, GPS)
-* XMP
-* IPTC
-* ICC
-* JFIF
+~~Exifr can read any file format out of the box. But to read the file by chunks a custom reader class is needed for each format.~~
 
 ### Translation dictionaries
 
-EXIF Data are mostly numeric enums, stored under numeric code. Dictonaries are needed to translate them into meaningful output.
-
-Dictionaries take a good portion of the exifr's size. But you may not even need some of them.
+EXIF Data are mostly numeric enums, stored under numeric code. Dictonaries are needed to translate them into meaningful output. But they take up a lot of space (40 KB out of `full` build's 60 KB). So it's a good idea to make your own bundle and shave off the dicts you don't need.
 
 Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
 TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
@@ -633,7 +615,7 @@ TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.o
 [IPTC](https://exiftool.org/TagNames/IPTC.html),
 [JFIF](https://exiftool.org/TagNames/JFIF.html)
 
-### Examples - Dictionary customization
+### Example - Dictionary customization
 
 ```js
 import {tagKeys, tagValues} from 'exifr'
@@ -645,9 +627,9 @@ let exifValues = tagKeys.get('exif')
 // extend or edit dictionaries
 exifKeys.set(TAG, 'Saturation')
 exifValues.set(TAG, {
-	0: 'Normal',
-	1: 'Low',
-	2: 'High'
+  0: 'Normal',
+  1: 'Low',
+  2: 'High'
 })
 ```
 
@@ -656,12 +638,12 @@ import {tagRevivers} from 'exifr'
 // modify how GPSDateStamp value is processed
 let gpsRevivers = tagRevivers.get('gps')
 gpsRevivers.set(0x001D, rawValue => {
-	let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
-	return new Date(year, month - 1, day)
+  let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
+  return new Date(year, month - 1, day)
 })
 ```
 
-### Examples - Build your own exifr
+### Example - Build your own exifr
 
 Check out [examples/custom-build.js](examples/custom-build.js).
 
