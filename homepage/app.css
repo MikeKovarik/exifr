@@ -36,9 +36,8 @@ h3,
 [accent] {
 	color: rgb(50, 80, 144);
 }
-.error {
+.red {
 	color: rgb(180, 20, 5);
-	text-transform: none;
 }
 h2 {
 	font-weight: 500;

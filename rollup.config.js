@@ -28,6 +28,14 @@ function ignoreFile(fileName) {
 	};
 }
 
+function injectIgnoreComments() {
+	return {
+		renderChunk(code) {
+			return code.replace(`import(`, `import(/* webpackIgnore: true */ `)
+		}
+	};
+}
+
 const terserConfig = {
 	compress: true,
 	mangle: true,
@@ -58,10 +66,16 @@ const babelLegacy = Object.assign({}, babelShared, {
 	],
 })
 
-function createEsmBundle(inputPath, outputPath, babelConfig) {
+function createLegacyBundle(inputPath, outputPath) {
 	return {
 		input: inputPath,
-		plugins: [notify(), babel(babelConfig), terser(terserConfig)],
+		plugins: [
+			ignoreFile('FsReader.js'),
+			notify(),
+			babel(babelLegacy),
+			terser(terserConfig),
+			injectIgnoreComments()
+		],
 		external,
 		output: {
 			file: outputPath,
@@ -71,33 +85,38 @@ function createEsmBundle(inputPath, outputPath, babelConfig) {
 	}
 }
 
-function createUmdBundle(inputPath, outputPath, babelConfig) {
+function createModernBundle(inputPath, esmPath, umdPath) {
 	return {
 		input: inputPath,
-		plugins: [ignoreFile('FsReader.js'), notify(), babel(babelConfig), terser(terserConfig)],
+		plugins: [
+			notify(),
+			babel(babelModern),
+			terser(terserConfig),
+			injectIgnoreComments()
+		],
 		external,
-		output: {
-			file: outputPath,
+		output: [{
+			file: umdPath,
 			format: 'umd',
 			name,
 			amd,
 			globals,
-		},
+		}, {
+			file: esmPath,
+			format: 'esm',
+			globals,
+		}],
 	}
 }
 
 export default [
-	createEsmBundle('src/bundle-full.js', 'dist/full.esm.js',         babelModern),
-	createUmdBundle('src/bundle-full.js', 'dist/full.umd.js',         babelModern),
-	createUmdBundle('src/bundle-full.js', 'dist/full.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/bundle-lite.js', 'dist/lite.esm.js',         babelModern),
-	createUmdBundle('src/bundle-lite.js', 'dist/lite.umd.js',         babelModern),
-	createUmdBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/bundle-mini.js', 'dist/mini.esm.js',         babelModern),
-	createUmdBundle('src/bundle-mini.js', 'dist/mini.umd.js',         babelModern),
-	createUmdBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js',  babelLegacy),
-	createEsmBundle('src/bundle-core.js', 'dist/core.esm.js',         babelModern),
-	createUmdBundle('src/bundle-core.js', 'dist/core.umd.js',         babelModern),
+	createModernBundle('src/bundle-full.js','dist/full.esm.js', 'dist/full.umd.js'),
+	createModernBundle('src/bundle-lite.js','dist/lite.esm.js', 'dist/lite.umd.js'),
+	createModernBundle('src/bundle-mini.js','dist/mini.esm.js', 'dist/mini.umd.js'),
+	createModernBundle('src/bundle-core.js','dist/core.esm.js', 'dist/core.umd.js'),
+	createLegacyBundle('src/bundle-full.js', 'dist/full.legacy.umd.js'),
+	createLegacyBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js'),
+	createLegacyBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js'),
 ]
 
 function objectFromArray(modules) {

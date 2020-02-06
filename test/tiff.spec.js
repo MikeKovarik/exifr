@@ -139,14 +139,26 @@ describe('TIFF Segment', () => {
 
 		it(`FileSource is unpacked to single value`, async () => {
 			let input = await getFile('empty-imagedesc-in-ifd0.jpg')
-			var output = await exifr.parse(input, {exif: true})
-			assert.notInstanceOf(output.FileSource, Uint8Array)
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.notInstanceOf(output[0xa300], Uint8Array)
 		})
 
 		it(`SceneType is unpacked to single value`, async () => {
 			let input = await getFile('empty-imagedesc-in-ifd0.jpg')
-			var output = await exifr.parse(input, {exif: true})
-			assert.notInstanceOf(output.SceneType, Uint8Array)
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.notInstanceOf(output[0xa301], Uint8Array)
+		})
+
+		it(`ExifVersion is 2.2 when <0x48 0x50 0x50 0x48>`, async () => {
+			let input = await getFile('IMG_20180725_163423.jpg')
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.equal(output[0x9000], '2.2')
+		})
+
+		it(`ExifVersion is 2.2 when <0x00 0x02 0x02 0x00>`, async () => {
+			let input = await getFile('32d08f4a5eb10332506ebedbb9bc7257.jpg')
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.equal(output[0x9000], '2.2')
 		})
 
 	})

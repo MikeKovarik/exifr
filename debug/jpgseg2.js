@@ -5,6 +5,7 @@ import path from 'path'
 
 
 const markerNames = {
+	e0: 'APP0',
 	e1: 'APP1',
 	e2: 'APP2',
 	e3: 'APP3',
@@ -34,7 +35,8 @@ const markerNames = {
 }
 
 //let dirPath = '../test/fixtures'
-let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/fixtures'
+//let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/fixtures'
+let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/from-metadata-extractor'
 
 let options = {
 	stopAfterSos: false,
@@ -56,21 +58,26 @@ function isJpeg(fileName) {
 }
 
 async function handleFile(fileName) {
-    let filePath = dirPath + '/' + fileName
-	let fileBuffer = await fs.readFile(filePath)
-	let exr = new Exifr(options)
-	await exr.read(fileBuffer)
-	exr.setup()
-	await exr.fileParser.findAppSegments(0, true)
-	let {appSegments, jpegSegments, unknownSegments} = exr.fileParser
-	let allSegments = [...appSegments, ...jpegSegments, ...unknownSegments]
-	let names = allSegments.map(getSegmentName)
-	console.log(fileName.padEnd(50, ' '), names.join(' '))
+	try {
+		let filePath = dirPath + '/' + fileName
+		let fileBuffer = await fs.readFile(filePath)
+		let exr = new Exifr(options)
+		await exr.read(fileBuffer)
+		exr.setup()
+		await exr.fileParser.findAppSegments(0, true)
+		let {appSegments, jpegSegments, unknownSegments} = exr.fileParser
+		let allSegments = [...appSegments/*, ...jpegSegments*/, ...unknownSegments]
+		let names = allSegments.map(getSegmentName)
+		console.log(fileName.padEnd(50, ' '), names.join(' '))
+	} catch(err) {
+		console.log('ERROR', fileName)
+		console.log(err)
+	}
 }
 
 function getSegmentName(seg) {
 	if (seg.type) {
-		return seg.type
+		return seg.type.toUpperCase()
 	} else if (seg.marker !== undefined) {
 		let code = seg.marker.toString(16)
 		return markerNames[code] || code

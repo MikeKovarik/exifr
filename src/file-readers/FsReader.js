@@ -4,10 +4,9 @@ import * as platform from '../util/platform.js'
 
 
 if (platform.node) {
-	if (typeof require === 'function')
-		var fsPromise = Promise.resolve(require('fs').promises)
-	else
-		var fsPromise = import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
+	var fsPromise = typeof require === 'function'
+		? Promise.resolve(require('fs').promises)
+		: import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
 }
 
 export class FsReader extends ChunkedReader {

@@ -173,12 +173,11 @@ export class JpegFileParser extends FileParserBase {
 						}
 						if (remaining.size === 0) break
 					}
-				} else {
+				} if (options.recordUnknownSegments) {
 					// either unknown/supported appN segment or just a noise.
 					let seg = AppSegmentParserBase.findPosition(file, offset)
-					if (options.recordUnknownSegments) {
-						this.unknownSegments.push(seg)
-					}
+					seg.marker = marker2
+					this.unknownSegments.push(seg)
 				}
 			} else {
 				if (marker2 === MARKER_2_SOS && options.stopAfterSos !== false) {

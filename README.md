@@ -153,11 +153,11 @@ self.onmessage = async e => postMessage(await exifr.parse(e.data))
 
 ### Demos & more examples
 
-* [playground](://mutiny.cz/exifr)
-* examples/thumbnail.html - [demo](://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
-* examples/worker.html - [demo](://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
-* examples/legacy.html - [demo](://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
-* examples/benchmark.html - [demo](://mutiny.cz/exifr/examples/benchmark.html), [code](examples/benchmark.html) (tests speed of processing of various input types)
+* [playground](https://mutiny.cz/exifr)
+* examples/thumbnail.html - [demo](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
+* examples/worker.html - [demo](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
+* examples/legacy.html - [demo](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
+* examples/benchmark.html - [demo](https://mutiny.cz/exifr/examples/benchmark.html), [code](examples/benchmark.html) (tests speed of processing of various input types)
 
 and a lot more in the [examples/](examples/) folder
 
@@ -311,7 +311,7 @@ EXIF became synonymous for all image metadata, but it's actually just one of man
 Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats use different structures or naming conventions but the idea is the same, so we refer to TIFF, XMP, IPTC, ICC and JFIF as Segments.
 
 * `options.tiff` `<bool|object|Array>` default: `true`
-<br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of image, exif, gps blocks
+<br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of blocks: IFD0 (image), IFD1 (thumbnail), EXIF, GPS
 * `options.jfif` `<bool>` default: `false`
 <br>JFIF APP0 Segment - Additional info
 * `options.xmp` `<bool>` default: `false`
@@ -340,7 +340,7 @@ TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
 * `options.tiff = true` enables all TIFF blocks (sets them to `true`).
 * `options.tiff = false` disables all TIFF blocks (sets them to `false`).
-* `options.tiff = {...}` does not enable nor disable any TIFF blocks. But all options (such as `translateKeys`) from `options.tiff` are applied to all TIFF blocks that are enabled.
+* `options.tiff = {...}` applies the same sub-options to all TIFF blocks that are enabled.
 
 `options.tiff = false` can be paired with any other block(s) to disable all other blocks except for said block.
 
@@ -359,7 +359,7 @@ Notable large tags from EXIF block that are not parsed by default but can be ena
 * `options.userComment` `<bool>` default: `false`
 <br>0x9286 UserComment tag
 
-#### TIFF Scoping options
+#### TIFF Sub-Options
 
 Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `tiff` segment can be set to:
 * `true` - enabled with default or inherited options.
@@ -425,15 +425,13 @@ First small chunk (of `firstChunkSize`) is read to determine if the file contain
 
 #### Supported inputs
 
-Chunked mode is uneffective if you use `Buffer`, `ArrayBuffer` or `Uint8Array` as an input, which would mean you already read (the whole) file yourself. Supported inputs are: 
-* `string` url / path
-* Base64 `string` / base64 data url
-* `Blob`
-* `<img>`
+Chunked mode is only effective if you use `Blob`, `<img>` element, `string` url, disk path, or base64 as an input, because these inputs are not yet processed or read into memory and exifr can handle this expensive operation by chunks.
+
+Each input format is implemented in separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
 
 #### Reading whole file
 
-If you're not concerned about performance and time (mostly in Node.js) you can opt out of chunked reading by `{chunked: false}` to just read the whole file into memory at once
+You can opt out of chunked reading by `{chunked: false}` if you're not concerned about performance and time (mostly in Node.js).
 
 #### Beware
 
@@ -481,7 +479,7 @@ Merges all parsed segments and blocks into a single object.
   Model: 'Pixel',
   FNumber: 2,
   Country: 'Czech Republic',
-  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
+  xmp: '&lt;x:xmpmeta&gt;&lt;rdf:Description>...'
 }
 </pre></td><td><pre>
 {
@@ -489,9 +487,13 @@ Merges all parsed segments and blocks into a single object.
     Make: 'Google',
     Model: 'Pixel'
   },
-  exif: {FNumber: 2, ...},
-  iptc: {Country: 'Czech Republic', ...}
-  xmp: '&lt;x:xmpmeta ...&gt;&lt;rdf:Description ...'
+  exif: {
+    FNumber: 2
+  },
+  iptc: {
+    Country: 'Czech Republic'
+  },
+  xmp: '&lt;x:xmpmeta&gt;&lt;rdf:Description>...'
 }
 </pre></td></tr></table>
 
@@ -506,36 +508,38 @@ Removes:
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 
-[Key dictionaries](#tag-keys) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`
+
+Lean more about [dictionaries](#modularity-pugin-api).
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
-
-*Keys are numeric, sometimes refered to in hex notation. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`*
 
 <table><tr>
 <td>translateKeys: false</td>
 <td>translateKeys: true</td>
 </tr><tr><td><pre>{
-  ifd0: {0x0110: 'Pixel', ...},
-  iptc: {90: 'Vsetín', ...},
-  icc: {
-    64: 'Perceptual',
-    desc: 'sRGB IEC61966-2.1',
-  }
+  // IFD0 tag
+  0x0110: 'Pixel',
+  // IPTC tag
+  90: 'Vsetín',
+  // ICC tags
+  64: 'Perceptual',
+  desc: 'sRGB IEC61966-2.1',
 }</pre></td><td><pre>{
-  ifd0: {Model: 'Pixel', ...},
-  iptc: {City: 'Vsetín', ...},
-  icc: {
-    RenderingIntent: 'Perceptual',
-    ProfileDescription: 'sRGB IEC61966-2.1',
-  }
+  // IFD0 tag
+  Model: 'Pixel',
+  // IPTC tag
+  City: 'Vsetín',
+  // ICC tags
+  RenderingIntent: 'Perceptual',
+  ProfileDescription: 'sRGB IEC61966-2.1',
 }</pre></td></tr></table>
 
 #### `options.translateValues` default: `true`
 
 Translates tag values from raw enums to understandable strings.
 
-[Value dictionaries](#tag-values) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+Lean more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
 <td>translateValues: false</td>
@@ -544,14 +548,12 @@ Translates tag values from raw enums to understandable strings.
 {
   Orientation: 1,
   ResolutionUnit: 2,
-  Flash: 16,
   DeviceManufacturer: 'GOOG'
 }
 </pre></td><td><pre>
 {
   Orientation: 'Horizontal (normal)',
   ResolutionUnit: 'inches',
-  Flash: 'Flash did not fire, compulsory flash mode',
   DeviceManufacturer: 'Google'
 }
 </pre></td></tr></table>
@@ -560,7 +562,7 @@ Translates tag values from raw enums to understandable strings.
 
 Converts dates from strings to Date instances and modifies few other tags to a more readable format.
 
-[Value revivers](#tag-revivers) can be customized. Check out [Dictionaries](#dictionaries) for more. TODO: fix link
+Lean more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -581,33 +583,31 @@ Converts dates from strings to Date instances and modifies few other tags to a m
 
 This is mostly **relevant for Web Browsers**, where file size and unused code elimination is important.
 
-Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
+The library's functionality is divided into four categories.
 
-The library's functionality is divided into four categories: 
-
-* **File reader**
-<br>reads different input data structures by chunks.
-<br>`BlobReader` (Browsers), `FsReader` (Node.js), `UrlFetcher` (Browsers), `Base64Reader`
-<br>Complete list at: [`src/file-parsers/`](src/file-readers).
-* **File parser**
-<br>looks for metadata in different file formats
+* **File reader** reads different input data structures by chunks.
+<br> `BlobReader` (browser), `UrlFetcher` (browser), `FsReader` (Node.js), `Base64Reader`
+<br>See [`src/file-parsers/`](src/file-readers).
+* **File parser** looks for metadata in different file formats
 <br>`.jpg`, `.tiff`, `.heic`
-<br>Complete list at: [`src/file-parsers/`](src/file-parsers).
-* **Segment parser**
-<br>extract data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
+<br>See [`src/file-parsers/`](src/file-parsers).
+* **Segment parser** extracts data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
 <br>TIFF/EXIF (IFD0, EXIF, GPS), XMP, IPTC, ICC, JFIF
-<br>Complete list at: [`src/segment-parsers/`](src/segment-parsers).
-* **Dictionary**
-<br>affects the way parsed output looks.
-<br>Complete list at: [`src/dicts/`](src/dicts).
+<br>See [`src/segment-parsers/`](src/segment-parsers).
+* **Dictionary** affects the way parsed output looks.
+<br>See [`src/dicts/`](src/dicts).
 
-Each reader, parser and dictionary is broken down into separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and safe tens of KBs of unused dictionaries.
+Each reader, parser and dictionary is broken into a separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and safe tens of KBs of unused dictionaries.
 
-~~Exifr can read any file format out of the box. But to read the file by chunks a custom reader class is needed for each format.~~
+Any file format can be read out of the box. But custom reader class for each format is needed to enable chunked reading.
 
 ### Translation dictionaries
 
 EXIF Data are mostly numeric enums, stored under numeric code. Dictonaries are needed to translate them into meaningful output. But they take up a lot of space (40 KB out of `full` build's 60 KB). So it's a good idea to make your own bundle and shave off the dicts you don't need.
+
+* **Key dict** translates object keys from numeric codes to string names (`output.Model` instead of `output[0x0110]`)
+* **Value dict** translates vales from enum to string description (`Orientation` becomes `'Rotate 180'` instead of `3`)
+* **Reviver** further modifies the value (converts date string to instance of `Date`)
 
 Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
 TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
@@ -681,91 +681,37 @@ import 'exifr/src/dicts/tiff-other-keys.js'
 
 ## Distributions (builds)
 
-Need to cut down on file size? Try using `lite`, `mini` or even `core` build. Suitable when you only need certain tags (such as gps coords) or you don't mind looking up the the tag codes yourself to save some Kbs.
+Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
 
-Need to support older browsers? Use `legacy` build along with polyfills. Learn more about usage in IE11 at [examples/legacy.html](examples/legacy.html)
-
+Need to support older browsers? Use `legacy` build along with polyfills. Learn more about IE11 at [examples/legacy.html](examples/legacy.html)
 
 * **full** - Contains everything. Intended for use in Node.js.
-* **lite** - Reads `.jpg` and `.heic` photos. Parses TIFF/EXIF and XMP. Includes chunked reader.
-* **mini** - Stripped down to basics. Fetches whole file and realiably parses most useful TIFF/EXIF info from `.jpg`s. Does not include any dictonaries, nor chunked reader. 
+* **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
+* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF  from JPEGs. Does not include dictonaries, nor chunked reader. 
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
-### By size
-
-* **Default** (with tag dictionary)
-<br>Includes both parser and the tag dictionary (additional ~16 Kb).
-<br>Values are accessed by tag name: `output.exif.ExposureTime`
-* **Lite**
-<br>Only includes parser. Tags are not translated using dictionary.
-<br>Values are accessed by tag code: `output.exif[0x829A]`
-
-### By module / bundle
-
-* **ESM**
-<br>The new ES Module using the new syntax `import {parse} from 'exifr'`
-* **UMD**
-<br>The classic javascript that can be used with AMD (RequireJS), CJS (Node.js `require()`), or simply `<script>`ed in browsers.
-
-### By supported target
-
-* **Modern**
-<br>Supports latest few versions of not dead browsers.
-<br>Uses new syntax and features like classes and async/await.
-<br>The output is lightweight, without any polyfills.
-* **Legacy**
-<br>Supports older browsers including IE 11.
-<br>Code is transpiled with babel and includes babel's polyfills (for ES6 classes and async/await) which makes it about 2x the size of modern build.
-<br>You still need to provide polyfill for Array.from, Set, TextEncoder, Object.entries and other ES6+ features
-
-TODO - work in progress
+Of course you can use `full` version in browser, or use any other build in Node.js.
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
-| chunked reader  | yes  | yes  | no   | no   |
 | inputs          | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string<br>base64 string or url | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string |
-| file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | none | none |
+| file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
 | segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
 | dictionaries    | extended TIFF (everything, including less frequent tags)<br>IPTC<br>ICC | basic TIFF (IFD0, EXIF, GPS) | none | none |
-| size +-         | 60 Kb | 35 Kb | 25 Kb | 10 Kb |
+| size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
+| gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
 | file            | `dist/full.esm.js`<br>`dist/full.umd.js`<br>`dist/full.legacy.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js`<br>`dist/lite.legacy.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js`<br>`dist/mini.legacy.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
-
-Of course you can use `full` version in browser, or use any other builds in Node.js. Either to save memory, or to build your own exifr with `core` and hand picking parsers you need.
-
-```js
-import {parse} from './node_modules/exifr/index.mjs'
-```
-```html
-<script src="./node_modules/exifr/index.legacy.js"></script>
-```
-```js
-require('exifr') // imports index.js
-```
-```js
-require('exifr/index.legacy.js') // imports index.legacy.js
-```
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 
-TODO: rewrite
-
-Out of the box the library comes in:
-1) **index.mjs** - the modern **ES Module** format
-<br>*Not bundled, index.mjs further imports few other files from src/ folder*
-<br>*You may want to bundle & treeshake this yourself*
-2) **index.js** - **UMD bundle** which
-<br>*combines the classic Node.js CommonJS `require('exifr')` with AMD/Require.js as well as browser-friendly `<script src="node_modules/exifrdist/mini.esmx.js">`*
-<br>*All in one file*
-<br>*Prebundled with Rollup*
-
-Under the hood `exifr` dynamically imports Node.js `fs` module, but only ran under Node.js. The import is obviously not triggered in browser. Your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
+Under the hood exifr dynamically imports Node.js `fs` module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
 
 Parcel works out of the box and Webpack should too because we added the ignore magic comment to the library's source code `import(/* webpackIgnore: true */ 'fs')`.
 
-If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config.
+If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config. Or try adding similar settings to your bundler of choice.
 
-Or try adding similar settings to your bundler of choice.
+Alternatively create your own bundle around `core` build and do not include `FsReader` in it.
 
 ## Notable breaking changes / Migration from 2.x.x to 3.0.0
 
@@ -789,8 +735,7 @@ exifr.thumbnail()
 
 ## XMP
 
-Exifr does not come with an XML parser out of the box, because those are heavy, complicated. And there's plenty of them on npm already.
-So to keep exifr simple and light-weight, it only extract the XMP string and you have to parse it yourself.
+Exifr does not come with an XML parser out of the box to keep the library simple and light-weight. There's plenty of XML parsers on npm. Exifr only extracts the XMP string and you can parse it.
 
 You can also inject XML parser into exifr and have it process the XMP string.
 
@@ -798,10 +743,9 @@ You can also inject XML parser into exifr and have it process the XMP string.
 // Exifr offers you an API for using your own XML parser while parsing XMP.
 // 1) get the XmlParser class.
 let XmpParser = Exifr.segmentParsers.get('xmp')
-// 2) Implement parseXml() method which takes one string argument
-//    and returns anything that ends up as output.xmp.
+// 2) Implement parseXml() method. It accepts string argument. What is returned ends up as output.xmp.
 XmpParser.prototype.parseXml = function(xmpString) {
-	return 'Bring Your Own XML parser here: ' + xmpString
+  return 'Bring Your Own XML parser here: ' + xmpString
 }
 ```
 
@@ -885,7 +829,7 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 * Drag-n-dropping gallery of 90 images and extracting GPS data takes about 100ms.
 * Phones are about 4x slower. Usually 4-30ms per photo.
 
-Be sure to visit [**the exifr playground**](://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
+Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
 
 #### HEIC
 

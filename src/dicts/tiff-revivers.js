@@ -21,10 +21,10 @@ createDictionary(tagRevivers, 'gps', [
 ])
 
 function reviveVersion(bytes) {
-	let array = Array.from(bytes)
-		.slice(1)
-		.map(code => String.fromCharCode(code))
-	if (array[2] === '0') array.pop()
+	let array = Array.from(bytes).slice(1)
+	if (array[1] > 0x0f)
+		array = array.map(code => String.fromCharCode(code))
+	if (array[2] === '0' || array[2] === 0) array.pop()
 	return array.join('.')
 }
 

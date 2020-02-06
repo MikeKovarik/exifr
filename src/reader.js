@@ -14,43 +14,29 @@ export function read(arg, options) {
 	else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 		return new BufferView(arg)
 	else if (platform.browser && arg instanceof Blob)
-		return readBlob(arg, options)
+		return useReader(arg, options, 'blob', readBlobAsArrayBuffer)
 	else
 		throw customError('Invalid input argument')
 }
 
-function readString(string, options) {
-	if (isBase64Url(string))
-		return readBase64(string, options)
+function readString(arg, options) {
+	if (isBase64Url(arg))
+		return useReaderClass(arg, options, 'base64')
 	else if (platform.browser)
-		return readUrl(string, options)
+		return useReader(arg, options, 'url', fetchUrlAsArrayBuffer)
 	else if (platform.node)
-		return readFileFromDisk(string, options)
+		return useReaderClass(arg, options, 'fs')
 	else
 		throw customError('Invalid input argument')
-}
-
-async function readBlob(blob, options) {
-	return useReader(blob, options, 'blob', readBlobAsArrayBuffer)
-}
-
-async function readUrl(url, options) {
-	return useReader(url, options, 'url', fetchUrlAsArrayBuffer)
-}
-
-async function readBase64(base64, options) {
-	return useReaderClass(base64, options, 'base64')
-}
-
-async function readFileFromDisk(filePath, options) {
-	return useReaderClass(filePath, options, 'fs')
 }
 
 async function useReader(url, options, readerName, readerFn) {
 	if (fileReaders.has(readerName))
 		return useReaderClass(url, options, readerName)
+	else if (readerFn)
+		return useReaderFunction(url, readerFn)
 	else
-		return useReaderFunction(url, options, readerFn)
+		throw customError(`Parser ${readerName} is not loaded`)
 }
 
 async function useReaderClass(input, options, readerName) {
@@ -60,7 +46,7 @@ async function useReaderClass(input, options, readerName) {
 	return file
 }
 
-async function useReaderFunction(input, options, readerFn) {
+async function useReaderFunction(input, readerFn) {
 	let rawData = await readerFn(input)
 	return new DataView(rawData)
 }
@@ -85,5 +71,4 @@ export async function readBlobAsArrayBuffer(blob) {
 function isBase64Url(string) {
 	return string.startsWith('data:')
 		|| string.length > 10000 // naive
-	//	|| string.startsWith('/9j/') // expects JPG to always start the same
 }
