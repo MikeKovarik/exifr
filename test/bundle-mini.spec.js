@@ -5,7 +5,7 @@ import * as exifr from '../src/bundle-mini.js'
 testBundle('mini', exifr, {
 	fileReaders: {
 		base64: false,
-		blob: false,
+		blob: true,
 		fs: false,
 		url: false,
 	},
