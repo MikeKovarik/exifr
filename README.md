@@ -647,7 +647,16 @@ gpsRevivers.set(0x001D, rawValue => {
 
 Check out [examples/custom-build.js](examples/custom-build.js).
 
-Scenario 1: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human readable format. For that we'll need dictionaries for ICC segment.
+Scenario 1: We're using `lite` build and it's ok, but some tags are left untranslated. To fix that we need to import extension of TIFF dictionary with less frequent tags.
+
+```js
+// Lite bundle only contains basic set of TIFF tags
+import * as exifr from 'exifr/dist/lite.esm.js'
+// Load TIFF dict extension with names of less frequent tags.
+import 'exifr/src/dicts/tiff-other-keys.js'
+```
+
+Scenario 2: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human readable format. For that we'll need dictionaries for ICC segment.
 
 ```js
 // Core bundle has nothing in it
@@ -660,7 +669,7 @@ import 'exifr/src/dicts/icc-keys.js'
 import 'exifr/src/dicts/icc-values.js'
 ```
 
-Scenario 2: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we dont mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also we're not importing any (chunked) file reader because we only work with Uint8Array data.
+Scenario 3: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we dont mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also we're not importing any (chunked) file reader because we only work with Uint8Array data.
 
 ```js
 import * as exifr from 'exifr/dist/core.esm.js'
@@ -668,15 +677,6 @@ import 'exifr/src/file-parsers/heic.js'
 import 'exifr/src/file-parsers/tiff.js'
 import 'exifr/src/segment-parsers/tiff.js'
 import 'exifr/src/dicts/tiff-exif-values.js'
-```
-
-Scenario 3: We're using `lite` build and it's ok, but some tags are left untranslated. To fix that we need to import extension of TIFF dictionary with less frequent tags.
-
-```js
-// Lite bundle only contains basic set of TIFF tags
-import * as exifr from 'exifr/dist/lite.esm.js'
-// Load TIFF dict extension with names of less frequent tags.
-import 'exifr/src/dicts/tiff-other-keys.js'
 ```
 
 ## Distributions (builds)
