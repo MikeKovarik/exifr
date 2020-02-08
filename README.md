@@ -54,38 +54,32 @@ Works everywhere, parses everything and handles anything you throw at it.
 npm install exifr
 ```
 
-You can pick from various builds - `full`, `lite`, `mini`, `core`. In browsers we recommend `mini` or `lite` because of balance between features and file size.
+You can pick from various builds - `full`, `lite`, `mini`, `core`. In browsers we recommend `mini` or `lite` because of balance between features and file size. [Learn more](#distributions-builds).
 
-TODO: link to distributions
+**Old Node.js users**: This module is written as ES module. If you still use CommonJS, you need load UMD bundle.
 
 ```js
 // node.js
 import * as exifr from 'exifr' // loads 'full' build by default
 
+// older Node.js or CJS project
+var exifr = require('exifr/dist/full.umd.js')
+
 // modern browser
-import * as exifr from 'node_modules/exifr/dist/lite.esm.js'
+import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 ```
 
-Also availabe as UMD bundle
-* transpiled to ES5
-* compatible with RequireJS and CJS (Node `require()`)
-* exports everything as `window.exifr`
+**Old browser users**: Also availabe as UMD bundle - compatible with RequireJS, or exports everything as `window.exifr`
 
 ```html
-<script src="https://unpkg.com/exifr/dist/mini.umd.js"></script>
-```
-```js
-var exifr = require('exifr/dist/full.umd.js')
+<script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
 ```
 
 In older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](examples/legacy.html)
 
 ## Examples
 
-ESM in modern Node.js
-
 ```js
-import * as exifr from 'exifr'
 // exifr reads the file from disk, only a few hundred bytes.
 exifr.parse('./myimage.jpg')
   .then(output => console.log('Camera:', output.Make, output.Model))
@@ -95,11 +89,34 @@ fs.readFile('./myimage.jpg')
   .then(output => console.log('Camera:', output.Make, output.Model))
 ```
 
-UMD in old Node.js
+Extract only GPS
 
 ```js
-var exifr = require('exifr/dist/full.umd.js')
 exifr.gps('./myimage.jpg').then(pos => console.log(pos.latitude, pos.longitude))
+```
+
+Extracting thumbnail
+
+```js
+let thumbBuffer = await exifr.thumbnail(file)
+// or get object URL (browser only)
+img.src = await exifr.thumbnailUrl(file)
+```
+
+Web Worker
+
+```js
+let worker = new Worker('./worker.js')
+worker.postMessage('../test/IMG_20180725_163423.jpg')
+worker.onmessage = e => console.log(e.data)
+// tip: try Transferable Objects with ArrayBuffer
+worker.postMessage(arrayBuffer, [arrayBuffer])
+```
+
+```js
+// worker.js
+importScripts('./node_modules/exifr/dist/mini.umd.js')
+self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
 UMD in Browser
@@ -126,29 +143,6 @@ ESM in Browser
     console.log(`${files.length} photos taken on:`, dates)
   })
 </script>
-```
-
-Extracting thumbnail
-
-```js
-let thumbBuffer = await exifr.thumbnail(file)
-// or get object URL
-img.src = await exifr.thumbnailUrl(file)
-```
-
-WebWorker
-
-```js
-// main.js
-let worker = new Worker('./worker.js')
-worker.postMessage('../test/IMG_20180725_163423.jpg')
-worker.onmessage = e => console.log(e.data)
-```
-
-```js
-// worker.js
-importScripts('./node_modules/exifr/dist/mini.umd.js')
-self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
 ### Demos & more examples
