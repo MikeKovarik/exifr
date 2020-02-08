@@ -7,19 +7,59 @@
 	<!-- testing framework -->
 	<link href="https://unpkg.com/mocha@6.1.4/mocha.css" rel="stylesheet" />
 	<script src="https://unpkg.com/mocha@6.1.4/mocha.js"></script>
+	<!--
+		chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
+		in browser we need to use Require.js version which adds it as global to window object.
+	-->
 	<script src="https://unpkg.com/chai@4.2.0/chai.js"></script>
+
+	<style>
+		@media (prefers-color-scheme: dark) {
+			html {
+				filter: invert(1) hue-rotate(180deg);
+				background: #000;
+			}
+		}
+	</style>
 
 </head>
 <body>
+
+	These tests are written using bleeding edge specs (es modules & import maps). Make sure you use latest Chrome and have all the proper flags enabled.
 
 	<div id="mocha"></div>
 
 	<div id="temp" style="opacity: 0; width: 0; height: 0; overflow: hidden;"></div>
 
-	<!-- libary -->
-	<script src="../index.js"></script>
-	<!-- tests -->
-	<script src="test.js"></script>
+	<script type="importmap">
+	{
+		"imports": {
+			"chai": "./empty.js",
+			"path": "./empty.js",
+			"fs": "./empty.js"
+		}
+	}
+	</script>
+
+	<script type="module">
+		import './BufferView.spec.js'
+		import './DynamicBufferView.spec.js'
+		import './ChunkedReader.spec.js'
+		import './reader.spec.js'
+		import './parser.spec.js'
+		import './options.spec.js'
+		import './output-format.spec.js'
+		import './highlevel-gps.spec.js'
+		import './highlevel-thumb.spec.js'
+		import './tiff.spec.js'
+		import './jfif.spec.js'
+		import './icc.spec.js'
+		import './iptc.spec.js'
+		import './xmp.spec.js'
+		import './fixtures.spec.js'
+		import './issues.spec.js'
+		mocha.run()
+	</script>
 
 </body>
 </html>

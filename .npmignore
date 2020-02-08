@@ -1,5 +1,10 @@
 *
 .*
-!index.js
 !index.mjs
+!index.cjs
+!index.legacy.cjs
+!lite.mjs
+!lite.cjs
+!lite.legacy.cjs
 !src/*
+!index.d.ts

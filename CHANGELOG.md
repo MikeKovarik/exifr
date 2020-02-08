@@ -2,6 +2,55 @@
 
 ## [Unreleased]
 
+## [3.0.0]
+
+### Breaking changes
+#### Exports
+- renamed `ExifParser` class to `Exifr`.
+- renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
+
+#### Output format
+- Renamed `options.image` block to `options.ifd0`.
+- Renamed `options.thumbnail` block to `options.ifd1`.
+- renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
+- Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/dicts/*` files for reference. For example: before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`; before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
+
+#### Options
+- Renamed `output.image` block to `output.ifd0`.
+- Renamed `output.thumbnail` block to `output.ifd1`.
+- removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
+- Changed behavior of `options.wholeFile` and renamed to `options.chunked`
+
+#### library bundles
+- The library now comes in multiple bundles, with varying number of parsers & tag dictonaries. `lite` bundle is now **recommend as the default for browser** use because of its small footprint.
+- Broken down parsers and tag dictionaries into multiple files. No all of them are included in `lite` or `mini` builds.
+- `package.json` defined module as `"type": "module"`. All `.js` files are treated as ES Modules by Node.js.
+
+### Added
+- ICC Parser
+- Older browsers support
+- multiple new output builds (so users can prevent importing unused code)
+- tags filtering (`pick`/`skip` options)
+- `exifr.gps()` 
+
+### Changed
+- major rewrite of a whole input reader pipeline
+    - implemented `BufferView` wrapper class for all forms of binary data.
+    - reimplemented chunked reader
+- major rewrite of a whole parser pipeline
+    - broken the code into separate parser classes & files (TIFF, XMP, IPTC, ICC)
+    - TIFF is no longer the main parser
+    - All APP segments are now first searched in the file and then parsed
+    - implemented base parser class than can be used to implement custom APP-segment parsers by user
+    - exposed segment parsers
+- rewrote readme
+
+## [2.1.4] - 2019-11-10
+
+### Changed
+- udpated dependencies
+- tweaked demo page
+
 ## [2.1.3] - 2019-11-10
 
 ### Added
@@ -47,19 +96,24 @@
 - many bugfixes, typos, stability improvements
 
 ## [1.2.0] - 2019-04-27
+
 ### Fixed
 - issue #1
 
 ## [1.1.0] - 2018-09-29
+
 ### Added
 - AMD module support
 
 ## [1.0.0] - 2018-08-01
+
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v2.1.3...HEAD
-[2.1.2]: https://github.com/MikeKovarik/exifr/compare/v2.1.2...v2.1.3
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/MikeKovarik/exifr/compare/v2.1.3...v3.0.0
+[2.1.4]: https://github.com/MikeKovarik/exifr/compare/v2.1.3...v2.1.4
+[2.1.3]: https://github.com/MikeKovarik/exifr/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/MikeKovarik/exifr/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/MikeKovarik/exifr/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/MikeKovarik/exifr/compare/v2.0.0...v2.1.0

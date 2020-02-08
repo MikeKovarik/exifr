@@ -1,7 +1,7 @@
-import {parse} from '../index.mjs'
+import * as exifr from '../src/index-full.js'
 
 setTimeout(() => {
-	parse(base64)
+	exifr.parse(base64)
 		.then(console.log)
 		.catch(console.error)
 })

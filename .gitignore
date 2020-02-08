@@ -58,5 +58,14 @@ typings/
 .next
 
 package-lock.json
-index.js
-coverage.lcov
+/full.mjs
+/full.cjs
+/full.legacy.cjs
+/lite.mjs
+/lite.cjs
+/lite.legacy.cjs
+/core.mjs
+/core.cjs
+/core.legacy.cjs
+/experiments
+/dist

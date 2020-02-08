@@ -4,15 +4,15 @@ var isBrowser = typeof navigator === 'object'
 if (isBrowser) {
 	var {parse} = window['exifr']
 } else if (isNode) {
-	var {parse} = require('../index.js')
+	var {parse} = require('../dist/full.umd.js')
 	var fs = require('fs').promises
 }
 
 
-var imageUrl = '../test/IMG_20180725_163423.jpg'
+var imageUrl = '../test/fixtures/IMG_20180725_163423.jpg'
 
 var options = {
-	thumbnail: false,
+	ifd1: false, // thumbnail
 	exif: false,
 	interop: false,
 	gps: true,

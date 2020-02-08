@@ -1,0 +1,408 @@
+* {
+	box-sizing: border-box;
+}
+body {
+	font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	font-size: 15px;
+	background-color: rgb(234, 234, 234);
+	color: rgb(80, 80, 80);
+	margin: 0;
+}
+@media (prefers-color-scheme: dark) {
+	body {
+		filter: invert(1) hue-rotate(180deg);
+		background-color: rgb(30, 30, 30);
+	}
+	img {
+		filter: invert(1) hue-rotate(180deg);
+	}
+}
+
+@media only screen and (max-width: 599px) {
+	body {
+		padding: 16px;
+	}
+}
+@media only screen and (min-width: 600px) {
+	body {
+		padding: 40px;
+	}
+}
+
+a,
+h1,
+h2,
+h3,
+[accent] {
+	color: rgb(50, 80, 144);
+}
+.red {
+	color: rgb(180, 20, 5);
+}
+h2 {
+	font-weight: 500;
+	font-size: 28px;
+}
+h3 {
+	font-weight: 700;
+	font-size: 16px;
+}
+h2,
+h3 {
+	position: relative;
+	margin-top: 0px;
+	margin-bottom: 8px;
+	text-transform: capitalize;
+}
+* + h2 {
+	margin-top: 48px;
+}
+* + h3 {
+	margin-top: 24px;
+}
+
+.disabled {
+	opacity: 0.4;
+}
+
+header {
+	position: relative;
+	margin-bottom: 48px;
+	display: grid;
+	/*
+	background-color: rgba(234, 234, 234, 0.7);
+	backdrop-filter: blur(10px);
+	position: sticky;
+	top: 0px;
+	z-index: 999;
+	*/
+}
+	header .badges {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+	header .badges > *:not(:last-child) {
+		margin-right: 8px;
+	}
+	header h1 {
+		width: 167px;
+		height: 89px;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: contain;
+		background-image: url('../logo/blue-small.png');
+		font-size: 0;
+	}
+@media only screen and (min-width: 750px) {
+	header {
+		grid-template-columns: 188px auto;
+		align-items: end;
+	}
+	header .description {
+		padding-bottom: 4px;
+	}
+	header .badges {
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+}
+
+#thumb img {
+	max-width: 188px;
+	max-height: 188px;
+}
+
+#picker,
+#dropzone,
+pre,
+p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+h3 {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+	h3 span:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+#input-head,
+#output-head {
+	margin: 0;
+}
+h2 span,
+h3 span {
+	margin-left: 16px;
+}
+.small,
+h2 span,
+h3 span {
+	font-weight: 400;
+	font-size: 12px;
+}
+
+
+@media only screen and (min-width: 600px) {
+	#dropzone {
+		width: 100%;
+	}
+}
+#dropzone {
+	position: relative;
+	height: 120px;
+	border: 2px dashed rgba(50, 80, 144, 0.2);
+	border-radius: 5px;
+	color: rgba(50, 80, 144, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	white-space: normal;
+	text-shadow: 0 1px 6px rgba(255,255,255,0.7);
+}
+#dropzone:hover {
+	border: 2px dashed rgba(50, 80, 144, 0.4);
+	color: rgba(50, 80, 144, 0.8);
+}
+	#dropzone #picker {
+		cursor: pointer;
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+	}
+	#dropzone img {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		z-index: -1;
+		object-fit: cover;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		opacity: 0.1;
+	}
+
+
+#options {
+	font-family: monospace;
+}
+@media only screen and (min-width: 500px) {
+	#options {
+		position: sticky;
+		top: 20px;
+	}
+}
+
+img,
+table {
+	font-size: 12px;
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+	table td {
+		padding: 1px 0;
+		vertical-align: baseline;
+	}
+	table td + td {
+		padding-left: 12px;
+		white-space: normal;
+	}
+
+[muted] {
+	opacity: 0.4;
+}
+
+
+.wrap {
+	white-space: normal;
+}
+.nowrap {
+	white-space: nowrap;
+}
+
+#grid {
+	display: grid;
+}
+
+@media only screen and (max-width: 499px) {
+	header,
+	#grid {
+		gap: 32px;
+	}
+}
+@media only screen and (min-width: 500px) {
+	header,
+	#grid {
+		gap: 24px 56px;
+	}
+}
+@media only screen and (max-width: 400px) {
+	header {
+		gap: 16px;
+	}
+}
+
+@media only screen and (min-width: 500px) {
+	#input-head   {grid-area: input-head}
+	#input        {grid-area: input}
+	#raw          {grid-area: raw}
+	#output-head  {grid-area: output-head}
+	#app1-thumb   {grid-area: app1-thumb}
+}
+@media only screen and (min-width: 500px) and (max-width: 749px) {
+	#grid {
+		grid-template-columns: 188px auto;
+		grid-template-areas:
+			"input-head output-head"
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      .          "
+			"input      raw        "
+	}
+}
+@media only screen and (min-width: 750px) and (max-width: 999px) {
+	#grid {
+		grid-template-columns: 188px min-content auto;
+		grid-template-areas:
+			"input-head output-head output-head"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+			"input      .           raw"
+	}
+}
+@media only screen and (min-width: 1000px) {
+	#thumb        {grid-area: thumb}
+	#grid {
+		grid-template-columns: 188px min-content min-content auto;
+		grid-template-areas:
+			"input-head output-head  output-head  output-head"
+			"input      thumb        app1-ifd0    raw"
+			"input      app1-thumb   app1-exif    raw"
+			"input      app1-gps     app1-interop raw"
+			"input      app1-iptc    .            raw"
+			"input      marker-notes .            raw"
+			"input      .            .            raw"
+			"input      .            .            raw"
+	}
+}
+
+/* fullscreen can be only visible on larger screens. it is already fullscreen (in single col) on phones */
+@media only screen and (max-width: 749px) {
+	#raw h3 span {
+		display: none;
+	}
+}
+@media only screen and (min-width: 750px) {
+	#grid.raw-fullscreen {
+		grid-template-columns: 188px auto;
+		grid-template-areas:
+			"input-head output-head"
+			"input      raw"
+	}
+		#grid.raw-fullscreen > *:not(#input-head):not(#output-head):not(#input):not(#raw) {
+			display: none;
+		}
+}
+
+pre {
+	word-break: break-word;
+	white-space: pre-wrap;
+	font-size: 10px;
+}
+
+:root {
+	--easing: cubic-bezier(.16,1,.29,.99);
+	--transition-speed: 500ms;
+}
+
+/* TOGGLE FULLSCREEN ANIMATION */
+
+#grid {
+	overflow: hidden;
+}
+#raw h3 span {
+	position: sticky;
+	right: 0;
+}
+
+.raw-fullscreen #raw {
+	animation: from-left var(--easing) var(--transition-speed) both;
+}
+.raw-side #raw {
+	animation: from-right var(--easing) var(--transition-speed) both;
+}
+/* reverse for in-header toggle button */
+.raw-fullscreen #raw h3 span {
+	animation: from-right var(--easing) var(--transition-speed) both;
+}
+.raw-side #raw h3 span {
+	animation: from-left var(--easing) var(--transition-speed) both;
+}
+
+.raw-side #thumb,
+.raw-side segment-box {
+	animation: fade-in var(--easing) var(--transition-speed) both;
+}
+
+@keyframes from-left {
+	0%   {transform: translateX(40px)}
+	100% {transform: translateX(0)}
+}
+
+@keyframes from-right {
+	0%   {transform: translateX(-40px)}
+	100% {transform: translateX(0)}
+}
+
+@keyframes fade-in {
+	0%   {opacity: 0}
+	100% {opacity: 1}
+}
+
+/*
+
+TO BE IMPLEMENTED IN FUTURE VERSIONS
+
+#readme pre {
+	padding: 10px;
+	background: rgba(50, 80, 144, 0.08);
+	border: 1px solid rgba(50, 80, 144, 0.2);
+	border-radius: 4px;
+}
+
+
+*/

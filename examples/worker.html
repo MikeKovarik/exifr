@@ -26,7 +26,7 @@
 
 	log(`main script spawned worker`)
 	let t1 = performance.now()
-	worker.postMessage('../test/IMG_20180725_163423.jpg')
+	worker.postMessage('../test/fixtures/IMG_20180725_163423.jpg')
 	worker.onmessage = e => {
 		let t2 = performance.now()
 		log(`${(t2 - t1).toFixed(1)} ms`)

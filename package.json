@@ -1,23 +1,25 @@
 {
   "name": "exifr",
-  "version": "2.1.4",
+  "version": "3.0.0",
   "description": "📷 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
   "keywords": [
     "exif",
-    "tiff",
     "jpg",
     "jpeg",
-    "metadata",
-    "makernote",
+    "heic",
+    "tiff",
     "xmp",
     "gps",
+    "icc",
+    "iptc",
+    "jfif",
     "image",
     "picture",
     "photo",
-    "buffer",
-    "uint8array"
+    "metadata",
+    "makernote"
   ],
   "homepage": "https://mutiny.cz/exifr/",
   "bugs": "https://github.com/MikeKovarik/exifr/issues",
@@ -25,27 +27,45 @@
     "type": "git",
     "url": "https://github.com/MikeKovarik/exifr.git"
   },
+  "main": "dist/full.esm.js",
+  "type": "module",
+  "types": "index.d.ts",
   "scripts": {
-    "test": "mocha test/test.js",
+    "test": "mocha test/**.spec.js --exclude test/bundle-mini.spec.js --exclude test/bundle-lite.spec.js --exclude test/bundle-full.spec.js",
+    "test-bundles": "mocha test/bundle-mini.spec.js && mocha test/bundle-lite.spec.js && mocha test/bundle-full.spec.js",
+    "test-full": "mocha test/bundle-full.spec.js",
+    "test-lite": "mocha test/bundle-lite.spec.js",
+    "test-mini": "mocha test/bundle-mini.spec.js",
     "coverage": "c8 npm test",
-    "build": "rollup -c rollup.config.prod.js",
-    "dev": "rollup -c rollup.config.dev.js -w"
+    "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.6.3",
+    "aurelia-script": "^1.5.2",
     "c8": "^7.0.1",
     "chai": "^4.2.0",
     "coveralls": "^3.0.7",
-    "mocha": "^7.0.0-esm1",
-    "rollup": "^1.29.0",
-    "rollup-plugin-notify": "^1.0.1"
+    "decorate": "^1.0.0",
+    "mocha": "7.0.0-esm1",
+    "rollup": "^1.25.2",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-notify": "^1.0.1",
+    "rollup-plugin-terser": "^5.2.0"
   },
   "c8": {
+    "exclude": [
+      "src/file-readers/BlobReader.js",
+      "src/file-readers/UrlFetcher.js",
+      "src/util/debug.js",
+      "test/**.*"
+    ],
     "reporter": [
       "html",
       "text",
       "text-summary"
-    ],
-    "check-coverage": false,
-    "cache": true
-  }
+    ]
+  },
+  "dependencies": {}
 }
