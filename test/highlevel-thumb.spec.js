@@ -9,7 +9,7 @@ describe('thumbnail', () => {
 	let fileName = 'img_1771.jpg'
 
     let options = {
-        thumbnail: true,
+        ifd1: true,
         mergeOutput: false,
     }
 

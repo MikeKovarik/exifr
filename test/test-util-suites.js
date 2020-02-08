@@ -236,7 +236,7 @@ export function testPickOrSkipTags(segKey, filePath, pick, skip) {
 			let options = {mergeOutput: false, [segKey]: true, pick}
 			let output = await exifr.parse(file, options)
 			let segment = output[segKey]
-			if (segKey !== 'thumbnail') {
+			if (segKey !== 'ifd1') {
 				// this test is test suite is universal for all blocks but thumbnail is special
 				// because it contains the same tags as ifd0 and thus may collide in this test case.
 				// this is ok, not a problem. but this one test needs to take it into account

@@ -23,7 +23,7 @@ async function diyParseGps() {
 		// You can use string tag names as well as their numeric code. In this example 0x0004 = GPSLongitude
 		gps: ['GPSLatitudeRef', 'GPSLatitude', 0x0003, 0x0004],
 		interop: false,
-		thumbnail: false
+		ifd1: false // thumbnail
 	}
 	let gps = await exifr.parse('../test/fixtures/IMG_20180725_163423.jpg', options)
 	// raw values

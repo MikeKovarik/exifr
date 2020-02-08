@@ -10,11 +10,14 @@
 - renamed `thumbnailBuffer()` function to `thumbnail()`. It now also returns `Uint8Array` instead of `ArrayBuffer` in browser. Node.js version keeps returning `Buffer`.
 
 #### Output format
-- renamed IFD0 in the output object from `output.image` to `output.ifd0`
+- Renamed `options.image` block to `options.ifd0`.
+- Renamed `options.thumbnail` block to `options.ifd1`.
 - renamed & simplified behavior of `seekChunkSize` and `parseChunkSize`. See `firstChunkSize`, `firstChunkSizeBrowser`, `firstChunkSizeNode`.
 - Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tag names remain the same. Some might be changed slightly. You can check out the `src/dicts/*` files for reference. For example: before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`; before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
 
 #### Options
+- Renamed `output.image` block to `output.ifd0`.
+- Renamed `output.thumbnail` block to `output.ifd1`.
 - removed `postProcess` property and split its behavior to new properties `sanitize`, `translateKeys`, `translateValues` and `reviveValues`.
 - Changed behavior of `options.wholeFile` and renamed to `options.chunked`
 

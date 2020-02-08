@@ -59,7 +59,7 @@ class ExifrDemoApp {
 
 	async setupExifr() {
 		this.options = cloneObject(Options.default)
-		this.options.thumbnail = true
+		this.options.ifd1 = true
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
@@ -162,7 +162,7 @@ class ExifrDemoApp {
 		this.output = output
 		this.browserCompatibleFile = !!exr.file.isJpeg
 
-		if (output.thumbnail) {
+		if (output.ifd1) {
 			let arrayBuffer = await exr.extractThumbnail()
 			let blob = new Blob([arrayBuffer])
 			this.thumbUrl = URL.createObjectURL(blob)

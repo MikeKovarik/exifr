@@ -1,7 +1,7 @@
 import {tagValues, createDictionary} from '../tags.js'
 
 
-let ifd0 = createDictionary(tagValues, 'ifd0', [
+createDictionary(tagValues, ['ifd0', 'ifd1'], [
 
 	// Orientation
 	[0x0112, {
@@ -23,5 +23,3 @@ let ifd0 = createDictionary(tagValues, 'ifd0', [
 	}],
 
 ])
-
-tagValues.set('thumbnail', ifd0)

@@ -1,12 +1,10 @@
 import {tagRevivers, createDictionary} from '../tags.js'
 import {toAsciiString} from '../util/BufferView.js'
 
-const ifd0 = createDictionary(tagRevivers, 'ifd0', [
+createDictionary(tagRevivers, ['ifd0', 'ifd1'], [
 	[0xC68B, toAsciiString],
 	[0x0132, reviveDate],
 ])
-
-tagRevivers.set('thumbnail', ifd0)
 
 createDictionary(tagRevivers, 'exif', [
 	[0xA000, reviveVersion],

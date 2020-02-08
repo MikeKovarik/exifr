@@ -42,7 +42,7 @@ function isImage(fileName) {
 				if (output.exif) console.log(padd('exif'), logKb(getLength(output.exif)))
 				if (output.gps) console.log(padd('gps'), logKb(getLength(output.gps)))
 				if (output.interop) console.log(padd('interop'), logKb(getLength(output.interop)))
-				if (output.thumbnail) console.log(padd('thumbnail'), logKb(getLength(output.thumbnail)))
+				if (output.ifd1) console.log(padd('ifd1'), logKb(getLength(output.ifd1)))
 				if (tiff.xmp)  console.log(padd('xmp'),  logKb(tiff.xmp))
 				if (tiff.iptc) console.log(padd('iptc'), logKb(tiff.iptc))
 				if (tiff.icc)  console.log(padd('icc'),  logKb(tiff.icc))

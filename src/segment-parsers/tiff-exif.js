@@ -6,6 +6,7 @@ import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
 import {isEmpty} from '../util/helpers.js'
 import {customError} from '../util/helpers.js'
+import {tiffBlocks} from '../options.js'
 
 
 const THUMB_OFFSET = 0x0201
@@ -178,8 +179,6 @@ export class TiffCore extends AppSegmentParserBase {
 
 
 
-const blockKeys = ['ifd0', 'thumbnail', 'exif', 'gps', 'interop']
-
 const TAG_FILESOURCE = 0xa300
 const TAG_SCENETYPE  = 0xa301
 
@@ -220,11 +219,11 @@ export class TiffExif extends TiffCore {
 	async parse() {
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
-		if (this.options.ifd0.enabled)      await this.parseIfd0Block()                                  // APP1 - IFD0
-		if (this.options.exif.enabled)      await this.parseExifBlock()      // APP1 - EXIF IFD
-		if (this.options.gps.enabled)       await this.parseGpsBlock()       // APP1 - GPS IFD
-		if (this.options.interop.enabled)   await this.parseInteropBlock()   // APP1 - Interop IFD
-		if (this.options.thumbnail.enabled) await this.parseThumbnailBlock() // APP1 - IFD1
+		if (this.options.ifd0.enabled)    await this.parseIfd0Block()                                  // APP1 - IFD0
+		if (this.options.exif.enabled)    await this.parseExifBlock()      // APP1 - EXIF IFD
+		if (this.options.gps.enabled)     await this.parseGpsBlock()       // APP1 - GPS IFD
+		if (this.options.interop.enabled) await this.parseInteropBlock()   // APP1 - Interop IFD
+		if (this.options.ifd1.enabled)    await this.parseThumbnailBlock() // APP1 - IFD1
 		return this.createOutput()
 		//return this.output
 	}
@@ -264,7 +263,7 @@ export class TiffExif extends TiffCore {
 		if (this.options.exif.enabled)      bytes += 1024 
 		if (this.options.gps.enabled)       bytes += 512
 		if (this.options.interop.enabled)   bytes += 100
-		if (this.options.thumbnail.enabled) bytes += 1024
+		if (this.options.ifd1.enabled)      bytes += 1024
 		// .tif files store all additional segments (what would be App segment in Jpeg) as properties in TIFF
 		if (this.file.isTiff) {
 			// usually between 1-13kb. max found in fixtures is 25.7kb.
@@ -387,7 +386,7 @@ export class TiffExif extends TiffCore {
 		if (this.options.mergeOutput && !force) return
 		this.findIfd1Offset()
 		if (this.ifd1Offset > 0) {
-			this.ifd1 = this.parseTags(this.ifd1Offset, 'thumbnail')
+			this.ifd1 = this.parseTags(this.ifd1Offset, 'ifd1')
 			this.ifd1 = this.ifd1
 			this.ifd1Parsed = true
 		}
@@ -412,7 +411,7 @@ export class TiffExif extends TiffCore {
 	createOutput() {
 		let output = {}
 		let block, blockKey, blockOutput
-		for (blockKey of blockKeys) {
+		for (blockKey of tiffBlocks) {
 			block = this[blockKey]
 			if (isEmpty(block)) continue
 			if (this.canTranslate)
@@ -421,7 +420,7 @@ export class TiffExif extends TiffCore {
 				blockOutput = Object.fromEntries(block)
 			if (this.options.mergeOutput) {
 				// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
-				if (blockKey === 'thumbnail') continue
+				if (blockKey === 'ifd1') continue
 				Object.assign(output, blockOutput)
 			} else {
 				output[blockKey] = blockOutput

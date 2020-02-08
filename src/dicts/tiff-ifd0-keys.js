@@ -7,7 +7,7 @@ import {tagKeys, createDictionary} from '../tags.js'
 // https://metacpan.org/pod/distribution/Image-ExifTool/lib/Image/ExifTool/TagNames.pod#EXIF-Tags
 // https://metacpan.org/pod/Image::MetaData::JPEG::TagLists - canonical + custom tags
 
-let ifd0 = createDictionary(tagKeys, 'ifd0', [
+createDictionary(tagKeys, ['ifd0', 'ifd1'], [
 	[0x0100, 'ImageWidth'],
 	[0x0101, 'ImageHeight'],
 	[0x0102, 'BitsPerSample'],
@@ -92,6 +92,3 @@ let ifd0 = createDictionary(tagKeys, 'ifd0', [
 	[0xc633, 'ShadowScale'],
 	[0xc634, 'DNGPrivateData'],
 ])
-
-// use the same map for IFD0 as well as IFD1
-tagKeys.set('thumbnail', ifd0)

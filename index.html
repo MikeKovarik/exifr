@@ -79,14 +79,14 @@
 			<form id="options">
 				<div>{</div>
 				<div muted>&nbsp;&nbsp;// APP segments</div>
-				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.ifd0 || options.exif || options.gps || options.interop || options.thumbnail || options.makerNote || options.userComment" disabled change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;tiff:      <input type="checkbox" checked.bind="options.ifd0 || options.exif || options.gps || options.interop || options.ifd1 || options.makerNote || options.userComment" disabled change.trigger="parseFile()">,</div>
 				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// TIFF blocks</div>
 				<!-- TODO: disable or uncheck all of these blocks on unselecting tiff -->
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd0:      <input type="checkbox" checked.bind="options.ifd0" change.trigger="parseFile()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;exif:      <input type="checkbox" checked.bind="options.exif" change.trigger="parseFile()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:       <input type="checkbox" checked.bind="options.gps" change.trigger="parseFile()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop:   <input type="checkbox" checked.bind="options.interop" change.trigger="parseFile()">,</div>
-				<div>&nbsp;&nbsp;&nbsp;&nbsp;thumbnail: <input type="checkbox" checked.bind="options.thumbnail" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd0:    <input type="checkbox" checked.bind="options.ifd0" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;exif:    <input type="checkbox" checked.bind="options.exif" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;gps:     <input type="checkbox" checked.bind="options.gps" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;interop: <input type="checkbox" checked.bind="options.interop" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;&nbsp;&nbsp;ifd1:    <input type="checkbox" checked.bind="options.ifd1" change.trigger="parseFile()">,</div>
 				<div muted>&nbsp;&nbsp;&nbsp;&nbsp;// other data</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;makerNote:   <input type="checkbox" checked.bind="options.makerNote" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;&nbsp;&nbsp;userComment: <input type="checkbox" checked.bind="options.userComment" change.trigger="parseFile()">,</div>
@@ -119,7 +119,7 @@
 		</div>
 
 		<segment-box options.bind="options" output.bind="output" key="exif"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="thumbnail" title="Thumbnail (IFD1)" alias="ifd1"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="ifd1" title="Thumbnail (IFD1)" alias="ifd1"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image (IFD0)" alias="ifd0"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>

@@ -21,7 +21,10 @@ class Dictionary extends Map {
 export function createDictionary(group, key, entries) {
 	let dict = new Dictionary(entries)
 	fixIeSubclassing(dict, Dictionary, undefined, ['tagKeys', 'tagValues'])
-	group.set(key, dict)
+	if (Array.isArray(key))
+		for (let k of key) group.set(k, dict)
+	else
+		group.set(key, dict)
 	return dict
 }
 

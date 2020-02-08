@@ -12,7 +12,7 @@ if (isBrowser) {
 var imageUrl = '../test/fixtures/IMG_20180725_163423.jpg'
 
 var options = {
-	thumbnail: false,
+	ifd1: false, // thumbnail
 	exif: false,
 	interop: false,
 	gps: true,

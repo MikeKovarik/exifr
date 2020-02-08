@@ -10,7 +10,7 @@ export async function parse(input, options) {
 }
 
 export async function thumbnail(input, options = {}) {
-	options.thumbnail = true
+	options.ifd1 = true
 	options.mergeOutput = true
 	let exr = new Exifr(options)
 	await exr.read(input)

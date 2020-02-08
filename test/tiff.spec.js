@@ -5,6 +5,7 @@ import {testGlobalFormatterInheritance, testTiffFormatterInheritance} from './te
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.js'
 import {Exifr} from '../src/bundle-full.js'
 import * as exifr from '../src/bundle-full.js'
+import {tiffBlocks} from '../src/bundle-full.js'
 
 
 function testBlockResult(output, blockName, results = {}) {
@@ -13,8 +14,6 @@ function testBlockResult(output, blockName, results = {}) {
 		assert.equal(output[blockName][key], val)
 	}
 }
-
-let allBlocks = ['ifd0', 'exif', 'gps', 'interop', 'thumbnail']
 
 function testBlock({blockName, definedByDefault, results}) {
 	let fileWith = 'IMG_20180725_163423.jpg'
@@ -40,7 +39,7 @@ function testBlock({blockName, definedByDefault, results}) {
 			let options = {mergeOutput: false, [blockName]: true, tiff: false}
 			let input = await getFile(fileWith)
 			let output = await exifr.parse(input, options) || {}
-			for (let key of allBlocks)
+			for (let key of tiffBlocks)
 				if (key !== blockName)
 					assert.isUndefined(output[key], `output should not contain ${key}, only ${blockName}`)
 		})
@@ -118,9 +117,9 @@ describe('TIFF Segment', () => {
 
 	describe('random tests', () => {
 
-		it(`random issue {ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}`, async () => {
+		it(`random issue {ifd0: false, exif: false, gps: false, interop: false, ifd1: true}`, async () => {
 			let input = await getFile('canon-dslr.jpg')
-			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
+			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, ifd1: true}
 			var output = await exifr.parse(input, options)
 			assert.isObject(output)
 		})
@@ -173,7 +172,7 @@ describe('TIFF Segment', () => {
 			assert.isObject(output.exif)
 			assert.isObject(output.gps)
 			assert.isObject(output.interop)
-			assert.isObject(output.thumbnail)
+			assert.isObject(output.ifd1)
 		})
 
 		it(`{tiff: false} disables all TIFF blocks`, async () => {
@@ -184,7 +183,7 @@ describe('TIFF Segment', () => {
 			assert.isUndefined(output.exif)
 			assert.isUndefined(output.gps)
 			assert.isUndefined(output.interop)
-			assert.isUndefined(output.thumbnail)
+			assert.isUndefined(output.ifd1)
 		})
 
 		it(`{tiff: false, makerNote: true} disables all TIFF blocks except for those needed to get MakerNote`, async () => {
@@ -195,7 +194,7 @@ describe('TIFF Segment', () => {
 			assert.isUndefined(output.exif)
 			assert.isUndefined(output.gps)
 			assert.isUndefined(output.interop)
-			assert.isUndefined(output.thumbnail)
+			assert.isUndefined(output.ifd1)
 			assert.exists(output.makerNote)
 		})
 
@@ -207,18 +206,18 @@ describe('TIFF Segment', () => {
 			assert.isObject(output.exif)
 			assert.isUndefined(output.gps)
 			assert.isUndefined(output.interop)
-			assert.isUndefined(output.thumbnail)
+			assert.isUndefined(output.ifd1)
 		})
 
-		it(`{tiff: false, thumbnail: true} disables all TIFF blocks except for thumbnail`, async () => {
+		it(`{tiff: false, ifd1: true} disables all TIFF blocks except for thumbnail`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let options = {mergeOutput: false, tiff: false, thumbnail: true}
+			let options = {mergeOutput: false, tiff: false, ifd1: true}
 			var output = await exifr.parse(input, options)
 			assert.isUndefined(output.ifd0)
 			assert.isUndefined(output.exif)
 			assert.isUndefined(output.gps)
 			assert.isUndefined(output.interop)
-			assert.isObject(output.thumbnail)
+			assert.isObject(output.ifd1)
 		})
 
 	})
@@ -333,11 +332,11 @@ describe('TIFF Segment', () => {
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
-		it(`options.thumbnail exists when {ifd0: false, exif: false, thumbnail: true}`, async () => {
+		it(`options.ifd1 exists when {ifd0: false, exif: false, ifd1: true}`, async () => {
 			let input = await getFile('IMG_20180725_163423.jpg')
-			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
+			let options = {mergeOutput: false, ifd0: false, exif: false, gps: false, interop: false, ifd1: true}
 			let output = await exifr.parse(input, options)
-			assert.isObject(output.thumbnail)
+			assert.isObject(output.ifd1)
 			assert.lengthOf(Object.keys(output), 1)
 		})
 
@@ -577,7 +576,7 @@ describe('TIFF - Interop Block', () => {
 describe('TIFF - IFD1 / Thumbnail Block', () => {
 
 	testBlock({
-		blockName: 'thumbnail',
+		blockName: 'ifd1',
 		definedByDefault: false,
 		results: {
 			ImageHeight: 189
@@ -585,15 +584,15 @@ describe('TIFF - IFD1 / Thumbnail Block', () => {
 	})
 
 	testMergeSegment({
-		key: 'thumbnail',
+		key: 'ifd1',
 		file: 'IMG_20180725_163423.jpg',
 		properties: ['Orientation', 'ImageHeight']
 	})
 
-	testPickOrSkipTags('thumbnail', 'IMG_20180725_163423.jpg', ['Orientation'], ['ImageHeight'])
+	testPickOrSkipTags('ifd1', 'IMG_20180725_163423.jpg', ['Orientation'], ['ImageHeight'])
 
 	testSegmentTranslation({
-		type: 'thumbnail',
+		type: 'ifd1',
 		file: 'IMG_20180725_163423.jpg',
 		tags: [[
 			0x0112, 'Orientation',

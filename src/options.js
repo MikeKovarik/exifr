@@ -20,7 +20,7 @@ export const chunkedProps = [
 export const otherSegments = ['jfif', 'xmp', 'icc', 'iptc']
 export const segments = ['tiff', ...otherSegments]
 // WARNING: this order is necessary for correctly assigning pick tags.
-export const tiffBlocks = ['thumbnail', 'interop', 'gps', 'exif', 'ifd0']
+export const tiffBlocks = ['ifd0', 'ifd1', 'exif', 'gps', 'interop']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 export const tiffExtractables = ['makerNote', 'userComment']
 export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment']
@@ -126,11 +126,11 @@ var defaults = {
 	iptc: false,
 
 	// TIFF BLOCKS
-	ifd0: true,
+	ifd0: true, // image
+	ifd1: false, // thumbnail
 	exif: true,
 	gps: true,
 	interop: false,
-	thumbnail: false,
 
 	// Notable TIFF tags
 	makerNote: false,
@@ -213,7 +213,7 @@ export class Options extends SharedOptions {
 		if (this.firstChunkSize === undefined)
 			this.firstChunkSize = platform.browser ? this.firstChunkSizeBrowser : this.firstChunkSizeNode
 		// thumbnail contains the same tags as ifd0. they're not necessary when `mergeOutput`
-		if (this.mergeOutput) this.thumbnail.enabled = false
+		if (this.mergeOutput) this.ifd1.enabled = false
 		// translate global pick/skip tags & copy them to local segment/block settings
 		// handle the tiff->ifd0->exif->makernote pick dependency tree.
 		// this also adds picks to blocks & segments to efficiently parse through tiff.
@@ -248,6 +248,8 @@ export class Options extends SharedOptions {
 	}
 
 	setupFromObject(userOptions) {
+		tiffBlocks.ifd0 = tiffBlocks.ifd0 || tiffBlocks.image
+		tiffBlocks.ifd1 = tiffBlocks.ifd1 || tiffBlocks.thumbnail
 		let key
 		// needed for adding additional (and internal options properties like stopAfterSos for jpg)
 		Object.assign(this, userOptions)
@@ -375,10 +377,10 @@ function addToSet(target, source) {
 
 export let gpsOnlyOptions = {
 	ifd0: false,
+	ifd1: false,
 	exif: false,
 	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
 	interop: false,
-	thumbnail: false,
 	// turning off all unnecessary steps and transformation to get the needed data ASAP
 	sanitize: false,
 	reviveValues: true,

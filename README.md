@@ -325,16 +325,16 @@ Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats 
 
 TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
-* `options.ifd0` `<bool|object|Array>` default: `true`
-<br>IFD0 IFD - Basic info about photo
+* `options.ifd0` (alias `options.image`) `<bool|object|Array>` default: `true`
+<br>IFD0 - Basic info about the image
+* `options.ifd1` (alias `options.thumbnail`) `<bool|object|Array>` default: `false`
+<br>IFD1 - Info about embedded thumbnail
 * `options.exif` `<bool|object|Array>` default: `true`
-<br>EXIF IFD - Detailed info about photo
+<br>EXIF SubIFD - Detailed info about photo
 * `options.gps` `<bool|object|Array>` default: `true`
-<br>GPS IFD - GPS coordinates
-* `options.thumbnail` `<bool|object|Array>` default: `false`
-<br>IFD1 IFD - Info about embedded thumbnail
+<br>GPS SubIFD - GPS coordinates
 * `options.interop` `<bool|object|Array>` default: `false`
-<br>Interop IFD - Interoperability info
+<br>Interop SubIFD - Interoperability info
 
 `options.tiff` serves as a shortcut for managing TIFF blocks:
 
@@ -720,9 +720,10 @@ Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
 1) Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tags should stay the same, but expect some changed. For example:
 <br>before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`
 <br>before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
-2) Renamed `ExifParser` class to `Exifr`.
-3) Renamed `thumbnailBuffer` to `thumbnail`
-4) Changed behavior of `options.wholeFile` and renamed to `options.readChunked`
+2) Renamed `image` block to `ifd0` and `thumbnail` to `ifd1`. This applies to options (`options.ifd0` instead of `options.image`) as well as output (the data is not `output.ifd1` instead of `output.thumbnail`)
+3) Renamed `ExifParser` class to `Exifr`.
+4) Renamed `thumbnailBuffer` to `thumbnail`
+5) Changed behavior of `options.wholeFile` and renamed to `options.readChunked`
 
 ```js
 // 2.x.x
