@@ -363,8 +363,7 @@ Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `ti
    * Can locally override [filters](#tag-filters): `pick`, `skip`.
    * Can locally override [formatters](#output-format): `translateKeys`, `translateValues`, `reviveValues`.
    * Undefined properties are inherited from `options` object. TIFF blocks also inherit from `options.tiff` first.
-* `Array` - enabled, but only extracts tags from this array
-   * List of the only tags to parse. All others are skipped. TODO LINK
+* `Array` - enabled, but only [picks](#tag-filters) tags from this array
    * Sortcut for `{pick: ['tags', ...]}`
    * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
 
