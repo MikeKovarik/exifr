@@ -40,7 +40,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
 `file` can be any binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
 
-`options` specifies what segments and blocks to parse and filters what tags to pick or skip.
+`options` specifies what segments and blocks to parse, filters what tags to pick or skip.
 
 | API | Returns | Description |
 |-|-|-|
@@ -59,9 +59,9 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 npm install exifr
 ```
 
-You can pick from various builds - `full`, `lite`, `mini`, `core`. In browsers we recommend `mini` or `lite` because of balance between features and file size. [Learn more](#distributions-builds).
+You can pick from `full`, `lite`, `mini`, `core` bundles. In browsers we recommend `mini` or `lite` because of balance between features and file size. [Learn more](#distributions-builds).
 
-**Old Node.js users**: This module is written as ES module. If you still use CommonJS, you need load UMD bundle.
+**Old Node.js users**: This library is written as an ES module. If you still use CommonJS, you need load UMD bundle.
 
 ```js
 // node.js
@@ -74,7 +74,7 @@ var exifr = require('exifr/dist/full.umd.js')
 import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 ```
 
-**Old browser users**: Also availabe as UMD bundle - compatible with RequireJS, or exports everything as `window.exifr`
+**Browser users**: UMD is also compatible with RequireJS. Otherwise exports everything as `window.exifr`
 
 ```html
 <script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
