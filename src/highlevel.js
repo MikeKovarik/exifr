@@ -1,6 +1,7 @@
-import {gpsOnlyOptions} from './options.js'
 import * as platform from './util/platform.js'
 import {Exifr} from './Exifr.js'
+import {gpsOnlyOptions, orientationOnlyOptions} from './options.js'
+import {TAG_ORIENTATION} from './tags.js'
 
 
 export async function parse(input, options) {
@@ -37,5 +38,14 @@ export async function gps(input) {
 	if (output && output.gps) {
 		let {latitude, longitude} = output.gps
 		return {latitude, longitude}
+	}
+}
+
+export async function orientation(input) {
+	let exr = new Exifr(orientationOnlyOptions)
+	await exr.read(input)
+	let output = await exr.parse()
+	if (output && output.ifd0) {
+		return output.ifd0[TAG_ORIENTATION]
 	}
 }

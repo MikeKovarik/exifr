@@ -16,21 +16,25 @@ Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 Works everywhere, parses everything and handles anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
-* 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, anything
-* 📷 Reads: **.jpg**, **.tif**, **.heic** photos
-* 🔎 Parses: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
-* 📑 Efficient: **Reads only first few bytes**
-* 🔬 Filterable: **Skips parsing tags you don't need**
+* 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
+* 📷 Files: **.jpg**, **.tif**, **.heic** photos
+* 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
+* 📑 **Reads only first few bytes**
+* 🔬 **Skips parsing tags you don't need**
+* ✨ **Isomorphic**: Browser & Node.js
+* 🗜️ **No dependencies**
 * 🖼️ Extracts thumbnail
-* 🧩 Configurable builds
-* 📚 Customizable tag dictionaries
 * 📋 Simple output
-* 🗜️ No dependencies
+* 🧩 Configurable bundles
+* 📚 Customizable tag dictionaries
+* 📦 Bundled as UMD/CJS or ESM
 * ✔ Tested and benchmarked
 * 🤙 Promises
-* 📦 Bundled as UMD/CJS or ESM
-* ✨ Isomorphic: Browser & Node.js
 * 🕸 Supports even IE11
+
+You don't need to read the whole file to tell if there's EXIF in it. And you don't need to extract all the data when you're looking for just a few tags. Exifr just jumps through the file structure, from pointer to pointer. Instead of reading it byte by byte, from begining to end.
+
+Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
 ## Usage
 
@@ -45,6 +49,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 |`exifr.parse(file, ['Model', 'FNumber', ...])`|`object`|Parses only specified tags|
 |`exifr.parse(file, {options})`|`object`|Custom settings|
 |`exifr.gps(file)`|`{latitude, longitude}`|Parses only GPS coords|
+|`exifr.orientation(file)`|`number`|Parses only orientation|
 |`exifr.thumbnail(file)`|`Uint8Array` binary|Extracts embedded thumbnail|
 |`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
 
@@ -92,7 +97,13 @@ fs.readFile('./myimage.jpg')
 Extract only GPS
 
 ```js
-exifr.gps('./myimage.jpg').then(pos => console.log(pos.latitude, pos.longitude))
+let {latitude, longitude} = await exifr.gps('./myimage.jpg')
+```
+
+Extract only certain tags
+
+```js
+let output = await exifr.parse(file, ['ISO', 'Orientation', 'LensModel'])
 ```
 
 Extracting thumbnail
@@ -157,7 +168,7 @@ and a lot more in the [examples/](examples/) folder
 
 ## API
 
-exifr exports `parse`, `gps`, `thumbnail`, `thumbnailUrl` functions and `Exifr` class
+exifr exports `parse()`, `gps()`, `orientation()`, `thumbnail()`, `thumbnailUrl()` functions and `Exifr` class
 
 ### `parse(file[, options])` => `Promise<object>`
 
@@ -170,6 +181,10 @@ Extracts only GPS coordinates from photo.
 *Uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.*
 
 Check out [examples/gps.js](examples/gps.js) to learn more.
+
+### `orientation(file)` => `Promise<number>`
+
+Extracts only photo's orientation.
 
 ### `thumbnail(file)` => `Promise<Buffer|ArrayBuffer>`
 
@@ -680,7 +695,7 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 
 * **full** - Contains everything. Intended for use in Node.js.
 * **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
-* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF  from JPEGs. Does not include dictonaries, nor chunked reader. 
+* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictonaries.
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 Of course you can use `full` version in browser, or use any other build in Node.js.

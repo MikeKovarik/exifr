@@ -1,11 +1,11 @@
 import {TAG_MAKERNOTE, TAG_USERCOMMENT} from './tags.js'
 import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP} from './tags.js'
-import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from './tags.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from './tags.js'
 import {tagKeys} from './tags.js'
 import * as platform from './util/platform.js'
 import {customError} from './util/helpers.js'
 import {segmentParsers, throwNotLoaded} from './plugins.js'
+import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON, TAG_ORIENTATION} from './tags.js'
 
 
 export const chunkedProps = [
@@ -375,11 +375,11 @@ function addToSet(target, source) {
 		target.add(item)
 }
 
-export let gpsOnlyOptions = {
+export const disableAllOptions = {
 	ifd0: false,
 	ifd1: false,
 	exif: false,
-	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
+	gps: false,
 	interop: false,
 	// turning off all unnecessary steps and transformation to get the needed data ASAP
 	sanitize: false,
@@ -388,3 +388,11 @@ export let gpsOnlyOptions = {
 	translateValues: false,
 	mergeOutput: false,
 }
+
+export const gpsOnlyOptions = Object.assign({}, disableAllOptions, {
+	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
+})
+
+export const orientationOnlyOptions = Object.assign({}, disableAllOptions, {
+	ifd0: [TAG_ORIENTATION],
+})

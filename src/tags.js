@@ -53,3 +53,5 @@ export const TAG_GPS_LATREF = 0x0001
 export const TAG_GPS_LAT    = 0x0002
 export const TAG_GPS_LONREF = 0x0003
 export const TAG_GPS_LON    = 0x0004
+
+export const TAG_ORIENTATION = 0x0112
