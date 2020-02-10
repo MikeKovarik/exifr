@@ -242,6 +242,10 @@ table {
 	#grid {
 		gap: 32px;
 	}
+	#grid > *     {order: 4}
+	#input-head   {order: 1}
+	#input        {order: 2}
+	#output-head  {order: 3}
 }
 @media only screen and (min-width: 500px) {
 	header,
