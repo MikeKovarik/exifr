@@ -122,7 +122,7 @@ describe('XMP Segment', () => {
 
 	it(`should not be empty when the XMP string starts with '<x:xmpmeta><rdf:RDF>'`, async () => {
 		let options = {tiff: false, xmp: true, mergeOutput: false}
-		let input = await getFile('PANO_20180714_121453.jpg')
+		let input = await getFile('cookiezen.jpg')
 		var output = await exifr.parse(input, options)
 		assert.isNotEmpty(output.xmp)
 	})

@@ -55,6 +55,5 @@ describe('basic fixture testing', () => {
 	testFile('issue-metadata-extractor-65.jpg', ['ifd0', 'exif', 'ifd1', 'xmp', 'icc', 'iptc'])
 	testFile('issue-node-exif-58.jpg', ['xmp'])
 	testFile('noexif.jpg', ['jfif'])
-	testFile('PANO_20180714_121453.jpg', ['ifd0', 'exif', 'icc', 'jfif'])
 	testFile('tif-with-iptc-icc-xmp.tif', ['ifd0', 'exif', 'xmp', 'icc', 'iptc'])
 })

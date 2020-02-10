@@ -90,7 +90,7 @@ describe('thumbnail', () => {
 		})
 
 		it(`returns undefined if there's no thumbnail`, async () => {
-			let input = await getFile('PANO_20180714_121453.jpg')
+			let input = await getFile('issue-metadata-extractor-152.jpg')
 			let exr = new Exifr()
 			await exr.read(input)
 			var thumb = await exr.extractThumbnail()

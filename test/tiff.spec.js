@@ -522,12 +522,7 @@ describe('TIFF - GPS Block', () => {
 		valRaw: 'N',
 	})
 
-	it(`additional GPS block test 1`, async () => {
-		let output = await exifr.parse(await getFile('PANO_20180714_121453.jpg'), {mergeOutput: false})
-		assert.equal(output.gps.GPSProcessingMethod, 'fused', `output doesn't contain gps`)
-	})
-
-	it(`additional GPS block test 2 (practical latitude & longitude in output)`, async () => {
+	it(`additional GPS block test - practical latitude & longitude in output`, async () => {
 		let options = {mergeOutput: false}
 		let output = await exifr.parse(await getFile('IMG_20180725_163423.jpg'), options)
 		assert.equal(output.gps.latitude, 50.29960277777778)
