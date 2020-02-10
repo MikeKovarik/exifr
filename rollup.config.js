@@ -74,12 +74,13 @@ function createLegacyBundle(inputPath, outputPath) {
 			notify(),
 			babel(babelLegacy),
 			terser(terserConfig),
-			injectIgnoreComments()
 		],
 		external,
 		output: {
 			file: outputPath,
-			format: 'esm',
+			format: 'umd',
+			name,
+			amd,
 			globals,
 		},
 	}
