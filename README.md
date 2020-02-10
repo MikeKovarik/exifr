@@ -1,11 +1,11 @@
 <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="160" alt="exifr">
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
-[![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
-[![gzip size](http://img.badgesize.io/https://unpkg.com/exifr/dist/mini.umd.js?compression=gzip)](https://unpkg.com/exifr)
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
+[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/exifr/dist/mini.umd.js?compression=gzip)](https://unpkg.com/exifr)
+[![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/exifr/badge?style=rounded)](https://www.jsdelivr.com/package/npm/exifr)
+[![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
-[![License](http://img.shields.io/npm/l/exifr.svg?style=flat)](LICENSE)
 
 📷 The fastest and most versatile JavaScript EXIF reading library.
 
@@ -25,7 +25,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 🗜️ **No dependencies**
 * 🖼️ Extracts thumbnail
 * 📋 Simple output
-* 🧩 Configurable bundles
+* 🧩 Modular
 * 📚 Customizable tag dictionaries
 * 📦 Bundled as UMD/CJS or ESM
 * ✔ Tested and benchmarked
@@ -66,10 +66,8 @@ You can pick from `full`, `lite`, `mini`, `core` bundles. In browsers we recomme
 ```js
 // node.js
 import * as exifr from 'exifr' // loads 'full' build by default
-
 // older Node.js or CJS project
 var exifr = require('exifr/dist/full.umd.js')
-
 // modern browser
 import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 ```
@@ -126,7 +124,7 @@ worker.postMessage(arrayBuffer, [arrayBuffer])
 
 ```js
 // worker.js
-importScripts('./node_modules/exifr/dist/mini.umd.js')
+importScripts('./node_modules/exifr/dist/lite.umd.js')
 self.onmessage = async e => postMessage(await exifr.parse(e.data))
 ```
 
@@ -134,7 +132,7 @@ UMD in Browser
 
 ```html
 <img src="./myimage.jpg">
-<script src="./node_modules/exifr/dist/mini.umd.js"></script>
+<script src="./node_modules/exifr/dist/lite.umd.js"></script>
 <script>
   let img = document.querySelector('img')
   window.exifr.parse(img).then(exif => console.log('Exposure:', exif.ExposureTime))
@@ -146,7 +144,7 @@ ESM in Browser
 ```html
 <input id="filepicker" type="file" multiple>
 <script type="module">
-  import {parse} from './node_modules/exifr/dist/mini.esm.js'
+  import {parse} from './node_modules/exifr/dist/lite.esm.js'
   document.querySelector('#filepicker').addEventListener('change', async e => {
     let files = Array.from(e.target.files)
     let exifs = await Promise.all(files.map(parse))
@@ -170,11 +168,13 @@ and a lot more in the [examples/](examples/) folder
 
 exifr exports `parse()`, `gps()`, `orientation()`, `thumbnail()`, `thumbnailUrl()` functions and `Exifr` class
 
-### `parse(file[, options])` => `Promise<object>`
+### `parse(file[, options])`
+Returns: `Promise<object>`
 
 Accepts [file](#file-argument) (in any format), parses it and returns exif object. Optional [options](#options-argument) argument can be specified.
 
-### `gps(file)` => `Promise<object>`
+### `gps(file)`
+Returns: `Promise<object>`
 
 Extracts only GPS coordinates from photo.
 
@@ -182,11 +182,13 @@ Extracts only GPS coordinates from photo.
 
 Check out [examples/gps.js](examples/gps.js) to learn more.
 
-### `orientation(file)` => `Promise<number>`
+### `orientation(file)`
+Returns: `Promise<number>`
 
 Extracts only photo's orientation.
 
-### `thumbnail(file)` => `Promise<Buffer|ArrayBuffer>`
+### `thumbnail(file)`
+Returns: `Promise<Buffer|ArrayBuffer>`
 
 Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
@@ -194,11 +196,12 @@ Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
 Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.
 
-### `thumbnailUrl(file)` => `Promise<string>`, browser only
+### `thumbnailUrl(file)`
+Returns: `Promise<string>`
+<br>
+browser only
 
-Exports the thumbnail wrapped in Object URL.
-
-User should to revoke the URL when not needed anymore. [More info here](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images)
+Exports the thumbnail wrapped in Object URL. The URL has to be revoked when not needed anymore. [More info here](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images)
 
 ### `Exifr` class
 
@@ -232,9 +235,11 @@ if (exr.file.chunked) await exr.file.close()
 
 ### `options` argument
 
-* `Array` of tags to parse
-* `true` shortcut to parse all segments and blocks
+* `array` of tags to parse, shortcut for [`options.pick`](#optionspick)
+* `true` shortcut to parse all [segments](#app-segments) and [blocks](#tiff-ifd-blocks)
 * `object` with granular settings
+
+All other and undefined properties are inherited from defaults:
 
 ```js
 let defaultOptions = {
@@ -245,18 +250,18 @@ let defaultOptions = {
   icc: false,
   iptc: false,
   // TIFF Blocks
-  ifd0: true,
+  ifd0: true, // aka image
+  ifd1: false, // aka thumbnail
   exif: true,
   gps: true,
   interop: false,
-  thumbnail: false,
   // Other TIFF tags
   makerNote: false,
   userComment: false,
   // Filters
   skip: [],
   pick: [],
-  // formatters
+  // Formatters
   translateKeys: true,
   translateValues: true,
   reviveValues: true,
@@ -278,25 +283,26 @@ Exifr can avoid reading certain tags, instead of reading but not including them 
 
 *Tip: Using numeric tag codes is even faster than string names, because exifr doesn't have to look up the strings in dictionaries.*
 
-#### `options.pick` `Array<string|number>`
+#### `options.pick`
+Type: `Array<string|number>`
 
 Array of the only tags that will be parsed.
 
+Specified tags are looked up in dictionary. Their respective blocks are enabled for parsing, all other blocks are disabled. Parsing ends as soon as all requested tags are extracted.
+
 ```js
+// Only extracts three tags from EXIF block. IFD0, GPS and other blocks disabled.
 {pick: ['ExposureTime', 'FNumber', 'ISO']}
-```
-
-```js
-// Avoid reading all TIFF blocks, except for GPS block. Of which only GPSLatitude & GPSLongitude is parsed.
-{tiff: false, gps: ['GPSLatitude', 0x0004]}
-```
-
-```js
-// Only read two tags from gps block
+// Only extracts three tags from EXIF block and one tag from GPS block.
+{pick: ['ExposureTime', 'FNumber', 'ISO', 'GPSLatitude']}
+// Extracts two tags from GPS block and all of IFD0 and EXIF blocks which are enabled by default.
 {gps: {pick: ['GPSLatitude', 0x0004]}}
 ```
 
-#### `options.skip` `Array<string|number>` default `['MakerNote', 'UserComments']`
+#### `options.skip`
+Type: `Array<string|number>`
+<br>
+Default: `['MakerNote', 'UserComments']`
 
 Array of the tags that will not be parsed.
 
@@ -319,68 +325,61 @@ EXIF became synonymous for all image metadata, but it's actually just one of man
 
 Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats use different structures or naming conventions but the idea is the same, so we refer to TIFF, XMP, IPTC, ICC and JFIF as Segments.
 
-* `options.tiff` `<bool|object|Array>` default: `true`
-<br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of blocks: IFD0 (image), IFD1 (thumbnail), EXIF, GPS
-* `options.jfif` `<bool>` default: `false`
+* `options.tiff` type `bool|object|Array` default: `true`
+<br>TIFF APP1 Segment - Basic TIFF/EXIF tags, consists of blocks: IFD0 (image), IFD1 (thumbnail), EXIF, GPS, Interop
+* `options.jfif` type `bool` default: `false`
 <br>JFIF APP0 Segment - Additional info
-* `options.xmp` `<bool>` default: `false`
+* `options.xmp` type `bool` default: `false`
 <br>XMP APP1 Segment - additional XML data
-* `options.iptc` `<bool>` default: `false`
+* `options.iptc` type `bool` default: `false`
 <br>IPTC APP13 Segment - Captions and copyrights
-* `options.icc` `<bool>` default: `false`
+* `options.icc` type `bool` default: `false`
 <br>ICC APP2 Segment - Color profile
 
 #### TIFF IFD Blocks
 
 TIFF Segment consists of various IFD's (Image File Directories) aka blocks.
 
-* `options.ifd0` (alias `options.image`) `<bool|object|Array>` default: `true`
+* `options.ifd0` (alias `options.image`) type `bool|object|Array` default: `true`
 <br>IFD0 - Basic info about the image
-* `options.ifd1` (alias `options.thumbnail`) `<bool|object|Array>` default: `false`
+* `options.ifd1` (alias `options.thumbnail`) type `bool|object|Array` default: `false`
 <br>IFD1 - Info about embedded thumbnail
-* `options.exif` `<bool|object|Array>` default: `true`
+* `options.exif` type `bool|object|Array` default: `true`
 <br>EXIF SubIFD - Detailed info about photo
-* `options.gps` `<bool|object|Array>` default: `true`
+* `options.gps` type `bool|object|Array` default: `true`
 <br>GPS SubIFD - GPS coordinates
-* `options.interop` `<bool|object|Array>` default: `false`
+* `options.interop` type `bool|object|Array` default: `false`
 <br>Interop SubIFD - Interoperability info
-
-`options.tiff` serves as a shortcut for managing TIFF blocks:
-
-* `options.tiff = true` enables all TIFF blocks (sets them to `true`).
-* `options.tiff = false` disables all TIFF blocks (sets them to `false`).
-* `options.tiff = {...}` applies the same sub-options to all TIFF blocks that are enabled.
-
-`options.tiff = false` can be paired with any other block(s) to disable all other blocks except for said block.
-
-```js
-{tiff: false, thumbnail: true}
-// is a shortcut for
-{ifd0: false, exif: false, gps: false, interop: false, thumbnail: true}
-```
 
 #### Notable TIFF tags
 
 Notable large tags from EXIF block that are not parsed by default but can be enabed if needed.
 
-* `options.makerNote` `<bool>` default: `false`
+* `options.makerNote` type: `bool` default: `false`
 <br>0x927C MakerNote tag 
-* `options.userComment` `<bool>` default: `false`
+* `options.userComment` type: `bool` default: `false`
 <br>0x9286 UserComment tag
 
-#### TIFF Sub-Options
+#### Shortcuts
 
-Each TIFF block (`ifd0`, `exif`, `gps`, `interop`, `thumbnail`) or the whole `tiff` segment can be set to:
-* `true` - enabled with default or inherited options.
-* `false` - disabled, not parsing
-* `object` - enabled with custom options 
-   * Subset of `options` object.
-   * Can locally override [filters](#tag-filters): `pick`, `skip`.
-   * Can locally override [formatters](#output-format): `translateKeys`, `translateValues`, `reviveValues`.
-   * Undefined properties are inherited from `options` object. TIFF blocks also inherit from `options.tiff` first.
-* `Array` - enabled, but only [picks](#tag-filters) tags from this array
-   * Sortcut for `{pick: ['tags', ...]}`
-   * Can contain both string names and number codes (i.e. `'Make'` or `0x010f`)
+`options.tiff` serves as a shortcut for configuring all TIFF blocks:
+
+* `options.tiff = true` enables all TIFF blocks (sets them to `true`).
+* `options.tiff = false` disables all TIFF blocks (sets them to `false`) except for those explicitly set to `true` in `options`.
+* `options.tiff = {...}` applies the same sub-options to all TIFF blocks that are enabled.
+
+`options.tiff = false` can be paired with any other block(s) to disable all other blocks except for said block.
+
+```js
+{interop: true, tiff: false}
+// is a shortcut for
+{interop: true, ifd0: false, exif: false, gps: false, ifd1: true}
+```
+
+Each TIFF block and the whole `tiff` segment can also be configured with `object` or `array`, much like the [`options`](#options-argument) argument.
+
+* `object` - enabled with custom options - [filters](#tag-filters) ([`pick`](#optionspick), [`skip`](#optionsskip)) and [formatters](#output-format) ([`translateKeys`](#optionstranslatekeys), [`translateValues`](#optionstranslatevalues), [`reviveValues`](#optionsrevivevalues))
+* `array` - enabled, but only [picks](#optionspick) tags from this array
 
 TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 
@@ -403,64 +402,46 @@ TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 }
 ```
 
-```js
-// Do not revive any values
-{
-  reviveValues: false,
-  exif: {/* inherits `options.reviveValues` */}
-}
-
-// Do not revive any values except for those in EXIF block
-{
-  reviveValues: false,
-  exif: {reviveValues: true}
-}
-```
-
 ### Chunked reader
 
-#### `options.chunked` `bool` default `true`
+#### `options.chunked`
+Type: `bool`
+<br>
+Default: `true`
 
-Exifr can read only few chunks instead of the whole file. It's much faster, saves memory and unnecessary disk reads or network fetches.
+Exifr can read only a few chunks instead of the whole file. It's much faster, saves memory and unnecessary disk reads or network fetches. Works great with complicated file structures - .tif files may point to metadata scattered throughout the file.
 
-Just a few bytes and up to few hundreds of kilobytes will be read, depending on the segments you want to extract and traces of metadata found in the file.
+**How it works:** First small chunk (of `firstChunkSize`) is read to determine if the file contains any metadata at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
 
-Chunked reading also works with complicated file structures, like .tif files, which points to metadata scattered throughout the file, usually near the end.
+**Supported inputs:** Chunked is only effective with `Blob`, `<img>` element, `string` url, disk path, or base64. These inputs are not yet processed or read into memory. Each input format is implemented in separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
 
-#### How does it work
+**If you use URL as input:** Fetching chunks (implemented in `UrlFetcher`) from web server uses [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). Range request may fail if your server does not support ranges, if it's not configured properly or if the fetched file is smaller than the first chunk size. Test your web server or disable chunked reader with `{chunked: false}` when in doubt.
 
-First small chunk (of `firstChunkSize`) is read to determine if the file contains any data at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
-
-#### Supported inputs
-
-Chunked mode is only effective if you use `Blob`, `<img>` element, `string` url, disk path, or base64 as an input, because these inputs are not yet processed or read into memory and exifr can handle this expensive operation by chunks.
-
-Each input format is implemented in separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
-
-#### Reading whole file
-
-You can opt out of chunked reading by `{chunked: false}` if you're not concerned about performance and time (mostly in Node.js).
-
-#### Beware
-
-Fetching chunks (implemented in `UrlFetcher`) from web server uses [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). Range request may fail if your server does not support ranges, if it's not configured properly or if the fetched file is smaller than the first chunk size. Test your web server or disable chunked reader with `{chunked: false}` when in doubt.
-
-#### `options.firstChunkSize` `number` default `512` in Node / `65536` in browser
+#### `options.firstChunkSize`
+Type: `number`
+<br>
+Default: `512` in Node / `65536` in browser
 
 Size (in bytes) of the first chunk that probes the file for traces of exif or metadata. 
 
-Based on platform, one of these values are used for `firstChunkSize`:
+Depending on platform, one of these values are used:
 
 * `options.firstChunkSizeNode` default `512`
 * `options.firstChunkSizeBrowser` default `65536` (64 KB)
 
 *In browser it's usually better to read just larger chunk in hope that it contains the whole EXIF (and not just the begining) instead of loading mutliple subsequent chunks. Whereas in Node.js it's prefferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
 
-#### `options.chunkSize` `number` default `65536` Bytes (64 KB)
+#### `options.chunkSize`
+Type: `number`
+<br>
+Default: `65536` Bytes (64 KB)
 
 Size of subsequent chunks that may be read after first chunk.
 
-#### `options.chunkLimit` `number` default `5`
+#### `options.chunkLimit`
+Type: `number`
+<br>
+Default: `5`
 
 Max amount of subsequent chunks allowed to read in which exifr searches for segments and blocks.
 
@@ -472,11 +453,14 @@ This limit is bypassed if multi-segment segments occurs in the file and if `opti
 
 ### Output format
 
-#### `options.mergeOutput` default: `true`
+#### `options.mergeOutput`
+Type: `bool`
+<br>
+Default: `true`
 
 Merges all parsed segments and blocks into a single object.
 
-**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` and `thumbnail`. Keys are numeric, starting at 0 and they would collide.
+**Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` (image) and `ifd1` (thumbnail). Tag keys are numeric, sometimes identical and may collide.
 
 <table><tr>
 <td>mergeOutput: false</td>
@@ -505,20 +489,25 @@ Merges all parsed segments and blocks into a single object.
 }
 </pre></td></tr></table>
 
-#### `options.sanitize` default: `true`
+#### `options.sanitize`
+Type: `bool`
+<br>
+Default: `true`
 
 Removes:
 
 * IFD Pointer addresses from output of TIFF segment
 * `ApplicationNotes` tag (raw `Uint8Array` form of XMP) in .tif files
 
-#### `options.translateKeys` default: `true`
+#### `options.translateKeys`
+Type: `bool`
+<br>
+Default: `true`
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
+Lean more about [dictionaries](#modularity-pugin-api).
 
 Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`
-
-Lean more about [dictionaries](#modularity-pugin-api).
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -543,10 +532,12 @@ Lean more about [dictionaries](#modularity-pugin-api).
   ProfileDescription: 'sRGB IEC61966-2.1',
 }</pre></td></tr></table>
 
-#### `options.translateValues` default: `true`
+#### `options.translateValues`
+Type: `bool`
+<br>
+Default: `true`
 
 Translates tag values from raw enums to understandable strings.
-
 Lean more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
@@ -566,10 +557,12 @@ Lean more about [dictionaries](#modularity-pugin-api).
 }
 </pre></td></tr></table>
 
-#### `options.reviveValues` default: `true`
+#### `options.reviveValues`
+Type: `bool`
+<br>
+Default: `true`
 
 Converts dates from strings to Date instances and modifies few other tags to a more readable format.
-
 Lean more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
@@ -702,11 +695,10 @@ Of course you can use `full` version in browser, or use any other build in Node.
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
-| inputs          | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string<br>base64 string or url | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string<br>path string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string | `ArrayBuffer`<br>`Buffer`<br>`Uint8Array`<br>`DataView`<br>`Blob`/`File`<br>url string |
 | file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
 | segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
-| dictionaries    | extended TIFF (everything, including less frequent tags)<br>IPTC<br>ICC | basic TIFF (IFD0, EXIF, GPS) | none | none |
+| dictionaries    | extended TIFF<br>(+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
 | file            | `dist/full.esm.js`<br>`dist/full.umd.js`<br>`dist/full.legacy.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js`<br>`dist/lite.legacy.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js`<br>`dist/mini.legacy.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
@@ -721,26 +713,9 @@ If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'we
 
 Alternatively create your own bundle around `core` build and do not include `FsReader` in it.
 
-## Notable breaking changes / Migration from 2.x.x to 3.0.0
+## Notable breaking changes @ migration from 2.x.x
 
-Complete list of breaking changes is in [`CHANGELOG.md`][changelog]
-
-1) Changed EXIF & IPTC tag dictionary to match [ExifTool](https://exiftool.org/TagNames/EXIF.html). Most tags should stay the same, but expect some changed. For example:
-<br>before `{ExposureBiasValue: 0}`, after `{ExposureCompensation: 0}`
-<br>before `{WhiteBalance: 'Auto white balance'}`, after `{WhiteBalance: 'Auto'}`
-2) Renamed `image` block to `ifd0` and `thumbnail` to `ifd1`. This applies to options (`options.ifd0` instead of `options.image`) as well as output (the data is not `output.ifd1` instead of `output.thumbnail`)
-3) Renamed `ExifParser` class to `Exifr`.
-4) Renamed `thumbnailBuffer` to `thumbnail`
-5) Changed behavior of `options.wholeFile` and renamed to `options.readChunked`
-
-```js
-// 2.x.x
-import * as exifr from 'exifr'
-exifr.thumbnailBuffer()
-// 3.0.0
-import * as exifr from 'exifr'
-exifr.thumbnail()
-```
+see [`CHANGELOG.md`](CHANGELOG.md)
 
 ## XMP
 
@@ -770,7 +745,7 @@ Unlike other libraries, exifr can only parse certain tags, avoid unnecessary rea
 
 ```js
 // do this:
-let output = await exifr.parse(file, {exif: ['ExposureTime', 'FNumber']})
+let {ExposureTime, FNumber} = await exifr.parse(file, {exif: ['ExposureTime', 'FNumber']})
 // not this:
 let {ExposureTime, FNumber} = await exifr.parse(file)
 ```
@@ -822,10 +797,10 @@ We're able to parse image within a couple of milliseconds (tens of millis on pho
 Try the benchmark yourself at [benchmark/chunked-vs-whole.js](https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
 
 ```
-user reads file            8.4846 ms
-exifr reads whole file     8.2180 ms
-exifr reads file by chunks 0.5459 ms  <--- !!!
-only parsing, not reading  0.2571 ms  <--- !!!
+user reads file            8.4 ms
+exifr reads whole file     8.2 ms
+exifr reads file by chunks 0.5 ms  <--- !!!
+only parsing, not reading  0.2 ms  <--- !!!
 ```
 
 Observations from testing with +-4MB pictures (*Highest quality Google Pixel photos. Tested on a mid range dual core i5 machine with SSD*).
@@ -844,12 +819,8 @@ Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr), drop in yo
 
 Other libraries use brute force to read through all bytes until 'Exif' string is found. Whereas exifr recognizes the file structure which consists of nested boxes. This allows exifr to read just a few bytes here and there, to get sizes of the box and pointers to jump to next.
 
-Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. That's up to 30x faster.
+Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
 
 ## Licence
 
 MIT, Mike Kovařík, Mutiny.cz
-
-<!-- links -->
-
-[changelog]: https://github.com/mozilla/learning.mozilla.org/blob/master/CHANGELOG.md
