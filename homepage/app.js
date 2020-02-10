@@ -11,37 +11,10 @@ import '../src/util/debug.js'
 
 let fixtureDirPath = './test/fixtures/'
 let demoFileName = 'IMG_20180725_163423-tiny.jpg'
-//let demoFileName = 'IMG_20180725_163423.jpg'
+let demoFileSize = 311406
 
 
 class ExifrDemoApp {
-
-	toggleSegment(name) {
-	}
-
-	demoFiles = [{
-		text: 'JPEG Google Pixel photo',
-		name: 'IMG_20180725_163423.jpg',
-	}, {
-		text: 'HEIC iPhone photo',
-		name: 'heic-iphone7.heic',
-	}, {
-		text: 'TIFF Drone photo',
-		name: 'issue-metadata-extractor-152.tif',
-		segments: ['xmp'],
-	}, {
-		text: 'Photo Sphere / GPano',
-		name: 'PANO_20180714_121453.jpg',
-		segments: ['xmp'],
-	}, {
-		text: 'Photo with IPTC desc',
-		name: 'iptc-independent-photographer-example.jpg',
-		segments: ['iptc'],
-	}, {
-		text: 'Image with XMP',
-		name: 'cookiezen.jpg',
-		segments: ['xmp'],
-	}]
 
 	constructor() {
 		this.setupDom().catch(this.handleError)
@@ -63,7 +36,7 @@ class ExifrDemoApp {
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
-		this.loadPhoto(demoFileName)
+		this.loadPhoto(demoFileName, demoFileSize)
 	}
 
 	handleError = err => {
@@ -91,15 +64,18 @@ class ExifrDemoApp {
 		this.parseFile()
 	}
 
-	async loadPhoto(fileName, segmentsToEnable = []) {
+	async loadPhoto(fileName, expectedFileSize) {
 		this.setStatus('Loading image')
 		let filePath = fixtureDirPath + fileName
 		let res = await fetch(filePath)
-		let file = await res.arrayBuffer()
-		let options = this.options
-		for (let key of segmentsToEnable)
-			options[key] = true
-		this.parseFile(file)
+		let fetchedSize = Number(res.headers.get('content-length'))
+		if (fetchedSize === expectedFileSize) {
+			// TODO expectedFileSize
+			let file = await res.arrayBuffer()
+			this.parseFile(file)
+		} else {
+			this.setStatus(`Demo image couldn't load: You are using data saver.`, 'red')
+		}
 	}
 
 	onDrop = async e => {

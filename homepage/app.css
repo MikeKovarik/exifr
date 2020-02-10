@@ -320,6 +320,15 @@ table {
 	}
 }
 
+@media only screen and (max-width: 749px) {
+	#output-head span.red {
+		white-space: normal;
+		margin: 0;
+		line-height: 18px;
+		display: block;
+	}
+}
+
 /* fullscreen can be only visible on larger screens. it is already fullscreen (in single col) on phones */
 @media only screen and (max-width: 749px) {
 	#raw h3 span {
@@ -351,7 +360,8 @@ pre {
 
 /* TOGGLE FULLSCREEN ANIMATION */
 
-#grid {
+/* WARNING: do not overflow:hidden on grid because sticky wont work*/
+#grid > *:not(#input) {
 	overflow: hidden;
 }
 #raw h3 span {
