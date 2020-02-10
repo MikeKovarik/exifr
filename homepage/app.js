@@ -1,12 +1,10 @@
-import {Exifr, Options} from '../src/bundle-full.js'
-import * as exifr from '../src/bundle-full.js'
-import {readBlobAsArrayBuffer} from '../src/reader.js'
-import {segmentsAndBlocks, tiffExtractables} from '../src/options.js'
+import * as exifr from '../dist/full.esm.js'
+import {Exifr, Options, readBlobAsArrayBuffer} from '../dist/full.esm.js'
+import {segmentsAndBlocks, tiffExtractables} from '../dist/full.esm.js'
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
 import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter} from './util.js'
-import '../src/util/debug.js'
 
 
 let fixtureDirPath = './test/fixtures/'
