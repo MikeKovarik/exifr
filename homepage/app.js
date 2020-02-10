@@ -128,10 +128,11 @@ class ExifrDemoApp {
 	async parseForPrettyOutput(input) {
 		let options = cloneObject(this.options)
 		delete options.tiff
-
 		// now parse again for the nice boxes with clear information.
 		options.mergeOutput = false
 		options.sanitize = true
+		options.translateKeys = true
+		// paarse
 		let exr = new Exifr(options)
 		await exr.read(input)
 		let output = await exr.parse() || {}
