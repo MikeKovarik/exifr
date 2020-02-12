@@ -50,7 +50,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 |`exifr.parse(file, {options})`|`object`|Custom settings|
 |`exifr.gps(file)`|`{latitude, longitude}`|Parses only GPS coords|
 |`exifr.orientation(file)`|`number`|Parses only orientation|
-|`exifr.thumbnail(file)`|`Uint8Array` binary|Extracts embedded thumbnail|
+|`exifr.thumbnail(file)`|`Buffer|Uint8Array` binary|Extracts embedded thumbnail|
 |`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
 
 ## Installation
@@ -59,7 +59,8 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 npm install exifr
 ```
 
-You can pick from `full`, `lite`, `mini`, `core` bundles. In browsers we recommend `mini` or `lite` because of balance between features and file size. [Learn more](#distributions-builds).
+Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
+
 
 **Old Node.js users**: This library is written as an ES module. If you still use CommonJS, you need load UMD bundle.
 
@@ -78,7 +79,28 @@ import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 <script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
 ```
 
-In older browsers you need to use `legacy` build (e.g. `lite.legacy.umd.js`) and polyfills. Learn more at [examples/legacy.html](examples/legacy.html)
+`mini` and `lite` are recommended for browsers because of balance between features and file size.
+
+Need to support older browsers? Use `legacy` build along with polyfills. Learn more about IE11 at [examples/legacy.html](examples/legacy.html).
+
+#### Bundles
+
+* **full** - Contains everything. Intended for use in Node.js.
+* **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
+* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictonaries.
+* **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
+
+Of course you can use `full` version in browser, or use any other build in Node.js.
+
+|                 | full | lite | mini | core |
+|-----------------|------|------|------|------|
+| chunked<br>file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
+| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
+| segment parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
+| dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
+| size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
+| gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
+| file            | `full.esm.js`<br>`full.umd.js`<br>`full.legacy.umd.js` | `lite.esm.js`<br>`lite.umd.js`<br>`lite.legacy.umd.js` | `mini.esm.js`<br>`mini.umd.js`<br>`mini.legacy.umd.js` | `core.esm.js`<br>`core.umd.js` |
 
 ## Examples
 
@@ -188,7 +210,7 @@ Returns: `Promise<number>`
 Extracts only photo's orientation.
 
 ### `thumbnail(file)`
-Returns: `Promise<Buffer|ArrayBuffer>`
+Returns: `Promise<Buffer|Uint8Array>`
 
 Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
@@ -201,7 +223,7 @@ Returns: `Promise<string>`
 <br>
 browser only
 
-Exports the thumbnail wrapped in Object URL. The URL has to be revoked when not needed anymore. [More info here](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images)
+Exports the thumbnail wrapped in [Object URL](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images). The URL has to be revoked when not needed anymore.
 
 ### `Exifr` class
 
@@ -221,16 +243,15 @@ if (exr.file.chunked) await exr.file.close()
 
 ### `file` argument
 
-* `string` file path
-* `string` URL
-* `string` Base64
-* `string` Base64 URL (starting with `data:image/jpeg;base64,`)
-* `string` Object URL / Blob URL
+* `string`
+  * file path
+  * URL, [Object URL](https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL)
+  * Base64 or [Base64 URL](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs)
 * `Buffer`
 * `ArrayBuffer`
 * `Uint8Array`
 * `DataView`
-* `Blob` / `File`
+* `Blob`, `File`
 * `<img>` element
 
 ### `options` argument
@@ -309,11 +330,9 @@ Array of the tags that will not be parsed.
 By default MakerNote and UserComment tags are skipped. But that is configured [elsewhere](#notable-tiff-tags).
 
 ```js
-// Skip reading these three tags in any block
+// Skips reading these three tags in any block
 {skip: ['ImageWidth', 'Model', 'FNumber', 'GPSLatitude']}
-```
-```js
-// Skip reading three tags in EXIF block
+// Skips reading three tags in EXIF block
 {exif: {skip: ['ImageUniqueID', 42033, 'SubSecTimeDigitized']}}
 ```
 
@@ -494,10 +513,7 @@ Type: `bool`
 <br>
 Default: `true`
 
-Removes:
-
-* IFD Pointer addresses from output of TIFF segment
-* `ApplicationNotes` tag (raw `Uint8Array` form of XMP) in .tif files
+Cleans up unnecessary, untransformed or internal tags (IFD pointers) from the output.
 
 #### `options.translateKeys`
 Type: `bool`
@@ -505,9 +521,8 @@ Type: `bool`
 Default: `true`
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
-Lean more about [dictionaries](#modularity-pugin-api).
-
 Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`
+Lean more about [dictionaries](#modularity-pugin-api).
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -515,21 +530,15 @@ Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `o
 <td>translateKeys: false</td>
 <td>translateKeys: true</td>
 </tr><tr><td><pre>{
-  // IFD0 tag
-  0x0110: 'Pixel',
-  // IPTC tag
-  90: 'Vsetín',
-  // ICC tags
-  64: 'Perceptual',
-  desc: 'sRGB IEC61966-2.1',
+  0x0110: 'Pixel', // IFD0
+  90: 'Vsetín', // IPTC
+  64: 'Perceptual', // ICC
+  desc: 'sRGB IEC61966-2.1', // ICC
 }</pre></td><td><pre>{
-  // IFD0 tag
-  Model: 'Pixel',
-  // IPTC tag
-  City: 'Vsetín',
-  // ICC tags
-  RenderingIntent: 'Perceptual',
-  ProfileDescription: 'sRGB IEC61966-2.1',
+  Model: 'Pixel', // IFD0
+  City: 'Vsetín', // IPTC
+  RenderingIntent: 'Perceptual', // ICC
+  ProfileDescription: 'sRGB IEC61966-2.1', // ICC
 }</pre></td></tr></table>
 
 #### `options.translateValues`
@@ -616,35 +625,7 @@ TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.o
 [IPTC](https://exiftool.org/TagNames/IPTC.html),
 [JFIF](https://exiftool.org/TagNames/JFIF.html)
 
-### Example - Dictionary customization
-
-```js
-import {tagKeys, tagValues} from 'exifr'
-// Sharpness tag of EXIF block
-let TAG = 0xa409
-// get dictionaries
-let exifKeys   = tagRevivers.get('exif')
-let exifValues = tagKeys.get('exif')
-// extend or edit dictionaries
-exifKeys.set(TAG, 'Saturation')
-exifValues.set(TAG, {
-  0: 'Normal',
-  1: 'Low',
-  2: 'High'
-})
-```
-
-```js
-import {tagRevivers} from 'exifr'
-// modify how GPSDateStamp value is processed
-let gpsRevivers = tagRevivers.get('gps')
-gpsRevivers.set(0x001D, rawValue => {
-  let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
-  return new Date(year, month - 1, day)
-})
-```
-
-### Example - Build your own exifr
+### Advanced: Build your own exifr
 
 Check out [examples/custom-build.js](examples/custom-build.js).
 
@@ -680,28 +661,51 @@ import 'exifr/src/segment-parsers/tiff.js'
 import 'exifr/src/dicts/tiff-exif-values.js'
 ```
 
-## Distributions (builds)
+### Advanced: Dictionary customization
 
-Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
+```js
+// Modify single tag's 0xa409 (Saturation) translation
+import {tagKeys, tagValues} from 'exifr'
+let exifKeys   = tagKeys.get('exif')
+let exifValues = tagValues.get('exif')
+exifKeys.set(0xa409, 'Saturation')
+exifValues.set(0xa409, {
+  0: 'Normal',
+  1: 'Low',
+  2: 'High'
+})
+```
 
-Need to support older browsers? Use `legacy` build along with polyfills. Learn more about IE11 at [examples/legacy.html](examples/legacy.html)
+```js
+// Modify single tag's GPSDateStamp value is processed
+import {tagRevivers} from 'exifr'
+let gpsRevivers = tagRevivers.get('gps')
+gpsRevivers.set(0x001D, rawValue => {
+  let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
+  return new Date(year, month - 1, day)
+})
+```
 
-* **full** - Contains everything. Intended for use in Node.js.
-* **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
-* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictonaries.
-* **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
+```js
+// Create custom dictionary for GPS block
+import {tagKeys, createDictionary} from 'exifr'
+createDictionary(tagKeys, 'gps', [
+  [0x0001, 'LatitudeRef'],
+  [0x0002, 'Latitude'],
+  [0x0003, 'LongitudeRef'],
+  [0x0004, 'Longitude'],
+])
+```
 
-Of course you can use `full` version in browser, or use any other build in Node.js.
-
-|                 | full | lite | mini | core |
-|-----------------|------|------|------|------|
-| file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
-| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
-| segment parsers | TIFF (EXIF) + less frequent tags<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
-| dictionaries    | extended TIFF<br>(+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
-| size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
-| gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
-| file            | `dist/full.esm.js`<br>`dist/full.umd.js`<br>`dist/full.legacy.umd.js` | `dist/lite.esm.js`<br>`dist/lite.umd.js`<br>`dist/lite.legacy.umd.js` | `dist/mini.esm.js`<br>`dist/mini.umd.js`<br>`dist/mini.legacy.umd.js` | `dist/core.esm.js`<br>`dist/core.umd.js` |
+```js
+// Extend existing IFD0 dictionary
+import {tagKeys, createDictionary} from 'exifr'
+createDictionary(tagKeys, 'ifd0', [
+  [0xc7b5, 'DefaultUserCrop'],
+  [0xc7d5, 'NikonNEFInfo'],
+  ...
+])
+```
 
 ## Usage with Webpack, Parcel, Rollup and other bundlers.
 
