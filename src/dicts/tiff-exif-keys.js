@@ -3,7 +3,9 @@ import {tagKeys, createDictionary} from '../tags.js'
 
 // inspired by
 // http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/EXIF.html
+// TODO: check and add missing ones from:
 // https://metacpan.org/pod/distribution/Image-ExifTool/lib/Image/ExifTool/TagNames.pod#EXIF-Tags
+// https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Exif-tags-for-the-0th-IFD-Exif-private-subdirectory
 
 createDictionary(tagKeys, 'exif', [
 	[0x829a, 'ExposureTime'],

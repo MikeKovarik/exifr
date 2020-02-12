@@ -8,6 +8,7 @@ import {tagKeys, createDictionary} from '../tags.js'
 // https://metacpan.org/pod/Image::MetaData::JPEG::TagLists - canonical + custom tags
 
 createDictionary(tagKeys, ['ifd0', 'ifd1'], [
+	// most of these plus more https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Canonical-Exif-2.2-and-TIFF-6.0-tags-for-IFD0-and-IFD1
 	[0x0100, 'ImageWidth'],
 	[0x0101, 'ImageHeight'],
 	[0x0102, 'BitsPerSample'],
@@ -48,47 +49,10 @@ createDictionary(tagKeys, ['ifd0', 'ifd1'], [
 	[0x8825, 'GpsIFD'],
 	[0x014a, 'SubIFD'], // [Adobe TIFF technote 1]
 	[0xa005, 'InteropIFD'], // not actually assigned to IFD0 but offten found here
-
-	// Additional IFD0 TIFF 6.0 tags not in Exif 2.2
-	// This is not complete list. This list was taken from https://exiftool.org/TagNames/EXIF.html
-	// All of these non-standard tags are here https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Canonical-Exif-2.2-and-TIFF-6.0-tags-for-IFD0-and-IFD1
-	[0x000b, 'ProcessingSoftware'],
-	[0x00fe, 'SubfileType'],
-	[0x00ff, 'OldSubfileType'],
-	[0x0107, 'Thresholding'],
-	[0x0108, 'CellWidth'],
-	[0x0109, 'CellLength'],
-	[0x010a, 'FillOrder'],
-	[0x010d, 'DocumentName'],
-	[0x0118, 'MinSampleValue'],
-	[0x0119, 'MaxSampleValue'],
-	[0x011d, 'PageName'],
-	[0x011e, 'XPosition'],
-	[0x011f, 'YPosition'],
-	[0x0122, 'GrayResponseUnit'],
-	[0x0129, 'PageNumber'],
-	[0x0141, 'HalftoneHints'],
-	[0x0142, 'TileWidth'],
-	[0x0143, 'TileLength'],
-	[0x014c, 'InkSet'],
-	[0x0151, 'TargetPrinter'],
-
-	// yet another list
-	[0x4746, 'Rating'],
-	[0x4749, 'RatingPercent'],
-	[0x830e, 'PixelScale'],
-	[0x85d8, 'ModelTransform'],
-	[0x8649, 'PhotoshopSettings'],
+	// descriptions, not core
 	[0x9c9b, 'XPTitle'],
 	[0x9c9c, 'XPComment'],
 	[0x9c9d, 'XPAuthor'],
 	[0x9c9e, 'XPKeywords'],
 	[0x9c9f, 'XPSubject'],
-	[0xc612, 'DNGVersion'],
-	[0xc613, 'DNGBackwardVersion'],
-	[0xc614, 'UniqueCameraModel'],
-	[0xc615, 'LocalizedCameraModel'],
-	[0xc630, 'DNGLensInfo'],
-	[0xc633, 'ShadowScale'],
-	[0xc634, 'DNGPrivateData'],
 ])

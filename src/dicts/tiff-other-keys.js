@@ -7,6 +7,46 @@ import {tagKeys, extendDictionary} from '../tags.js'
 
 // Additional and barely used, but known tags in IFD0
 extendDictionary(tagKeys, 'ifd0', [
+
+	// Additional IFD0 TIFF 6.0 tags not in Exif 2.2
+	// This is not complete list. This list was taken from https://exiftool.org/TagNames/EXIF.html
+	// https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Additional-TIFF-6.0-tags-not-in-Exif-2.2-for-IFD0
+	[0x000b, 'ProcessingSoftware'],
+	[0x00fe, 'SubfileType'],
+	[0x00ff, 'OldSubfileType'],
+	[0x0107, 'Thresholding'],
+	[0x0108, 'CellWidth'],
+	[0x0109, 'CellLength'],
+	[0x010a, 'FillOrder'],
+	[0x010d, 'DocumentName'],
+	[0x0118, 'MinSampleValue'],
+	[0x0119, 'MaxSampleValue'],
+	[0x011d, 'PageName'],
+	[0x011e, 'XPosition'],
+	[0x011f, 'YPosition'],
+	[0x0122, 'GrayResponseUnit'],
+	[0x0129, 'PageNumber'],
+	[0x0141, 'HalftoneHints'],
+	[0x0142, 'TileWidth'],
+	[0x0143, 'TileLength'],
+	[0x014c, 'InkSet'],
+	[0x0151, 'TargetPrinter'],
+
+	// yet another list
+	[0x4746, 'Rating'],
+	[0x4749, 'RatingPercent'],
+	[0x830e, 'PixelScale'],
+	[0x85d8, 'ModelTransform'],
+	[0x8649, 'PhotoshopSettings'],
+	[0xc612, 'DNGVersion'],
+	[0xc613, 'DNGBackwardVersion'],
+	[0xc614, 'UniqueCameraModel'],
+	[0xc615, 'LocalizedCameraModel'],
+	[0xc630, 'DNGLensInfo'],
+	[0xc633, 'ShadowScale'],
+	[0xc634, 'DNGPrivateData'],
+
+	// and more tags
 	[0x8480, 'IntergraphMatrix'],
 	[0x8482, 'ModelTiePoint'],
 	[0x8546, 'SEMInfo'],
@@ -81,6 +121,9 @@ extendDictionary(tagKeys, 'ifd0', [
 	[0xc7a8, 'RawToPreviewGain'],
 ])
 
+// TODO: check all of these and add missing ones.
+// https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Exif-tags-assigned-to-companies-for-IFD0-and-IFD1
+// https://metacpan.org/pod/Image::MetaData::JPEG::TagLists#Exif-tags-for-the-0th-IFD-Exif-private-subdirectory
 let otherTiffTags = [
 	[0x0111, 'StripOffsets'],
 	[0x0117, 'StripByteCounts'],
