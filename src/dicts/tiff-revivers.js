@@ -1,9 +1,18 @@
 import {tagRevivers, createDictionary} from '../tags.js'
 import {toAsciiString} from '../util/BufferView.js'
+import {removeNullTermination} from '../util/helpers.js'
+
 
 createDictionary(tagRevivers, ['ifd0', 'ifd1'], [
 	[0xC68B, toAsciiString],
 	[0x0132, reviveDate],
+
+	// extensions
+	[0x9c9b, reviveUcs2String],
+	[0x9c9c, reviveUcs2String],
+	[0x9c9d, reviveUcs2String],
+	[0x9c9e, reviveUcs2String],
+	[0x9c9f, reviveUcs2String],
 ])
 
 createDictionary(tagRevivers, 'exif', [
@@ -26,17 +35,36 @@ function reviveVersion(bytes) {
 	return array.join('.')
 }
 
+// can be '2009-09-23 17:40:52 UTC' or '2010:07:06 20:45:12'
 function reviveDate(string) {
-	if (typeof string !== 'string') return null
-	string = string.trim()
-	var [dateString, timeString] = string.split(' ')
-	var [year, month, day] = dateString.split(':').map(Number)
+	if (typeof string !== 'string') return undefined
+	var [year, month, day, hours, minutes, seconds] = string.trim().split(/[-: ]/g).map(Number)
 	var date = new Date(year, month - 1, day)
-	if (timeString) {
-		var [hours, minutes, seconds] = timeString.split(':').map(Number)
+	if (!Number.isNaN(hours) && !Number.isNaN(minutes) && !Number.isNaN(seconds)) {
 		date.setHours(hours)
 		date.setMinutes(minutes)
 		date.setSeconds(seconds)
 	}
-	return date
+	if (Number.isNaN(+date))
+		return string
+	else
+		return date
+}
+
+function reviveUcs2String(arg) {
+	if (typeof arg === 'string') return arg
+	let codePoints = []
+	let le = arg[1] === 0 && arg[arg.length - 1] === 0 // little endian
+	if (le) {
+		for (let i = 0; i < arg.length; i += 2)
+			codePoints.push(mergeBytes(arg[i + 1], arg[i]))
+	} else {
+		for (let i = 0; i < arg.length; i += 2)
+			codePoints.push(mergeBytes(arg[i], arg[i + 1]))
+	}
+	return removeNullTermination(String.fromCodePoint(...codePoints)).trim()
+}
+
+function mergeBytes(byte1, byte2) {
+    return (byte1 << 8) | byte2
 }

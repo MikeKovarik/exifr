@@ -4,7 +4,7 @@ import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMME
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
-import {isEmpty} from '../util/helpers.js'
+import {isEmpty, removeNullTermination} from '../util/helpers.js'
 import {customError} from '../util/helpers.js'
 import {tiffBlocks} from '../options.js'
 
@@ -125,10 +125,8 @@ export class TiffCore extends AppSegmentParserBase {
 		// ascii strings, array of 8bits/1byte values.
 		if (type === ASCII) { // type 2
 			let string = this.chunk.getString(offset, valueCount)
-			// remove null terminator
-			while (string.endsWith('\0')) string = string.slice(0, -1)
-			// remove remaining spaces (need to be after null termination)
-			string = string.trim()
+			// remove remaining spaces (need to be after null termination!)
+			string = removeNullTermination(string).trim()
 			return string === '' ? undefined : string
 		}
 

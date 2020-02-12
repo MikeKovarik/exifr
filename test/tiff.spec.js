@@ -160,6 +160,22 @@ describe('TIFF Segment', () => {
 			assert.equal(output[0x9000], '2.2')
 		})
 
+		it(`UCS2 string is properly revived to string`, async () => {
+			let input = await getFile('iptc-agency-photographer-example.jpg')
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.isTrue(output[0x9c9b].startsWith('Henry Bacon'))
+		})
+
+		it(`XPTitle and other XP* tags are revived from UCS2`, async () => {
+			let input = await getFile('iptc-agency-photographer-example.jpg')
+			var output = await exifr.parse(input, {exif: true, translateKeys: false, translateValues: false})
+			assert.isString(output[0x9c9b]) // XPTitle
+			assert.isString(output[0x9c9e]) // XPKeywords
+			assert.isString(output[0x9c9f]) // XPSubject
+		})
+
+/*
+*/
 	})
 
 	describe('options.tiff = true/false shortcut', () => {

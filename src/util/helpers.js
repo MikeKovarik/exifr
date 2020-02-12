@@ -21,3 +21,9 @@ export function customError(message) {
 	delete err.stack
 	return err
 }
+
+export function removeNullTermination(string) {
+	while (string.endsWith('\0'))
+		string = string.slice(0, -1)
+	return string
+}
