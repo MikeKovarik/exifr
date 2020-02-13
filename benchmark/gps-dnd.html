@@ -13,6 +13,7 @@
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
+			font-size: 16px;
 		}
 		.red {
 			color: #cc0000;
@@ -31,7 +32,7 @@
 </head>
 <body>
 
-	<div id="log"></div>
+	<div id="log">Drop files here</div>
 	<div id="map"></div>
 
 	<script type="module">
@@ -51,9 +52,9 @@
 			let totalBytes = sum(files.map(f => f.size))
 			let time = await processImages(files)
 			$log.innerHTML = [
-				`files:       <strong>${files.length}</strong> (<strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>)`,
+				`files:       <strong>${files.length}</strong> = <strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>`,
 				`parsed in:   <strong class="green">${Math.floor(time)} ms</strong> (${(time / files.length).toFixed(1)} ms per file)`,
-				`used memory: <strong class="green">${(memUsed / 1024 / 1024).toFixed(1)} MB</strong>`,
+				`used memory: <strong class="green">${(memUsed / 1024 / 1024).toFixed(1)} MB</strong> (${((memUsed / totalBytes) * 100).toFixed(1)}%)`,
 			].join('\n')
 		})
 

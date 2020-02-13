@@ -182,7 +182,8 @@ ESM in Browser
 * examples/thumbnail.html - [demo](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
 * examples/worker.html - [demo](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
 * examples/legacy.html - [demo](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
-* examples/benchmark.html - [demo](https://mutiny.cz/exifr/examples/benchmark.html), [code](examples/benchmark.html) (tests speed of processing of various input types)
+* benchmark/formats-reading.html - [demo](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html) (tests speed of processing of various input types)
+* benchmark/gps-dnd.html - [demo](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html) (tests speed of processing of various input types)
 
 and a lot more in the [examples/](examples/) folder
 
