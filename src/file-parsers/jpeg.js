@@ -137,23 +137,20 @@ export class JpegFileParser extends FileParserBase {
 
 	_findAppSegments(offset, end) {
 		let {file, findAll, wanted, remaining, options} = this
-		let marker2, isAppSegment, isJpgSegment
+		let marker2, length, type, Parser, seg, segOpts
 		for (; offset < end; offset++) {
 			if (file.getUint8(offset) !== MARKER_1) continue
 			// Reading uint8 instead of uint16 to prevent re-reading subsequent bytes.
 			marker2 = file.getUint8(offset + 1)
-			isAppSegment = isAppMarker(marker2)
-			isJpgSegment = isJpgMarker(marker2)
-			// All JPG 
-			if (!isAppSegment && !isJpgSegment) continue
-			let length = file.getUint16(offset + 2)
-			if (isAppSegment) {
-				let type = getSegmentType(file, offset)
+			if (isAppMarker(marker2)) {
+				// WE FOUND APP-N SEGMENT
+				length = file.getUint16(offset + 2)
+				type = getSegmentType(file, offset)
 				if (type && wanted.has(type)) {
 					// known and parseable segment found
-					let Parser = segmentParsers.get(type)
-					let seg = Parser.findPosition(file, offset)
-					let segOpts = options[type]
+					Parser = segmentParsers.get(type)
+					seg = Parser.findPosition(file, offset)
+					segOpts = options[type]
 					seg.type = type
 					this.appSegments.push(seg)
 					if (!findAll) {
@@ -175,11 +172,14 @@ export class JpegFileParser extends FileParserBase {
 					}
 				} if (options.recordUnknownSegments) {
 					// either unknown/supported appN segment or just a noise.
-					let seg = AppSegmentParserBase.findPosition(file, offset)
+					seg = AppSegmentParserBase.findPosition(file, offset)
 					seg.marker = marker2
 					this.unknownSegments.push(seg)
 				}
-			} else {
+				offset += length + 1
+			} else if (isJpgMarker(marker2)) {
+				// WE FOUND JPEG FILE STRUCTURE SEGMENT
+				length = file.getUint16(offset + 2)
 				if (marker2 === MARKER_2_SOS && options.stopAfterSos !== false) {
 					// Compressed data follows after SOS. SOS marker does not have length bytes.
 					// (it acutally does but its usually 12 - useless). Lot of FF00 markes also
@@ -190,8 +190,8 @@ export class JpegFileParser extends FileParserBase {
 				if (options.recordJpegSegments) {
 					this.jpegSegments.push({offset, length, marker: marker2})
 				}
+				offset += length + 1
 			}
-			offset += length + 1
 		}
 		return offset
 	}

@@ -9,19 +9,26 @@ export class DynamicBufferView extends BufferView {
 
 	constructor(...args) {
 		super(...args)
-		this.ranges.add(0, this.byteLength)
+		if (this.byteLength !== 0)
+			this.ranges.add(0, this.byteLength)
 	}
 
-	_tryExtend(offset, length) {
-		let end = offset + length
-		if (end > this.byteLength) {
-			let {dataView} = this._extend(end)
+	_tryExtend(offset, length, abChunk) {
+		if (offset === 0 && this.byteLength === 0 && abChunk) {
+			// we can receive ArrayBuffer or Buffer
+			let dataView = new DataView(abChunk.buffer || abChunk, abChunk.byteOffset, abChunk.byteLength)
 			this._swapDataView(dataView)
+		} else {
+			let end = offset + length
+			if (end > this.byteLength) {
+				let {dataView} = this._extend(end)
+				this._swapDataView(dataView)
+			}
 		}
 	}
 
-	_extend(newLength, unsafe = true) {
-		if (platform.hasBuffer && unsafe)
+	_extend(newLength) {
+		if (platform.hasBuffer)
 			var uintView = Buffer.allocUnsafe(newLength)
 		else
 			var uintView = new Uint8Array(newLength)
@@ -29,7 +36,7 @@ export class DynamicBufferView extends BufferView {
 		uintView.set(new Uint8Array(this.buffer, this.byteOffset, this.byteLength), 0)
 		return {uintView, dataView}
 	}
-
+/*
 	append(chunk) {
 		if (chunk instanceof DataView || chunk instanceof BufferView)
 			chunk = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
@@ -40,7 +47,7 @@ export class DynamicBufferView extends BufferView {
 		this.ranges.add(this.byteLength, chunk.byteLength)
 		this._swapDataView(dataView)
 	}
-
+*/
 	subarray(offset, length, canExtend = false) {
 		length = length || this._lengthToEnd(offset)
 		if (canExtend) this._tryExtend(offset, length)
@@ -50,7 +57,7 @@ export class DynamicBufferView extends BufferView {
 
 	// TODO: write tests for extending .set()
 	set(arg, offset, canExtend = false) {
-		if (canExtend) this._tryExtend(offset, arg.byteLength)
+		if (canExtend) this._tryExtend(offset, arg.byteLength, arg)
 		let chunk = super.set(arg, offset)
 		this.ranges.add(offset, chunk.byteLength)
 		return chunk
@@ -77,6 +84,10 @@ export class Ranges {
 	constructor(list) {
 		if (list !== undefined && Array.isArray(list))
 			this.addMultiple(list)
+	}
+
+	get length() {
+		return this.list.length
 	}
 
 	addMultiple(list) {

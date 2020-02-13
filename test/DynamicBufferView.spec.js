@@ -3,7 +3,7 @@ import {Ranges, DynamicBufferView} from '../src/util/DynamicBufferView.js'
 
 
 describe('DynamicBufferView', () => {
-
+/*
 	it(`.append() extends the view`, async () => {
 		let view = new DynamicBufferView(new Uint8Array([0,1,2]))
 		assert.equal(view.byteLength, 3)
@@ -14,7 +14,7 @@ describe('DynamicBufferView', () => {
 		assert.equal(view.getUint8(3), 3)
 		assert.equal(view.getUint8(5), 5)
 	})
-
+*/
 	it(`.subarray(number, number, true) extends the buffer if needed`, async () => {
 		let view = new DynamicBufferView(new Uint8Array([0,1,2]))
 		assert.equal(view.byteLength, 3)

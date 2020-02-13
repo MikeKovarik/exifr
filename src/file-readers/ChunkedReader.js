@@ -72,9 +72,8 @@ export class ChunkedReader extends DynamicBufferView {
 	}
 
 	get nextChunkOffset() {
-		let {offset, length} = this.ranges.list[0]
-		if (offset === 0) return Math.max(length)
-		return 0
+		if (this.ranges.list.length !== 0)
+			return this.ranges.list[0].length
 	}
 
 	get canReadNextChunk() {

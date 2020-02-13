@@ -31,7 +31,10 @@ export class BufferView {
 	constructor(arg, offset = 0, length, le) {
 		if (typeof le === 'boolean') this.le = le
 		if (Array.isArray(arg)) arg = new Uint8Array(arg)
-		if (arg instanceof ArrayBuffer) {
+		if (arg === 0) {
+			this.byteOffset = 0
+			this.byteLength = 0
+		} else if (arg instanceof ArrayBuffer) {
 			let dataView = new DataView(arg, offset, length)
 			this._swapDataView(dataView)
 		} else if (arg instanceof Uint8Array || arg instanceof DataView || arg instanceof BufferView) {
@@ -53,20 +56,18 @@ export class BufferView {
 	}
 
 	_swapArrayBuffer(arrayBuffer) {
-		let dataView = new DataView(arrayBuffer)
-		this._swapDataView(dataView)
+		this._swapDataView(new DataView(arrayBuffer))
 	}
 
 	_swapBuffer(uint8) {
-		let dataView = new DataView(uint8.buffer, uint8.byteOffset, uint8.byteLength)
-		this._swapDataView(dataView)
+		this._swapDataView(new DataView(uint8.buffer, uint8.byteOffset, uint8.byteLength))
 	}
 
 	_swapDataView(dataView) {
 		this.dataView   = dataView
-		this.buffer     = this.dataView.buffer
-		this.byteOffset = this.dataView.byteOffset
-		this.byteLength = this.dataView.byteLength
+		this.buffer     = dataView.buffer
+		this.byteOffset = dataView.byteOffset
+		this.byteLength = dataView.byteLength
 	}
 
 	_lengthToEnd(offset) {
@@ -104,7 +105,7 @@ export class BufferView {
 	}
 
 	getString(offset = 0, length = this.byteLength) {
-		let arr = new Uint8Array(this.buffer, this.byteOffset + offset, length)
+		let arr = this.getUint8Array(offset, length)
 		return uint8ArrayToAsciiString(arr)
 	}
 

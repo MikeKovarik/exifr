@@ -258,7 +258,6 @@ export class TiffExif extends TiffCore {
 		//let bytes = 0
 		// All base TIFF blocks.
 		if (this.options.ifd0.enabled)      bytes += 1024
-		if (this.options.exif.enabled)      bytes += 1024 
 		if (this.options.gps.enabled)       bytes += 512
 		if (this.options.interop.enabled)   bytes += 100
 		if (this.options.ifd1.enabled)      bytes += 1024
