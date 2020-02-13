@@ -23,6 +23,7 @@ export class FileParserBase {
 		return this.parsers[type] = parser
 	}
 
+	// TODO: deprecate
 	ensureSegmentChunk = async seg => {
 		let start = seg.start
 		let size = seg.size || MAX_APP_SIZE

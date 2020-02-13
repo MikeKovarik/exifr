@@ -5,7 +5,7 @@ import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
 import {isEmpty, removeNullTermination} from '../util/helpers.js'
-import {customError} from '../util/helpers.js'
+import {customError, estimateMetadataSize} from '../util/helpers.js'
 import {tiffBlocks} from '../options.js'
 
 
@@ -65,6 +65,9 @@ function getTypedArray(type) {
 // jpg wraps tiff into app1 segment.
 export class TiffCore extends AppSegmentParserBase {
 
+	// TODO: future API
+	//tagsOutsideChunk = []
+
 	parseHeader() {
 		// Detect endian 11th byte of TIFF (1st after header)
 		var byteOrder = this.chunk.getUint16()
@@ -96,20 +99,20 @@ export class TiffCore extends AppSegmentParserBase {
 			if (onlyPick) {
 				if (pick.has(tag)) {
 					// We have a list only of tags to pick, this tag is one of them, so read it.
-					block.set(tag, this.parseTag(offset))
+					block.set(tag, this.parseTag(tag, offset))
 					pick.delete(tag)
 					if (pick.size === 0) break
 				}
 			} else if (nothingToSkip || !skip.has(tag)) {
 				// We're not limiting what tags to pick. Also this tag is not on a blacklist.
-				block.set(tag, this.parseTag(offset))
+				block.set(tag, this.parseTag(tag, offset))
 			}
 			offset += 12
 		}
 		return block
 	}
 
-	parseTag(offset) {
+	parseTag(tag, offset) {
 		let type = this.chunk.getUint16(offset + 2)
 		let valueCount = this.chunk.getUint32(offset + 4)
 		let valueSize = SIZE_LOOKUP[type]
@@ -119,8 +122,11 @@ export class TiffCore extends AppSegmentParserBase {
 		else
 			offset = this.chunk.getUint32(offset + 8)
 
-		if (offset > this.chunk.byteLength)
+		if (offset > this.chunk.byteLength) {
+			// TODO: future API
+			//this.tagsOutsideChunk.push({tag, offset, type, valueCount, valueSize, totalSize})
 			throw customError(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
+		}
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === ASCII) { // type 2
@@ -241,38 +247,6 @@ export class TiffExif extends TiffCore {
 		}
 	}
 
-	get estimatedExifSize() {
-		// note: no need to include makerNote in this condition, exif is already enabled or filtered at this point.
-		if (this.options.exif.enabled) {
-			let bytes = 2048
-			if (this.options.makerNote)   bytes += 2048 // TODO: reevaluate
-			if (this.options.userComment) bytes += 2048 // TODO: reevaluate
-			return bytes
-		}
-		return 0
-	}
-
-	// estimated size of the TIFF segment to be read
-	get minimalEstimatedSize() {
-		let bytes = this.estimatedExifSize
-		//let bytes = 0
-		// All base TIFF blocks.
-		if (this.options.ifd0.enabled)      bytes += 1024
-		if (this.options.gps.enabled)       bytes += 512
-		if (this.options.interop.enabled)   bytes += 100
-		if (this.options.ifd1.enabled)      bytes += 1024
-		// .tif files store all additional segments (what would be App segment in Jpeg) as properties in TIFF
-		if (this.file.isTiff) {
-			// usually between 1-13kb. max found in fixtures is 25.7kb.
-			if (this.xmp)  bytes += 30000
-			// usually between 8-12kb.
-			if (this.iptc) bytes += 20000
-			// usually between 0.5-10kb. issue-metadata-extractor-65.jpg has 64kb; bush dog has 12kb; 60kb sRGB_v4_ICC_preference.icc in fixtures
-			if (this.icc)  bytes += 20000
-		}
-		return bytes
-	}
-
 	async parseIfd0Block() {
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
@@ -282,7 +256,9 @@ export class TiffExif extends TiffCore {
 			throw customError('Invalid EXIF data: IFD0 offset should be less than 8')
 		if (!this.file.chunked && this.ifd0Offset > this.file.byteLength)
 			throw customError(`IFD0 offset points to outside of file.\nthis.ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
-		await this.ensureBlockChunk(this.ifd0Offset, this.minimalEstimatedSize)
+		//await this.ensureBlockChunk(this.ifd0Offset, estimateMetadataSize(this.options))
+		if (this.file.isTiff)
+			await this.file.ensureChunk(this.ifd0Offset, estimateMetadataSize(this.options))
 		// Parse IFD0 block.
 		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
@@ -327,7 +303,9 @@ export class TiffExif extends TiffCore {
 		if (this.exif) return
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.exifOffset === undefined) return
-		await this.ensureBlockChunk(this.exifOffset, this.estimatedExifSize)
+		//await this.ensureBlockChunk(this.exifOffset, estimateMetadataSize(this.options))
+		if (this.file.isTiff)
+			await this.file.ensureChunk(this.exifOffset, estimateMetadataSize(this.options))
 		let exif = this.exif = this.parseTags(this.exifOffset, 'exif')
 		if (!this.interopOffset) this.interopOffset = exif.get(TAG_IFD_INTEROP)
 		this.makerNote   = exif.get(TAG_MAKERNOTE)
@@ -398,7 +376,6 @@ export class TiffExif extends TiffCore {
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.ifd1.get(THUMB_OFFSET)
 		let length = this.ifd1.get(THUMB_LENGTH)
-		// TODO: should this be checked and ensured with ensureBlockChunk?
 		return this.chunk.getUint8Array(offset, length)
 	}
 
@@ -432,9 +409,7 @@ export class TiffExif extends TiffCore {
 
 function ConvertDMSToDD(degrees, minutes, seconds, direction) {
 	var dd = degrees + (minutes / 60) + (seconds / (60*60))
-	// Don't do anything for N or E
-	if (direction == 'S' || direction == 'W')
-		dd *= -1
+	if (direction === 'S' || direction === 'W') dd *= -1
 	return dd
 }
 

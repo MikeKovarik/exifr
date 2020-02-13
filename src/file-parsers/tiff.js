@@ -2,7 +2,7 @@ import {FileParserBase} from '../parser.js'
 import {BufferView} from '../util/BufferView.js'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.js'
 import {fileParsers} from '../plugins.js'
-import {customError} from '../util/helpers.js'
+import {customError, estimateMetadataSize} from '../util/helpers.js'
 
 
 export class TiffFileParser extends FileParserBase {
@@ -19,15 +19,16 @@ export class TiffFileParser extends FileParserBase {
 	async parse() {
 		let {tiff, xmp, iptc, icc} = this.options
 		if (tiff.enabled || xmp.enabled || iptc.enabled || icc.enabled) {
-			// The file starts with TIFF structure (instead of JPEGs FF D8)
-			// Why XMP?: .tif files store XMP as ApplicationNotes tag in TIFF structure.
-			let seg = {start: 0, type: 'tiff'}
-			let chunk = await this.ensureSegmentChunk(seg)
-			if (chunk === undefined) throw customError(`Couldn't read chunk`)
-			this.createParser('tiff', chunk)
+			// TODO: refactor this in the future
+			// Tiff files start with TIFF structure (instead of JPEGs FF D8) but offsets can point to any place in the file.
+			// even wihin single block. Crude option is to just read as big chunk as possible.
+			// TODO: in the future, block reading will be recursive or looped until all pointers are resolved.
+			// SIDE NOTE: .tif files stor XMP as ApplicationNotes tag in TIFF structure as well.
+			let length = Math.max(estimateMetadataSize(this.options), this.options.chunkSize)
+			await this.file.ensureChunk(0, length)
+			this.createParser('tiff', this.file)
 			this.parsers.tiff.parseHeader()
 			await this.parsers.tiff.parseIfd0Block()
-
 			this.adaptTiffPropAsSegment('xmp')
 			this.adaptTiffPropAsSegment('iptc')
 			this.adaptTiffPropAsSegment('icc')
