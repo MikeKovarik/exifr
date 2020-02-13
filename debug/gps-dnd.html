@@ -11,47 +11,68 @@
 		body {
 			font-family: monospace;
 			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+		}
+		.red {
+			color: #cc0000;
+		}
+		.green {
+			color: #59b101;
+		}
+		#log {
+			padding: 10px;
+			white-space: pre;
+		}
+		#map {
+			flex: 1;
 		}
 	</style>
 </head>
 <body>
 
 	<div id="log"></div>
-	Drag and drop photos
+	<div id="map"></div>
 
 	<script type="module">
 		import * as exifr from '../src/bundle-full.js'
+		import {gpsOnlyOptions, Exifr} from '../src/bundle-full.js'
 
-		var $log = document.querySelector('#log')
 
-		var dropzone = document.body
+		let $log = document.querySelector('#log')
+		let memUsed = 0
+
+		let dropzone = document.body
 		dropzone.addEventListener('dragenter', e => e.preventDefault())
 		dropzone.addEventListener('dragover', e => e.preventDefault())
 		dropzone.addEventListener('drop', async e => {
 			e.preventDefault()
-			var files = Array.from(e.dataTransfer.files)
+			let files = Array.from(e.dataTransfer.files)
 			let totalBytes = sum(files.map(f => f.size))
-			console.log(totalBytes)
-			console.log(totalBytes / 1024, 'kb')
-			console.log(totalBytes / 1024 / 1024, 'mb')
-			let t1, t2
-			$log.innerHTML = `
-				files: ${files.length}
-				total size: ${(totalBytes / 1024 / 1024).toFixed(1)}MB
-				used memory: ${0}
-			`
-			for (let i = 0; i < 10; i++) {
-				t1 = performance.now()
-				await processImages(files)
-				t2 = performance.now()
-			}
+			let time = await processImages(files)
+			$log.innerHTML = [
+				`files:       <strong>${files.length}</strong> (<strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>)`,
+				`parsed in:   <strong class="green">${Math.floor(time)} ms</strong> (${(time / files.length).toFixed(1)} ms per file)`,
+				`used memory: <strong class="green">${(memUsed / 1024 / 1024).toFixed(1)} MB</strong>`,
+			].join('\n')
 		})
 
 		async function processImages(files) {
-			console.time('parsing')
-			var promises = files.map(file => exifr.gps(file))
-			var coords = await Promise.all(promises)
-			console.timeEnd('parsing')
+			memUsed = 0
+			let t1 = performance.now()
+			let promises = files.map(processImage)
+			//let promises = files.map(exifr.gps)
+			let coords = await Promise.all(promises)
+			let t2 = performance.now()
+			return t2 - t1
+		}
+
+		async function processImage(file) {
+			let exr = new Exifr(gpsOnlyOptions)
+			await exr.read(file)
+			let output = await exr.parse()
+			memUsed += exr.file.byteLength
+			return output
 		}
 
 		function sum(arr) {

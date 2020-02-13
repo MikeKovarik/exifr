@@ -390,9 +390,11 @@ export const disableAllOptions = {
 }
 
 export const gpsOnlyOptions = Object.assign({}, disableAllOptions, {
+	firstChunkSize: 40000,
 	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
 })
 
 export const orientationOnlyOptions = Object.assign({}, disableAllOptions, {
+	firstChunkSize: 40000,
 	ifd0: [TAG_ORIENTATION],
 })

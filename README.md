@@ -439,14 +439,9 @@ Exifr can read only a few chunks instead of the whole file. It's much faster, sa
 #### `options.firstChunkSize`
 Type: `number`
 <br>
-Default: `512` in Node / `65536` in browser
+Default: `512` Bytes in Node / `65536` (64 KB) in browser
 
 Size (in bytes) of the first chunk that probes the file for traces of exif or metadata. 
-
-Depending on platform, one of these values are used:
-
-* `options.firstChunkSizeNode` default `512`
-* `options.firstChunkSizeBrowser` default `65536` (64 KB)
 
 *In browser it's usually better to read just larger chunk in hope that it contains the whole EXIF (and not just the begining) instead of loading mutliple subsequent chunks. Whereas in Node.js it's prefferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
 
