@@ -179,11 +179,11 @@ ESM in Browser
 ### Demos & more examples
 
 * [playground](https://mutiny.cz/exifr)
-* examples/thumbnail.html - [demo](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
-* examples/worker.html - [demo](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
-* examples/legacy.html - [demo](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
-* benchmark/formats-reading.html - [demo](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html) (tests speed of processing of various input types)
-* benchmark/gps-dnd.html - [demo](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html) (tests speed of processing of various input types)
+* [examples/thumbnail.html](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
+* [examples/worker.html](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
+* [examples/legacy.html](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
+* [benchmark/formats-reading.html](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html) (tests speed of processing of various input types)
+* [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html) (Drag-n-Drop multiple photos and mesure the time it takes to extract GPS)
 
 and a lot more in the [examples/](examples/) folder
 
@@ -810,7 +810,7 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 * Browser: Processing `ArrayBuffer` = 3ms
 * Browser: Processing `Blob` = 7ms
 * Browser: `<img>` with Object URL = 3ms
-* Drag-n-dropping gallery of 90 images and extracting GPS data takes about 100ms.
+* Drag-n-dropping gallery of 90 images and extracting GPS data takes about 65ms.
 * Phones are about 4x slower. Usually 4-30ms per photo.
 
 Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
