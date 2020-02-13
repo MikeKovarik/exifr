@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<style>
+		html, body {
+			padding: 0;
+			margin: 0;
+			height: 100%;
+		}
+		body {
+			font-family: monospace;
+			box-sizing: border-box;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="log"></div>
+	Drag and drop photos
+
+	<script type="module">
+		import * as exifr from '../src/bundle-full.js'
+
+		var $log = document.querySelector('#log')
+
+		var dropzone = document.body
+		dropzone.addEventListener('dragenter', e => e.preventDefault())
+		dropzone.addEventListener('dragover', e => e.preventDefault())
+		dropzone.addEventListener('drop', async e => {
+			e.preventDefault()
+			var files = Array.from(e.dataTransfer.files)
+			let totalBytes = sum(files.map(f => f.size))
+			console.log(totalBytes)
+			console.log(totalBytes / 1024, 'kb')
+			console.log(totalBytes / 1024 / 1024, 'mb')
+			let t1, t2
+			$log.innerHTML = `
+				files: ${files.length}
+				total size: ${(totalBytes / 1024 / 1024).toFixed(1)}MB
+				used memory: ${0}
+			`
+			for (let i = 0; i < 10; i++) {
+				t1 = performance.now()
+				await processImages(files)
+				t2 = performance.now()
+			}
+		})
+
+		async function processImages(files) {
+			console.time('parsing')
+			var promises = files.map(file => exifr.gps(file))
+			var coords = await Promise.all(promises)
+			console.timeEnd('parsing')
+		}
+
+		function sum(arr) {
+			let num = 0
+			for (let item of arr) num += item
+			return num
+		}
+
+	</script>
+
+</body>
+</html>

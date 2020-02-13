@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+</head>
+<body>
+
+	<script src="../benchmark/fixtures/exifr@2.1.1.js"></script>
+	<script type="module">
+		import * as exifr3 from '../src/bundle-full.js'
+
+		fetch('../test/fixtures/IMG_20180725_163423.jpg').then(async res => {
+			let blob = await res.blob()
+			var exif
+			var i = 5
+			//while (i--) {
+				console.time('exifr2.parse')
+				exif = await exifr.parse(blob, {exif: false, gps: true})
+				console.timeEnd('exifr2.parse')
+				/*
+				console.time('exifr3.parse')
+				exif = await exifr3.parse(blob)
+				console.timeEnd('exifr3.parse')
+				*/
+				console.time('exifr3.gps')
+				exif = await exifr3.gps(blob)
+				console.timeEnd('exifr3.gps')
+			//}
+		})
+
+	</script>
+
+</body>
+</html>
