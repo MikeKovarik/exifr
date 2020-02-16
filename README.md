@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/next-major-rewrite/logo/blue-small.png" width="160" alt="exifr">
+<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/blue-small.png" width="160" alt="exifr">
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
@@ -12,6 +12,8 @@
 Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 ## Features
+
+<img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/readme-gif.gif" width="35%" align="right">
 
 Works everywhere, parses everything and handles anything you throw at it.
 
