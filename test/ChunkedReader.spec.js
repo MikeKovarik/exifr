@@ -111,8 +111,18 @@ describe('ChunkedReader', () => {
 			it(`space between sparse segments does not contain useful data`, async () => {
 				let {input, jfifOffset, jfifLength, jfifEnd} = file1
 				let file = new ReaderClass(input, options)
+				console.log('file.byteLength', file.byteLength)
+				console.log('file.ranges.list', file.ranges.list)
 				await file.readChunked()
+				console.log('file.byteLength', file.byteLength)
+				console.log('file.ranges.list', file.ranges.list)
 				await file.readChunk(jfifOffset, jfifLength)
+				console.log('file.byteLength', file.byteLength)
+				console.log('file.ranges.list', file.ranges.list)
+				console.log('jfifOffset', jfifOffset, jfifOffset.toString(16))
+				console.log('real', file.getUint32(jfifOffset - 4).toString(16))
+				console.log('expe', 0x5c47ffd9.toString(16))
+				console.log(file.getUint32(jfifOffset - 4) === 0x5c47ffd9)
 				assert.notEqual(file.getUint32(jfifOffset - 4), 0x5c47ffd9)
 				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
 				if (file.close) await file.close()
