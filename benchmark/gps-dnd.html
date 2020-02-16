@@ -2,6 +2,7 @@
 <html>
 <head>
 	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<title>GPS Benchmark</title>
 	<style>
 		html, body {
 			padding: 0;
@@ -35,10 +36,10 @@
 	<div id="log">Drop files here</div>
 	<div id="map"></div>
 
+	<script src="https://maps.googleapis.com/maps/api/js"></script>
 	<script type="module">
 		import * as exifr from '../src/bundle-full.js'
 		import {gpsOnlyOptions, Exifr} from '../src/bundle-full.js'
-
 
 		let $log = document.querySelector('#log')
 		let memUsed = 0
@@ -50,36 +51,43 @@
 			e.preventDefault()
 			let files = Array.from(e.dataTransfer.files)
 			let totalBytes = sum(files.map(f => f.size))
-			let time = await processImages(files)
+			let [time, memory] = await processImages(files)
 			$log.innerHTML = [
-				`files:       <strong>${files.length}</strong> = <strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>`,
-				`parsed in:   <strong class="green">${Math.floor(time)} ms</strong> (${(time / files.length).toFixed(1)} ms per file)`,
-				`used memory: <strong class="green">${(memUsed / 1024 / 1024).toFixed(1)} MB</strong> (${((memUsed / totalBytes) * 100).toFixed(1)}%)`,
+				`files:     <strong>${files.length}</strong> = <strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>`,
+				`RAM used:  <strong class="green">${(memory / 1024 / 1024).toFixed(1)} MB</strong>`,
+				`parsed in: <strong class="green">${Math.floor(time)} ms</strong> (${(time / files.length).toFixed(1)} ms per file)`,
 			].join('\n')
 		})
 
 		async function processImages(files) {
 			memUsed = 0
+			let m1 = performance.memory.usedJSHeapSize
 			let t1 = performance.now()
-			let promises = files.map(processImage)
-			//let promises = files.map(exifr.gps)
-			let coords = await Promise.all(promises)
+			let coords = await Promise.all(files.map(exifr.gps))
+			let m2 = performance.memory.usedJSHeapSize
 			let t2 = performance.now()
-			return t2 - t1
-		}
-
-		async function processImage(file) {
-			let exr = new Exifr(gpsOnlyOptions)
-			await exr.read(file)
-			let output = await exr.parse()
-			memUsed += exr.file.byteLength
-			return output
+			renderMap(coords)
+			return [t2 - t1, m2 - m1]
 		}
 
 		function sum(arr) {
 			let num = 0
 			for (let item of arr) num += item
 			return num
+		}
+
+		function renderMap(coords) {
+			let map = new google.maps.Map(document.querySelector('#map'), {
+				navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
+				mapTypeControl: false,
+				mapTypeId: google.maps.MapTypeId.ROADMAP
+			})
+			coords = coords.filter(coord => coord)
+			let points = coords.map(coord => new google.maps.LatLng(coord.latitude, coord.longitude))
+			var bounds = new google.maps.LatLngBounds()
+			points.forEach(point => bounds.extend(point))
+			map.fitBounds(bounds)
+			let markers = points.map(point => new google.maps.Marker({map, position: point}))
 		}
 
 	</script>

@@ -45,6 +45,7 @@
 
 	<h3>Output:</h3>
 	<pre id="output" style="font-size: 13px;"></pre>
+	<p>Or drag and drop your photo into this window.</p>
 
 	<script>
 		// important: dont use let - older browsers (samsung tizen tvs use arcane chromium)
@@ -87,19 +88,38 @@
 
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>
-		var filePath = '../test/fixtures/IMG_20180725_163423.jpg'
-		exifr.parse(filePath).then(function(output) {
-			$output.innerHTML += JSON.stringify(output, null, 4)
+
+		function handleFile(file) {
+			$output.innerHTML = ''
+			exifr.parse(file)
+				.then(function(output) {
+					$output.innerHTML += JSON.stringify(output, null, 4)
+				})
+				.catch(function(err) {
+					console.log('UNCAUGHT')
+					console.log(err)
+					printOutput([
+						'**************** UNCAUGHT ****************',
+						err.message,
+						err.stack,
+					])
+				})
+		}
+
+		// load demo file first
+		handleFile('../test/fixtures/IMG_20180725_163423-tiny.jpg')
+		
+		let dropzone = document.body
+		function prevent(e) {
+			e.preventDefault()
+		}
+		dropzone.addEventListener('dragenter', prevent)
+		dropzone.addEventListener('dragover', prevent)
+		dropzone.addEventListener('drop', function(e) {
+			e.preventDefault()
+			handleFile(e.dataTransfer.files[0])
 		})
-		.catch(function(err) {
-			console.log('UNCAUGHT')
-			console.log(err)
-			printOutput([
-				'**************** UNCAUGHT ****************',
-				err.message,
-				err.stack,
-			])
-		})
+
 	</script>
 
 </body>
