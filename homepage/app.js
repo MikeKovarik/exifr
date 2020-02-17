@@ -2,7 +2,7 @@ var exifr
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
-import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter} from './util.js'
+import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter, TableValueValueConverter} from './util.js'
 
 
 let fixtureDirPath = './test/fixtures/'
@@ -180,5 +180,6 @@ au.enhance({
 		ObjectTableCustomElement,
 		SegmentBoxCustomElement,
 		PrettyCaseValueConverter,
+		TableValueValueConverter,
 	]
 })

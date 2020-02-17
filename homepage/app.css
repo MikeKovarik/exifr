@@ -236,6 +236,17 @@ table {
 #grid {
 	display: grid;
 }
+	#grid p {
+		font-size: 12px;
+	}
+	/*
+	object-table table td + td {
+		word-break: break-all;
+	}
+	*/
+	object-table table td + td {
+		min-width: 100px;
+	}
 
 @media only screen and (max-width: 499px) {
 	header,

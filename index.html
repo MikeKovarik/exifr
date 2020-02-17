@@ -124,6 +124,10 @@
 		<segment-box options.bind="options" output.bind="output" key="userComment" display="buffer"></segment-box>
 
 		<div id="raw" class="wrap">
+			<template if.bind="rawOutput.errors && rawOutput.errors.length > 0">
+				<h3 class="red">${rawOutput.errors.length === 1 ? 'Error' : 'Errors'}</h3>
+				<p class="red" repeat.for="error of rawOutput.errors">${error}</p>
+			</template>
 			<h3>
 				Raw output
 				<span click.trigger="rawFullscreen = !rawFullscreen">Toggle fullscreen</span>
