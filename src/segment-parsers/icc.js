@@ -1,6 +1,6 @@
 import {AppSegmentParserBase} from '../parser.js'
 import {segmentParsers} from '../plugins.js'
-import {customError} from '../util/helpers.js'
+import {customError, normalizeString} from '../util/helpers.js'
 
 
 const PROFILE_HEADER_LENGTH = 84
@@ -93,16 +93,16 @@ export default class IccParser extends AppSegmentParserBase {
 
 	parseDesc(offset) {
 		let length  = this.chunk.getUint32(offset + 8) - 1 // last byte is null termination
-		return this.chunk.getString(offset + 12, length).trim()
+		return normalizeString(this.chunk.getString(offset + 12, length))
 	}
 
 	parseText(offset, length) {
-		return this.chunk.getString(offset + 8, length - 15).trim()
+		return normalizeString(this.chunk.getString(offset + 8, length - 15))
 	}
 
 	// NOTE: some tags end with empty space. TODO: investigate. maybe add .trim() 
 	parseSig(offset) {
-		return this.chunk.getString(offset + 8, 4).trim()
+		return normalizeString(this.chunk.getString(offset + 8, 4))
 	}
 
 	// Multi Localized Unicode Type
@@ -117,7 +117,7 @@ export default class IccParser extends AppSegmentParserBase {
 			let country = chunk.getString(entryOffset + 2, 2)
 			let length  = chunk.getUint32(entryOffset + 4)
 			let offset  = chunk.getUint32(entryOffset + 8) + tagOffset
-			let text = sanitizeTermination(chunk.getUnicodeString(offset, length))
+			let text = normalizeString(chunk.getUnicodeString(offset, length))
 			values.push({lang, country, text})
 			entryOffset += entrySize
 		}
@@ -152,7 +152,7 @@ const headerParsers = {
 }
 
 function parseString(view, offset) {
-	return view.getString(offset, 4).trim()
+	return normalizeString(view.getString(offset, 4))
 }
 
 function parseVersion(view, offset) {
@@ -173,12 +173,6 @@ function parseDate(view, offset) {
 	const minutes = view.getUint16(offset + 8)
 	const seconds = view.getUint16(offset + 10)
 	return new Date(Date.UTC(year, month, day, hours, minutes, seconds))
-}
-
-function sanitizeTermination(string) {
-	while (string.endsWith('\0'))
-		string = string.slice(0, -1)
-	return string
 }
 
 segmentParsers.set('icc', IccParser)

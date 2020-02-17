@@ -4,7 +4,7 @@ import {TAG_IFD_EXIF, TAG_IFD_GPS, TAG_IFD_INTEROP, TAG_MAKERNOTE, TAG_USERCOMME
 import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON} from '../tags.js'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.js'
 import {BufferView} from '../util/BufferView.js'
-import {isEmpty, removeNullTermination} from '../util/helpers.js'
+import {isEmpty, normalizeString} from '../util/helpers.js'
 import {customError, estimateMetadataSize} from '../util/helpers.js'
 import {tiffBlocks} from '../options.js'
 
@@ -122,19 +122,21 @@ export class TiffCore extends AppSegmentParserBase {
 		else
 			offset = this.chunk.getUint32(offset + 8)
 
+		if (type < BYTE || type > IFD)
+			throw customError(`Invalid TIFF value type. tag: ${tag.toString(16)}, type: ${type}, offset ${offset}`)
+
 		if (offset > this.chunk.byteLength) {
 			// TODO: future API
 			//this.tagsOutsideChunk.push({tag, offset, type, valueCount, valueSize, totalSize})
-			throw customError(`tiff value offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
+			throw customError(`Invalid TIFF value offset. tag: ${tag.toString(16)}, type: ${type}, offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
 		}
 
+		if (type === BYTE) // type 1
+			return this.chunk.getUint8Array(offset, valueCount)
+
 		// ascii strings, array of 8bits/1byte values.
-		if (type === ASCII) { // type 2
-			let string = this.chunk.getString(offset, valueCount)
-			// remove remaining spaces (need to be after null termination!)
-			string = removeNullTermination(string).trim()
-			return string === '' ? undefined : string
-		}
+		if (type === ASCII) // type 2
+			return normalizeString(this.chunk.getString(offset, valueCount))
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === UNDEFINED) // type 7
@@ -146,9 +148,6 @@ export class TiffCore extends AppSegmentParserBase {
 			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
-			if (type === BYTE) { // type 1
-				return this.chunk.getUint8Array(offset, valueCount)
-			} else {
 				let ArrayType = getTypedArray(type)
 				let arr = new ArrayType(valueCount)
 				// rational numbers are stored as two integers that we divide when parsing.
@@ -160,7 +159,6 @@ export class TiffCore extends AppSegmentParserBase {
 				return arr
 			}
 		}
-	}
 
 	parseTagValue(type, offset) {
 		switch (type) {

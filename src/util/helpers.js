@@ -28,6 +28,13 @@ export function removeNullTermination(string) {
 	return string
 }
 
+// normalizes and sanitizes string for output. removes null termination. returns undefined if its empty.
+export function normalizeString(string) {
+	// remove remaining spaces (need to be after null termination!)
+	string = removeNullTermination(string).trim()
+	return string === '' ? undefined : string
+}
+
 export function estimateTiffSize(options) {
 	let bytes = 0
 	if (options.ifd0.enabled)    bytes += 1024

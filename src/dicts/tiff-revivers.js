@@ -1,6 +1,6 @@
 import {tagRevivers, createDictionary} from '../tags.js'
 import {toAsciiString} from '../util/BufferView.js'
-import {removeNullTermination} from '../util/helpers.js'
+import {normalizeString} from '../util/helpers.js'
 
 
 createDictionary(tagRevivers, ['ifd0', 'ifd1'], [
@@ -62,7 +62,7 @@ function reviveUcs2String(arg) {
 		for (let i = 0; i < arg.length; i += 2)
 			codePoints.push(mergeBytes(arg[i], arg[i + 1]))
 	}
-	return removeNullTermination(String.fromCodePoint(...codePoints)).trim()
+	return normalizeString(String.fromCodePoint(...codePoints))
 }
 
 function mergeBytes(byte1, byte2) {

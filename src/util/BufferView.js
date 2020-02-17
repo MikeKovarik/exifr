@@ -91,7 +91,7 @@ export class BufferView {
 		return new BufferView(this, offset, length)
 	}
 
-	// Use this for working with the same memory.
+	// Use this for working with memory.
 	// Returns Uint8Array view over the same memory of ArrayBuffer as the internal DataView.
 	toUint8() {
 		return new Uint8Array(this.buffer, this.byteOffset, this.byteLength)
