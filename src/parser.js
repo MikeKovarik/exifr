@@ -61,7 +61,6 @@ end    = end of the content (as well as the APPn segment)
 export class AppSegmentParserBase {
 
 	static headerLength = 4
-
 	// name. Couldn't use static name property because it is used by contructor name
 	static type = undefined
 	// output is merged into library output or is assigned with parser id
@@ -70,6 +69,8 @@ export class AppSegmentParserBase {
 	static multiSegment = false
 
 	static canHandle = () => false
+
+	errors = []
 
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.
 	// start  + size   === end  |  begining and end of parseable content
@@ -142,6 +143,13 @@ export class AppSegmentParserBase {
 	// can be overriden by parses (namely ICC) that inherits from this base class.
 	translateValue(val, tagEnum) {
 		return tagEnum[val] || val
+	}
+
+	handleError = error => {
+		if (this.options.silentErrors)
+			this.errors.push(error.message)
+		else
+			throw error
 	}
 
 }

@@ -26,7 +26,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * ✨ **Isomorphic**: Browser & Node.js
 * 🗜️ **No dependencies**
 * 🖼️ Extracts thumbnail
-* 📋 Simple output
+* 💔 Salvages broken files
 * 🧩 Modular
 * 📚 Customizable tag dictionaries
 * 📦 Bundled as UMD/CJS or ESM
@@ -291,6 +291,7 @@ let defaultOptions = {
   reviveValues: true,
   sanitize: true,
   mergeOutput: true,
+  silentErrors: true,
   // Chunked reader
   chunked: true,
   firstChunkSize: undefined,
@@ -512,6 +513,15 @@ Type: `bool`
 Default: `true`
 
 Cleans up unnecessary, untransformed or internal tags (IFD pointers) from the output.
+
+#### `options.silentErrors`
+Type: `bool`
+<br>
+Default: `true`
+
+Error messages are stored at `output.errors` instead of thrown as `Error` instances and causing promise rejection.
+
+Failing silently enables reading broken files. But only file-structure related errors are caught.
 
 #### `options.translateKeys`
 Type: `bool`

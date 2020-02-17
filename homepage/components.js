@@ -66,7 +66,7 @@ export class ObjectTableCustomElement {
 		<table>
 			<tr repeat.for="[key, val] of map">
 				<td>\${key | prettyCase}</td>
-				<td>\${val}</td>
+				<td>\${val | tableValue}</td>
 			</tr>
 		</table>
 	`

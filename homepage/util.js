@@ -1,5 +1,20 @@
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
+export class TableValueValueConverter {
+    toView(arg) {
+		if (notDefined(arg)) return
+		if (arg instanceof Uint8Array) {
+			let arr = Array.from(arg)
+			let [values, remaining] = clipContent(arr, false, 8)
+			let output = formatBytes(values)
+			if (remaining > 0) output += ' ...'
+			return output
+		} else {
+			return arg
+		}
+    }
+}
+
 export class BinaryValueConverter {
     toView(arg, showAll) {
 		if (notDefined(arg)) return

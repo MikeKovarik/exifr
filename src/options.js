@@ -161,6 +161,8 @@ var defaults = {
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
 	mergeOutput: true,
+	// Fails silently and logs the file errors in output.error instead of throwing error.
+	silentErrors: true,
 
 	// CHUNKED READER
 

@@ -58,16 +58,29 @@ export class Exifr {
 	async parse() {
 		this.setup()
 		await this.fileParser.parse()
-
 		let output = {}
 		let {mergeOutput} = this.options
+		let errors = []
 		let promises = Object.values(this.parsers).map(async parser => {
-			let parserOutput = await parser.parse()
+			let parserOutput
+			if (this.options.silentErrors) {
+				try {
+					parserOutput = await parser.parse()
+				} catch(err) {
+					errors.push(err)
+				}
+				// TIFF has many blocks and usually just one fails while the other contain valid data.
+				// We want to get as much data as possible.
+				if (parser.errors.length) errors.push(...parser.errors)
+			} else {
+				parserOutput = await parser.parse()
+			}
 			if ((mergeOutput || parser.constructor.mergeOutput) && typeof parserOutput !== 'string')
 				Object.assign(output, parserOutput)
-			else
+			else if (parserOutput !== undefined)
 				output[parser.constructor.type] = parserOutput
 		})
+		if (this.options.silentErrors && errors.length > 0) output.errors = errors
 		await Promise.all(promises)
 		output = undefinedIfEmpty(output)
 		if (this.file.close) this.file.close()

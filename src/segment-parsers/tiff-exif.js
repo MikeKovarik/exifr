@@ -24,6 +24,7 @@ const SLONG     = 9
 const SRATIONAL = 10
 const FLOAT     = 11
 const DOUBLE    = 12
+const IFD       = 13
 
 const SIZE_LOOKUP = [
 	undefined, // nothing at index 0
@@ -86,33 +87,32 @@ export class TiffCore extends AppSegmentParserBase {
 		this.headerParsed = true
 	}
 
-	parseTags(offset, blockKey) {
+	parseTags(offset, blockKey, block = new Map) {
 		let {pick, skip} = this.options[blockKey]
 		pick = new Set(pick) // clone data from options because we will modify it here
 		let onlyPick = pick.size > 0
 		let nothingToSkip = skip.size === 0
 		let entriesCount = this.chunk.getUint16(offset)
 		offset += 2
-		let block = new Map
 		for (let i = 0; i < entriesCount; i++) {
 			let tag = this.chunk.getUint16(offset)
 			if (onlyPick) {
 				if (pick.has(tag)) {
 					// We have a list only of tags to pick, this tag is one of them, so read it.
-					block.set(tag, this.parseTag(tag, offset))
+					block.set(tag, this.parseTag(offset, tag, blockKey))
 					pick.delete(tag)
 					if (pick.size === 0) break
 				}
 			} else if (nothingToSkip || !skip.has(tag)) {
 				// We're not limiting what tags to pick. Also this tag is not on a blacklist.
-				block.set(tag, this.parseTag(tag, offset))
+				block.set(tag, this.parseTag(offset, tag, blockKey))
 			}
 			offset += 12
 		}
 		return block
 	}
 
-	parseTag(tag, offset) {
+	parseTag(offset, tag, blockKey) {
 		let type = this.chunk.getUint16(offset + 2)
 		let valueCount = this.chunk.getUint32(offset + 4)
 		let valueSize = SIZE_LOOKUP[type]
@@ -123,12 +123,12 @@ export class TiffCore extends AppSegmentParserBase {
 			offset = this.chunk.getUint32(offset + 8)
 
 		if (type < BYTE || type > IFD)
-			throw customError(`Invalid TIFF value type. tag: ${tag.toString(16)}, type: ${type}, offset ${offset}`)
+			throw customError(`Invalid TIFF value type. block: ${blockKey.toUpperCase()}, tag: ${tag.toString(16)}, type: ${type}, offset ${offset}`)
 
 		if (offset > this.chunk.byteLength) {
 			// TODO: future API
 			//this.tagsOutsideChunk.push({tag, offset, type, valueCount, valueSize, totalSize})
-			throw customError(`Invalid TIFF value offset. tag: ${tag.toString(16)}, type: ${type}, offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
+			throw customError(`Invalid TIFF value offset. block: ${blockKey.toUpperCase()}, tag: ${tag.toString(16)}, type: ${type}, offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
 		}
 
 		if (type === BYTE) // type 1
@@ -148,17 +148,17 @@ export class TiffCore extends AppSegmentParserBase {
 			return this.parseTagValue(type, offset)
 		} else {
 			// Return array of values.
-				let ArrayType = getTypedArray(type)
-				let arr = new ArrayType(valueCount)
-				// rational numbers are stored as two integers that we divide when parsing.
-				let offsetIncrement = valueSize
-				for (let i = 0; i < valueCount; i++) {
-					arr[i] = this.parseTagValue(type, offset)
-					offset += offsetIncrement
-				}
-				return arr
+			let ArrayType = getTypedArray(type)
+			let arr = new ArrayType(valueCount)
+			// rational numbers are stored as two integers that we divide when parsing.
+			let offsetIncrement = valueSize
+			for (let i = 0; i < valueCount; i++) {
+				arr[i] = this.parseTagValue(type, offset)
+				offset += offsetIncrement
 			}
+			return arr
 		}
+	}
 
 	parseTagValue(type, offset) {
 		switch (type) {
@@ -221,11 +221,11 @@ export class TiffExif extends TiffCore {
 	async parse() {
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
-		if (this.options.ifd0.enabled)    await this.parseIfd0Block()                                  // APP1 - IFD0
-		if (this.options.exif.enabled)    await this.parseExifBlock()      // APP1 - EXIF IFD
-		if (this.options.gps.enabled)     await this.parseGpsBlock()       // APP1 - GPS IFD
-		if (this.options.interop.enabled) await this.parseInteropBlock()   // APP1 - Interop IFD
-		if (this.options.ifd1.enabled)    await this.parseThumbnailBlock() // APP1 - IFD1
+		if (this.options.ifd0.enabled)    await this.parseIfd0Block()                              // APP1 - IFD0
+		if (this.options.exif.enabled)    await this.parseExifBlock().catch(this.handleError)      // APP1 - EXIF IFD
+		if (this.options.gps.enabled)     await this.parseGpsBlock().catch(this.handleError)       // APP1 - GPS IFD
+		if (this.options.interop.enabled) await this.parseInteropBlock().catch(this.handleError)   // APP1 - Interop IFD
+		if (this.options.ifd1.enabled)    await this.parseThumbnailBlock().catch(this.handleError) // APP1 - IFD1
 		return this.createOutput()
 		//return this.output
 	}
@@ -245,6 +245,13 @@ export class TiffExif extends TiffCore {
 		}
 	}
 
+	parseBlock(offset, blockKey) {
+		let block = new Map
+		this[blockKey] = block
+		this.parseTags(offset, blockKey, block)
+		return block
+	}
+
 	async parseIfd0Block() {
 		if (this.ifd0) return
 		// Read the IFD0 segment with basic info about the image
@@ -258,7 +265,7 @@ export class TiffExif extends TiffCore {
 		if (this.file.isTiff)
 			await this.file.ensureChunk(this.ifd0Offset, estimateMetadataSize(this.options))
 		// Parse IFD0 block.
-		let ifd0 = this.ifd0 = this.parseTags(this.ifd0Offset, 'ifd0')
+		let ifd0 = this.parseBlock(this.ifd0Offset, 'ifd0')
 		// Cancel if the ifd0 is empty (imaged created from scratch in photoshop).
 		if (ifd0.size === 0) return
 		// Store offsets of other blocks in the TIFF segment.
@@ -304,7 +311,7 @@ export class TiffExif extends TiffCore {
 		//await this.ensureBlockChunk(this.exifOffset, estimateMetadataSize(this.options))
 		if (this.file.isTiff)
 			await this.file.ensureChunk(this.exifOffset, estimateMetadataSize(this.options))
-		let exif = this.exif = this.parseTags(this.exifOffset, 'exif')
+		let exif = this.parseBlock(this.exifOffset, 'exif')
 		if (!this.interopOffset) this.interopOffset = exif.get(TAG_IFD_INTEROP)
 		this.makerNote   = exif.get(TAG_MAKERNOTE)
 		this.userComment = exif.get(TAG_USERCOMMENT)
@@ -330,7 +337,7 @@ export class TiffExif extends TiffCore {
 		if (this.gps) return
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.gpsOffset === undefined) return
-		let gps = this.gps = this.parseTags(this.gpsOffset, 'gps')
+		let gps = this.parseBlock(this.gpsOffset, 'gps')
 		if (gps && gps.has(TAG_GPS_LAT) && gps.has(TAG_GPS_LON)) {
 			// TODO: assign this to this.translated or this.output when blocks are broken down to separate classes
 			//gps.latitude  = ConvertDMSToDD(...gps.get(TAG_GPS_LAT), gps.get(TAG_GPS_LATREF))
@@ -348,28 +355,27 @@ export class TiffExif extends TiffCore {
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.interopOffset === undefined && !this.exif) this.parseExifBlock()
 		if (this.interopOffset === undefined) return
-		return this.interop = this.parseTags(this.interopOffset, 'interop')
+		return this.parseBlock(this.interopOffset, 'interop')
 	}
 
 	// THUMBNAIL block of TIFF of APP1 segment
 	// parsing this block is skipped when mergeOutput is true because thumbnail block contains with the same tags like ifd0 block
 	// and one would override the other. 
-	parseThumbnailBlock(force = false) {
+	async parseThumbnailBlock(force = false) {
 		if (this.ifd1 || this.ifd1Parsed) return
 		if (this.options.mergeOutput && !force) return
 		this.findIfd1Offset()
 		if (this.ifd1Offset > 0) {
-			this.ifd1 = this.parseTags(this.ifd1Offset, 'ifd1')
-			this.ifd1 = this.ifd1
+			this.parseBlock(this.ifd1Offset, 'ifd1')
 			this.ifd1Parsed = true
 		}
 		return this.ifd1
 	}
 
 	// THUMBNAIL buffer of TIFF of APP1 segment
-	extractThumbnail() {
+	async extractThumbnail() {
 		if (!this.headerParsed) this.parseHeader()
-		if (!this.ifd1Parsed) this.parseThumbnailBlock(true)
+		if (!this.ifd1Parsed) await this.parseThumbnailBlock(true)
 		if (this.ifd1 === undefined) return 
 		// TODO: replace 'ThumbnailOffset' & 'ThumbnailLength' by raw keys (when tag dict is not included)
 		let offset = this.ifd1.get(THUMB_OFFSET)

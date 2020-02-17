@@ -365,19 +365,45 @@ describe('TIFF Segment', () => {
 
 	})
 
-	// TODO: more tests for .tif
+	describe('broken file recovery', () => {
 
-	//import {TiffExifParser} from '../src/segment-parsers/tiff'
-	//TiffExifParser
-	// Exif is scattered throughout the file.
-	// Header at the beginning of file, data at the end.
-	// tiff offset at 0; ID0 offset at 677442
-	//it(`scattered file, read/fetch whole file - should succeed 1`, async () => {
-	//    let options = {chunked: false}
-	//    let input = getPath('001.tif')
-	//    let output = await exifr.parse(input, options)
-	//    assert.equal(output.Make, 'DJI')
-	//})
+		let brokenFile
+		before(async () => brokenFile = await getFile('broken1.jpg'))
+
+		it(`should throw error when {silentErrors: false}`, async () => {
+			try {
+				await exifr.parse(brokenFile, {silentErrors: false})
+				assert.fail('does not throw')
+			} catch (err) {
+				assert.instanceOf(err, Error, 'does not throw Error instance')
+			}
+		})
+
+		it(`should parse broken file without throwing when {silentErrors: true}`, async () => {
+			var output = await exifr.parse(brokenFile, {silentErrors: true})
+			assert.isNotEmpty(output)
+			assert.notInstanceOf(output, Error, 'should not return Error instance')
+		})
+
+		it(`parses IFD0 correctly when GPS block is broken`, async () => {
+			var output = await exifr.parse(brokenFile, {silentErrors: true})
+			assert.equal(output.Model, 'Canon EOS 30D')
+			assert.equal(output.Software, 'LIBFORMAT (c) Pierre-e Gougelet')
+		})
+
+		it(`parses EXIF correctly when GPS block is broken`, async () => {
+			var output = await exifr.parse(brokenFile, {silentErrors: true, translateValues: false})
+			assert.equal(output.ExposureTime, 0.004)
+			assert.equal(output.Sharpness, 2)
+			assert.equal(output.ExifImageWidth, 3504)
+		})
+
+		it(`parses some GPS tag before running into broken tags`, async () => {
+			var output = await exifr.parse(brokenFile, {silentErrors: true, reviveValues: false})
+			assert.deepEqual(Array.from(output.GPSVersionID), [0x02, 0x02, 0x00, 0x00])
+		})
+
+	})
 
 })
 
