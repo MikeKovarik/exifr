@@ -80,8 +80,8 @@ export class Exifr {
 			else if (parserOutput !== undefined)
 				output[parser.constructor.type] = parserOutput
 		})
-		if (this.options.silentErrors && errors.length > 0) output.errors = errors
 		await Promise.all(promises)
+		if (this.options.silentErrors && errors.length > 0) output.errors = errors
 		output = undefinedIfEmpty(output)
 		if (this.file.close) this.file.close()
 		return output
