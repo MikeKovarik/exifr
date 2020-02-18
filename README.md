@@ -7,6 +7,16 @@
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 
+[Usage](#usage)
+•
+[Installation](#installation)
+•
+[Quick start](#examples)
+•
+[API](#api)
+•
+[Performance](#performance)
+
 📷 The fastest and most versatile JavaScript EXIF reading library.
 
 Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
@@ -715,19 +725,21 @@ createDictionary(tagKeys, 'ifd0', [
 ])
 ```
 
-## Usage with Webpack, Parcel, Rollup and other bundlers.
-
-Under the hood exifr dynamically imports Node.js `fs` module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
-
-Parcel works out of the box and Webpack should too because we added the ignore magic comment to the library's source code `import(/* webpackIgnore: true */ 'fs')`.
-
-If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config. Or try adding similar settings to your bundler of choice.
-
-Alternatively create your own bundle around `core` build and do not include `FsReader` in it.
-
 ## Notable breaking changes @ migration from 2.x.x
 
 see [`CHANGELOG.md`](CHANGELOG.md)
+
+## Usage with Webpack, Parcel, Rollup, Gatsby, etc...
+
+Under the hood exifr dynamically imports Node.js `fs` module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
+
+Parcel works out of the box and Webpack should too because of `webpackIgnore` magic comment added to the library's source code `import(/* webpackIgnore: true */ 'fs')`.
+
+If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config. Or similar settings for your bundler of choice.
+
+Alternatively create your own bundle around `core` build and do not include `FsReader` in it.
+
+Exifr is written using modern syntax, mainly async/await. You may need to add `regenerator-runtime` or reconfigure babel.
 
 ## XMP
 
@@ -749,23 +761,22 @@ XmpParser.prototype.parseXml = function(xmpString) {
 
 ### Tips for better performance
 
-Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large amount of files.
+Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large amount of files. Click to expand.
 
-#### Use `options.pick` if you only need certain tags
-
+<details>
+<summary><b>Use <code>options.pick</code> if you only need certain tags</b></summary>
 Unlike other libraries, exifr can only parse certain tags, avoid unnecessary reads and end when the last picked tag was found.
 
 ```js
 // do this:
-let {ExposureTime, FNumber} = await exifr.parse(file, {exif: ['ExposureTime', 'FNumber']})
+let {ISO, FNumber} = await exifr.parse(file, {exif: ['ISO', 'FNumber']})
 // not this:
-let {ExposureTime, FNumber} = await exifr.parse(file)
+let {ISO, FNumber} = await exifr.parse(file)
 ```
+</details>
 
-#### Disable `options.ifd0` if you don't need the data
-
-`ifd0`, `exif` and `gps` blocks are enabled by default.
-
+<details>
+<summary><b>Disable <code>options.ifd0</code> if you don't need the data</b></summary>
 Even though IFD0 (Image block) stores pointers to EXIF and GPS blocks and is thus necessary to be parsed to access said blocks. Exifr doesn't need to read the whole IFD0, it just looks for the pointers.
 
 ```js
@@ -774,9 +785,10 @@ let options = {ifd0: false, exif: true}
 // not this:
 let options = {exif: true} 
 ```
+</details>
 
-#### Use `exifr.gps()`
-
+<details>
+<summary><b>Use <code>exifr.gps()</code> if you only need GPS</b></summary>
 If you only need to extract GPS coords, use `exifr.gps()` because it is fine tuned to do exactly this and nothing more.
 
 ```js
@@ -785,9 +797,10 @@ exifr.gps(file)
 // not this:
 exifr.parse(file, {gps: true})
 ```
+</details>
 
-#### Cache `options` object
-
+<details>
+<summary><b>Cache <code>options</code> object</b></summary>
 If you parse multiple files with the same settings, you should cache the `options` object instead of inlining it. Exifr uses your `options` to create instance of `Options` class under the hood and uses `WeakMap` to find previously created instance instead of creating new one each time.
 
 ```js
@@ -797,6 +810,7 @@ for (let file of files) exif.parse(file, options)
 // not this:
 for (let file of files) exif.parse(file, {exif: true, iptc: true})
 ```
+</details>
 
 ### Remarks
 
