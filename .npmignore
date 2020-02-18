@@ -1,10 +1,5 @@
 *
 .*
-!index.mjs
-!index.cjs
-!index.legacy.cjs
-!lite.mjs
-!lite.cjs
-!lite.legacy.cjs
+!dist/*
 !src/*
 !index.d.ts

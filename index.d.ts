@@ -64,6 +64,7 @@ export function parse(data: Input, options?: Options): Promise<ExpandedTags>;
 export function thumbnail(data: Input, options?: Options): Promise<Uint8Array | Buffer | undefined>;
 export function thumbnailUrl(data: Input, options?: Options): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
+export function orientation(data: Input): Promise<number | undefined>;
 
 export var tagKeys: Map<string, Map<number, string>>;
 export var tagValues: Map<string, Map<number, any>>;
