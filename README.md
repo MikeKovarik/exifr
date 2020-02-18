@@ -44,7 +44,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 🤙 Promises
 * 🕸 Supports even IE11
 
-You don't need to read the whole file to tell if there's EXIF in it. And you don't need to extract all the data when you're looking for just a few tags. Exifr just jumps through the file structure, from pointer to pointer. Instead of reading it byte by byte, from begining to end.
+You don't need to read the whole file to tell if there's EXIF in it. And you don't need to extract all the data when you're looking for just a few tags. Exifr just jumps through the file structure, from pointer to pointer. Instead of reading it byte by byte, from beginning to end.
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
@@ -52,7 +52,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
 `file` can be any binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
 
-`options` specifies what segments and blocks to parse, filters what tags to pick or skip.
+`options` specify what segments and blocks to parse, filters what tags to pick or skip.
 
 | API | Returns | Description |
 |-|-|-|
@@ -99,10 +99,10 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 
 * **full** - Contains everything. Intended for use in Node.js.
 * **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
-* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictonaries.
+* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictionaries.
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
-Of course you can use `full` version in browser, or use any other build in Node.js.
+Of course, you can use the `full` version in browser, or use any other build in Node.js.
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
@@ -211,7 +211,7 @@ Accepts [file](#file-argument) (in any format), parses it and returns exif objec
 ### `gps(file)`
 Returns: `Promise<object>`
 
-Extracts only GPS coordinates from photo.
+Extracts only GPS coordinates from a photo.
 
 *Uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.*
 
@@ -316,14 +316,14 @@ let defaultOptions = {
 
 Exifr can avoid reading certain tags, instead of reading but not including them in the output, like other exif libs do. For example MakerNote tag from EXIF block is isually very large - tens of KBs. Reading such tag is a waste of time if you don't need it.
 
-*Tip: Using numeric tag codes is even faster than string names, because exifr doesn't have to look up the strings in dictionaries.*
+*Tip: Using numeric tag codes is even faster than string names because exifr doesn't have to look up the strings in dictionaries.*
 
 #### `options.pick`
 Type: `Array<string|number>`
 
 Array of the only tags that will be parsed.
 
-Specified tags are looked up in dictionary. Their respective blocks are enabled for parsing, all other blocks are disabled. Parsing ends as soon as all requested tags are extracted.
+Specified tags are looked up in a dictionary. Their respective blocks are enabled for parsing, all other blocks are disabled. Parsing ends as soon as all requested tags are extracted.
 
 ```js
 // Only extracts three tags from EXIF block. IFD0, GPS and other blocks disabled.
@@ -341,7 +341,7 @@ Default: `['MakerNote', 'UserComments']`
 
 Array of the tags that will not be parsed.
 
-By default MakerNote and UserComment tags are skipped. But that is configured [elsewhere](#notable-tiff-tags).
+By default, MakerNote and UserComment tags are skipped. But that is configured [elsewhere](#notable-tiff-tags).
 
 ```js
 // Skips reading these three tags in any block
@@ -444,9 +444,9 @@ Default: `true`
 
 Exifr can read only a few chunks instead of the whole file. It's much faster, saves memory and unnecessary disk reads or network fetches. Works great with complicated file structures - .tif files may point to metadata scattered throughout the file.
 
-**How it works:** First small chunk (of `firstChunkSize`) is read to determine if the file contains any metadata at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
+**How it works:** A first small chunk (of `firstChunkSize`) is read to determine if the file contains any metadata at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
 
-**Supported inputs:** Chunked is only effective with `Blob`, `<img>` element, `string` url, disk path, or base64. These inputs are not yet processed or read into memory. Each input format is implemented in separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
+**Supported inputs:** Chunked is only effective with `Blob`, `<img>` element, `string` url, disk path, or base64. These inputs are not yet processed or read into memory. Each input format is implemented in a separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
 
 **If you use URL as input:** Fetching chunks (implemented in `UrlFetcher`) from web server uses [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). Range request may fail if your server does not support ranges, if it's not configured properly or if the fetched file is smaller than the first chunk size. Test your web server or disable chunked reader with `{chunked: false}` when in doubt.
 
@@ -457,25 +457,23 @@ Default: `512` Bytes in Node / `65536` (64 KB) in browser
 
 Size (in bytes) of the first chunk that probes the file for traces of exif or metadata. 
 
-*In browser it's usually better to read just larger chunk in hope that it contains the whole EXIF (and not just the begining) instead of loading mutliple subsequent chunks. Whereas in Node.js it's prefferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
+*In browser, it's usually better to read just a larger chunk in hope that it contains the whole EXIF (and not just the beginning) instead of loading multiple subsequent chunks. Whereas in Node.js it's preferable to read as little data as possible and `fs.read()` does not cause slowdowns.*
 
 #### `options.chunkSize`
 Type: `number`
 <br>
 Default: `65536` Bytes (64 KB)
 
-Size of subsequent chunks that may be read after first chunk.
+Size of subsequent chunks that may be read after the first chunk.
 
 #### `options.chunkLimit`
 Type: `number`
 <br>
 Default: `5`
 
-Max amount of subsequent chunks allowed to read in which exifr searches for segments and blocks.
+Max amount of subsequent chunks allowed to read in which exifr searches for data segments and blocks. I.e. failsafe that prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
 
-This failsafe prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
-
-This limit is bypassed if multi-segment segments occurs in the file and if `options.multiSegment` allows reading all of them.
+This limit is bypassed if multi-segment segments ocurs in the file and if `options.multiSegment` allows reading all of them.
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
 
@@ -540,7 +538,7 @@ Default: `true`
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`
-Lean more about [dictionaries](#modularity-pugin-api).
+Learn more about [dictionaries](#modularity-pugin-api).
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -565,7 +563,7 @@ Type: `bool`
 Default: `true`
 
 Translates tag values from raw enums to understandable strings.
-Lean more about [dictionaries](#modularity-pugin-api).
+Learn more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
 <td>translateValues: false</td>
@@ -589,8 +587,8 @@ Type: `bool`
 <br>
 Default: `true`
 
-Converts dates from strings to Date instances and modifies few other tags to a more readable format.
-Lean more about [dictionaries](#modularity-pugin-api).
+Converts dates from strings to a Date instances and modifies few other tags to a more readable format.
+Learn more about [dictionaries](#modularity-pugin-api).
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -607,7 +605,11 @@ Lean more about [dictionaries](#modularity-pugin-api).
 }
 </pre></td></tr></table>
 
-### Modularity, Pugin API
+## Advanced
+
+Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
+
+#### Modularity, Pugin API
 
 This is mostly **relevant for Web Browsers**, where file size and unused code elimination is important.
 
@@ -622,30 +624,26 @@ The library's functionality is divided into four categories.
 * **Segment parser** extracts data from various metadata formats (JFIF, TIFF, XMP, IPTC, ICC)
 <br>TIFF/EXIF (IFD0, EXIF, GPS), XMP, IPTC, ICC, JFIF
 <br>See [`src/segment-parsers/`](src/segment-parsers).
-* **Dictionary** affects the way parsed output looks.
+* **Dictionary** affects the way the parsed output looks.
 <br>See [`src/dicts/`](src/dicts).
 
-Each reader, parser and dictionary is broken into a separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and safe tens of KBs of unused dictionaries.
+Each reader, parser and dictionary is broken into a separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and save tens of KBs of unused dictionaries.
 
 Any file format can be read out of the box. But custom reader class for each format is needed to enable chunked reading.
 
 ### Translation dictionaries
 
-EXIF Data are mostly numeric enums, stored under numeric code. Dictonaries are needed to translate them into meaningful output. But they take up a lot of space (40 KB out of `full` build's 60 KB). So it's a good idea to make your own bundle and shave off the dicts you don't need.
+EXIF Data are mostly numeric enums, stored under numeric code. Dictionaries are needed to translate them into meaningful output. But they take up a lot of space (40 KB out of `full` build's 60 KB). So it's a good idea to make your own bundle and shave off the dicts you don't need.
 
 * **Key dict** translates object keys from numeric codes to string names (`output.Model` instead of `output[0x0110]`)
 * **Value dict** translates vales from enum to string description (`Orientation` becomes `'Rotate 180'` instead of `3`)
-* **Reviver** further modifies the value (converts date string to instance of `Date`)
+* **Reviver** further modifies the value (converts date string to an instance of `Date`)
 
 Exifr's dictionaries are based on [exiftool.org](https://exiftool.org). Specifically these: 
 TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.org/TagNames/GPS.html)),
 [ICC](https://exiftool.org/TagNames/ICC_Profile.html),
 [IPTC](https://exiftool.org/TagNames/IPTC.html),
 [JFIF](https://exiftool.org/TagNames/JFIF.html)
-
-## Advanced
-
-Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
 
 <details>
 <summary><b>Configure your own exifr</b></summary>
@@ -660,7 +658,7 @@ import * as exifr from 'exifr/dist/lite.esm.js'
 import 'exifr/src/dicts/tiff-other-keys.js'
 ```
 
-Scenario 2: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human readable format. For that we'll need dictionaries for ICC segment.
+Scenario 2: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human-readable format. For that we'll need dictionaries for ICC segment.
 
 ```js
 // Core bundle has nothing in it
@@ -673,7 +671,7 @@ import 'exifr/src/dicts/icc-keys.js'
 import 'exifr/src/dicts/icc-values.js'
 ```
 
-Scenario 3: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we dont mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also we're not importing any (chunked) file reader because we only work with Uint8Array data.
+Scenario 3: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we don't mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also, we're not importing any (chunked) file reader because we only work with Uint8Array data.
 
 ```js
 import * as exifr from 'exifr/dist/core.esm.js'
@@ -735,13 +733,13 @@ createDictionary(tagKeys, 'ifd0', [
 
 <details>
 <summary><b>Usage with Webpack, Parcel, Rollup, Gatsby, etc...</b></summary>
-Under the hood exifr dynamically imports Node.js <code>fs</code> module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like <code>Error: Can't resolve 'fs'</code>.
+Under the hood exifr dynamically imports Node.js <code>fs</code> module. The import is obviously only used in Node.js and not triggered in a browser. But your bundler may, however, pick up on it and fail with something like <code>Error: Can't resolve 'fs'</code>.
 
 Parcel works out of the box and Webpack should too because of <code>webpackIgnore</code> magic comment added to the library's source code <code>import(/* webpackIgnore: true */ 'fs')</code>.
 
 If this does not work for you, try adding <code>node: {fs: 'empty'}</code> and <code>target: 'web'</code> or <code>target: 'webworker'</code> to your Webpack config. Or similar settings for your bundler of choice.
 
-Alternatively create your own bundle around <code>core</code> build and do not include <code>FsReader</code> in it.
+Alternatively, create your own bundle around <code>core</code> build and do not include <code>FsReader</code> in it.
 
 Exifr is written using modern syntax, mainly async/await. You may need to add <code>regenerator-runtime</code> or reconfigure babel.
 
@@ -768,7 +766,7 @@ XmpParser.prototype.parseXml = function(xmpString) {
 
 ### Tips for better performance
 
-Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing large amount of files. Click to expand.
+Here are a few tips for when you need to squeeze an extra bit of speed out of exifr when processing a large amount of files. Click to expand.
 
 <details>
 <summary><b>Use <code>options.pick</code> if you only need certain tags</b></summary>
@@ -796,7 +794,7 @@ let options = {exif: true}
 
 <details>
 <summary><b>Use <code>exifr.gps()</code> if you only need GPS</b></summary>
-If you only need to extract GPS coords, use <code>exifr.gps()</code> because it is fine tuned to do exactly this and nothing more. Similarly there's <code>exifr.orientation()</code>.
+If you only need to extract GPS coords, use <code>exifr.gps()</code> because it is fine-tuned to do exactly this and nothing more. Similarly there's <code>exifr.orientation()</code>.
 
 ```js
 // do this:
@@ -808,7 +806,7 @@ exifr.parse(file, {gps: true})
 
 <details>
 <summary><b>Cache <code>options</code> object</b></summary>
-If you parse multiple files with the same settings, you should cache the <code>options</code> object instead of inlining it. Exifr uses your <code>options</code> to create instance of <code>Options</code> class under the hood and uses <code>WeakMap</code> to find previously created instance instead of creating new one each time.
+If you parse multiple files with the same settings, you should cache the <code>options</code> object instead of inlining it. Exifr uses your <code>options</code> to create an instance of <code>Options</code> class under the hood and uses <code>WeakMap</code> to find previously created instance instead of creating q new one each time.
 
 ```js
 // do this:
@@ -821,9 +819,9 @@ for (let file of files) exif.parse(file, {exif: true, iptc: true})
 
 ### Remarks
 
-**File reading:** You don't need to read the whole file and parse through a MBs of data. Exifr takes an educated guess to only read a small chunk of the file where metadata is usually located. Each platform, file format and data type is approached differently to ensure the best performance.
+**File reading:** You don't need to read the whole file and parse through a MBs of data. Exifr takes an educated guess to only read a small chunk of the file where metadata is usually located. Each platform, file format, and data type is approached differently to ensure the best performance.
 
-**Finding metadata:** Other libraries use brute force to read through all bytes until `'Exif'` string is found. Whereas exifr recognizes the file structure, consisting segments (JPEG) or nested boxes (HEIC). This allows exifr to read just a few bytes here and there, to get the offset and size of the segment/box and pointers to jump to the next.
+**Finding metadata:** Other libraries use brute force to read through all bytes until `'Exif'` string is found. Whereas exifr recognizes the file structure, consisting of segments (JPEG) or nested boxes (HEIC). This allows exifr to read just a few bytes here and there, to get the offset and size of the segment/box and pointers to jump to the next.
 
 **HEIC:** Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
 
@@ -838,7 +836,7 @@ exifr reads file by chunks 0.5 ms  <--- !!!
 only parsing, not reading  0.2 ms  <--- !!!
 ```
 
-Observations from testing with +-4MB pictures (*Highest quality Google Pixel photos. Tested on a mid range dual core i5 machine with SSD*).
+Observations from testing with +-4MB pictures (*Highest quality Google Pixel photos. Tested on a mid-range dual-core i5 machine with SSD*).
 
 * Node: Parsing after `fs.readFile` = 0.3ms
 * Node: Reading & parsing by chunks = 0.5ms
@@ -848,12 +846,12 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 * Drag-n-dropping gallery of 100 images and extracting GPS data takes about 65ms.
 * Phones are about 4x slower. Usually 4-30ms per photo.
 
-Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
+Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr) or [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), drop in your photos and watch the *parsed in* timer.
 
-## Notable breaking changes @ migration from 2.x.x
+## Notable breaking changes, migration from 2.x.x
 
 see [`CHANGELOG.md`](CHANGELOG.md)
 
-## Licence
+## License
 
 MIT, Mike Kovařík, Mutiny.cz
