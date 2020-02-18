@@ -647,9 +647,9 @@ TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.o
 
 Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
 
-### Build your own exifr
-
-Check out [examples/custom-build.js](examples/custom-build.js).
+<details>
+<summary><b>Configure your own exifr</b></summary>
+Check out <a href="examples/custom-build.js">examples/custom-build.js</a>.
 
 Scenario 1: We're using `lite` build and it's ok, but some tags are left untranslated. To fix that we need to import extension of TIFF dictionary with less frequent tags.
 
@@ -682,8 +682,11 @@ import 'exifr/src/file-parsers/tiff.js'
 import 'exifr/src/segment-parsers/tiff.js'
 import 'exifr/src/dicts/tiff-exif-values.js'
 ```
+</details>
 
-### Dictionary customization
+
+<details>
+<summary><b>Dictionary customization</b></summary>
 
 ```js
 // Modify single tag's 0xa409 (Saturation) translation
@@ -728,21 +731,24 @@ createDictionary(tagKeys, 'ifd0', [
   ...
 ])
 ```
+</details>
 
-### Usage with Webpack, Parcel, Rollup, Gatsby, etc...
+<details>
+<summary><b>Usage with Webpack, Parcel, Rollup, Gatsby, etc...</b></summary>
+Under the hood exifr dynamically imports Node.js <code>fs</code> module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like <code>Error: Can't resolve 'fs'</code>.
 
-Under the hood exifr dynamically imports Node.js `fs` module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
+Parcel works out of the box and Webpack should too because of <code>webpackIgnore</code> magic comment added to the library's source code <code>import(/* webpackIgnore: true */ 'fs')</code>.
 
-Parcel works out of the box and Webpack should too because of `webpackIgnore` magic comment added to the library's source code `import(/* webpackIgnore: true */ 'fs')`.
+If this does not work for you, try adding <code>node: {fs: 'empty'}</code> and <code>target: 'web'</code> or <code>target: 'webworker'</code> to your Webpack config. Or similar settings for your bundler of choice.
 
-If this does not work for you, try adding `node: {fs: 'empty'}` and `target: 'web'` or `target: 'webworker'` to your Webpack config. Or similar settings for your bundler of choice.
+Alternatively create your own bundle around <code>core</code> build and do not include <code>FsReader</code> in it.
 
-Alternatively create your own bundle around `core` build and do not include `FsReader` in it.
+Exifr is written using modern syntax, mainly async/await. You may need to add <code>regenerator-runtime</code> or reconfigure babel.
 
-Exifr is written using modern syntax, mainly async/await. You may need to add `regenerator-runtime` or reconfigure babel.
+</details>
 
-### Custom XMP parser
-
+<details>
+<summary><b>Custom XMP parser</b></summary>
 Exifr does not come with an XML parser out of the box to keep the library simple and light-weight. There's plenty of XML parsers on npm. Exifr only extracts the XMP string and you can parse it.
 
 You can also inject XML parser into exifr and have it process the XMP string.
@@ -756,6 +762,7 @@ XmpParser.prototype.parseXml = function(xmpString) {
   return 'Bring Your Own XML parser here: ' + xmpString
 }
 ```
+</details>
 
 ## Performance
 
