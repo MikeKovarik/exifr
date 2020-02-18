@@ -643,7 +643,11 @@ TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.o
 [IPTC](https://exiftool.org/TagNames/IPTC.html),
 [JFIF](https://exiftool.org/TagNames/JFIF.html)
 
-### Advanced: Build your own exifr
+## Advanced
+
+Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
+
+### Build your own exifr
 
 Check out [examples/custom-build.js](examples/custom-build.js).
 
@@ -679,7 +683,7 @@ import 'exifr/src/segment-parsers/tiff.js'
 import 'exifr/src/dicts/tiff-exif-values.js'
 ```
 
-### Advanced: Dictionary customization
+### Dictionary customization
 
 ```js
 // Modify single tag's 0xa409 (Saturation) translation
@@ -725,11 +729,7 @@ createDictionary(tagKeys, 'ifd0', [
 ])
 ```
 
-## Notable breaking changes @ migration from 2.x.x
-
-see [`CHANGELOG.md`](CHANGELOG.md)
-
-## Usage with Webpack, Parcel, Rollup, Gatsby, etc...
+### Usage with Webpack, Parcel, Rollup, Gatsby, etc...
 
 Under the hood exifr dynamically imports Node.js `fs` module. The import is obviously only used in Node.js and not triggered in browser. But your bundler may however pick up on it and fail with something like `Error: Can't resolve 'fs'`.
 
@@ -741,7 +741,7 @@ Alternatively create your own bundle around `core` build and do not include `FsR
 
 Exifr is written using modern syntax, mainly async/await. You may need to add `regenerator-runtime` or reconfigure babel.
 
-## XMP
+### Custom XMP parser
 
 Exifr does not come with an XML parser out of the box to keep the library simple and light-weight. There's plenty of XML parsers on npm. Exifr only extracts the XMP string and you can parse it.
 
@@ -789,7 +789,7 @@ let options = {exif: true}
 
 <details>
 <summary><b>Use <code>exifr.gps()</code> if you only need GPS</b></summary>
-If you only need to extract GPS coords, use `exifr.gps()` because it is fine tuned to do exactly this and nothing more.
+If you only need to extract GPS coords, use <code>exifr.gps()</code> because it is fine tuned to do exactly this and nothing more. Similarly there's <code>exifr.orientation()</code>.
 
 ```js
 // do this:
@@ -801,7 +801,7 @@ exifr.parse(file, {gps: true})
 
 <details>
 <summary><b>Cache <code>options</code> object</b></summary>
-If you parse multiple files with the same settings, you should cache the `options` object instead of inlining it. Exifr uses your `options` to create instance of `Options` class under the hood and uses `WeakMap` to find previously created instance instead of creating new one each time.
+If you parse multiple files with the same settings, you should cache the <code>options</code> object instead of inlining it. Exifr uses your <code>options</code> to create instance of <code>Options</code> class under the hood and uses <code>WeakMap</code> to find previously created instance instead of creating new one each time.
 
 ```js
 // do this:
@@ -814,11 +814,13 @@ for (let file of files) exif.parse(file, {exif: true, iptc: true})
 
 ### Remarks
 
-As you've already read, this lib was built to be fast. Fast enough to handle whole galleries.
+**File reading:** You don't need to read the whole file and parse through a MBs of data. Exifr takes an educated guess to only read a small chunk of the file where metadata is usually located. Each platform, file format and data type is approached differently to ensure the best performance.
 
-We're able to parse image within a couple of milliseconds (tens of millis on phones) thanks to selective disk reads (Node.js) and Blob / ArrayBuffer (Browser) manipulations. Because you don't need to read the whole file and parse through a MBs of data if we an educated guess can be made to only read a couple of small chunks where EXIF usually is. Plus each supported data type is approached differently to ensure the best performance.
+**Finding metadata:** Other libraries use brute force to read through all bytes until `'Exif'` string is found. Whereas exifr recognizes the file structure, consisting segments (JPEG) or nested boxes (HEIC). This allows exifr to read just a few bytes here and there, to get the offset and size of the segment/box and pointers to jump to the next.
 
-#### Benchmarks
+**HEIC:** Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
+
+### Benchmarks
 
 Try the benchmark yourself at [benchmark/chunked-vs-whole.js](https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
 
@@ -836,16 +838,14 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 * Browser: Processing `ArrayBuffer` = 3ms
 * Browser: Processing `Blob` = 7ms
 * Browser: `<img>` with Object URL = 3ms
-* Drag-n-dropping gallery of 90 images and extracting GPS data takes about 65ms.
+* Drag-n-dropping gallery of 100 images and extracting GPS data takes about 65ms.
 * Phones are about 4x slower. Usually 4-30ms per photo.
 
 Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr), drop in your photos and watch the *parsed in* timer.
 
-#### HEIC
+## Notable breaking changes @ migration from 2.x.x
 
-Other libraries use brute force to read through all bytes until 'Exif' string is found. Whereas exifr recognizes the file structure which consists of nested boxes. This allows exifr to read just a few bytes here and there, to get sizes of the box and pointers to jump to next.
-
-Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
+see [`CHANGELOG.md`](CHANGELOG.md)
 
 ## Licence
 
