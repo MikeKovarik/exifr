@@ -1,6 +1,6 @@
 {
   "name": "exifr",
-  "version": "3.0.0",
+  "version": "2.1.4",
   "description": "📷 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
@@ -15,10 +15,8 @@
     "icc",
     "iptc",
     "jfif",
-    "image",
-    "picture",
-    "photo",
     "metadata",
+    "orientation",
     "makernote"
   ],
   "homepage": "https://mutiny.cz/exifr/",
