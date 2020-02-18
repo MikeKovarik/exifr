@@ -14,39 +14,39 @@ export function read(arg, options) {
 	else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 		return new BufferView(arg)
 	else if (platform.browser && arg instanceof Blob)
-		return useReader(arg, options, 'blob', readBlobAsArrayBuffer)
+		return callReader(arg, options, 'blob', readBlobAsArrayBuffer)
 	else
 		throw customError('Invalid input argument')
 }
 
 function readString(arg, options) {
 	if (isBase64Url(arg))
-		return useReaderClass(arg, options, 'base64')
+		return callReaderClass(arg, options, 'base64')
 	else if (platform.browser)
-		return useReader(arg, options, 'url', fetchUrlAsArrayBuffer)
+		return callReader(arg, options, 'url', fetchUrlAsArrayBuffer)
 	else if (platform.node)
-		return useReaderClass(arg, options, 'fs')
+		return callReaderClass(arg, options, 'fs')
 	else
 		throw customError('Invalid input argument')
 }
 
-async function useReader(url, options, readerName, readerFn) {
+async function callReader(url, options, readerName, readerFn) {
 	if (fileReaders.has(readerName))
-		return useReaderClass(url, options, readerName)
+		return callReaderClass(url, options, readerName)
 	else if (readerFn)
-		return useReaderFunction(url, readerFn)
+		return callReaderFunction(url, readerFn)
 	else
 		throw customError(`Parser ${readerName} is not loaded`)
 }
 
-async function useReaderClass(input, options, readerName) {
+async function callReaderClass(input, options, readerName) {
 	let Reader = fileReaders.get(readerName)
 	let file = new Reader(input, options)
 	await file.read()
 	return file
 }
 
-async function useReaderFunction(input, readerFn) {
+async function callReaderFunction(input, readerFn) {
 	let rawData = await readerFn(input)
 	return new DataView(rawData)
 }

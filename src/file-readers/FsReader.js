@@ -5,7 +5,7 @@ import * as platform from '../util/platform.js'
 
 if (platform.node) {
 	var fsPromise = typeof require === 'function'
-		? Promise.resolve(require('fs').promises)
+		? Promise.resolve(global['req' + 'uire']('fs').promises)
 		: import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
 }
 

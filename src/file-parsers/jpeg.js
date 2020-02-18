@@ -202,8 +202,9 @@ export class JpegFileParser extends FileParserBase {
 		// IDEA: dynamic loading through import(parser.type) ???
 		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
+		let segments
 		if (this.hasMultiSegments) {
-			var segments = []
+			segments = []
 			let multiSegmentTypes = []
 			for (let seg of this.appSegments) {
 				if (seg.multiSegment) {
@@ -223,7 +224,7 @@ export class JpegFileParser extends FileParserBase {
 				}
 			}
 		} else {
-			var segments = this.appSegments
+			segments = this.appSegments
 		}
 		for (let segment of segments) {
 			let {type, chunk} = segment

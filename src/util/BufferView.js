@@ -1,5 +1,9 @@
 import {customError} from './helpers.js'
+import * as platform from '../util/platform.js'
 
+
+// Needed for ESLint. It doesn't yet support this global.
+let BigInt = platform.node ? global.BigInt : window.BigInt
 
 const utf8 = new TextDecoder('utf-8')
 //const utf16 = new TextDecoder('utf-16')
@@ -140,10 +144,12 @@ export class BufferView {
 		} else if (typeof BigInt !== undefined) {
 			// If the environment supports BigInt we'll try to use it. Though it may break user functionality
 			// (for example can't do mixed math with numbers & bigints)
-			console.warn(`Using BigInt because box ${kind} has length of type 64uint but JS can only handle 53b numbers.`)
+			console.warn(`Using BigInt because of type 64uint but JS can only handle 53b numbers.`)
 			return (BigInt(part1) << BigInt(32)) | BigInt(part2)
 		} else {
-			console.warn(`Integrity broken. Box ${kind} has length of type 64uint but JS can only handle 53b numbers.`)
+			// The value (when both 32b parts combined) is larger than 53 bits so we can't just use Number type
+			// and this environment doesn't support BigInt... throw error.
+			throw customError(`Trying to read 64b value but JS can only handle 53b numbers.`)
 		}
 	}
 

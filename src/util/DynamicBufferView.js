@@ -28,10 +28,11 @@ export class DynamicBufferView extends BufferView {
 	}
 
 	_extend(newLength) {
+		let uintView
 		if (platform.hasBuffer)
-			var uintView = Buffer.allocUnsafe(newLength)
+			uintView = Buffer.allocUnsafe(newLength)
 		else
-			var uintView = new Uint8Array(newLength)
+			uintView = new Uint8Array(newLength)
 		let dataView = new DataView(uintView.buffer, uintView.byteOffset, uintView.byteLength)
 		uintView.set(new Uint8Array(this.buffer, this.byteOffset, this.byteLength), 0)
 		return {uintView, dataView}
