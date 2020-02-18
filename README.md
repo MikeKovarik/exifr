@@ -2,9 +2,10 @@
 
 [![Build Status](https://travis-ci.org/MikeKovarik/exifr.svg?branch=master)](https://travis-ci.org/MikeKovarik/exifr)
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
-[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/exifr/dist/mini.umd.js?compression=gzip)](https://unpkg.com/exifr)
-[![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/exifr/badge?style=rounded)](https://www.jsdelivr.com/package/npm/exifr)
+[![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/exifr/dist/mini.umd.js?compression=gzip)](https://www.jsdelivr.com/package/npm/exifr?path=dist)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
+[![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/exifr/badge?style=rounded)](https://www.jsdelivr.com/package/npm/exifr)
+[![npm downloads size](https://img.shields.io/npm/dm/exifr)](https://npmjs.org/package/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 
 [Usage](#usage)
@@ -88,7 +89,7 @@ import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 **Browser users**: UMD is also compatible with RequireJS. Otherwise exports everything as `window.exifr`
 
 ```html
-<script src="https://unpkg.com/exifr/dist/lite.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 ```
 
 `mini` and `lite` are recommended for browsers because of balance between features and file size.
@@ -108,7 +109,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 |-----------------|------|------|------|------|
 | chunked<br>file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
-| segment parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
+| segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
