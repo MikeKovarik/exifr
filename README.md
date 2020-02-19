@@ -105,6 +105,10 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 
 Of course, you can use the `full` version in browser, or use any other build in Node.js.
 
+
+<details>
+<summary><b>Detailed comparison (click to expand)</b></summary>
+
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
 | chunked<br>file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
@@ -114,6 +118,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
 | file            | `full.esm.js`<br>`full.umd.js`<br>`full.legacy.umd.js` | `lite.esm.js`<br>`lite.umd.js`<br>`lite.legacy.umd.js` | `mini.esm.js`<br>`mini.umd.js`<br>`mini.legacy.umd.js` | `core.esm.js`<br>`core.umd.js` |
+</details>
 
 ## Examples
 
@@ -824,7 +829,7 @@ for (let file of files) exif.parse(file, {exif: true, iptc: true})
 
 **Finding metadata:** Other libraries use brute force to read through all bytes until `'Exif'` string is found. Whereas exifr recognizes the file structure, consisting of segments (JPEG) or nested boxes (HEIC). This allows exifr to read just a few bytes here and there, to get the offset and size of the segment/box and pointers to jump to the next.
 
-**HEIC:** Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [https://github.com/exif-heic-js/exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
+**HEIC:** Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
 
 ### Benchmarks
 
