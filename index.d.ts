@@ -3,7 +3,7 @@
 export as namespace Exifr
 
 interface Tags {
-	[name: string]: String | Number | Number[] | Uint8Array
+	[name: string]: string | number | number[] | Uint8Array
 }
 
 type Input = ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array | DataView | string | Blob | File
@@ -66,13 +66,13 @@ export function thumbnailUrl(data: Input, options?: Options): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
 export function orientation(data: Input): Promise<number | undefined>;
 
-export var tagKeys: Map<string, Map<number, string>>;
-export var tagValues: Map<string, Map<number, any>>;
-export var tagRevivers: Map<string, Map<number, any>>;
+export const tagKeys: Map<string, Map<number, string>>;
+export const tagValues: Map<string, Map<number, any>>;
+export const tagRevivers: Map<string, Map<number, any>>;
 
-export var fileParsers: Map<string, any>;
-export var segmentParsers: Map<string, any>;
-export var fileReaders: Map<string, any>;
+export const fileParsers: Map<string, any>;
+export const segmentParsers: Map<string, any>;
+export const fileReaders: Map<string, any>;
 
 export class Exifr {
 	constructor(options?: Options);
