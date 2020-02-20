@@ -30,7 +30,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
-* 📷 Files: **.jpg**, **.tif**, **.heic** photos
+* 📷 Files: **.jpg**, **.tif**, **.heic**
 * 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
 * 📑 **Reads only first few bytes**
 * 🔬 **Skips parsing tags you don't need**
@@ -99,7 +99,7 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 #### Bundles
 
 * **full** - Contains everything. Intended for use in Node.js.
-* **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP. Includes chunked reader.
+* **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP.
 * **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictionaries.
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
@@ -111,7 +111,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
-| chunked<br>file readers    | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
+| chunked<br>file readers | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
 | segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
