@@ -13,9 +13,14 @@ let demoFileSize = 311406
 class ExifrDemoApp {
 
 	constructor() {
-		this.setup().catch(this.handleError)
+		// To suppport Safari 12.1, we can't use the the fat arrow method autobind syntax.
+		let methodsToBind = ['handleError', 'onCheckboxChanged', 'onDrop', 'onPick', 'parseFile']
+		for (let key of methodsToBind)
+			this[key] = this[key].bind(this)
 		// NOTE: do not use the new class property syntax. FireFox doesn't support it yet.
 		this.browserCompatibleFile = true
+		// now we can bootstrap the demo app
+		this.setup().catch(this.handleError)
 	}
 
 	async setup() {
@@ -26,7 +31,12 @@ class ExifrDemoApp {
 		document.body.addEventListener('dragover', e => e.preventDefault())
 		document.body.addEventListener('drop', this.onDrop)
 
-		if (window.location.origin.includes('localhost') && !navigator.userAgent.includes('Firefox')) {
+		let {userAgent} = navigator
+		let localHost = window.location.origin.includes('localhost')
+		if (localHost && (userAgent.includes('Chrome') || userAgent.includes('Edg/'))) {
+			// Only load live version in Chrome or the new Edge.
+			// Doing this because neither the latest firefox nor safari support
+			// class properties and thus fat arrow autobound methods. 
 			exifr = await import('../src/bundle-full.js')
 			console.log('loaded live code from src/')
 		} else {
@@ -56,7 +66,7 @@ class ExifrDemoApp {
 		}
 	}
 
-	handleError = err => {
+	handleError(err) {
 		console.error(err)
 		this.setStatus('ERROR: ' + err.message, 'red')
 	}
@@ -70,7 +80,7 @@ class ExifrDemoApp {
 		this.parseFile()
 	}
 
-	onCheckboxChanged = e => {
+	onCheckboxChanged(e) {
 		let boxNode = boxNodes[e.target.name]
 		if (boxNode) {
 			if (e.target.checked)
@@ -81,12 +91,12 @@ class ExifrDemoApp {
 		this.parseFile()
 	}
 
-	onDrop = async e => {
+	async onDrop(e) {
 		e.preventDefault()
 		this.processBlob(e.dataTransfer.files[0])
 	}
 
-	onPick = async e => {
+	async onPick(e) {
 		this.processBlob(e.target.files[0])
 	}
 
@@ -95,7 +105,7 @@ class ExifrDemoApp {
 		this.parseFile(file)
 	}
 
-	parseFile = async (file = this.file) => {
+	async parseFile(file = this.file) {
 		//this.setStatus(`parsing`)
 		if (this.file !== file) {
 			this.file = file
