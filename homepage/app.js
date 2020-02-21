@@ -14,6 +14,8 @@ class ExifrDemoApp {
 
 	constructor() {
 		this.setup().catch(this.handleError)
+		// NOTE: do not use the new class property syntax. FireFox doesn't support it yet.
+		this.browserCompatibleFile = true
 	}
 
 	async setup() {
@@ -24,10 +26,13 @@ class ExifrDemoApp {
 		document.body.addEventListener('dragover', e => e.preventDefault())
 		document.body.addEventListener('drop', this.onDrop)
 
-		if (window.location.origin.includes('localhost'))
+		if (window.location.origin.includes('localhost') && !navigator.userAgent.includes('Firefox')) {
 			exifr = await import('../src/bundle-full.js')
-		else
+			console.log('loaded live code from src/')
+		} else {
 			exifr = await import('../dist/full.esm.js')
+			console.log('loaded bundle from dist/')
+		}
 
 		this.options = cloneObject(exifr.Options.default)
 		this.options.ifd1 = true
@@ -151,7 +156,6 @@ class ExifrDemoApp {
 			this.imageUrl = input
 	}
 
-	browserCompatibleFile = true
 	clear() {
 		this.rawOutput = undefined
 		this.output = undefined

@@ -12,27 +12,13 @@ let outputFilters = {
 
 }
 
+
 export class SegmentBoxCustomElement {
-	showAll = false
-	display = 'table'
-	static template = `
-		<div class.bind="options[key] ? '' : 'disabled'">
-			<h3>
-				\${title || key}
-				<span click.trigger="showAll = !showAll" show.bind="canShowMore">
-					\${showAll ? 'Show less' : 'Show all'}
-				</span>
-			</h3>
-			<template if.bind="data !== undefined">
-				<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
-				<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
-				<pre if.bind="display === 'string'">\${data | charLimit:showAll}</pre>
-			</template>
-			<span if.bind="data === undefined" class="small">
-				\${options[key] ? "File doesn't contain" : 'Not parsing'} \${alias || key}
-			</span>
-		</div>
-	`
+	constructor() {
+		// NOTE: do not use the new class property syntax. FireFox doesn't support it yet.
+		this.showAll = false
+		this.display = 'table'
+	}
 	get data() {
 		return this.rawOutput && this.rawOutput[this.key]
 	}
@@ -48,7 +34,27 @@ export class SegmentBoxCustomElement {
 	outputChanged(newValue) {this.rawOutput = newValue}
 	keysChanged(newValue) {this.keys = newValue}
 }
-decorate(SegmentBoxCustomElement, au.inlineView(`<template>${SegmentBoxCustomElement.template}</template>`))
+
+const segmentBoxTemplate = `
+	<div class.bind="options[key] ? '' : 'disabled'">
+		<h3>
+			\${title || key}
+			<span click.trigger="showAll = !showAll" show.bind="canShowMore">
+				\${showAll ? 'Show less' : 'Show all'}
+			</span>
+		</h3>
+		<template if.bind="data !== undefined">
+			<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
+			<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
+			<pre if.bind="display === 'string'">\${data | charLimit:showAll}</pre>
+		</template>
+		<span if.bind="data === undefined" class="small">
+			\${options[key] ? "File doesn't contain" : 'Not parsing'} \${alias || key}
+		</span>
+	</div>
+`
+
+decorate(SegmentBoxCustomElement, au.inlineView(`<template>${segmentBoxTemplate}</template>`))
 decorate(SegmentBoxCustomElement, 'options', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(SegmentBoxCustomElement, 'output', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(SegmentBoxCustomElement, 'display', au.bindable)
@@ -62,14 +68,6 @@ decorate(SegmentBoxCustomElement, 'canShowMore', au.computedFrom('data', 'key'))
 
 
 export class ObjectTableCustomElement {
-	static template = `
-		<table>
-			<tr repeat.for="[key, val] of map">
-				<td>\${key | prettyCase}</td>
-				<td>\${val | tableValue}</td>
-			</tr>
-		</table>
-	`
 	get map() {
 		if (!this.object) return new Map
 		if (this.keys)
@@ -81,7 +79,17 @@ export class ObjectTableCustomElement {
 	objectChanged(newValue) {this.object = newValue}
 	keysChanged(newValue) {this.keys = newValue}
 }
-decorate(ObjectTableCustomElement, au.inlineView(`<template>${ObjectTableCustomElement.template}</template>`))
+
+var objectTableTemplate = `
+	<table>
+		<tr repeat.for="[key, val] of map">
+			<td>\${key | prettyCase}</td>
+			<td>\${val | tableValue}</td>
+		</tr>
+	</table>
+`
+
+decorate(ObjectTableCustomElement, au.inlineView(`<template>${objectTableTemplate}</template>`))
 decorate(ObjectTableCustomElement, 'object', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(ObjectTableCustomElement, 'keys', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
 decorate(ObjectTableCustomElement, 'map', au.computedFrom('object', 'keys'))
