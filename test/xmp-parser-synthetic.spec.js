@@ -1,6 +1,6 @@
 import {assert, getFile} from './test-util-core.js'
-import {XmpParser, XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp2.js'
-import {BufferView} from '../src/util/BufferView.js'
+import XmpParser from '../src/segment-parsers/xmp.js'
+import {XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp.js'
 
 
 const VALUE_PROP = 'value'
@@ -9,7 +9,7 @@ const GROUP_OPTIONS = {groupByNamespace: true}
 
 // TODO: test - undefine is not in object at all (rdf:about="")
 
-describe('XmlParser', () => {
+describe('XmpParser - synthetic tests', () => {
 
 
 
@@ -1718,19 +1718,49 @@ describe('XmlParser', () => {
 
 		})
 
-		describe('empty rdf and rdf:about', () => {
+		describe('empty objects are left undefined', () => {
 
-			it('output.rdf is empty', async () => {
-				let code = `<rdf:Description rdf:about="" foo:bar="value"/>`
+			it('empty namespace is undefined 1', async () => {
+				let code = `<rdf:Description rdf:about="" ns:theProp="value"/>`
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				console.log('1', output)
 				assert.isObject(output)
 				assert.isUndefined(output.rdf)
-				assert.isObject(output.foo)
 			})
 
-			it('output itself is empty', async () => {
+			it('empty namespace is undefined 2', async () => {
+				let code = `<rdf:Description rdf:about="some string">
+					<emptyNs:theObject empty:property=""/>
+				</rdf:Description>`
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				console.log('2', output)
+				assert.isObject(output)
+				assert.isObject(output.rdf)
+				assert.isUndefined(output.emptyNs)
+			})
+
+			it('empty namespace is undefined 3', async () => {
+				let code = `<rdf:Description>
+					<fullNs:someProp>the string</fullNs:someProp>
+					<emptyNs:theObject empty:property=""/>
+				</rdf:Description>`
+				let output = XmpParser.parse(code)
+				console.log('3', output)
+				assert.isObject(output)
+				assert.isUndefined(output.emptyNs)
+			})
+
+			it('the output itself is empty (grouped)', async () => {
 				let code = `<rdf:Description rdf:about=""/>`
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				console.log('4', output)
+				assert.isUndefined(output)
+			})
+
+			it('the output itself is empty (merged)', async () => {
+				let code = `<rdf:Description rdf:about=""/>`
+				let output = XmpParser.parse(code)
+				console.log('5', output)
 				assert.isUndefined(output)
 			})
 
@@ -1800,232 +1830,6 @@ describe('XmlParser', () => {
 				assert.containsAllKeys(output.xapMM, ['DocumentID', 'InstanceID'])
 				assert.equal(output.xapMM.DocumentID, 'uuid:a2a0d182-7b1c-4801-a22c-d610115116bd')
 				assert.equal(output.xapMM.InstanceID, 'uuid:1a365cee-e070-4b52-8278-db5e46b20a4c')
-			})
-
-		})
-
-	})
-
-	describe('real world cases', () => {
-		// MunchSP1919.xml
-		// xmp-random.xml
-
-		// gpano-xmp-main.xmp
-		// gpano-xmp-ext.xmp
-
-		async function getString(name) {
-			let arrayBuffer = await getFile(name)
-			let bufferView = new BufferView(arrayBuffer)
-			return bufferView.getString()
-		}
-
-		describe('xmp-MunchSP1919.xml', async () => {
-
-			it('merged', async () => {
-				let code = await getString('xmp-MunchSP1919.xml')
-				let output = XmpParser.parse(code)
-				console.log('-: output', output)
-				assert.equal(true, false)
-			})
-
-			it('grouped', async () => {
-				let code = await getString('xmp-MunchSP1919.xml')
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-				let namespaces = ['Iptc4xmpCore', 'MicrosoftPhoto', 'aux', 'crs', 'dc', 'exif', 'mediapro', 'photoshop', 'tiff', 'xmp', 'xmpMM']
-				assert.containsAllKeys(output, namespaces)
-				assert.deepEqual(output.aux, {
-					Firmware: '2.0.2',
-					FlashCompensation: '0/1',
-					ImageNumber: 0,
-					Lens: '17.0-85.0 mm',
-					LensInfo: '17/1 85/1 0/0 0/0',
-					OwnerName: 'UCSD AAL',
-					SerialNumber: 1320910591,
-				})
-				assert.deepEqual(output.xmpMM, {
-					DocumentID: 'uuid:42328C558489DC11B5C7E17965EE46D2',
-					InstanceID: 'uuid:C85209F08489DC11B5C7E17965EE46D2',
-				})
-				assert.deepEqual(output.mediapro, {
-					People: ['Munch', 'Edvard (1863-1944)']
-				})
-				// picking and matching just some properties out of large objects with much more properties
-				assert.equal(output.tiff.ImageLength, 2122)
-				assert.equal(output.tiff.ImageWidth, 3195)
-				assert.equal(output.tiff.Make, 'Canon')
-				assert.equal(output.tiff.Model, 'Canon EOS 20D')
-				//
-				assert.isObject(output.Iptc4xmpCore.CreatorContactInfo)
-				assert.equal(output.Iptc4xmpCore.CreatorContactInfo.CiAdrPcode, '92093-0175')
-				assert.equal(output.Iptc4xmpCore.CreatorContactInfo.CiAdrRegion, 'California')
-				assert.isArray(output.Iptc4xmpCore.SubjectCode)
-				assert.lengthOf(output.Iptc4xmpCore.SubjectCode, 5)
-				assert.equal(output.Iptc4xmpCore.SubjectCode[4], 'Self-portraits')
-				//
-				assert.equal(output.crs.ColorNoiseReduction, 25)
-				assert.equal(output.crs.HasCrop, false)
-				assert.equal(output.crs.HasSettings, true)
-				assert.equal(output.crs.HueAdjustmentAqua, 0)
-				assert.equal(output.crs.Tint, '+3')
-				assert.deepEqual(output.crs.ToneCurve, ['0, 0', '32, 22', '64, 56', '128, 128', '192, 196', '255, 255'])
-				assert.equal(output.crs.ToneCurveName, 'Medium Contrast')
-				assert.equal(output.crs.Version, 4.2)
-			})
-
-		})
-
-		describe('gpano: xmp + xmp extended', async () => {
-
-			it('xmp-gpano-main.xml', async () => {
-				let file = await getFile('xmp-gpano-main.xml')
-				assert.equal(true, false)
-			})
-
-			describe('xmp-gpano-ext.xml', async () => {
-
-				it('merged', async () => {
-					let code = await getString('xmp-gpano-ext.xml')
-					let output = XmpParser.parse(code)
-					assert.equal(output.GImage, 'http://ns.google.com/photos/1.0/image/')
-					assert.equal(output.GAudio, 'http://ns.google.com/photos/1.0/audio/')
-					assert.isString(output.Data)
-					assert.isString(output.Data.slice(0, 8), 'AAAAGGZ0')
-					assert.isString(output.Data.slice(-8),   'AQAAACA=')
-				})
-
-				it('merged', async () => {
-					let code = await getString('xmp-gpano-ext.xml')
-					let output = XmpParser.parse(code, GROUP_OPTIONS)
-					assert.isObject(output.xmlns)
-					assert.isString(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
-					assert.isString(output.GImage.Data.slice(-8),   'C6iMzP/Z')
-					assert.isString(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
-					assert.isString(output.GAudio.Data.slice(-8),   'AQAAACA=')
-				})
-
-			})
-
-		})
-
-		describe('xmp1.xml', async () => {
-
-			it('merged', async () => {
-				let code = await getString('xmp1.xml')
-				let output = XmpParser.parse(code)
-				assert.equal(output.about, 'DJI Meta Data')
-				assert.equal(output.AbsoluteAltitude, -8.074252)
-				assert.equal(output.GimbalYawDegree, -115.300003)
-				assert.equal(output.FlightPitchDegree, 6)
-				assert.equal(output.CentralTemperature, 1)
-				assert.equal(output.TlinearGain, 0.04)
-				assert.equal(output.BandName, 'LWIR')
-				assert.equal(output.CentralWavelength, 10000)
-				assert.equal(output.WavelengthFWHM, 4500)
-			})
-
-			it('grouped', async () => {
-				let code = await getString('xmp1.xml')
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-				assert.equal(output.rdf.about, 'DJI Meta Data')
-				assert.equal(output['drone-dji'].AbsoluteAltitude, -8.074252)
-				assert.equal(output['drone-dji'].GimbalYawDegree, -115.300003)
-				assert.equal(output['drone-dji'].FlightPitchDegree, 6)
-				assert.equal(output.FLIR.CentralTemperature, 1)
-				assert.equal(output.FLIR.TlinearGain, 0.04)
-				assert.equal(output.FLIR.BandName, 'LWIR')
-				assert.equal(output.FLIR.CentralWavelength, 10000)
-				assert.equal(output.FLIR.WavelengthFWHM, 4500)
-			})
-
-		})
-
-		describe('xmp2.xml', async () => {
-
-			it('merged', async () => {
-				let code = await getString('xmp2.xml')
-				let output = XmpParser.parse(code)
-                console.log('-: output', output)
-				assert.equal(output.CreateDate, '1970-01-01')
-				assert.equal(output.Model, 'Test_Pro')
-				assert.equal(output.format, 'image/jpg')
-				assert.equal(output.GimbalYawDegree, '-127.10')
-				assert.equal(output.GimbalPitchDegree, '+1.00')
-				assert.equal(output.FlightRollDegree, '+0.00')
-				assert.equal(output.Version, 7)
-				assert.equal(output.HasSettings, false)
-			})
-
-			it('grouped', async () => {
-				let code = await getString('xmp2.xml')
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-                console.log('-: output', output)
-				// defined and used namespaces
-				assert.isObject(output.tiff)
-				assert.isObject(output.xmp)
-				assert.isObject(output.crs)
-				assert.isObject(output['drone-dji'])
-				// defined but unused namespaces
-				assert.equal(output.exif)
-				assert.equal(output.GPano)
-				assert.equal(output.xmpMM)
-				// dc is object of only one property
-				assert.isObject(output.dc)
-				assert.hasAllKeys(output.dc, ['format'])
-				assert.equal(output.dc.format, 'image/jpg')
-				// attrs and values
-				assert.equal(output.xmp.CreateDate, '1970-01-01')
-				assert.equal(output.tiff.Model, 'Test_Pro')
-				assert.equal(output['drone-dji'].GimbalYawDegree, '-127.10')
-				assert.equal(output['drone-dji'].GimbalPitchDegree, '+1.00')
-				assert.equal(output['drone-dji'].FlightRollDegree, '+0.00')
-				assert.equal(output.crs.Version, 7)
-				assert.equal(output.crs.HasSettings, false)
-			})
-
-		})
-
-		describe('xmp3.xml', async () => {
-
-			it('merged', async () => {
-				let code = await getString('xmp3.xml')
-				let output = XmpParser.parse(code)
-                console.log('-: output', output)
-				assert.deepEqual(output, {
-					xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
-					stRef: 'http://ns.adobe.com/xap/1.0/sType/ResourceRef#',
-					xmp: 'http://ns.adobe.com/xap/1.0/',
-					CreatorTool: 'Adobe Photoshop CC 2015 (Windows)',
-					OriginalDocumentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a',
-					DocumentID: 'xmp.did:C39D1BD9C4A111E6AA23E41B54801FB7',
-					InstanceID: 'xmp.iid:C39D1BD8C4A111E6AA23E41B54801FB7',
-					DerivedFrom: {
-						instanceID: 'xmp.iid:fded51f7-dab6-a945-b486-0deb8273465e',
-						documentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a'
-					}
-				})
-			})
-
-			it('grouped', async () => {
-				let code = await getString('xmp3.xml')
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-                console.log('-: output', output)
-				// namespace definitions
-				assert.deepEqual(output.xmlns, {
-					xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
-					stRef: 'http://ns.adobe.com/xap/1.0/sType/ResourceRef#',
-					xmp: 'http://ns.adobe.com/xap/1.0/',
-				})
-				// the data
-				assert.equal(output.xmp.CreatorTool, 'Adobe Photoshop CC 2015 (Windows)')
-				assert.deepEqual(output.xmpMM, {
-					OriginalDocumentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a',
-					DocumentID: 'xmp.did:C39D1BD9C4A111E6AA23E41B54801FB7',
-					InstanceID: 'xmp.iid:C39D1BD8C4A111E6AA23E41B54801FB7',
-					DerivedFrom: {
-						instanceID: 'xmp.iid:fded51f7-dab6-a945-b486-0deb8273465e',
-						documentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a'
-					}
-				})
 			})
 
 		})
