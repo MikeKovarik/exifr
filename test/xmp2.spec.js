@@ -1,285 +1,90 @@
-import {assert} from './test-util-core.js'
-import {XmpParser, normalizeValue, matchTags, matchAttributes} from '../src/segment-parsers/xmp2.js'
+import {assert, getFile} from './test-util-core.js'
+import {XmpParser, XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp2.js'
+import {BufferView} from '../src/util/BufferView.js'
 
 
-const CHILDREN_PROP = 'children'
+const VALUE_PROP = 'value'
+
+const GROUP_OPTIONS = {groupByNamespace: true}
+
+// TODO: test - undefine is not in object at all (rdf:about="")
 
 describe('XmlParser', () => {
 
-	describe('enscapsulation', () => {
 
-		it('empty string returns undefined', () => {
-			let output = XmpParser.parse(``)
-			assert.isUndefined(output)
+
+	describe('primitive normalization', () => {
+
+		it('zero', () => {
+			assert.equal(normalizeValue('0'), 0)
 		})
 
-		it('plain data object', () => {
-			let output = XmpParser.parse(`
-				<ns:theObject
-					tiff:Make="Canon"
-					tiff:Model="Canon EOS 550D"
-				/>
-			`)
-			assert.isObject(output)
-			assert.hasAllKeys(output, ['theObject'])
-			assert.isObject(output.theObject)
-			assert.hasAllKeys(output.theObject, ['Make', 'Model'])
-			assert.equal(output.theObject.Make, 'Canon')
-			assert.equal(output.theObject.Model, 'Canon EOS 550D')
+		it('float', () => {
+			assert.equal(normalizeValue('1.42'), 1.42)
 		})
 
-		it('rdf:Description > data object', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-					<tiff:Make>Canon</tiff:Make>
-					<tiff:Model>Canon EOS 550D</tiff:Model>
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['about', 'tiff', 'Make', 'Model'])
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 550D')
+		it('integer', () => {
+			assert.equal(normalizeValue('50'), 50)
 		})
 
-		it('rdf:RDF > rdf:Description > data object', () => {
-			let output = XmpParser.parse(`
-				<rdf:RDF>
-					<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-						<tiff:Make>Canon</tiff:Make>
-						<tiff:Model>Canon EOS 550D</tiff:Model>
-					</rdf:Description>
-				</rdf:RDF>
-			`)
-			assert.hasAllKeys(output, ['about', 'tiff', 'Make', 'Model'])
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 550D')
+		it('negative integer', () => {
+			assert.equal(normalizeValue('-50'), -50)
 		})
 
-		it('x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
-			let output = XmpParser.parse(`
-				<x:xmpmeta>
-					<rdf:RDF>
-						<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-							<tiff:Make>Canon</tiff:Make>
-							<tiff:Model>Canon EOS 550D</tiff:Model>
-						</rdf:Description>
-					</rdf:RDF>
-				</x:xmpmeta>
-			`)
-			assert.hasAllKeys(output, ['about', 'tiff', 'Make', 'Model'])
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 550D')
+		// questionable, maybe hide behind options
+		it('explicitly positive integer remains string', () => {
+			// <crs:Brightness>+50</crs:Brightness>
+			assert.equal(normalizeValue('+50'), '+50')
 		})
 
-		it('?xpacket > rdf:RDF > rdf:Description > data object', () => {
-			let output = XmpParser.parse(`
-				<?xpacket>
-					<rdf:RDF>
-						<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-							<tiff:Make>Canon</tiff:Make>
-							<tiff:Model>Canon EOS 550D</tiff:Model>
-						</rdf:Description>
-					</rdf:RDF>
-				</?xpacket>
-			`)
-			assert.hasAllKeys(output, ['about', 'tiff', 'Make', 'Model'])
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 550D')
+		it('bools', () => {
+			assert.equal(normalizeValue('true'), true)
+			assert.equal(normalizeValue('false'), false)
 		})
 
-		it('?xpacket > x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
-			let output = XmpParser.parse(`
-				<?xpacket>
-					<x:xmpmeta>
-						<rdf:RDF>
-							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-								<tiff:Make>Canon</tiff:Make>
-								<tiff:Model>Canon EOS 550D</tiff:Model>
-							</rdf:Description>
-						</rdf:RDF>
-					</x:xmpmeta>
-				</?xpacket>
-			`)
-			assert.hasAllKeys(output, ['about', 'tiff', 'Make', 'Model'])
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 550D')
+		it('Uppercase bools', () => {
+			assert.equal(normalizeValue('True'), true) // <crs:AlreadyApplied>True</crs:AlreadyApplied>
+			assert.equal(normalizeValue('False'), false)
 		})
 
-	})
-
-	describe('rdf:Description basics', () => {
-
-		it('empty self-closing rdf:Description', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description/>
-			`)
-			assert.isEmpty(output)
+		it('empty string (length 0) becomes undefined', () => {
+			assert.equal(normalizeValue(''), undefined)
 		})
 
-		it('empty pair rdf:Description', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description></rdf:Description>
-			`)
-			assert.isEmpty(output)
+		it('empty string (with spaces) becomes undefined (due to trimming)', () => {
+			assert.equal(normalizeValue('  '), undefined)
 		})
 
-		it('empty pair rdf:Description with children spaces', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>   </rdf:Description>
-			`)
-			assert.isEmpty(output)
-		})
-
-		it('single attr in self-closing rdf:Description', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description ns:attrString="the attr string"/>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-		})
-
-		it('single attr in pair rdf:Description', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description ns:attrString="the attr string"></rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-		})
-
-		it('single attr in pair rdf:Description with newline children', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description ns:attrString="the attr string">
-				</rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-		})
-
-		it('single tag in pair rdf:Description', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>
-					<ns:tagString>the tag string</ns:tagString>
-				</rdf:Description>
-			`)
-			assert.strictEqual(output.tagString, 'the tag string')
-		})
-
-		it('tag & attr strings', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description ns:attrString="the attr string">
-					<ns:tagString>the tag string</ns:tagString>
-				</rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-			assert.strictEqual(output.tagString, 'the tag string')
+		it('empty string (with tabs) becomes undefined (due to trimming)', () => {
+			assert.equal(normalizeValue('\t\t'), undefined)
 		})
 
 	})
 
 
-	describe('multiple rdf:Description', () => {
-
-		const code = `
-			<rdf:RDF>
-				<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-					<tiff:Make>Canon</tiff:Make>
-					<tiff:Model>Canon EOS 20D</tiff:Model>
-				</rdf:Description>
-				<rdf:Description rdf:about='' xmlns:aux='http://ns.adobe.com/exif/1.0/aux/'>
-					<aux:Lens>17.0-85.0 mm</aux:Lens>
-					<aux:LensInfo>17/1 85/1 0/0 0/0</aux:LensInfo>
-				</rdf:Description>
-				<rdf:Description rdf:about='' xmlns:crs='http://ns.adobe.com/camera-raw-settings/1.0/'>
-					<crs:AlreadyApplied>true</crs:AlreadyApplied>
-					<crs:BlueSaturation>0</crs:BlueSaturation>
-				</rdf:Description>
-			</rdf:RDF>
-		`
-
-		it('all tags are parsed and combined', () => {
-			let output = XmpParser.parse(code)
-			assert.equal(output.Make, 'Canon')
-			assert.equal(output.Model, 'Canon EOS 20D')
-			assert.equal(output.Lens, '17.0-85.0 mm')
-			assert.equal(output.LensInfo, '17/1 85/1 0/0 0/0')
-			assert.equal(output.AlreadyApplied, true)
-			assert.equal(output.BlueSaturation, 0)
-		})
-
-		it('all tags are parsed and grouped by namespace when {groupByNamespace: true}', () => {
-			let options = {groupByNamespace: true}
-			let output = XmpParser.parse(code, options)
-			// containsAllKeys is not strict. output has to contain these, but there can be more
-			assert.containsAllKeys(output, ['tiff', 'aux', 'crs'])
-			assert.equal(output.tiff.Make, 'Canon')
-			assert.equal(output.tiff.Model, 'Canon EOS 20D')
-			assert.equal(output.aux.Lens, '17.0-85.0 mm')
-			assert.equal(output.aux.LensInfo, '17/1 85/1 0/0 0/0')
-			assert.equal(output.crs.AlreadyApplied, true)
-			assert.equal(output.crs.BlueSaturation, 0)
-		})
-
-		it('xmlns meta tags are stored in output.xmlns when {groupByNamespace: true}', () => {
-			let options = {groupByNamespace: true}
-			let output = XmpParser.parse(code, options)
-			console.log('output', output)
-			// containsAllKeys is not strict. output has to contain these, but there can be more
-			assert.isObject(output.xmlns)
-			assert.isString(output.xmlns.tiff)
-			assert.isString(output.xmlns.aux)
-			assert.isString(output.xmlns.crs)
-		})
-
-		describe('overlapping properties of different namespaces', () => {
-
-			const code = `
-				<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">
-					<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-						<rdf:Description rdf:about=""
-						xmlns:GImage="http://ns.google.com/photos/1.0/image/"
-						xmlns:GAudio="http://ns.google.com/photos/1.0/audio/"
-						GImage:Data="/9j/4AAQSkZJRgABAQAAAQABAAD..."
-						GAudio:Data="AAAAGGZ0eXBtcDQyAAAAAGlzb21..."/>
-					</rdf:RDF>
-				</x:xmpmeta>
-			`
-
-			it('one overrides the other by default', () => {
-				let output = XmpParser.parse(code)
-				assert.isString(output.Data)
-			})
-
-			it('each attr is stored in separate namespace when {groupByNamespace: true}', () => {
-				let options = {groupByNamespace: true}
-				let output = XmpParser.parse(code, options)
-				assert.isString(output.GImage)
-				assert.isString(output.GAudio)
-			})
-		})
-
-
-
-	})
-
-
-	describe('matchAttributes()', () => {
+	// TODO rename
+	describe('XmlAttr.findAll() regex matching & extraction', () => {
 
 		describe(`=""`, () => {
 
 			it(`finds single attr`, () => {
-				assert.lengthOf(matchAttributes(`ns:name="abc"`), 1)
+				assert.lengthOf(XmlAttr.findAll(`ns:name="abc"`), 1)
 			})
 
 			it(`finds multiple attr`, () => {
-				assert.lengthOf(matchAttributes(`ns:name="abc" ns:second="def"`), 2)
+				assert.lengthOf(XmlAttr.findAll(`ns:name="abc" ns:second="def"`), 2)
 			})
 
 			it(`properly parses attribute`, () => {
-				let match = matchAttributes(`namespace:name="value"`)[0]
-				assert.equal(match.namespace, 'namespace')
+				let match = XmlAttr.findAll(`namespace:name="value"`)[0]
+				assert.equal(match.ns, 'namespace')
 				assert.equal(match.name, 'name')
 				assert.equal(match.value, 'value')
 			})
 
 			it(`properly parses empty string value as undefined`, () => {
-				let match = matchAttributes(`namespace:name=""`)[0]
-				assert.equal(match.namespace, 'namespace')
+				let match = XmlAttr.findAll(`namespace:name=""`)[0]
+				assert.equal(match.ns, 'namespace')
 				assert.equal(match.name, 'name')
 				assert.equal(match.value, undefined)
 			})
@@ -289,23 +94,23 @@ describe('XmlParser', () => {
 		describe(`=''`, () => {
 
 			it(`handles =''`, () => {
-				assert.lengthOf(matchAttributes(`ns:name='abc'`), 1)
+				assert.lengthOf(XmlAttr.findAll(`ns:name='abc'`), 1)
 			})
 
 			it(`handles multiple =''`, () => {
-				assert.lengthOf(matchAttributes(`ns:name='abc' ns:second='def'`), 2)
+				assert.lengthOf(XmlAttr.findAll(`ns:name='abc' ns:second='def'`), 2)
 			})
 
 			it(`properly parses attribute`, () => {
-				let match = matchAttributes(`namespace:name='value'`)[0]
-				assert.equal(match.namespace, 'namespace')
+				let match = XmlAttr.findAll(`namespace:name='value'`)[0]
+				assert.equal(match.ns, 'namespace')
 				assert.equal(match.name, 'name')
 				assert.equal(match.value, 'value')
 			})
 
 			it(`properly parses empty string value as undefined`, () => {
-				let match = matchAttributes(`namespace:name=''`)[0]
-				assert.equal(match.namespace, 'namespace')
+				let match = XmlAttr.findAll(`namespace:name=''`)[0]
+				assert.equal(match.ns, 'namespace')
 				assert.equal(match.name, 'name')
 				assert.equal(match.value, undefined)
 			})
@@ -315,19 +120,19 @@ describe('XmlParser', () => {
 		describe(`combination of ='' and =""`, () => {
 
 			it(`finds two of ="" and  =''`, () => {
-				assert.lengthOf(matchAttributes(`ns:first="abc" ns:second='def'`), 2)
+				assert.lengthOf(XmlAttr.findAll(`ns:first="abc" ns:second='def'`), 2)
 			})
 
 			it(`finds multiple ="" and  =''`, () => {
-				assert.lengthOf(matchAttributes(`ns:first="abc" ns:second='true' ns:third="12.45" ns:fourth='123'`), 4)
+				assert.lengthOf(XmlAttr.findAll(`ns:first="abc" ns:second='true' ns:third="12.45" ns:fourth='123'`), 4)
 			})
 
 			it(`properly parses all attributes`, () => {
-				let [match1, match2, match3] = matchAttributes(`foo:first="abc" bar:second='def'`)
-				assert.equal(match1.namespace, 'foo')
+				let [match1, match2, match3] = XmlAttr.findAll(`foo:first="abc" bar:second='def'`)
+				assert.equal(match1.ns, 'foo')
 				assert.equal(match1.name, 'first')
 				assert.equal(match1.value, 'abc')
-				assert.equal(match2.namespace, 'bar')
+				assert.equal(match2.ns, 'bar')
 				assert.equal(match2.name, 'second')
 				assert.equal(match2.value, 'def')
 			})
@@ -336,263 +141,1252 @@ describe('XmlParser', () => {
 
 	})
 
+	describe('XmlTag.findAll() regex matching & extraction', () => {
 
-	describe('matchTags()', () => {
+		describe(`simple tag with primitive`, () => {
 
-		it(`?xpacket > rdf:RDF > rdf:Description > data object`, () => {
-			let matches = matchTags(`
-				<?xpacket>
+			it(`has correct namespace and name`, () => {
+				let [tag] = XmlTag.findAll(`<tiff:Make>Canon</tiff:Make>`)
+				assert.equal(tag.ns, 'tiff')
+				assert.equal(tag.name, 'Make')
+			})
+
+			it(`.children is empty`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>Canon</ns:name>`)
+				assert.isArray(tag.children)
+				assert.lengthOf(tag.children, 0)
+			})
+
+			it(`.attrs is empty`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>Canon</ns:name>`)
+				assert.isArray(tag.attrs)
+				assert.lengthOf(tag.attrs, 0)
+			})
+
+			it(`has correct value (string)`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>Canon</ns:name>`)
+				assert.strictEqual(tag.value, 'Canon')
+			})
+
+			it(`has correct value (integer)`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>42</ns:name>`)
+				assert.strictEqual(tag.value, 42)
+			})
+
+			it(`has correct value (float)`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>0.04</ns:name>`)
+				assert.strictEqual(tag.value, 0.04)
+			})
+
+			it(`has correct value (bool true)`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>true</ns:name>`)
+				assert.strictEqual(tag.value, true)
+			})
+
+			it(`has correct value (bool false)`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>false</ns:name>`)
+				assert.strictEqual(tag.value, false)
+			})
+
+			it(`empty string (0 length) value becomes undefined`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name></ns:name>`)
+				assert.strictEqual(tag.value, undefined)
+			})
+
+			// todo: move this to normalizationm
+			it(`empty string (with spaces) value becomes undefined`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>  </ns:name>`)
+				assert.strictEqual(tag.value, undefined)
+			})
+
+			it(`empty string (with tab) value becomes undefined`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>	</ns:name>`)
+				assert.strictEqual(tag.value, undefined)
+			})
+
+		})
+
+
+		describe(`array tag`, () => {
+
+			const code = `<ns:theArray><rdf:Seq><rdf:li>one</rdf:li><rdf:li>two</rdf:li></rdf:Seq></ns:theArray>`
+
+			it(`has correct namespace and name`, () => {
+				let [tag] = XmlTag.findAll(code)
+				assert.equal(tag.ns, 'ns')
+				assert.equal(tag.name, 'theArray')
+			})
+
+			it(`.attrs is empty`, () => {
+				let [tag] = XmlTag.findAll(code)
+				assert.isArray(tag.attrs)
+				assert.lengthOf(tag.attrs, 0)
+			})
+
+			it(`.value is undefined`, () => {
+				let [tag] = XmlTag.findAll(code)
+				assert.isUndefined(tag.value)
+			})
+
+			it('has correct ammount of children (1)', () => {
+				let [container] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>the only item</rdf:li>
+				</rdf:Seq></ns:theArray>`)
+				let [array] = container.children
+				assert.lengthOf(container.children, 1)
+				assert.lengthOf(array.children, 1)
+			})
+
+			it('has correct ammount of children (2)', () => {
+				let [container] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>one</rdf:li>
+					<rdf:li>two</rdf:li>
+				</rdf:Seq></ns:theArray>`)
+				let [array] = container.children
+				assert.lengthOf(container.children, 1)
+				assert.lengthOf(array.children, 2)
+			})
+
+			it('has correct ammount of children (4)', () => {
+				let [container] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>one</rdf:li>
+					<rdf:li>2</rdf:li>
+					<rdf:li ns:foo="bar"/>
+					<rdf:li>four</rdf:li>
+					<rdf:li ns:baz="quo"/>
+				</rdf:Seq></ns:theArray>`)
+				let [array] = container.children
+				assert.lengthOf(container.children, 1)
+				assert.lengthOf(array.children, 5)
+			})
+
+		})
+
+
+		describe(`object tag`, () => {
+
+			describe(`with attributes, no children`, () => {
+				const code = `
+				<ns:theObject
+				ns:attrString="the attr string"
+				ns:attrInteger="42"
+				ns:attrFloat="0.04"
+				ns:attrBoolTrue="true"
+				ns:attrBoolFalse="false"/>`
+
+				it(`.children is empty`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.children)
+					assert.lengthOf(tag.children, 0)
+				})
+
+				it(`.attrs contains correct attributes`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.attrs)
+					assert.lengthOf(tag.attrs, 5)
+				})
+
+				it(`.value is undefined`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isUndefined(tag.value)
+				})
+
+				it(`attributes have correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let findAttr = attrName => tag.attrs.find(attr => attr.name === attrName)
+					assert.strictEqual(findAttr('attrString').value, 'the attr string')
+					assert.strictEqual(findAttr('attrFloat').value, 0.04)
+					assert.strictEqual(findAttr('attrInteger').value, 42)
+					assert.strictEqual(findAttr('attrBoolTrue').value, true)
+					assert.strictEqual(findAttr('attrBoolFalse').value, false)
+				})
+
+			})
+
+
+
+			describe(`with primitive tag children, no attributes`, () => {
+				const code = `
+				<ns:theObject>
+					<ns:tagString>the tag string</ns:tagString>
+					<ns:tagFloat>0.99</ns:tagFloat>
+					<ns:tagInteger>11</ns:tagInteger>
+					<ns:tagBoolTrue>true</ns:tagBoolTrue>
+					<ns:tagBoolFalse>false</ns:tagBoolFalse>
+				</ns:theObject>`
+
+				it(`.children contains correct children`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.children)
+					assert.lengthOf(tag.children, 5)
+				})
+
+				it(`.attrs is empty`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.attrs)
+					assert.lengthOf(tag.attrs, 0)
+				})
+
+				it(`.value is undefined`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isUndefined(tag.value)
+				})
+
+				it(`children have correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let findChild = attrName => tag.children.find(tag => tag.name === attrName)
+					assert.strictEqual(findChild('tagString').value, 'the tag string')
+					assert.strictEqual(findChild('tagFloat').value, 0.99)
+					assert.strictEqual(findChild('tagInteger').value, 11)
+					assert.strictEqual(findChild('tagBoolTrue').value, true)
+					assert.strictEqual(findChild('tagBoolFalse').value, false)
+				})
+
+			})
+
+			describe(`mixed attrs and children`, () => {
+				const code = `
+				<ns:theObject
+				ns:attrString="the attr string"
+				ns:attrInteger="42"
+				ns:attrFloat="0.04"
+				ns:attrBoolTrue="true"
+				ns:attrBoolFalse="false">
+					<ns:tagString>the tag string</ns:tagString>
+					<ns:tagFloat>0.99</ns:tagFloat>
+					<ns:tagInteger>11</ns:tagInteger>
+					<ns:tagBoolTrue>true</ns:tagBoolTrue>
+					<ns:tagBoolFalse>false</ns:tagBoolFalse>
+				</ns:theObject>`
+
+				it(`.children contains correct children`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.children)
+					assert.lengthOf(tag.children, 5)
+				})
+
+				it(`.attrs contains correct attributes`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isArray(tag.attrs)
+					assert.lengthOf(tag.attrs, 5)
+				})
+
+				it(`.value is undefined`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.isUndefined(tag.value)
+				})
+
+				it(`attributes and children have correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let findAttr = attrName => tag.attrs.find(attr => attr.name === attrName)
+					let findChild = attrName => tag.children.find(tag => tag.name === attrName)
+					assert.strictEqual(findAttr('attrString').value, 'the attr string')
+					assert.strictEqual(findAttr('attrFloat').value, 0.04)
+					assert.strictEqual(findAttr('attrInteger').value, 42)
+					assert.strictEqual(findAttr('attrBoolTrue').value, true)
+					assert.strictEqual(findAttr('attrBoolFalse').value, false)
+					assert.strictEqual(findChild('tagString').value, 'the tag string')
+					assert.strictEqual(findChild('tagFloat').value, 0.99)
+					assert.strictEqual(findChild('tagInteger').value, 11)
+					assert.strictEqual(findChild('tagBoolTrue').value, true)
+					assert.strictEqual(findChild('tagBoolFalse').value, false)
+				})
+
+			})
+
+			describe('mixed attrs and primitive value', () => {
+
+				it('object tag with value 1', () => {
+					let [tag] = XmlTag.findAll(`
+						<ns:tagObject ns:objString="the string">42</ns:tagObject>
+					`)
+					assert.equal(tag.name, 'tagObject')
+					assert.equal(tag.properties[0].name, 'objString')
+					assert.equal(tag.properties[0].value, 'the string')
+					assert.strictEqual(tag.value, 42)
+				})
+
+				it('object tag with value 2', () => {
+					let [tag] = XmlTag.findAll(`
+						<ns:tagObject
+						ns:objString="the string"
+						ns:objBool="true">
+							0.78
+						</ns:tagObject>
+					`)
+					assert.equal(tag.name, 'tagObject')
+					assert.equal(tag.properties[0].name, 'objString')
+					assert.equal(tag.properties[0].value, 'the string')
+					assert.equal(tag.properties[1].name, 'objBool')
+					assert.equal(tag.properties[1].value, true)
+					assert.strictEqual(tag.value, 0.78)
+				})
+
+				it('object tag with value 3', () => {
+					let [tag] = XmlTag.findAll(`
+						<ns:tagObject
+						ns:objString="attrval"
+						ns:objNumber="42">
+							children string
+						</ns:tagObject>
+					`)
+					assert.equal(tag.name, 'tagObject')
+					assert.equal(tag.properties[0].name, 'objString')
+					assert.equal(tag.properties[0].value, 'attrval')
+					assert.equal(tag.properties[1].name, 'objNumber')
+					assert.equal(tag.properties[1].value, 42)
+					assert.strictEqual(tag.value, 'children string')
+				})
+
+			})
+
+		})
+
+		describe('newlines & spaces', () => {
+
+			it('multiline, self closing tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<xmpMM:DerivedFrom
+						stRef:documentID="attrval1"
+						stRef:originalDocumentID="attrval2"
+					/>
+				`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.isUndefined(tag.value)
+			})
+
+			it('multiline, pair tags', () => {
+				let [tag] = XmlTag.findAll(`
+					<xmpMM:DerivedFrom
+						stRef:documentID="attrval1"
+						stRef:originalDocumentID="attrval2"
+					></xmpMM:DerivedFrom>
+				`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.isUndefined(tag.value)
+			})
+
+			it('multiline, pair tags with attributes and children', () => {
+				let [tag] = XmlTag.findAll(`
+					<xmpMM:DerivedFrom
+						stRef:documentID="attrval1"
+						stRef:originalDocumentID="attrval2"
+					>the content</xmpMM:DerivedFrom>
+				`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.equal(tag.value, 'the content')
+			})
+
+			it('all on one line, self closing tag', () => {
+				let [tag] = XmlTag.findAll(`<xmpMM:DerivedFrom stRef:documentID="attrval1" stRef:originalDocumentID="attrval2"/>`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.isUndefined(tag.value)
+			})
+
+			it('all on one line, pair tags', () => {
+				let [tag] = XmlTag.findAll(`<xmpMM:DerivedFrom stRef:documentID="attrval1" stRef:originalDocumentID="attrval2"></xmpMM:DerivedFrom>`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.isUndefined(tag.value)
+			})
+
+			it('all on one line, pair tags with attributes and children', () => {
+				let [tag] = XmlTag.findAll(`<xmpMM:DerivedFrom stRef:documentID="attrval1" stRef:originalDocumentID="attrval2">the content</xmpMM:DerivedFrom>`)
+				assert.equal(tag.ns, 'xmpMM')
+				assert.equal(tag.name, 'DerivedFrom')
+				assert.equal(tag.attrs[0].name, 'documentID')
+				assert.equal(tag.attrs[1].name, 'originalDocumentID')
+				assert.equal(tag.attrs[0].value, 'attrval1')
+				assert.equal(tag.attrs[1].value, 'attrval2')
+				assert.equal(tag.value, 'the content')
+			})
+
+		})
+
+		describe('meta wrappers are ignored', () => {
+
+			it(`?xpacket > rdf:RDF > rdf:Description > data object`, () => {
+				let matches = XmlTag.findAll(`
+					<?xpacket>
+						<rdf:RDF>
+							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+								<tiff:Make>Canon</tiff:Make>
+								<tiff:Model>Canon EOS 550D</tiff:Model>
+							</rdf:Description>
+						</rdf:RDF>
+					</?xpacket>
+				`)
+				assert.lengthOf(matches, 1)
+				assert.equal(matches[0].ns, 'rdf')
+				assert.equal(matches[0].name, 'RDF')
+			})
+
+			it(`rdf:RDF > rdf:Description > data object`, () => {
+				let matches = XmlTag.findAll(`
 					<rdf:RDF>
 						<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
 							<tiff:Make>Canon</tiff:Make>
 							<tiff:Model>Canon EOS 550D</tiff:Model>
 						</rdf:Description>
 					</rdf:RDF>
-				</?xpacket>
-			`)
-			assert.lengthOf(matches, 1)
-			assert.equal(matches[0].namespace, 'rdf')
-			assert.equal(matches[0].name, 'RDF')
-		})
+				`)
+				assert.lengthOf(matches, 1)
+				assert.equal(matches[0].ns, 'rdf')
+				assert.equal(matches[0].name, 'RDF')
+			})
 
-		it(`rdf:RDF > rdf:Description > data object`, () => {
-			let matches = matchTags(`
-				<rdf:RDF>
-					<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+			it(`rdf:Description (with '') > data object`, () => {
+				let matches = XmlTag.findAll(`
+					<rdf:Description xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
 						<tiff:Make>Canon</tiff:Make>
 						<tiff:Model>Canon EOS 550D</tiff:Model>
 					</rdf:Description>
-				</rdf:RDF>
-			`)
-			assert.lengthOf(matches, 1)
-			assert.equal(matches[0].namespace, 'rdf')
-			assert.equal(matches[0].name, 'RDF')
-		})
+				`)
+				assert.lengthOf(matches, 1)
+				assert.equal(matches[0].ns, 'rdf')
+				assert.equal(matches[0].name, 'Description')
+			})
 
-		it(`rdf:Description (with '') > data object`, () => {
-			let matches = matchTags(`
-				<rdf:Description xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
-					<tiff:Make>Canon</tiff:Make>
-					<tiff:Model>Canon EOS 550D</tiff:Model>
-				</rdf:Description>
-			`)
-			assert.lengthOf(matches, 1)
-			assert.equal(matches[0].namespace, 'rdf')
-			assert.equal(matches[0].name, 'Description')
-		})
+			it(`rdf:Description (with "") > data object`, () => {
+				let matches = XmlTag.findAll(`
+					<rdf:Description xmlns:tiff="http://ns.adobe.com/tiff/1.0/">
+						<tiff:Make>Canon</tiff:Make>
+						<tiff:Model>Canon EOS 550D</tiff:Model>
+					</rdf:Description>
+				`)
+				assert.lengthOf(matches, 1)
+				assert.equal(matches[0].ns, 'rdf')
+				assert.equal(matches[0].name, 'Description')
+			})
 
-		it(`rdf:Description (with "") > data object`, () => {
-			let matches = matchTags(`
-				<rdf:Description xmlns:tiff="http://ns.adobe.com/tiff/1.0/">
-					<tiff:Make>Canon</tiff:Make>
-					<tiff:Model>Canon EOS 550D</tiff:Model>
-				</rdf:Description>
-			`)
-			assert.lengthOf(matches, 1)
-			assert.equal(matches[0].namespace, 'rdf')
-			assert.equal(matches[0].name, 'Description')
-		})
+			it(`tag with empty string attribute`, () => {
+				let matches = XmlTag.findAll(`
+					<rdf:Description rdf:about="">
+						<tiff:Make>Canon</tiff:Make>
+						<tiff:Model>Canon EOS 550D</tiff:Model>
+					</rdf:Description>
+				`)
+				assert.lengthOf(matches, 1)
+				assert.equal(matches[0].ns, 'rdf')
+				assert.equal(matches[0].name, 'Description')
+			})
 
-		it(`tag with empty string attribute`, () => {
-			let matches = matchTags(`
-				<rdf:Description rdf:about="">
-					<tiff:Make>Canon</tiff:Make>
-					<tiff:Model>Canon EOS 550D</tiff:Model>
-				</rdf:Description>
-			`)
-			assert.lengthOf(matches, 1)
-			assert.equal(matches[0].namespace, 'rdf')
-			assert.equal(matches[0].name, 'Description')
+			it(`does not match plain string`, () => {
+				let matches = XmlTag.findAll(`Canon EOS 550D`)
+				assert.lengthOf(matches, 0)
+			})
 		})
 
 	})
 
 
-	describe('basic tags & attrs', () => {
 
-		describe('primitive normalization', () => {
+	describe('XmlTag.serialize()', () => {
 
-			it('zero', () => {
-				assert.equal(normalizeValue('0'), 0)
+		describe('simple tag', () => {
+
+			it(`serializes primitive string value as the same string`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>Canon</ns:name>`)
+				assert.strictEqual(tag.serialize(), 'Canon')
 			})
 
-			it('float', () => {
-				assert.equal(normalizeValue('1.42'), 1.42)
+			it(`serializes primitive number value as the same number`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>42</ns:name>`)
+				assert.strictEqual(tag.serialize(), 42)
 			})
 
-			it('integer', () => {
-				assert.equal(normalizeValue('50'), 50)
+			it(`serializes primitive bool value as the same bool`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name>False</ns:name>`)
+				assert.strictEqual(tag.serialize(), false)
 			})
 
-			it('negative integer', () => {
-				assert.equal(normalizeValue('-50'), -50)
-			})
-
-			// questionable, maybe hide behind options
-			it('explicitly positive integer remains string', () => {
-				// <crs:Brightness>+50</crs:Brightness>
-				assert.equal(normalizeValue('+50'), '+50')
-			})
-
-			it('bools', () => {
-				assert.equal(normalizeValue('true'), true)
-				assert.equal(normalizeValue('false'), false)
-			})
-
-			it('Uppercase bools', () => {
-				assert.equal(normalizeValue('True'), true) // <crs:AlreadyApplied>True</crs:AlreadyApplied>
-				assert.equal(normalizeValue('False'), false)
+			it(`serializes empty string as undefined`, () => {
+				let [tag] = XmlTag.findAll(`<ns:name></ns:name>`)
+				assert.isUndefined(tag.serialize())
 			})
 
 		})
 
-		describe('tag primitives', () => {
+		describe('array tag', () => {
 
-			it('tag string', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagString>the tag string</ns:tagString>
-				</rdf:Description>`)
-				assert.strictEqual(output.tagString, 'the tag string')
+			it(`serialize as the first item instead of array, if there's just one item`, () => {
+				let [tag] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>the only item</rdf:li>
+				</rdf:Seq></ns:theArray>`)
+				assert.equal(tag.serialize(), 'the only item')
 			})
 
-			it('tag float', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagFloat>0.04</ns:tagFloat>
-				</rdf:Description>`)
-				assert.strictEqual(output.tagFloat, 0.04)
+			it('has correct ammount items (2)', () => {
+				let [tag] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>one</rdf:li>
+					<rdf:li>two</rdf:li>
+				</rdf:Seq></ns:theArray>`)
+				assert.lengthOf(tag.serialize(), 2)
 			})
 
-			it('tag integer', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagInteger>42</ns:tagInteger>
-				</rdf:Description>`)
-				assert.strictEqual(output.tagInteger, 42)
+			it('has correct ammount items (4)', () => {
+				let [tag] = XmlTag.findAll(`
+				<ns:theArray><rdf:Seq>
+					<rdf:li>one</rdf:li>
+					<rdf:li>2</rdf:li>
+					<rdf:li ns:foo="bar"/>
+					<rdf:li>four</rdf:li>
+					<rdf:li ns:baz="quo"/>
+				</rdf:Seq></ns:theArray>`)
+				assert.lengthOf(tag.serialize(), 5)
 			})
 
-			it('tag bool (true)', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagBoolTrue>true</ns:tagBoolTrue>
-				</rdf:Description>`)
-				assert.strictEqual(output.tagBoolTrue, true)
+			it('items have correct types: string', () => {
+				let [tag] = XmlTag.findAll(`<ns:theArray><rdf:Seq><rdf:li>one</rdf:li><rdf:li>two</rdf:li></rdf:Seq></ns:theArray>`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized[0], 'one')
+				assert.strictEqual(serialized[1], 'two')
 			})
 
-			it('tag bool (false)', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagBoolFalse>false</ns:tagBoolFalse>
-				</rdf:Description>`)
-				assert.strictEqual(output.tagBoolFalse, false)
+			it('items have correct types: bool - false', () => {
+				let [tag] = XmlTag.findAll(`<ns:theArray><rdf:Seq><rdf:li>false</rdf:li><rdf:li>false</rdf:li></rdf:Seq></ns:theArray>`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized[0], false)
+				assert.strictEqual(serialized[1], false)
 			})
 
-		})
-
-		describe('attr primitives', () => {
-
-			it('attr string', () => {
-				let output = XmpParser.parse(`<rdf:Description ns:attrString="the attr string"/>`)
-				assert.strictEqual(output.attrString, 'the attr string')
+			it('items have correct types: bool - true', () => {
+				let [tag] = XmlTag.findAll(`<ns:theArray><rdf:Seq><rdf:li>true</rdf:li><rdf:li>true</rdf:li></rdf:Seq></ns:theArray>`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized[0], true)
+				assert.strictEqual(serialized[1], true)
 			})
 
-			it('attr float', () => {
-				let output = XmpParser.parse(`<rdf:Description ns:attrFloat="0.04"/>`)
-				assert.strictEqual(output.attrFloat, 0.04)
+			it('items have correct types: integer', () => {
+				let [tag] = XmlTag.findAll(`<ns:theArray><rdf:Seq><rdf:li>11</rdf:li><rdf:li>22</rdf:li></rdf:Seq></ns:theArray>`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized[0], 11)
+				assert.strictEqual(serialized[1], 22)
 			})
 
-			it('attr integer', () => {
-				let output = XmpParser.parse(`<rdf:Description ns:attrInteger="42"/>`)
-				assert.strictEqual(output.attrInteger, 42)
+			it('items have correct types: float', () => {
+				let [tag] = XmlTag.findAll(`<ns:theArray><rdf:Seq><rdf:li>1.1</rdf:li><rdf:li>2.2</rdf:li></rdf:Seq></ns:theArray>`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized[0], 1.1)
+				assert.strictEqual(serialized[1], 2.2)
 			})
 
-			it('attr bool (true)', () => {
-				let output = XmpParser.parse(`<rdf:Description ns:attrBoolTrue="true"/>`)
-				assert.strictEqual(output.attrBoolTrue, true)
-			})
-
-			it('attr bool (false)', () => {
-				let output = XmpParser.parse(`<rdf:Description ns:attrBoolFalse="false"/>`)
-				assert.strictEqual(output.attrBoolFalse, false)
-			})
-
-		})
-
-	})
-
-
-	describe('Array tag', () => {
-
-		for (let tag of ['rdf:Seq', 'rdf:Bag', 'rdf:Alt']) {
-
-			describe(tag, () => {
-
-				it(`array tag is becomes single value, if it has only one item`, () => {
-					let output = XmpParser.parse(`
-						<rdf:Description>
-							<ns:tagArray>
-								<${tag}>
-									<rdf:li>single value</rdf:li>
-								</${tag}>
-							</ns:tagArray>
-						</rdf:Description>
-					`)
-					assert.equal(output.tagArray, 'single value')
-				})
-
-				it(`array tag is Array type, if it has two or more items`, () => {
-					let output = XmpParser.parse(`
-						<rdf:Description>
-							<ns:tagArray>
-								<${tag}>
-									<rdf:li>one</rdf:li>
-									<rdf:li>two</rdf:li>
-								</${tag}>
-							</ns:tagArray>
-						</rdf:Description>
-					`)
-					assert.isArray(output.tagArray)
-				})
-
-			})
-
-		}
-
-		it('array of strings contains strings', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>
-					<ns:arrayOfPrimitives>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
-							<rdf:li>three</rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfPrimitives>
-				</rdf:Description>
-			`)
-			assert.isString(output.arrayOfPrimitives[0])
-			assert.isString(output.arrayOfPrimitives[1])
-			assert.isString(output.arrayOfPrimitives[2])
-		})
-
-		it('array of mixed primitive values contains mixed types', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>
-					<ns:arrayOfPrimitives>
+			it('items have correct types: mixed', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:theArray>
 						<rdf:Seq>
 							<rdf:li>one</rdf:li>
 							<rdf:li>31</rdf:li>
-							<rdf:li>true</rdf:li>
+							<rdf:li ns:foo="bar"/>
 							<rdf:li>0.98</rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfPrimitives>
-				</rdf:Description>
-			`)
-			assert.isString(output.arrayOfPrimitives[0])
-			assert.isNumber(output.arrayOfPrimitives[1])
-			assert.isBoolean(output.arrayOfPrimitives[2])
-			assert.isNumber(output.arrayOfPrimitives[3])
+							<rdf:li>true</rdf:li>
+							<rdf:li>six</rdf:li>
+							<rdf:li ns:baz="quo"/>
+							<rdf:li>false</rdf:li>
+						</rdf:Seq><
+					/ns:theArray>
+				`)
+				let serialized = tag.serialize()
+				assert.lengthOf(serialized, 8)
+				assert.strictEqual(serialized[0], 'one')
+				assert.strictEqual(serialized[1], 31)
+				assert.isObject(serialized[2])
+				assert.strictEqual(serialized[3], 0.98)
+				assert.strictEqual(serialized[4], true)
+				assert.strictEqual(serialized[5], 'six')
+				assert.isObject(serialized[6])
+				assert.strictEqual(serialized[7], false)
+			})
+
+			it('serialized array of objects has correct output', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:theArray>
+						<rdf:Seq>
+							<rdf:li>
+								<ns:tagString>first item</ns:tagString>
+								<ns:tagInteger>67</ns:tagInteger>
+							</rdf:li>
+							<rdf:li ns:foo="bar" ns:baz="quo"/>
+							<rdf:li ns:tagString="third item">
+								<ns:tagString>another string</ns:tagString>
+								<ns:tagBool>false</ns:tagBool>
+							</rdf:li>
+						</rdf:Seq><
+					/ns:theArray>
+				`)
+				let serialized = tag.serialize()
+				assert.lengthOf(serialized, 3)
+				assert.deepEqual(serialized[0], {tagString: 'first item', tagInteger: 67})
+				assert.deepEqual(serialized[1], {foo: 'bar', baz: 'quo'})
+				assert.deepEqual(serialized[2], {tagString: 'third item', tagString: 'another string', tagBool: false})
+			})
+
+			for (let tagName of ['rdf:Seq', 'rdf:Bag', 'rdf:Alt']) {
+
+				it(`${tagName} is single value if it has only one item`, () => {
+					let [tag] = XmlTag.findAll(`
+						<ns:tagArray>
+							<${tagName}>
+								<rdf:li>single value</rdf:li>
+							</${tagName}>
+						</ns:tagArray>
+					`)
+					assert.equal(tag.serialize(), 'single value')
+				})
+
+				it(`${tagName} is array if it has two or more items`, () => {
+					let [tag] = XmlTag.findAll(`
+						<ns:tagArray>
+							<${tagName}>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+							</${tagName}>
+						</ns:tagArray>
+					`)
+					assert.isArray(tag.serialize())
+				})
+
+			}
+
 		})
 
-		describe('array contains proper primitives', () => {
 
-			it('strings', () => {
+		describe(`object tag`, () => {
+
+			it(`undefined value is not stored as explicit undefined property`, () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description ns:attrKey=""><ns:tagKey></ns:tagKey></rdf:Description>`)
+				let serialized = tag.serialize()
+				assert.isUndefined(serialized.attrKey)
+				assert.isUndefined(serialized.tagKey)
+				assert.doesNotHaveAnyKeys(serialized, ['attrKey', 'tagKey'])
+			})
+
+			describe(`with attributes, no children`, () => {
+				const code = `
+				<ns:theObject
+				ns:attrString="the attr string"
+				ns:attrInteger="42"
+				ns:attrFloat="0.04"
+				ns:attrBoolTrue="true"
+				ns:attrBoolFalse="false"/>`
+
+				it(`serializes as object`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.typeOf(tag.serialize(), 'object')
+				})
+
+				it(`serialized object has all the attributes (and only them) as properties`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.hasAllKeys(tag.serialize(), ['attrString', 'attrInteger', 'attrFloat', 'attrBoolTrue', 'attrBoolFalse']) 
+				})
+
+				it(`serialized object correct contains correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let serialized = tag.serialize()
+					assert.strictEqual(serialized.attrString, 'the attr string')
+					assert.strictEqual(serialized.attrFloat, 0.04)
+					assert.strictEqual(serialized.attrInteger, 42)
+					assert.strictEqual(serialized.attrBoolTrue, true)
+					assert.strictEqual(serialized.attrBoolFalse, false)
+				})
+
+			})
+
+			describe(`with primitive tag children, no attributes`, () => {
+				const code = `
+				<ns:theObject>
+					<ns:tagString>the tag string</ns:tagString>
+					<ns:tagFloat>0.99</ns:tagFloat>
+					<ns:tagInteger>11</ns:tagInteger>
+					<ns:tagBoolTrue>true</ns:tagBoolTrue>
+					<ns:tagBoolFalse>false</ns:tagBoolFalse>
+				</ns:theObject>`
+
+				it(`serializes as object`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.typeOf(tag.serialize(), 'object')
+				})
+
+				it(`serialized object has all the children (and only them) as properties`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.hasAllKeys(tag.serialize(), ['tagString', 'tagInteger', 'tagFloat', 'tagBoolTrue', 'tagBoolFalse']) 
+				})
+
+				it(`serialized object correct contains correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let serialized = tag.serialize()
+					assert.strictEqual(serialized.tagString, 'the tag string')
+					assert.strictEqual(serialized.tagFloat, 0.99)
+					assert.strictEqual(serialized.tagInteger, 11)
+					assert.strictEqual(serialized.tagBoolTrue, true)
+					assert.strictEqual(serialized.tagBoolFalse, false)
+				})
+
+			})
+
+
+
+			describe(`mixed attrs and children`, () => {
+				const code = `
+				<ns:theObject
+				ns:attrString="the attr string"
+				ns:attrInteger="42"
+				ns:attrFloat="0.04"
+				ns:attrBoolTrue="true"
+				ns:attrBoolFalse="false">
+					<ns:tagString>the tag string</ns:tagString>
+					<ns:tagFloat>0.99</ns:tagFloat>
+					<ns:tagInteger>11</ns:tagInteger>
+					<ns:tagBoolTrue>true</ns:tagBoolTrue>
+					<ns:tagBoolFalse>false</ns:tagBoolFalse>
+				</ns:theObject>`
+
+				it(`serializes as object`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.typeOf(tag.serialize(), 'object')
+				})
+
+				it(`serialized object has all the attributes and children (and only them) as properties`, () => {
+					let [tag] = XmlTag.findAll(code)
+					assert.hasAllKeys(tag.serialize(), [
+						'attrString', 'attrInteger', 'attrFloat', 'attrBoolTrue', 'attrBoolFalse',
+						'tagString', 'tagInteger', 'tagFloat', 'tagBoolTrue', 'tagBoolFalse',
+					]) 
+				})
+
+				it(`serialized object correct contains correct values`, () => {
+					let [tag] = XmlTag.findAll(code)
+					let serialized = tag.serialize()
+					assert.strictEqual(serialized.attrString, 'the attr string')
+					assert.strictEqual(serialized.attrFloat, 0.04)
+					assert.strictEqual(serialized.attrInteger, 42)
+					assert.strictEqual(serialized.attrBoolTrue, true)
+					assert.strictEqual(serialized.attrBoolFalse, false)
+					assert.strictEqual(serialized.tagString, 'the tag string')
+					assert.strictEqual(serialized.tagFloat, 0.99)
+					assert.strictEqual(serialized.tagInteger, 11)
+					assert.strictEqual(serialized.tagBoolTrue, true)
+					assert.strictEqual(serialized.tagBoolFalse, false)
+				})
+
+			})
+
+		})
+
+		describe('compounds & complex', () => {
+
+			it('attrs + primitive tags', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrBoolTrue="true"
+					ns:attrBoolFalse="false"
+					ns:attrInteger="42"
+					ns:attrFloat="0.04">
+						<ns:tagString>the tag string</ns:tagString>
+						<ns:tagFloat>0.04</ns:tagFloat>
+						<ns:tagInteger>42</ns:tagInteger>
+						<ns:tagBoolTrue>true</ns:tagBoolTrue>
+						<ns:tagBoolFalse>false</ns:tagBoolFalse>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized.attrString, 'the attr string')
+				assert.strictEqual(serialized.attrFloat, 0.04)
+				assert.strictEqual(serialized.attrInteger, 42)
+				assert.strictEqual(serialized.attrBoolTrue, true)
+				assert.strictEqual(serialized.attrBoolFalse, false)
+				assert.strictEqual(serialized.tagString, 'the tag string')
+				assert.strictEqual(serialized.tagFloat, 0.04)
+				assert.strictEqual(serialized.tagInteger, 42)
+				assert.strictEqual(serialized.tagBoolTrue, true)
+				assert.strictEqual(serialized.tagBoolFalse, false)
+			})
+
+			it('attrs + array tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrInteger="42">
+						<ns:tagArray>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+							</rdf:Seq>
+						</ns:tagArray>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized.attrString, 'the attr string')
+				assert.strictEqual(serialized.attrInteger, 42)
+				assert.isArray(serialized.tagArray)
+				assert.lengthOf(serialized.tagArray, 2)
+				assert.deepEqual(serialized.tagArray, ['one', 'two'])
+			})
+
+			it('primitive tags + array tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description>
+						<ns:tagFloat>0.04</ns:tagFloat>
+						<ns:tagBoolTrue>true</ns:tagBoolTrue>
+						<ns:tagArray>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+							</rdf:Seq>
+						</ns:tagArray>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized.tagFloat, 0.04)
+				assert.strictEqual(serialized.tagBoolTrue, true)
+				assert.isArray(serialized.tagArray)
+				assert.lengthOf(serialized.tagArray, 2)
+				assert.deepEqual(serialized.tagArray, ['one', 'two'])
+			})
+
+			it('attrs + primitive tags + array tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrInteger="42">
+						<ns:tagFloat>0.04</ns:tagFloat>
+						<ns:tagBoolTrue>true</ns:tagBoolTrue>
+						<ns:tagArray>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+							</rdf:Seq>
+						</ns:tagArray>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.strictEqual(serialized.attrString, 'the attr string')
+				assert.strictEqual(serialized.attrInteger, 42)
+				assert.strictEqual(serialized.tagFloat, 0.04)
+				assert.strictEqual(serialized.tagBoolTrue, true)
+				assert.isArray(serialized.tagArray)
+				assert.lengthOf(serialized.tagArray, 2)
+				assert.deepEqual(serialized.tagArray, ['one', 'two'])
+			})
+
+			it('attrs + object tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrInteger="42">
+						<ns:theObject ns:action="derived" ns:parameters="saved to new location"/>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['attrString', 'attrInteger', 'theObject'])
+				assert.hasAllKeys(serialized.theObject, ['action', 'parameters'])
+			})
+
+			it('attrs + two object tags', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrInteger="42">
+						<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
+						<ns:secondObject ns:bool="false" ns:float="0.42" />
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['attrString', 'attrInteger', 'firstObject', 'secondObject'])
+				assert.hasAllKeys(serialized.firstObject, ['string', 'integer'])
+				assert.hasAllKeys(serialized.secondObject, ['bool', 'float'])
+			})
+
+			it('primitive tags + object tag', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description>
+						<ns:tagString>the attr string</ns:tagString>
+						<ns:tagInteger>42</ns:tagInteger>
+						<ns:theObject ns:action="derived" ns:parameters="saved to new location"/>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['tagString', 'tagInteger', 'theObject'])
+				assert.hasAllKeys(serialized.theObject, ['action', 'parameters'])
+			})
+
+			it('primitive tags + two object tags', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description>
+						<ns:tagString>the attr string</ns:tagString>
+						<ns:tagInteger>42</ns:tagInteger>
+						<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
+						<ns:secondObject ns:bool="false" ns:float="0.42" />
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['tagString', 'tagInteger', 'firstObject', 'secondObject'])
+				assert.hasAllKeys(serialized.firstObject, ['string', 'integer'])
+				assert.hasAllKeys(serialized.secondObject, ['bool', 'float'])
+			})
+
+			it('primitive tags + attrs + two object tags', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrInteger="42">
+						<ns:tagString>the attr string</ns:tagString>
+						<ns:tagInteger>42</ns:tagInteger>
+						<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
+						<ns:secondObject ns:bool="false" ns:float="0.42" />
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['attrString', 'attrInteger', 'tagString', 'tagInteger', 'firstObject', 'secondObject'])
+				assert.hasAllKeys(serialized.firstObject, ['string', 'integer'])
+				assert.hasAllKeys(serialized.secondObject, ['bool', 'float'])
+			})
+
+			it('array of objects', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description>
+						<ns:arrayOfObjects>
+							<rdf:Seq>
+								<rdf:li ns:objString="one" ns:objInteger="1"/>
+								<rdf:li ns:objFloat="0.42" ns:objBool="true"></rdf:li>
+							</rdf:Seq>
+						</ns:arrayOfObjects>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				assert.hasAllKeys(serialized, ['arrayOfObjects'])
+				assert.lengthOf(serialized.arrayOfObjects, 2)
+				assert.hasAllKeys(serialized.arrayOfObjects[0], ['objString', 'objInteger'])
+				assert.hasAllKeys(serialized.arrayOfObjects[1], ['objFloat', 'objBool'])
+			})
+
+		})
+
+		describe('stress-tests', () => {
+
+			it('attrs + primitive tags + object tags + array of objects', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:attrString="the attr string"
+					ns:attrBoolTrue="true"
+					ns:attrBoolFalse="false"
+					ns:attrInteger="42"
+					ns:attrFloat="0.04">
+						<ns:tagString>the tag string</ns:tagString>
+						<ns:tagFloat>0.04</ns:tagFloat>
+						<ns:tagInteger>42</ns:tagInteger>
+						<ns:tagBoolTrue>true</ns:tagBoolTrue>
+						<ns:tagBoolFalse>false</ns:tagBoolFalse>
+						<ns:arrayOfObjects>
+							<rdf:Seq>
+								<rdf:li ns:objString="one" ns:objInteger="1"/>
+								<rdf:li ns:objFloat="0.42" ns:objBool="true"></rdf:li>
+								<rdf:li ns:objString="three" ns:objBool="false"/>
+							</rdf:Seq>
+						</ns:arrayOfObjects>
+						<ns:arrayOfStrings>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+								<rdf:li>three</rdf:li>
+							</rdf:Seq>
+						</ns:arrayOfStrings>
+						<ns:arrayWithSingleItem>
+							<rdf:Seq>
+								<rdf:li>42</rdf:li>
+							</rdf:Seq>
+						</ns:arrayWithSingleItem>
+						<ns:arrayOfMixedPrimitives>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>31</rdf:li>
+								<rdf:li>true</rdf:li>
+								<rdf:li>0.98</rdf:li>
+							</rdf:Seq>
+						</ns:arrayOfMixedPrimitives>
+					</rdf:Description>
+				`)
+				let serialized = tag.serialize()
+				// attrs
+				assert.strictEqual(serialized.attrString, 'the attr string')
+				assert.strictEqual(serialized.attrFloat, 0.04)
+				assert.strictEqual(serialized.attrInteger, 42)
+				assert.strictEqual(serialized.attrBoolTrue, true)
+				assert.strictEqual(serialized.attrBoolFalse, false)
+				// primitive tags
+				assert.strictEqual(serialized.tagString, 'the tag string')
+				assert.strictEqual(serialized.tagFloat, 0.04)
+				assert.strictEqual(serialized.tagInteger, 42)
+				assert.strictEqual(serialized.tagBoolTrue, true)
+				assert.strictEqual(serialized.tagBoolFalse, false)
+				// array of objects
+				assert.lengthOf(serialized.arrayOfObjects, 3)
+				assert.hasAllKeys(serialized.arrayOfObjects[0], ['objString', 'objInteger'])
+				assert.hasAllKeys(serialized.arrayOfObjects[1], ['objFloat', 'objBool'])
+				assert.hasAllKeys(serialized.arrayOfObjects[2], ['objString', 'objBool'])
+				// simple arrays
+				assert.deepEqual(serialized.arrayOfStrings, ['one', 'two', 'three'])
+				assert.deepEqual(serialized.arrayWithSingleItem, 42)
+				assert.deepEqual(serialized.arrayOfMixedPrimitives, ['one', 31, true, 0.98])
+			})
+
+			it('attrs + primitive tags + object tags + array of objects 2', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:Description
+					ns:string="the attr string"
+					ns:bool="true"
+					ns:anotherBool="false"
+					ns:integer="42"
+					ns:float="0.04">
+						<ns:tagValue>the tag string</ns:tagValue>
+						<ns:tagObject stRef:instanceID="0deb8273465e" stRef:documentID="34ee041e7e1a"/>
+						<ns:tagListWithOneItem>
+							<rdf:Seq>
+								<rdf:li>LWIR</rdf:li>
+							</rdf:Seq>
+						</ns:tagListWithOneItem>
+						<ns:tagListWithTwoItems>
+							<rdf:Seq>
+								<rdf:li>one</rdf:li>
+								<rdf:li>two</rdf:li>
+							</rdf:Seq>
+						</ns:tagListWithTwoItems>
+						<ns:arrayOfObjects>
+							<rdf:Seq>
+								<rdf:li
+									stEvt:action="derived"
+									stEvt:parameters="saved to new location">
+								</rdf:li>
+								<rdf:li
+									stEvt:action="saved"
+									stEvt:instanceID="xmp.iid:667349ef-da53-a042-9298-943e9954eba8"
+									stEvt:when="2017-05-07T17:32:06+02:00"
+									stEvt:softwareAgent="Adobe Photoshop Lightroom 6.9 (Windows)"
+									stEvt:changed="/">
+								</rdf:li>
+							</rdf:Seq>
+						</ns:arrayOfObjects>
+					</rdf:Description>
+				`)
+                let serialized = tag.serialize()
+
+				assert.strictEqual(serialized.string, 'the attr string')
+				assert.strictEqual(serialized.bool, true)
+				assert.strictEqual(serialized.anotherBool, false)
+				assert.strictEqual(serialized.integer, 42)
+				assert.strictEqual(serialized.float, 0.04)
+
+				assert.strictEqual(serialized.tagValue, 'the tag string')
+				assert.strictEqual(serialized.tagListWithOneItem, 'LWIR')
+
+				assert.isObject(serialized.tagObject)
+				assert.strictEqual(serialized.tagObject.instanceID, '0deb8273465e')
+				assert.strictEqual(serialized.tagObject.documentID, '34ee041e7e1a')
+
+				assert.isArray(serialized.tagListWithTwoItems)
+				assert.strictEqual(serialized.tagListWithTwoItems[0], 'one')
+				assert.strictEqual(serialized.tagListWithTwoItems[1], 'two')
+
+				assert.isArray(serialized.arrayOfObjects)
+				assert.lengthOf(serialized.arrayOfObjects, 2)
+				assert.isObject(serialized.arrayOfObjects[0])
+				assert.isObject(serialized.arrayOfObjects[1])
+				assert.strictEqual(serialized.arrayOfObjects[0].action, 'derived')
+				assert.strictEqual(serialized.arrayOfObjects[1].action, 'saved')
+			})
+
+			it('case 1 wrapped', () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description>
+					<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>
+				</rdf:Description>`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.BandName, 'LWIR')
+			})
+
+			it('case 1 raw', () => {
+				let [tag] = XmlTag.findAll(`<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>`)
+                let serialized = tag.serialize()
+				assert.equal(serialized, 'LWIR')
+			})
+
+			it('case 2 wrapped', () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description>
+					<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>
+				</rdf:Description>`)
+                let serialized = tag.serialize()
+				assert.isArray(serialized.BandName)
+				assert.deepEqual(serialized.BandName, ['LWIR', 'LWIR'])
+			})
+
+			it('case 2 raw', () => {
+				let [tag] = XmlTag.findAll(`<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>`)
+                let serialized = tag.serialize()
+				assert.isArray(serialized)
+				assert.deepEqual(serialized, ['LWIR', 'LWIR'])
+			})
+
+			it('case 3 wrapped', () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description>
+					<crs:ToneCurve>
+						<rdf:Seq>
+							<rdf:li>0, 0</rdf:li>
+							<rdf:li>255, 255</rdf:li>
+						</rdf:Seq>
+					</crs:ToneCurve>
+				</rdf:Description>`)
+                let serialized = tag.serialize()
+				assert.isArray(serialized.ToneCurve)
+				assert.deepEqual(serialized.ToneCurve, ['0, 0', '255, 255'])
+			})
+
+			it('case 3 raw', () => {
+				let [tag] = XmlTag.findAll(`
+					<crs:ToneCurve>
+						<rdf:Seq>
+							<rdf:li>0, 0</rdf:li>
+							<rdf:li>255, 255</rdf:li>
+						</rdf:Seq>
+					</crs:ToneCurve>
+				`)
+                let serialized = tag.serialize()
+				assert.isArray(serialized)
+				assert.deepEqual(serialized, ['0, 0', '255, 255'])
+			})
+
+			it('case 4 wrapped', () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description>
+					<ns:onlyChildren>children string</ns:onlyChildren>
+				</rdf:Description>`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.onlyChildren, 'children string')
+			})
+
+			it('case 4 raw', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:onlyChildren>children string</ns:onlyChildren>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized, 'children string')
+			})
+
+			it('> symbol in attribute', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:simple ns:name="less > than">children string</ns:simple>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.name, 'less > than')
+				assert.equal(serialized[VALUE_PROP], 'children string')
+			})
+
+			it('> in attribute, space before tag end', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:spaceBeforeTagEnd ns:name="less > than" >children string</ns:spaceBeforeTagEnd>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.name, 'less > than')
+				assert.equal(serialized[VALUE_PROP], 'children string')
+			})
+
+			it('> in attribute, new line before tag end', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:nlBeforeTagEnd
+					ns:name="less > than"
+					>children string</ns:nlBeforeTagEnd>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.name, 'less > than')
+				assert.equal(serialized[VALUE_PROP], 'children string')
+			})
+
+			it('> in attribute, new after tag start', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:nlAfterTagStart
+					ns:name="less > than">children string</ns:nlAfterTagStart>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.name, 'less > than')
+				assert.equal(serialized[VALUE_PROP], 'children string')
+			})
+
+			it('self closing tag-object with one attribute with > inside', () => {
+				let [tag] = XmlTag.findAll(`
+					<ns:object ns:name="less > than"/>
+				`)
+                let serialized = tag.serialize()
+				assert.equal(serialized.name, 'less > than')
+			})
+
+		})
+
+
+	})
+
+
+
+	describe('XmpParser.parse', () => {
+
+		describe('basic', () => {
+
+			it('tag primitives', () => {
+				let output = XmpParser.parse(`<rdf:Description>
+					<ns:tagBoolTrue>true</ns:tagBoolTrue>
+					<ns:tagBoolFalse>false</ns:tagBoolFalse>
+					<ns:tagInteger>42</ns:tagInteger>
+					<ns:tagFloat>0.04</ns:tagFloat>
+					<ns:tagString>the tag string</ns:tagString>
+				</rdf:Description>`)
+				assert.strictEqual(output.tagBoolTrue, true)
+				assert.strictEqual(output.tagBoolFalse, false)
+				assert.strictEqual(output.tagInteger, 42)
+				assert.strictEqual(output.tagFloat, 0.04)
+				assert.strictEqual(output.tagString, 'the tag string')
+			})
+
+			it('attr primitives', () => {
+				let output
+				output = XmpParser.parse(`<rdf:Description ns:attrString="the attr string"/>`)
+				assert.strictEqual(output.attrString, 'the attr string')
+				output = XmpParser.parse(`<rdf:Description ns:attrFloat="0.04"/>`)
+				assert.strictEqual(output.attrFloat, 0.04)
+				output = XmpParser.parse(`<rdf:Description ns:attrInteger="42"/>`)
+				assert.strictEqual(output.attrInteger, 42)
+				output = XmpParser.parse(`<rdf:Description ns:attrBoolTrue="true"/>`)
+				assert.strictEqual(output.attrBoolTrue, true)
+				output = XmpParser.parse(`<rdf:Description ns:attrBoolFalse="false"/>`)
+				assert.strictEqual(output.attrBoolFalse, false)
+			})
+
+			it('array of strings contains strings', () => {
 				let output = XmpParser.parse(`
 					<rdf:Description>
 						<ns:arrayOfPrimitives>
@@ -604,147 +1398,31 @@ describe('XmlParser', () => {
 						</ns:arrayOfPrimitives>
 					</rdf:Description>
 				`)
-				assert.lengthOf(output.arrayOfPrimitives, 3)
-				assert.strictEqual(output.arrayOfPrimitives[0], 'one')
-				assert.strictEqual(output.arrayOfPrimitives[1], 'two')
-				assert.strictEqual(output.arrayOfPrimitives[2], 'three')
+				assert.isString(output.arrayOfPrimitives[0])
+				assert.isString(output.arrayOfPrimitives[1])
+				assert.isString(output.arrayOfPrimitives[2])
 			})
 
-			it('bools: false', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:arrayOfPrimitives>
-							<rdf:Seq>
-								<rdf:li>false</rdf:li>
-								<rdf:li>false</rdf:li>
-								<rdf:li>false</rdf:li>
-							</rdf:Seq>
-						</ns:arrayOfPrimitives>
-					</rdf:Description>
-				`)
-				assert.lengthOf(output.arrayOfPrimitives, 3)
-				assert.strictEqual(output.arrayOfPrimitives[0], false)
-				assert.strictEqual(output.arrayOfPrimitives[1], false)
-				assert.strictEqual(output.arrayOfPrimitives[2], false)
-			})
-
-			it('bools: true', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:arrayOfPrimitives>
-							<rdf:Seq>
-								<rdf:li>true</rdf:li>
-								<rdf:li>true</rdf:li>
-								<rdf:li>true</rdf:li>
-							</rdf:Seq>
-						</ns:arrayOfPrimitives>
-					</rdf:Description>
-				`)
-				assert.lengthOf(output.arrayOfPrimitives, 3)
-				assert.strictEqual(output.arrayOfPrimitives[0], true)
-				assert.strictEqual(output.arrayOfPrimitives[1], true)
-				assert.strictEqual(output.arrayOfPrimitives[2], true)
-			})
-
-			it('bools: mixed', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:arrayOfPrimitives>
-							<rdf:Seq>
-								<rdf:li>true</rdf:li>
-								<rdf:li>false</rdf:li>
-								<rdf:li>true</rdf:li>
-								<rdf:li>false</rdf:li>
-							</rdf:Seq>
-						</ns:arrayOfPrimitives>
-					</rdf:Description>
-				`)
-				assert.lengthOf(output.arrayOfPrimitives, 4)
-				assert.strictEqual(output.arrayOfPrimitives[0], true)
-				assert.strictEqual(output.arrayOfPrimitives[1], false)
-				assert.strictEqual(output.arrayOfPrimitives[2], true)
-				assert.strictEqual(output.arrayOfPrimitives[3], false)
-			})
-
-			it('integers', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:arrayOfPrimitives>
-							<rdf:Seq>
-								<rdf:li>11</rdf:li>
-								<rdf:li>22</rdf:li>
-								<rdf:li>33</rdf:li>
-							</rdf:Seq>
-						</ns:arrayOfPrimitives>
-					</rdf:Description>
-				`)
-				assert.lengthOf(output.arrayOfPrimitives, 3)
-				assert.strictEqual(output.arrayOfPrimitives[0], 11)
-				assert.strictEqual(output.arrayOfPrimitives[1], 22)
-				assert.strictEqual(output.arrayOfPrimitives[2], 33)
-			})
-
-			it('floats', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:arrayOfPrimitives>
-							<rdf:Seq>
-								<rdf:li>1.1</rdf:li>
-								<rdf:li>2.2</rdf:li>
-								<rdf:li>3.3</rdf:li>
-							</rdf:Seq>
-						</ns:arrayOfPrimitives>
-					</rdf:Description>
-				`)
-				assert.lengthOf(output.arrayOfPrimitives, 3)
-				assert.strictEqual(output.arrayOfPrimitives[0], 1.1)
-				assert.strictEqual(output.arrayOfPrimitives[1], 2.2)
-				assert.strictEqual(output.arrayOfPrimitives[2], 3.3)
-			})
-
-			it('mixed types', () => {
+			it('array of mixed primitive values contains mixed types', () => {
 				let output = XmpParser.parse(`
 					<rdf:Description>
 						<ns:arrayOfPrimitives>
 							<rdf:Seq>
 								<rdf:li>one</rdf:li>
 								<rdf:li>31</rdf:li>
-								<rdf:li>0.98</rdf:li>
 								<rdf:li>true</rdf:li>
-								<rdf:li>false</rdf:li>
-								<rdf:li>six</rdf:li>
+								<rdf:li>0.98</rdf:li>
 							</rdf:Seq>
 						</ns:arrayOfPrimitives>
 					</rdf:Description>
 				`)
-				assert.lengthOf(output.arrayOfPrimitives, 6)
-				assert.strictEqual(output.arrayOfPrimitives[0], 'one')
-				assert.strictEqual(output.arrayOfPrimitives[1], 31)
-				assert.strictEqual(output.arrayOfPrimitives[2], 0.98)
-				assert.strictEqual(output.arrayOfPrimitives[3], true)
-				assert.strictEqual(output.arrayOfPrimitives[4], false)
-				assert.strictEqual(output.arrayOfPrimitives[5], 'six')
+				assert.isString(output.arrayOfPrimitives[0])
+				assert.isNumber(output.arrayOfPrimitives[1])
+				assert.isBoolean(output.arrayOfPrimitives[2])
+				assert.isNumber(output.arrayOfPrimitives[3])
 			})
-
-		})
-
-	})
-
-	describe('object tag', () => {
-
-		describe('basic object properties', () => {
 
 			it('object tag is property in root (pair tags)', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:theObject ns:action="saved" ns:instanceID="943e9954eba8"></ns:theObject>
-					</rdf:Description>
-				`)
-				assert.hasAllKeys(output, ['theObject'])
-				assert.isObject(output.theObject);
-			})
-
-			it('object tag is property in root (self closing tag)', () => {
 				let output = XmpParser.parse(`
 					<rdf:Description>
 						<ns:theObject ns:action="saved" ns:instanceID="943e9954eba8"/>
@@ -770,136 +1448,188 @@ describe('XmlParser', () => {
 				assert.hasAllKeys(output, ['firstObject', 'secondObject'])
 				assert.isObject(output.firstObject);
 				assert.isObject(output.secondObject);
-			})
-
-			it('object tag contains all properties', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:theObject
-							ns:action="saved"
-							ns:instanceID="xmp.iid:667349ef-da53-a042-9298-943e9954eba8"
-							ns:when="2017-05-07T17:32:06+02:00"
-							ns:softwareAgent="Adobe Photoshop Lightroom 6.9 (Windows)"
-							ns:changed="/">
-						</ns:theObject>
-					</rdf:Description>
-				`)
-				assert.hasAllKeys(output.theObject, ['action', 'instanceID', 'when', 'softwareAgent', 'changed'])
-			})
-
-			it('two object tags contains all properties', () => {
-				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:firstObject
-							ns:action="derived"
-							ns:parameters="saved to new location">
-						</ns:firstObject>
-						<ns:secondObject
-							ns:action="saved"
-							ns:instanceID="xmp.iid:667349ef-da53-a042-9298-943e9954eba8"
-							ns:when="2017-05-07T17:32:06+02:00"
-							ns:softwareAgent="Adobe Photoshop Lightroom 6.9 (Windows)"
-							ns:changed="/">
-						</ns:secondObject>
-					</rdf:Description>
-				`)
 				assert.hasAllKeys(output.firstObject, ['action', 'parameters'])
 				assert.hasAllKeys(output.secondObject, ['action', 'instanceID', 'when', 'softwareAgent', 'changed'])
 			})
 
-			it('object tag has proper primitive types', () => {
+		})
+
+		describe('basic, unwrapped or invalid xmp input', () => {
+
+			it('empty string returns undefined', () => {
+				let output = XmpParser.parse(``)
+				assert.isUndefined(output)
+			})
+
+			it('raw tag object (with no wrapper) correctly parses', () => {
 				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:theObject
-							ns:objString="the string inside object"
-							ns:objInteger="42"
-							ns:objFloat="0.04"
-							ns:objBoolTrue="true"
-							ns:objBoolFalse="false">
-						</ns:theObject>
+					<ns:theObject
+						tiff:Make="Canon"
+						tiff:Model="Canon EOS 550D"
+					/>
+				`)
+				assert.isObject(output)
+				assert.hasAllKeys(output, ['theObject'])
+				assert.isObject(output.theObject)
+				assert.hasAllKeys(output.theObject, ['Make', 'Model'])
+				assert.equal(output.theObject.Make, 'Canon')
+				assert.equal(output.theObject.Model, 'Canon EOS 550D')
+			})
+
+			it('raw primitive tags (with no wrapper) correctly parses', () => {
+				let output = XmpParser.parse(`
+					<tiff:Make>Canon</tiff:Make>
+					<tiff:Model>Canon EOS 550D</tiff:Model>
+				`)
+				assert.isObject(output)
+				assert.hasAllKeys(output, ['Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
+			})
+
+		})
+
+		describe('encapsulation is stripped down to content of rdf:Description', () => {
+
+			it('rdf:Description > data object', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+						<tiff:Make>Canon</tiff:Make>
+						<tiff:Model>Canon EOS 550D</tiff:Model>
 					</rdf:Description>
 				`)
-				assert.isString(output.theObject.objString)
-				assert.isNumber(output.theObject.objInteger)
-				assert.isNumber(output.theObject.objFloat)
-				assert.isBoolean(output.theObject.objBoolTrue)
-				assert.isBoolean(output.theObject.objBoolFalse)
+				assert.hasAllKeys(output, ['tiff', 'Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
 			})
 
-			it('object tag contains proper values', () => {
+			it('rdf:RDF > rdf:Description > data object', () => {
 				let output = XmpParser.parse(`
-					<rdf:Description>
-						<ns:theObject
-							ns:objString="the string inside object"
-							ns:objInteger="42"
-							ns:objFloat="0.04"
-							ns:objBoolTrue="true"
-							ns:objBoolFalse="false">
-						</ns:theObject>
+					<rdf:RDF>
+						<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+							<tiff:Make>Canon</tiff:Make>
+							<tiff:Model>Canon EOS 550D</tiff:Model>
+						</rdf:Description>
+					</rdf:RDF>
+				`)
+				assert.hasAllKeys(output, ['tiff', 'Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
+			})
+
+			it('x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
+				let output = XmpParser.parse(`
+					<x:xmpmeta>
+						<rdf:RDF>
+							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+								<tiff:Make>Canon</tiff:Make>
+								<tiff:Model>Canon EOS 550D</tiff:Model>
+							</rdf:Description>
+						</rdf:RDF>
+					</x:xmpmeta>
+				`)
+				assert.hasAllKeys(output, ['tiff', 'Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
+			})
+
+			it('?xpacket > rdf:RDF > rdf:Description > data object', () => {
+				let output = XmpParser.parse(`
+					<?xpacket>
+						<rdf:RDF>
+							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+								<tiff:Make>Canon</tiff:Make>
+								<tiff:Model>Canon EOS 550D</tiff:Model>
+							</rdf:Description>
+						</rdf:RDF>
+					</?xpacket>
+				`)
+				assert.hasAllKeys(output, ['tiff', 'Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
+			})
+
+			it('?xpacket > x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
+				let output = XmpParser.parse(`
+					<?xpacket>
+						<x:xmpmeta>
+							<rdf:RDF>
+								<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+									<tiff:Make>Canon</tiff:Make>
+									<tiff:Model>Canon EOS 550D</tiff:Model>
+								</rdf:Description>
+							</rdf:RDF>
+						</x:xmpmeta>
+					</?xpacket>
+				`)
+				assert.hasAllKeys(output, ['tiff', 'Make', 'Model'])
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 550D')
+			})
+
+		})
+
+		describe('rdf:Description without data returns undefined', () => {
+
+			it('empty self-closing rdf:Description returns undefined', () => {
+				let output = XmpParser.parse(`<rdf:Description/>`)
+				assert.isUndefined(output)
+			})
+
+			it('empty pair rdf:Description returns undefined', () => {
+				let output = XmpParser.parse(`<rdf:Description></rdf:Description>`)
+				assert.isUndefined(output)
+			})
+
+			it('empty pair rdf:Description with children spaces returns undefined', () => {
+				let output = XmpParser.parse(`<rdf:Description>   </rdf:Description>`)
+				assert.isUndefined(output)
+			})
+
+		})
+
+		describe('rdf:Description with data returns object', () => {
+
+			it('self-closing rdf:Description with single attr', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description ns:attrString="the attr string"/>
+				`)
+				assert.isObject(output)
+				assert.strictEqual(output.attrString, 'the attr string')
+			})
+
+			it('pair rdf:Description with single attr', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description ns:attrString="the attr string"></rdf:Description>
+				`)
+				assert.strictEqual(output.attrString, 'the attr string')
+			})
+
+			it('pair rdf:Description with newline children with single attr', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description ns:attrString="the attr string">
 					</rdf:Description>
 				`)
-				assert.strictEqual(output.theObject.objString, 'the string inside object')
-				assert.strictEqual(output.theObject.objInteger, 42)
-				assert.strictEqual(output.theObject.objFloat, 0.04)
-				assert.strictEqual(output.theObject.objBoolTrue, true)
-				assert.strictEqual(output.theObject.objBoolFalse, false)
+				assert.strictEqual(output.attrString, 'the attr string')
 			})
 
-		})
-
-		describe('object with attributes and children', () => {
-
-			it('test 1', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagObject ns:objString="the string">42</ns:tagObject>
-				</rdf:Description>`)
-				assert.isObject(output.tagObject)
-				assert.hasAllKeys(output.tagObject, ['objString', CHILDREN_PROP])
-				assert.strictEqual(output.tagObject.objString, 'the string')
-				assert.strictEqual(output.tagObject[CHILDREN_PROP], 42)
+			it('pair rdf:Description with single tag', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description>
+						<ns:tagString>the tag string</ns:tagString>
+					</rdf:Description>
+				`)
+				assert.strictEqual(output.tagString, 'the tag string')
 			})
 
-			it('test 2', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagObject
-					ns:objString="the string"
-					ns:objBool="true">
-						0.78
-					</ns:tagObject>
-				</rdf:Description>`)
-				assert.isObject(output.tagObject)
-				assert.hasAllKeys(output.tagObject, ['objString', 'objBool', CHILDREN_PROP])
-				assert.strictEqual(output.tagObject.objString, 'the string')
-				assert.strictEqual(output.tagObject[CHILDREN_PROP], 0.78)
-			})
-
-			it('test 3', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagObject
-					ns:objString="the string"
-					ns:objBool="true">
-						children string
-					</ns:tagObject>
-				</rdf:Description>`)
-				assert.isObject(output.tagObject)
-				assert.hasAllKeys(output.tagObject, ['objString', 'objBool', CHILDREN_PROP])
-				assert.strictEqual(output.tagObject.objString, 'the string')
-				assert.strictEqual(output.tagObject[CHILDREN_PROP], 'children string')
-			})
-
-			it('test 4', () => {
-				let output = XmpParser.parse(`<rdf:Description>
-					<ns:tagObject
-					ns:objString="attrval"
-					ns:objNumber="42">
-						children string
-					</ns:tagObject>
-				</rdf:Description>`)
-				assert.isObject(output.tagObject)
-				assert.hasAllKeys(output.tagObject, ['objString', 'objNumber', CHILDREN_PROP])
-				assert.strictEqual(output.tagObject.objString, 'attrval')
-				assert.strictEqual(output.tagObject.objNumber, 42)
-				assert.strictEqual(output.tagObject[CHILDREN_PROP], 'children string')
+			it('tag & attr strings', () => {
+				let output = XmpParser.parse(`
+					<rdf:Description ns:attrString="the attr string">
+						<ns:tagString>the tag string</ns:tagString>
+					</rdf:Description>
+				`)
+				assert.strictEqual(output.attrString, 'the attr string')
+				assert.strictEqual(output.tagString, 'the tag string')
 			})
 
 		})
@@ -907,465 +1637,399 @@ describe('XmlParser', () => {
 	})
 
 
-	describe('compounds & complex synthetic tests', () => {
+	describe('output format (merging into single object vs groupByNamespace)', () => {
 
-		it('combined attrs + primitive tags', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrBoolTrue="true"
-				ns:attrBoolFale="false"
-				ns:attrInteger="42"
-				ns:attrFloat="0.04">
-					<ns:tagString>the tag string</ns:tagString>
-					<ns:tagFloat>0.04</ns:tagFloat>
-					<ns:tagInteger>42</ns:tagInteger>
-					<ns:tagBoolTrue>true</ns:tagBoolTrue>
-					<ns:tagBoolFalse>false</ns:tagBoolFalse>
-				</rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-			assert.strictEqual(output.attrFloat, 0.04)
-			assert.strictEqual(output.attrInteger, 42)
-			assert.strictEqual(output.attrBoolTrue, true)
-			assert.strictEqual(output.attrBoolFale, false)
-			assert.strictEqual(output.tagString, 'the tag string')
-			assert.strictEqual(output.tagFloat, 0.04)
-			assert.strictEqual(output.tagInteger, 42)
-			assert.strictEqual(output.tagBoolTrue, true)
-			assert.strictEqual(output.tagBoolFalse, false)
+		describe('multiple rdf:Description', () => {
+
+			const code = `
+				<rdf:RDF>
+					<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
+						<tiff:Make>Canon</tiff:Make>
+						<tiff:Model>Canon EOS 20D</tiff:Model>
+					</rdf:Description>
+					<rdf:Description rdf:about='' xmlns:aux='http://ns.adobe.com/exif/1.0/aux/'>
+						<aux:Lens>17.0-85.0 mm</aux:Lens>
+						<aux:LensInfo>17/1 85/1 0/0 0/0</aux:LensInfo>
+					</rdf:Description>
+					<rdf:Description rdf:about='' xmlns:crs='http://ns.adobe.com/camera-raw-settings/1.0/'>
+						<crs:AlreadyApplied>true</crs:AlreadyApplied>
+						<crs:BlueSaturation>0</crs:BlueSaturation>
+					</rdf:Description>
+				</rdf:RDF>
+			`
+
+			it('all tags are parsed and combined', () => {
+				let output = XmpParser.parse(code)
+				assert.equal(output.Make, 'Canon')
+				assert.equal(output.Model, 'Canon EOS 20D')
+				assert.equal(output.Lens, '17.0-85.0 mm')
+				assert.equal(output.LensInfo, '17/1 85/1 0/0 0/0')
+				assert.equal(output.AlreadyApplied, true)
+				assert.equal(output.BlueSaturation, 0)
+			})
+
+			it('all tags are parsed and grouped by namespace when {groupByNamespace: true}', () => {
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				// containsAllKeys is not strict. output has to contain these, but there can be more
+				assert.containsAllKeys(output, ['tiff', 'aux', 'crs'])
+				assert.equal(output.tiff.Make, 'Canon')
+				assert.equal(output.tiff.Model, 'Canon EOS 20D')
+				assert.equal(output.aux.Lens, '17.0-85.0 mm')
+				assert.equal(output.aux.LensInfo, '17/1 85/1 0/0 0/0')
+				assert.equal(output.crs.AlreadyApplied, true)
+				assert.equal(output.crs.BlueSaturation, 0)
+			})
+
+			it('xmlns meta tags are stored in output.xmlns when {groupByNamespace: true}', () => {
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				// containsAllKeys is not strict. output has to contain these, but there can be more
+				assert.isObject(output.xmlns)
+				assert.isString(output.xmlns.tiff)
+				assert.isString(output.xmlns.aux)
+				assert.isString(output.xmlns.crs)
+			})
+
 		})
 
-		it('combined attrs + array tag', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrInteger="42">
-					<ns:tagArray>
+		describe('overlapping properties of different namespaces', () => {
+
+			const code = `
+				<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">
+					<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+						<rdf:Description rdf:about=""
+						xmlns:GImage="http://ns.google.com/photos/1.0/image/"
+						xmlns:GAudio="http://ns.google.com/photos/1.0/audio/"
+						GImage:Data="/9j/4AAQ"
+						GAudio:Data="AAAAGGZ0"/>
+					</rdf:RDF>
+				</x:xmpmeta>
+			`
+
+			it('one overrides the other by default', () => {
+				let output = XmpParser.parse(code)
+				assert.equal(output.Data, 'AAAAGGZ0')
+			})
+
+			it('each attr is stored in separate namespace when {groupByNamespace: true}', () => {
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.equal(output.GImage.Data, '/9j/4AAQ')
+				assert.equal(output.GAudio.Data, 'AAAAGGZ0')
+			})
+
+		})
+
+		describe('empty rdf and rdf:about', () => {
+
+			it('output.rdf is empty', async () => {
+				let code = `<rdf:Description rdf:about="" foo:bar="value"/>`
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.isObject(output)
+				assert.isUndefined(output.rdf)
+				assert.isObject(output.foo)
+			})
+
+			it('output itself is empty', async () => {
+				let code = `<rdf:Description rdf:about=""/>`
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.isUndefined(output)
+			})
+
+		})
+
+		describe('various tag children', () => {
+
+			const code = `
+				<rdf:Description rdf:about=""
+				xmlns:dc="http://purl.org/dc/elements/1.1/">
+					<dc:format>application/pdf</dc:format>
+					<dc:title>
+						<rdf:Alt>
+							<rdf:li xml:lang="x-default">XMP Specification Part 3: Storage in Files</rdf:li>
+						</rdf:Alt>
+					</dc:title>
+					<dc:creator>
 						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
+							<rdf:li>Adobe Developer Technologies</rdf:li>
 						</rdf:Seq>
-					</ns:tagArray>
+					</dc:creator>
 				</rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-			assert.strictEqual(output.attrInteger, 42)
-			assert.isArray(output.tagArray)
-			assert.lengthOf(output.tagArray, 2)
-			assert.deepEqual(output.tagArray, ['one', 'two'])
+			`
+
+			it('merge (default)', () => {
+				let output = XmpParser.parse(code)
+				assert.containsAllKeys(output, ['dc', 'format', 'title', 'creator'])
+				assert.equal(output.dc, 'http://purl.org/dc/elements/1.1/')
+				assert.equal(output.format, 'application/pdf')
+				assert.deepEqual(output.title, {lang: 'x-default', value: 'XMP Specification Part 3: Storage in Files'})
+				assert.equal(output.creator, 'Adobe Developer Technologies')
+			})
+
+			it('groupByNamespace', () => {
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.containsAllKeys(output, ['xmlns', 'dc'])
+				assert.equal(output.xmlns.dc, 'http://purl.org/dc/elements/1.1/')
+				assert.containsAllKeys(output.dc, ['format', 'title', 'creator'])
+				assert.equal(output.dc.format, 'application/pdf')
+				assert.deepEqual(output.dc.title, {lang: 'x-default', value: 'XMP Specification Part 3: Storage in Files'})
+				assert.equal(output.dc.creator, 'Adobe Developer Technologies')
+			})
+
 		})
 
-		it('combined primitive tags + array tag', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>
-					<ns:tagFloat>0.04</ns:tagFloat>
-					<ns:tagBoolTrue>true</ns:tagBoolTrue>
-					<ns:tagArray>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
-						</rdf:Seq>
-					</ns:tagArray>
+		describe('simple tag children', () => {
+			const code = `
+				<rdf:Description rdf:about=""
+				xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/">
+					<xapMM:DocumentID>uuid:a2a0d182-7b1c-4801-a22c-d610115116bd</xapMM:DocumentID>
+					<xapMM:InstanceID>uuid:1a365cee-e070-4b52-8278-db5e46b20a4c</xapMM:InstanceID>
 				</rdf:Description>
-			`)
-			assert.strictEqual(output.tagFloat, 0.04)
-			assert.strictEqual(output.tagBoolTrue, true)
-			assert.isArray(output.tagArray)
-			assert.lengthOf(output.tagArray, 2)
-			assert.deepEqual(output.tagArray, ['one', 'two'])
-		})
+			`
 
-		it('combined attrs + primitive tags + array tag', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrInteger="42">
-					<ns:tagFloat>0.04</ns:tagFloat>
-					<ns:tagBoolTrue>true</ns:tagBoolTrue>
-					<ns:tagArray>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
-						</rdf:Seq>
-					</ns:tagArray>
-				</rdf:Description>
-			`)
-			assert.strictEqual(output.attrString, 'the attr string')
-			assert.strictEqual(output.attrInteger, 42)
-			assert.strictEqual(output.tagFloat, 0.04)
-			assert.strictEqual(output.tagBoolTrue, true)
-			assert.isArray(output.tagArray)
-			assert.lengthOf(output.tagArray, 2)
-			assert.deepEqual(output.tagArray, ['one', 'two'])
-		})
+			it('merge (default)', () => {
+				let output = XmpParser.parse(code)
+				assert.containsAllKeys(output, ['xapMM', 'DocumentID', 'InstanceID'])
+				assert.equal(output.xapMM, 'http://ns.adobe.com/xap/1.0/mm/')
+				assert.equal(output.DocumentID, 'uuid:a2a0d182-7b1c-4801-a22c-d610115116bd')
+				assert.equal(output.InstanceID, 'uuid:1a365cee-e070-4b52-8278-db5e46b20a4c')
+			})
 
-		it('combined attrs + object tag', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrInteger="42">
-					<ns:theObject ns:action="derived" ns:parameters="saved to new location"/>
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['attrString', 'attrInteger', 'theObject'])
-			assert.hasAllKeys(output.theObject, ['action', 'parameters'])
-		})
+			it('groupByNamespace', () => {
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.containsAllKeys(output, ['xmlns', 'xapMM'])
+				assert.equal(output.xmlns.xapMM, 'http://ns.adobe.com/xap/1.0/mm/')
+				assert.containsAllKeys(output.xapMM, ['DocumentID', 'InstanceID'])
+				assert.equal(output.xapMM.DocumentID, 'uuid:a2a0d182-7b1c-4801-a22c-d610115116bd')
+				assert.equal(output.xapMM.InstanceID, 'uuid:1a365cee-e070-4b52-8278-db5e46b20a4c')
+			})
 
-		it('combined attrs + two object tags', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrInteger="42">
-					<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
-					<ns:secondObject ns:bool="false" ns:float="0.42" />
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['attrString', 'attrInteger', 'firstObject', 'secondObject'])
-			assert.hasAllKeys(output.firstObject, ['string', 'integer'])
-			assert.hasAllKeys(output.secondObject, ['bool', 'float'])
-		})
-
-		it('combined primitive tags + object tag', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-					<ns:tagString>the attr string</ns:tagString>
-					<ns:tagInteger>42</ns:tagInteger>
-					<ns:theObject ns:action="derived" ns:parameters="saved to new location"/>
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['tagString', 'tagInteger', 'theObject'])
-			assert.hasAllKeys(output.theObject, ['action', 'parameters'])
-		})
-
-		it('combined primitive tags + two object tags', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-					<ns:tagString>the attr string</ns:tagString>
-					<ns:tagInteger>42</ns:tagInteger>
-					<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
-					<ns:secondObject ns:bool="false" ns:float="0.42" />
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['tagString', 'tagInteger', 'firstObject', 'secondObject'])
-			assert.hasAllKeys(output.firstObject, ['string', 'integer'])
-			assert.hasAllKeys(output.secondObject, ['bool', 'float'])
-		})
-
-		it('combined primitive tags + attrs + two object tags', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrInteger="42">
-					<ns:tagString>the attr string</ns:tagString>
-					<ns:tagInteger>42</ns:tagInteger>
-					<ns:firstObject ns:string="derived" ns:integer="42"></ns:firstObject>
-					<ns:secondObject ns:bool="false" ns:float="0.42" />
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['attrString', 'attrInteger', 'tagString', 'tagInteger', 'firstObject', 'secondObject'])
-			assert.hasAllKeys(output.firstObject, ['string', 'integer'])
-			assert.hasAllKeys(output.secondObject, ['bool', 'float'])
-		})
-
-		it('array of objects', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description>
-					<ns:arrayOfObjects>
-						<rdf:Seq>
-							<rdf:li ns:objString="one" ns:objInteger="1"/>
-							<rdf:li ns:objFloat="0.42" ns:objBool="true"></rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfObjects>
-				</rdf:Description>
-			`)
-			assert.hasAllKeys(output, ['arrayOfObjects'])
-			assert.lengthOf(output.arrayOfObjects, 2)
-			assert.hasAllKeys(output.arrayOfObjects[0], ['objString', 'objInteger'])
-			assert.hasAllKeys(output.arrayOfObjects[1], ['objFloat', 'objBool'])
-		})
-
-		it('combined attrs + primitive tags + object tags + array of objects', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:attrString="the attr string"
-				ns:attrBoolTrue="true"
-				ns:attrBoolFale="false"
-				ns:attrInteger="42"
-				ns:attrFloat="0.04">
-					<ns:tagString>the tag string</ns:tagString>
-					<ns:tagFloat>0.04</ns:tagFloat>
-					<ns:tagInteger>42</ns:tagInteger>
-					<ns:tagBoolTrue>true</ns:tagBoolTrue>
-					<ns:tagBoolFalse>false</ns:tagBoolFalse>
-					<ns:arrayOfObjects>
-						<rdf:Seq>
-							<rdf:li ns:objString="one" ns:objInteger="1"/>
-							<rdf:li ns:objFloat="0.42" ns:objBool="true"></rdf:li>
-							<rdf:li ns:objString="three" ns:objBool="false"/>
-						</rdf:Seq>
-					</ns:arrayOfObjects>
-					<ns:arrayOfStrings>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
-							<rdf:li>three</rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfStrings>
-					<ns:arrayWithSingleItem>
-						<rdf:Seq>
-							<rdf:li>42</rdf:li>
-						</rdf:Seq>
-					</ns:arrayWithSingleItem>
-					<ns:arrayOfMixedPrimitives>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>31</rdf:li>
-							<rdf:li>true</rdf:li>
-							<rdf:li>0.98</rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfMixedPrimitives>
-				</rdf:Description>
-			`)
-			// attrs
-			assert.strictEqual(output.attrString, 'the attr string')
-			assert.strictEqual(output.attrFloat, 0.04)
-			assert.strictEqual(output.attrInteger, 42)
-			assert.strictEqual(output.attrBoolTrue, true)
-			assert.strictEqual(output.attrBoolFale, false)
-			// primitive tags
-			assert.strictEqual(output.tagString, 'the tag string')
-			assert.strictEqual(output.tagFloat, 0.04)
-			assert.strictEqual(output.tagInteger, 42)
-			assert.strictEqual(output.tagBoolTrue, true)
-			assert.strictEqual(output.tagBoolFalse, false)
-			// array of objects
-			assert.lengthOf(output.arrayOfObjects, 3)
-			assert.hasAllKeys(output.arrayOfObjects[0], ['objString', 'objInteger'])
-			assert.hasAllKeys(output.arrayOfObjects[1], ['objFloat', 'objBool'])
-			assert.hasAllKeys(output.arrayOfObjects[2], ['objString', 'objBool'])
-			// simple arrays
-			assert.deepEqual(output.arrayOfStrings, ['one', 'two', 'three'])
-			assert.deepEqual(output.arrayWithSingleItem, 42)
-			assert.deepEqual(output.arrayOfMixedPrimitives, ['one', 31, true, 0.98])
-		})
-
-	})
-
-
-	describe('newlines & spaces', () => {
-
-		it('multiline, self closing tag', () => {
-			let output = XmpParser.parse(`
-				<xmpMM:DerivedFrom
-					stRef:documentID="attrval"
-					stRef:originalDocumentID="attrval"
-				/>
-			`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID'])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-		})
-
-		it('multiline, pair tags', () => {
-			let output = XmpParser.parse(`
-				<xmpMM:DerivedFrom
-					stRef:documentID="attrval"
-					stRef:originalDocumentID="attrval"
-				></xmpMM:DerivedFrom>
-			`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID'])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-		})
-
-		it('multiline, pair tags with attributes and children', () => {
-			let output = XmpParser.parse(`
-				<xmpMM:DerivedFrom
-					stRef:documentID="attrval"
-					stRef:originalDocumentID="attrval"
-				>children</xmpMM:DerivedFrom>
-			`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID', CHILDREN_PROP])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom[CHILDREN_PROP], 'children')
-		})
-
-		it('all on one line, self closing tag', () => {
-			let output = XmpParser.parse(`<xmpMM:DerivedFrom stRef:documentID="attrval" stRef:originalDocumentID="attrval"/>`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID'])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-		})
-
-		it('all on one line, pair tags', () => {
-			let output = XmpParser.parse(`<xmpMM:DerivedFrom stRef:documentID="attrval" stRef:originalDocumentID="attrval"></xmpMM:DerivedFrom>`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID'])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-		})
-
-		it('all on one line, pair tags with attributes and children', () => {
-			let output = XmpParser.parse(`<xmpMM:DerivedFrom stRef:documentID="attrval" stRef:originalDocumentID="attrval">children</xmpMM:DerivedFrom>`)
-			assert.isObject(output.DerivedFrom)
-			assert.hasAllKeys(output.DerivedFrom, ['documentID', 'originalDocumentID', CHILDREN_PROP])
-			assert.strictEqual(output.DerivedFrom.documentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom.originalDocumentID, 'attrval')
-			assert.strictEqual(output.DerivedFrom[CHILDREN_PROP], 'children')
-		})
-
-	})
-
-
-	describe('other random cases', () => {
-
-		it('case 1', () => {
-			let output = XmpParser.parse(`
-				<rdf:Description
-				ns:string="the attr string"
-				ns:bool="true"
-				ns:anotherBool="false"
-				ns:integer="42"
-				ns:float="0.04">
-					<ns:tagValue>the tag string</ns:tagValue>
-					<ns:tagObject stRef:instanceID="0deb8273465e" stRef:documentID="34ee041e7e1a"/>
-					<ns:tagListWithOneItem>
-						<rdf:Seq>
-							<rdf:li>LWIR</rdf:li>
-						</rdf:Seq>
-					</ns:tagListWithOneItem>
-					<ns:tagListWithTwoItems>
-						<rdf:Seq>
-							<rdf:li>one</rdf:li>
-							<rdf:li>two</rdf:li>
-						</rdf:Seq>
-					</ns:tagListWithTwoItems>
-					<ns:arrayOfObjects>
-						<rdf:Seq>
-							<rdf:li
-								stEvt:action="derived"
-								stEvt:parameters="saved to new location">
-							</rdf:li>
-							<rdf:li
-								stEvt:action="saved"
-								stEvt:instanceID="xmp.iid:667349ef-da53-a042-9298-943e9954eba8"
-								stEvt:when="2017-05-07T17:32:06+02:00"
-								stEvt:softwareAgent="Adobe Photoshop Lightroom 6.9 (Windows)"
-								stEvt:changed="/">
-							</rdf:li>
-						</rdf:Seq>
-					</ns:arrayOfObjects>
-				</rdf:Description>
-			`)
-
-			assert.strictEqual(output.string, 'the attr string')
-			assert.strictEqual(output.bool, true)
-			assert.strictEqual(output.anotherBool, false)
-			assert.strictEqual(output.integer, 42)
-			assert.strictEqual(output.float, 0.04)
-
-			assert.strictEqual(output.tagValue, 'the tag string')
-			assert.strictEqual(output.tagListWithOneItem, 'LWIR')
-
-			assert.isObject(output.tagObject)
-			assert.strictEqual(output.tagObject.instanceID, '0deb8273465e')
-			assert.strictEqual(output.tagObject.documentID, '34ee041e7e1a')
-
-			assert.isArray(output.tagListWithTwoItems)
-			assert.strictEqual(output.tagListWithTwoItems[0], 'one')
-			assert.strictEqual(output.tagListWithTwoItems[1], 'two')
-
-			assert.isArray(output.arrayOfObjects)
-			assert.lengthOf(output.arrayOfObjects, 2)
-			assert.isObject(output.arrayOfObjects[0])
-			assert.isObject(output.arrayOfObjects[1])
-			assert.strictEqual(output.arrayOfObjects[0].action, 'derived')
-			assert.strictEqual(output.arrayOfObjects[1].action, 'saved')
-		})
-
-		it('case 2', () => {
-			let output = XmpParser.parse('<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>')
-			assert.equal(output.BandName, 'LWIR')
-		})
-
-		it('case 3', () => {
-			let output = XmpParser.parse('<FLIR:BandName><rdf:Seq>\t<rdf:li>LWIR</rdf:li>\t<rdf:li>LWIR</rdf:li>\t</rdf:Seq>\t</FLIR:BandName>')
-			assert.isArray(output.BandName)
-			assert.deepEqual(output.BandName, ['LWIR', 'LWIR'])
-		})
-
-		it('case 4', () => {
-			let output = XmpParser.parse(`
-				<crs:ToneCurve>
-					<rdf:Seq>
-						<rdf:li>0, 0</rdf:li>
-						<rdf:li>255, 255</rdf:li>
-					</rdf:Seq>
-				</crs:ToneCurve>
-			`)
-			assert.isArray(output.ToneCurve)
-			assert.deepEqual(output.ToneCurve, ['0, 0', '255, 255'])
-		})
-
-		it('case 5', () => {
-			let output = XmpParser.parse(`
-				<ns:onlyChildren>children string</ns:onlyChildren>
-			`)
-			assert.equal(output.onlyChildren, 'children string')
-		})
-
-		it('> symbol in attribute', () => {
-			let output = XmpParser.parse(`
-				<ns:simple ns:name="less > than">children string</ns:simple>
-			`)
-			assert.equal(output.simple.name, 'less > than')
-			assert.equal(output.simple[CHILDREN_PROP], 'children string')
-		})
-
-		it('> in attribute, space before tag end', () => {
-			let output = XmpParser.parse(`
-				<ns:spaceBeforeTagEnd ns:name="less > than" >children string</ns:spaceBeforeTagEnd>
-			`)
-			assert.equal(output.spaceBeforeTagEnd.name, 'less > than')
-			assert.equal(output.spaceBeforeTagEnd[CHILDREN_PROP], 'children string')
-		})
-
-		it('> in attribute, new line before tag end', () => {
-			let output = XmpParser.parse(`
-				<ns:nlBeforeTagEnd
-				ns:name="less > than"
-				>children string</ns:nlBeforeTagEnd>
-			`)
-			assert.equal(output.nlBeforeTagEnd.name, 'less > than')
-			assert.equal(output.nlBeforeTagEnd[CHILDREN_PROP], 'children string')
-		})
-
-		it('> in attribute, new after tag start', () => {
-			let output = XmpParser.parse(`
-				<ns:nlAfterTagStart
-				ns:name="less > than">children string</ns:nlAfterTagStart>
-			`)
-			assert.equal(output.nlAfterTagStart.name, 'less > than')
-			assert.equal(output.nlAfterTagStart[CHILDREN_PROP], 'children string')
-		})
-
-		it('self closing tag-object with one attribute with > inside', () => {
-			let output = XmpParser.parse(`
-				<ns:object ns:name="less > than"/>
-			`)
-			assert.equal(output.object.name, 'less > than')
 		})
 
 	})
 
 	describe('real world cases', () => {
 		// MunchSP1919.xml
+		// xmp-random.xml
+
+		// gpano-xmp-main.xmp
+		// gpano-xmp-ext.xmp
+
+		async function getString(name) {
+			let arrayBuffer = await getFile(name)
+			let bufferView = new BufferView(arrayBuffer)
+			return bufferView.getString()
+		}
+
+		describe('xmp-MunchSP1919.xml', async () => {
+
+			it('merged', async () => {
+				let code = await getString('xmp-MunchSP1919.xml')
+				let output = XmpParser.parse(code)
+				console.log('-: output', output)
+				assert.equal(true, false)
+			})
+
+			it('grouped', async () => {
+				let code = await getString('xmp-MunchSP1919.xml')
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				let namespaces = ['Iptc4xmpCore', 'MicrosoftPhoto', 'aux', 'crs', 'dc', 'exif', 'mediapro', 'photoshop', 'tiff', 'xmp', 'xmpMM']
+				assert.containsAllKeys(output, namespaces)
+				assert.deepEqual(output.aux, {
+					Firmware: '2.0.2',
+					FlashCompensation: '0/1',
+					ImageNumber: 0,
+					Lens: '17.0-85.0 mm',
+					LensInfo: '17/1 85/1 0/0 0/0',
+					OwnerName: 'UCSD AAL',
+					SerialNumber: 1320910591,
+				})
+				assert.deepEqual(output.xmpMM, {
+					DocumentID: 'uuid:42328C558489DC11B5C7E17965EE46D2',
+					InstanceID: 'uuid:C85209F08489DC11B5C7E17965EE46D2',
+				})
+				assert.deepEqual(output.mediapro, {
+					People: ['Munch', 'Edvard (1863-1944)']
+				})
+				// picking and matching just some properties out of large objects with much more properties
+				assert.equal(output.tiff.ImageLength, 2122)
+				assert.equal(output.tiff.ImageWidth, 3195)
+				assert.equal(output.tiff.Make, 'Canon')
+				assert.equal(output.tiff.Model, 'Canon EOS 20D')
+				//
+				assert.isObject(output.Iptc4xmpCore.CreatorContactInfo)
+				assert.equal(output.Iptc4xmpCore.CreatorContactInfo.CiAdrPcode, '92093-0175')
+				assert.equal(output.Iptc4xmpCore.CreatorContactInfo.CiAdrRegion, 'California')
+				assert.isArray(output.Iptc4xmpCore.SubjectCode)
+				assert.lengthOf(output.Iptc4xmpCore.SubjectCode, 5)
+				assert.equal(output.Iptc4xmpCore.SubjectCode[4], 'Self-portraits')
+				//
+				assert.equal(output.crs.ColorNoiseReduction, 25)
+				assert.equal(output.crs.HasCrop, false)
+				assert.equal(output.crs.HasSettings, true)
+				assert.equal(output.crs.HueAdjustmentAqua, 0)
+				assert.equal(output.crs.Tint, '+3')
+				assert.deepEqual(output.crs.ToneCurve, ['0, 0', '32, 22', '64, 56', '128, 128', '192, 196', '255, 255'])
+				assert.equal(output.crs.ToneCurveName, 'Medium Contrast')
+				assert.equal(output.crs.Version, 4.2)
+			})
+
+		})
+
+		describe('gpano: xmp + xmp extended', async () => {
+
+			it('xmp-gpano-main.xml', async () => {
+				let file = await getFile('xmp-gpano-main.xml')
+				assert.equal(true, false)
+			})
+
+			describe('xmp-gpano-ext.xml', async () => {
+
+				it('merged', async () => {
+					let code = await getString('xmp-gpano-ext.xml')
+					let output = XmpParser.parse(code)
+					assert.equal(output.GImage, 'http://ns.google.com/photos/1.0/image/')
+					assert.equal(output.GAudio, 'http://ns.google.com/photos/1.0/audio/')
+					assert.isString(output.Data)
+					assert.isString(output.Data.slice(0, 8), 'AAAAGGZ0')
+					assert.isString(output.Data.slice(-8),   'AQAAACA=')
+				})
+
+				it('merged', async () => {
+					let code = await getString('xmp-gpano-ext.xml')
+					let output = XmpParser.parse(code, GROUP_OPTIONS)
+					assert.isObject(output.xmlns)
+					assert.isString(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
+					assert.isString(output.GImage.Data.slice(-8),   'C6iMzP/Z')
+					assert.isString(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
+					assert.isString(output.GAudio.Data.slice(-8),   'AQAAACA=')
+				})
+
+			})
+
+		})
+
+		describe('xmp1.xml', async () => {
+
+			it('merged', async () => {
+				let code = await getString('xmp1.xml')
+				let output = XmpParser.parse(code)
+				assert.equal(output.about, 'DJI Meta Data')
+				assert.equal(output.AbsoluteAltitude, -8.074252)
+				assert.equal(output.GimbalYawDegree, -115.300003)
+				assert.equal(output.FlightPitchDegree, 6)
+				assert.equal(output.CentralTemperature, 1)
+				assert.equal(output.TlinearGain, 0.04)
+				assert.equal(output.BandName, 'LWIR')
+				assert.equal(output.CentralWavelength, 10000)
+				assert.equal(output.WavelengthFWHM, 4500)
+			})
+
+			it('grouped', async () => {
+				let code = await getString('xmp1.xml')
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.equal(output.rdf.about, 'DJI Meta Data')
+				assert.equal(output['drone-dji'].AbsoluteAltitude, -8.074252)
+				assert.equal(output['drone-dji'].GimbalYawDegree, -115.300003)
+				assert.equal(output['drone-dji'].FlightPitchDegree, 6)
+				assert.equal(output.FLIR.CentralTemperature, 1)
+				assert.equal(output.FLIR.TlinearGain, 0.04)
+				assert.equal(output.FLIR.BandName, 'LWIR')
+				assert.equal(output.FLIR.CentralWavelength, 10000)
+				assert.equal(output.FLIR.WavelengthFWHM, 4500)
+			})
+
+		})
+
+		describe('xmp2.xml', async () => {
+
+			it('merged', async () => {
+				let code = await getString('xmp2.xml')
+				let output = XmpParser.parse(code)
+                console.log('-: output', output)
+				assert.equal(output.CreateDate, '1970-01-01')
+				assert.equal(output.Model, 'Test_Pro')
+				assert.equal(output.format, 'image/jpg')
+				assert.equal(output.GimbalYawDegree, '-127.10')
+				assert.equal(output.GimbalPitchDegree, '+1.00')
+				assert.equal(output.FlightRollDegree, '+0.00')
+				assert.equal(output.Version, 7)
+				assert.equal(output.HasSettings, false)
+			})
+
+			it('grouped', async () => {
+				let code = await getString('xmp2.xml')
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+                console.log('-: output', output)
+				// defined and used namespaces
+				assert.isObject(output.tiff)
+				assert.isObject(output.xmp)
+				assert.isObject(output.crs)
+				assert.isObject(output['drone-dji'])
+				// defined but unused namespaces
+				assert.equal(output.exif)
+				assert.equal(output.GPano)
+				assert.equal(output.xmpMM)
+				// dc is object of only one property
+				assert.isObject(output.dc)
+				assert.hasAllKeys(output.dc, ['format'])
+				assert.equal(output.dc.format, 'image/jpg')
+				// attrs and values
+				assert.equal(output.xmp.CreateDate, '1970-01-01')
+				assert.equal(output.tiff.Model, 'Test_Pro')
+				assert.equal(output['drone-dji'].GimbalYawDegree, '-127.10')
+				assert.equal(output['drone-dji'].GimbalPitchDegree, '+1.00')
+				assert.equal(output['drone-dji'].FlightRollDegree, '+0.00')
+				assert.equal(output.crs.Version, 7)
+				assert.equal(output.crs.HasSettings, false)
+			})
+
+		})
+
+		describe('xmp3.xml', async () => {
+
+			it('merged', async () => {
+				let code = await getString('xmp3.xml')
+				let output = XmpParser.parse(code)
+                console.log('-: output', output)
+				assert.deepEqual(output, {
+					xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
+					stRef: 'http://ns.adobe.com/xap/1.0/sType/ResourceRef#',
+					xmp: 'http://ns.adobe.com/xap/1.0/',
+					CreatorTool: 'Adobe Photoshop CC 2015 (Windows)',
+					OriginalDocumentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a',
+					DocumentID: 'xmp.did:C39D1BD9C4A111E6AA23E41B54801FB7',
+					InstanceID: 'xmp.iid:C39D1BD8C4A111E6AA23E41B54801FB7',
+					DerivedFrom: {
+						instanceID: 'xmp.iid:fded51f7-dab6-a945-b486-0deb8273465e',
+						documentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a'
+					}
+				})
+			})
+
+			it('grouped', async () => {
+				let code = await getString('xmp3.xml')
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+                console.log('-: output', output)
+				// namespace definitions
+				assert.deepEqual(output.xmlns, {
+					xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
+					stRef: 'http://ns.adobe.com/xap/1.0/sType/ResourceRef#',
+					xmp: 'http://ns.adobe.com/xap/1.0/',
+				})
+				// the data
+				assert.equal(output.xmp.CreatorTool, 'Adobe Photoshop CC 2015 (Windows)')
+				assert.deepEqual(output.xmpMM, {
+					OriginalDocumentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a',
+					DocumentID: 'xmp.did:C39D1BD9C4A111E6AA23E41B54801FB7',
+					InstanceID: 'xmp.iid:C39D1BD8C4A111E6AA23E41B54801FB7',
+					DerivedFrom: {
+						instanceID: 'xmp.iid:fded51f7-dab6-a945-b486-0deb8273465e',
+						documentID: 'xmp.did:d5ce43c4-6c37-6e48-b4c7-34ee041e7e1a'
+					}
+				})
+			})
+
+		})
+
 	})
 
 })
