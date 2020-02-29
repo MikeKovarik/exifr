@@ -101,7 +101,7 @@ export class JpegFileParser extends FileParserBase {
 				let Parser = segmentParsers.get(type)
 				if (Parser.multiSegment) {
 					findAll = true
-					await this.file.readWhole()
+					if (this.file.chunked) await this.file.readWhole()
 					break
 				}
 			}
