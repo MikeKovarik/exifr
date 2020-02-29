@@ -5,13 +5,13 @@
 	<title>Exifr tests</title>
 
 	<!-- testing framework -->
-	<link href="https://unpkg.com/mocha@6.1.4/mocha.css" rel="stylesheet" />
-	<script src="https://unpkg.com/mocha@6.1.4/mocha.js"></script>
+	<link  href="../node_modules/mocha/mocha.css" rel="stylesheet" />
+	<script src="../node_modules/mocha/mocha.js"></script>
 	<!--
 		chai isn't yet available as ESM. In Node we're using 'esm' module to wrap it but
 		in browser we need to use Require.js version which adds it as global to window object.
 	-->
-	<script src="https://unpkg.com/chai@4.2.0/chai.js"></script>
+	<script src="../node_modules/chai/chai.js"></script>
 
 	<style>
 		@media (prefers-color-scheme: dark) {
@@ -56,7 +56,9 @@
 		import './jfif.spec.js'
 		import './icc.spec.js'
 		import './iptc.spec.js'
-		import './xmp.spec.js'
+		import './xmp-segment.spec.js'
+		import './xmp-parser-synthetic.spec.js'
+		import './xmp-parser-fixtures.spec.js'
 		import './fixtures.spec.js'
 		import './issues.spec.js'
 		mocha.run()

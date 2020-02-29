@@ -5,7 +5,7 @@ import {XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp.js'
 
 const VALUE_PROP = 'value'
 
-const GROUP_OPTIONS = {groupByNamespace: true}
+const GROUP_OPTIONS = {mergeOutput: false}
 
 // TODO: test - undefine is not in object at all (rdf:about="")
 
@@ -783,11 +783,23 @@ describe('XmpParser - synthetic tests', () => {
 		describe(`object tag`, () => {
 
 			it(`undefined value is not stored as explicit undefined property`, () => {
-				let [tag] = XmlTag.findAll(`<rdf:Description ns:attrKey=""><ns:tagKey></ns:tagKey></rdf:Description>`)
+				let [tag] = XmlTag.findAll(`<rdf:Description ns:undefinedAttr="">
+					<ns:undefinedTag></ns:undefinedTag>
+					<ns:definedTag>some string</ns:definedTag>
+				</rdf:Description>`)
 				let serialized = tag.serialize()
-				assert.isUndefined(serialized.attrKey)
-				assert.isUndefined(serialized.tagKey)
-				assert.doesNotHaveAnyKeys(serialized, ['attrKey', 'tagKey'])
+				assert.isObject(serialized)
+				assert.isUndefined(serialized.undefinedAttr)
+				assert.isUndefined(serialized.undefinedTag)
+				assert.doesNotHaveAnyKeys(serialized, ['undefinedAttr', 'undefinedTag'])
+			})
+
+			it(`empty object is serialized to undefined`, () => {
+				let [tag] = XmlTag.findAll(`<rdf:Description ns:undefinedAttr="">
+					<ns:undefinedTag></ns:undefinedTag>
+				</rdf:Description>`)
+				let serialized = tag.serialize()
+				assert.isUndefined(serialized)
 			})
 
 			describe(`with attributes, no children`, () => {
@@ -1637,7 +1649,7 @@ describe('XmpParser - synthetic tests', () => {
 	})
 
 
-	describe('output format (merging into single object vs groupByNamespace)', () => {
+	describe('output format (merging into single object vs grouping by namespace)', () => {
 
 		describe('multiple rdf:Description', () => {
 
@@ -1668,7 +1680,7 @@ describe('XmpParser - synthetic tests', () => {
 				assert.equal(output.BlueSaturation, 0)
 			})
 
-			it('all tags are parsed and grouped by namespace when {groupByNamespace: true}', () => {
+			it('all tags are parsed and grouped by namespace when {mergeOutput: false}', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.containsAllKeys(output, ['tiff', 'aux', 'crs'])
@@ -1680,7 +1692,7 @@ describe('XmpParser - synthetic tests', () => {
 				assert.equal(output.crs.BlueSaturation, 0)
 			})
 
-			it('xmlns meta tags are stored in output.xmlns when {groupByNamespace: true}', () => {
+			it('xmlns meta tags are stored in output.xmlns when {mergeOutput: false}', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.isObject(output.xmlns)
@@ -1710,8 +1722,9 @@ describe('XmpParser - synthetic tests', () => {
 				assert.equal(output.Data, 'AAAAGGZ0')
 			})
 
-			it('each attr is stored in separate namespace when {groupByNamespace: true}', () => {
+			it('each attr is stored in separate namespace when {mergeOutput: false}', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
+                console.log('-: output', output)
 				assert.equal(output.GImage.Data, '/9j/4AAQ')
 				assert.equal(output.GAudio.Data, 'AAAAGGZ0')
 			})
@@ -1720,48 +1733,22 @@ describe('XmpParser - synthetic tests', () => {
 
 		describe('empty objects are left undefined', () => {
 
-			it('empty namespace is undefined 1', async () => {
-				let code = `<rdf:Description rdf:about="" ns:theProp="value"/>`
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-				console.log('1', output)
-				assert.isObject(output)
-				assert.isUndefined(output.rdf)
-			})
-
-			it('empty namespace is undefined 2', async () => {
-				let code = `<rdf:Description rdf:about="some string">
-					<emptyNs:theObject empty:property=""/>
-				</rdf:Description>`
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
-				console.log('2', output)
-				assert.isObject(output)
-				assert.isObject(output.rdf)
-				assert.isUndefined(output.emptyNs)
-			})
-
-			it('empty namespace is undefined 3', async () => {
-				let code = `<rdf:Description>
-					<fullNs:someProp>the string</fullNs:someProp>
-					<emptyNs:theObject empty:property=""/>
-				</rdf:Description>`
-				let output = XmpParser.parse(code)
-				console.log('3', output)
-				assert.isObject(output)
-				assert.isUndefined(output.emptyNs)
-			})
-
-			it('the output itself is empty (grouped)', async () => {
+			it('the output is undefined if all namespaces are empty or undefined (grouped)', async () => {
 				let code = `<rdf:Description rdf:about=""/>`
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
-				console.log('4', output)
 				assert.isUndefined(output)
 			})
 
-			it('the output itself is empty (merged)', async () => {
+			it('the output is undefined if all namespaces are empty or undefined (merged)', async () => {
 				let code = `<rdf:Description rdf:about=""/>`
 				let output = XmpParser.parse(code)
-				console.log('5', output)
 				assert.isUndefined(output)
+			})
+
+			it('empty or undefined segments are not included in the output instead of being undefined (merged)', async () => {
+				let code = `<rdf:Description rdf:about="" foo:bar="baz"/>`
+				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				assert.hasAllKeys(output, ['foo'])
 			})
 
 		})
@@ -1794,7 +1781,7 @@ describe('XmpParser - synthetic tests', () => {
 				assert.equal(output.creator, 'Adobe Developer Technologies')
 			})
 
-			it('groupByNamespace', () => {
+			it('group by namespace', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
 				assert.containsAllKeys(output, ['xmlns', 'dc'])
 				assert.equal(output.xmlns.dc, 'http://purl.org/dc/elements/1.1/')
@@ -1823,7 +1810,7 @@ describe('XmpParser - synthetic tests', () => {
 				assert.equal(output.InstanceID, 'uuid:1a365cee-e070-4b52-8278-db5e46b20a4c')
 			})
 
-			it('groupByNamespace', () => {
+			it('group by namespace', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
 				assert.containsAllKeys(output, ['xmlns', 'xapMM'])
 				assert.equal(output.xmlns.xapMM, 'http://ns.adobe.com/xap/1.0/mm/')

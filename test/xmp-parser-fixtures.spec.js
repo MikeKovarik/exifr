@@ -3,7 +3,7 @@ import XmpParser from '../src/segment-parsers/xmp.js'
 import {BufferView} from '../src/util/BufferView.js'
 
 
-const GROUP_OPTIONS = {groupByNamespace: true}
+const GROUP_OPTIONS = {mergeOutput: false}
 
 describe('XmpParser - real world cases', () => {
 
@@ -83,6 +83,7 @@ describe('XmpParser - real world cases', () => {
             it('merged', async () => {
                 let code = await getString('xmp-gpano-main.xml')
                 let output = XmpParser.parse(code)
+                console.log('-: output', output)
                 assert.deepEqual(output, {
                     GPano: 'http://ns.google.com/photos/1.0/panorama/',
                     GImage: 'http://ns.google.com/photos/1.0/image/',
@@ -103,6 +104,8 @@ describe('XmpParser - real world cases', () => {
             it('grouped', async () => {
                 let code = await getString('xmp-gpano-main.xml')
                 let output = XmpParser.parse(code, GROUP_OPTIONS)
+                console.log('-: GROUP_OPTIONS', GROUP_OPTIONS)
+                console.log('-: output', output)
                 assert.deepEqual(output.xmlns, {
                     GPano: 'http://ns.google.com/photos/1.0/panorama/',
                     GImage: 'http://ns.google.com/photos/1.0/image/',
@@ -147,10 +150,10 @@ describe('XmpParser - real world cases', () => {
                 let code = await getString('xmp-gpano-ext.xml')
                 let output = XmpParser.parse(code, GROUP_OPTIONS)
                 assert.isObject(output.xmlns)
-                assert.isString(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
-                assert.isString(output.GImage.Data.slice(-8),   'C6iMzP/Z')
-                assert.isString(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
-                assert.isString(output.GAudio.Data.slice(-8),   'AQAAACA=')
+                assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
+                assert.equal(output.GImage.Data.slice(-8),   'C6iMzP/Z')
+                assert.equal(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
+                assert.equal(output.GAudio.Data.slice(-8),   'AQAAACA=')
             })
 
         })
@@ -269,10 +272,10 @@ describe('XmpParser - real world cases', () => {
 
     })
 
-    describe('xmp3.xml', async () => {
+    describe('cookiezen.xmp', async () => {
 
         it('merged', async () => {
-            let code = await getString('xmp3.xml')
+            let code = await getString('cookiezen.xmp')
             let output = XmpParser.parse(code)
             assert.deepEqual(output, {
                 xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
@@ -290,7 +293,7 @@ describe('XmpParser - real world cases', () => {
         })
 
         it('grouped', async () => {
-            let code = await getString('xmp3.xml')
+            let code = await getString('cookiezen.xmp')
             let output = XmpParser.parse(code, GROUP_OPTIONS)
             // namespace definitions
             assert.deepEqual(output.xmlns, {
