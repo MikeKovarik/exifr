@@ -70,39 +70,45 @@ export class AppSegmentParserBase {
 
 	static canHandle = () => false
 
-	errors = []
-
 	// offset + length === end  |  begining and end of the whole segment, including the segment header 0xFF 0xEn + two lenght bytes.
 	// start  + size   === end  |  begining and end of parseable content
 	static findPosition(buffer, offset) {
 		// length at offset+2 is the size of APPn content plus the two appN length bytes. it does not include te appN 0xFF 0xEn marker.
 		let length = buffer.getUint16(offset + 2) + 2
-		let headerLength = typeof this.headerLength === 'function' ? this.headerLength(buffer, offset, length) : this.headerLength
+		let headerLength = typeof this.headerLength === 'function'
+						? this.headerLength(buffer, offset, length)
+						: this.headerLength
 		let start = offset + headerLength
 		let size = length - headerLength
 		let end = start + size
-		return {offset, length, start, size, end}
+		return {offset, length, headerLength, start, size, end}
 	}
 
-	static parse(buffer, start, options) {
-		if (typeof start === 'object') {
-			options = start
-			start = undefined
-		}
-		let view = new BufferView(buffer, start)
-		let instance = new this(view, Options.useCached(options))
+	static parse(input, segOptions = {}) {
+		let options = new Options({[this.type]: segOptions})
+		let instance = new this(input, options)
 		return instance.parse()
 	}
 
+	normalizeInput(input) {
+		return input instanceof BufferView
+			? input
+			: new BufferView(input)
+	}
+
+	errors = []
+	// raw parsed tags
+	raw = new Map
+
 	constructor(chunk, options = {}, file) {
-		this.chunk = chunk
-		this.options = options
+		// BufferView instance of the segment chunk. Possibly a subview of the same memory shared with this.file
+		this.chunk = this.normalizeInput(chunk)
+		// BufferView instance of the whole file.
 		this.file = file
 		this.type = this.constructor.type
-		this.segOptions = options[this.type]
-		this.canTranslate = this.segOptions.translate
-		// raw parsed tags
-		this.raw = new Map
+		this.globalOptions = this.options = options // todo: rename to fileOptions ???
+		this.localOptions = options[this.type] // todo: rename to this.options
+		this.canTranslate = this.localOptions?.translate
 	}
 
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
@@ -123,7 +129,7 @@ export class AppSegmentParserBase {
 		let revivers = tagRevivers.get(blockKey)
 		let valDict  = tagValues.get(blockKey)
 		let keyDict  = tagKeys.get(blockKey)
-		let blockOptions = this.options[blockKey]
+		let blockOptions = this.options[blockKey] // todo: refactor tiff so this isn't needed anymore (in favor of segOptions & options)
 		let canRevive       = blockOptions.reviveValues    && revivers
 		let canTranslateVal = blockOptions.translateValues && valDict
 		let canTranslateKey = blockOptions.translateKeys   && keyDict

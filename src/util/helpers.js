@@ -8,12 +8,14 @@ export function undefinedIfEmpty(object) {
         return object
 }
 
+const isDefined = val => val !== undefined
+
 export function isEmpty(arg) {
 	if (arg === undefined) return true
 	if (arg instanceof Map)
 		return arg.size === 0
 	else
-	    return Object.keys(arg).length === 0
+	    return Object.values(arg).filter(isDefined).length === 0
 }
 
 export function customError(message) {

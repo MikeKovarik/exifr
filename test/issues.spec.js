@@ -37,31 +37,30 @@ describe('issues (special cases)', () => {
         assert.equal(output.Make, 'FLIR')
     })
 
-	/*
-	TODO
-	https://github.com/drewnoakes/metadata-extractor/issues/151
-	issue-metadata-extractor-152.jpg
-	issue-metadata-extractor-152.tif
-	*/
-
-	// TODO: implement
+	// ttps://github.com/drewnoakes/metadata-extractor/issues/151
     it(`metadata-extractor #152 jpg`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.jpg')
-		let options = {tiff: true, xmp: true}
+		let options = {tiff: true, xmp: true, mergeOutput: true}
         var output = await exifr.parse(input, options)
         assert.equal(output.Make, 'Parrot')
-        assert.exists(output.GPSLatitude)
-        assert.exists(output.xmp)
+        assert.equal(output.ISO, 100)
+        assert.equal(output.GPSMapDatum, 'WGS-84')
+		// xmp (camera namespace)
+        assert.equal(output.RigName, 'Chlorophyll')
+        assert.equal(output.Pitch, 13.239553)
     })
 
-	// TODO: implement
+	// ttps://github.com/drewnoakes/metadata-extractor/issues/151
     it(`metadata-extractor #152 tif`, async () => {
 		let input = await getFile('issue-metadata-extractor-152.tif')
-		let options = {tiff: true, xmp: true}
+		let options = {tiff: true, xmp: true, mergeOutput: true}
         var output = await exifr.parse(input, options)
-        assert.equal(output.Make, 'Parrot')
-        assert.exists(output.GPSLatitude)
-        assert.exists(output.xmp)
+        assert.equal(output.Make, 'Parrot') // tiff ifd0 block
+        assert.equal(output.ISO, 200) // tiff exif block
+        assert.equal(output.GPSMapDatum, 'WGS-84') // tiff gps block
+		// xmp
+        assert.equal(output.RigName, 'Chlorophyll')
+        assert.equal(output.Roll, 0.172856)
     })
 /*
     // TODO

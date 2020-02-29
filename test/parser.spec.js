@@ -103,14 +103,14 @@ describe('HEIC - HeicFileParser', () => {
 		assert.exists(output.icc,  'output should contain ICC')
 	})
 
-	it(`address of TIFF/EXIF from HEIC should slign properly`, async () => {
+	it(`address of TIFF/EXIF from HEIC should align properly`, async () => {
 		let input = await getFile('heic-iphone7.heic')
 		let output = await exifr.parse(input, options)
 		assert.equal(output.ifd0[MAKE], 'Apple')
 		assert.equal(output.ifd0[MODEL], 'iPhone 7')
 	})
 
-	it(`address of ICC from HEIC should slign properly`, async () => {
+	it(`address of ICC from HEIC should align properly`, async () => {
 		let input = await getFile('heic-iphone7.heic')
 		let output = await exifr.parse(input, options)
 		assert.equal(output.icc[4].toLowerCase(),  'appl') // ProfileCMMType

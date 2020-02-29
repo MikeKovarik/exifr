@@ -54,7 +54,7 @@ export default class XmpParser extends AppSegmentParserBase {
 			.join('')
 	}
 
-	static normalizeInput(input) {
+	normalizeInput(input) {
 		//return typeof input === 'string' ? input : input.getString()
 		return typeof input === 'string'
 			? input
@@ -72,8 +72,7 @@ export default class XmpParser extends AppSegmentParserBase {
 		let tags = XmlTag.findAll(xmpString, 'rdf', 'Description')
 		if (tags.length === 0)
 			tags.push(new XmlTag('rdf', 'Description', undefined, xmpString))
-		let output
-		if (this.options.groupByNamespace) {
+		if (this.localOptions.mergeOutput !== true) {
 			let root = {}
 			let namespace
 			for (let tag of tags) {
@@ -82,17 +81,28 @@ export default class XmpParser extends AppSegmentParserBase {
 					assignToObject(prop, namespace)
 				}
 			}
-			output = root
+			return pruneObject(root)
 		} else {
 			let outputs = tags.map(tag => tag.serialize())
 			if (outputs.length === 1)
-				output = outputs[0]
+				return undefinedIfEmpty(outputs[0])
 			else
-				output = Object.assign(...outputs)
+				return undefinedIfEmpty(Object.assign(...outputs))
 		}
-		return undefinedIfEmpty(output)
 	}
 
+}
+
+
+// removes undefined properties and empty objects
+function pruneObject(object) {
+	let val
+	for (let key of Object.keys(object)) {
+		val = object[key] = undefinedIfEmpty(object[key])
+		if (val === undefined)
+			delete object[key]
+	}
+	return undefinedIfEmpty(object)
 }
 
 segmentParsers.set('xmp', XmpParser)

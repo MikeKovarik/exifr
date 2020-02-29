@@ -21,7 +21,7 @@ export default class IccParser extends AppSegmentParserBase {
 	static canHandle(chunk, offset) {
 		return chunk.getUint8(offset + 1) === 0xE2
 			&& chunk.getUint32(offset + 4) === 0x4943435f // ICC_
-			// ICC_PROFILE
+			// full header is: ICC_PROFILE
 	}
 
 	static findPosition(chunk, offset) {

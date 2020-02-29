@@ -155,6 +155,7 @@ export class JpegFileParser extends FileParserBase {
 					this.appSegments.push(seg)
 					if (!findAll) {
 						if (seg.multiSegment && segOpts.multiSegment) {
+							// Countable multisegments
 							// Found multisegment segment and options allow to process these.
 							if (seg.chunkNumber < seg.chunkCount) {
 								// We've not yet reached the last one.
@@ -164,8 +165,10 @@ export class JpegFileParser extends FileParserBase {
 								this.unfinishedMultiSegment = false
 								remaining.delete(type)
 							}
+						} else if (Parser.multiSegment && segOpts.multiSegment) {
+							// Non-countable multisegments
 						} else {
-							// This is notmultisegment seg or we're not allowed to process them.
+							// This is not a multisegment seg or we're not allowed to process them.
 							remaining.delete(type)
 						}
 						if (remaining.size === 0) break
@@ -196,14 +199,11 @@ export class JpegFileParser extends FileParserBase {
 		return offset
 	}
 
-	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
-	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
-	async createParsers() {
-		// IDEA: dynamic loading through import(parser.type) ???
-		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
-		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
+	mergeMultiSegments() {
 		let segments
-		if (this.hasMultiSegments) {
+		//handleMultiSegments
+		if (this.hasOrderedMultiSegments) {
+			// Ordered multisegments
 			segments = []
 			let multiSegmentTypes = []
 			for (let seg of this.appSegments) {
@@ -213,19 +213,37 @@ export class JpegFileParser extends FileParserBase {
 					let ordered = this.appSegments
 						.filter(s => s.type === seg.type)
 						.sort((a, b) => a.chunkNumber - b.chunkNumber)
-					let buffers = ordered.map(s => s.chunk.toUint8())
-					let combined = concat(...buffers)
 					segments.push({
 						type: seg.type,
-						chunk: new BufferView(combined)
+						chunk: concatChunks(ordered)
 					})
 				} else {
 					segments.push(seg)
 				}
 			}
+		} else if (this.hasUnorderedMultiSegments) {
+			segments = groupBy(this.appSegments, 'type').map(([type, typeSegments]) => {
+				let Parser = segmentParsers.get(type, this.options)
+				if (Parser.handleMultiSegments) {
+					let chunk = Parser.handleMultiSegments(typeSegments)
+					return {type, chunk}
+				} else {
+					return typeSegments[0]
+				}
+			})
 		} else {
 			segments = this.appSegments
 		}
+		return segments
+	}
+
+	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
+	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
+	async createParsers() {
+		// IDEA: dynamic loading through import(parser.type) ???
+		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
+		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
+		let segments = this.mergeMultiSegments()
 		for (let segment of segments) {
 			let {type, chunk} = segment
 			if (!this.options[type].enabled) continue
@@ -241,8 +259,16 @@ export class JpegFileParser extends FileParserBase {
 		}
 	}
 
-	get hasMultiSegments() {
+	// TODO: refactor
+	get hasOrderedMultiSegments() {
 		return this.appSegments.some(seg => seg.multiSegment)
+	}
+
+	// TODO: refactor
+	get hasUnorderedMultiSegments() {
+		let grouped = groupBy(this.appSegments, 'type')
+		let groups = Object.values(grouped)
+		return groups.some(array => array.length > 1)
 	}
 
 	getSegment(type) {
@@ -260,7 +286,30 @@ export class JpegFileParser extends FileParserBase {
 
 }
 
-function concat(...buffers) {
+function groupBy(array, key) {
+	let groups = new Map
+	let item, groupKey, group
+	for (let i = 0; i < array.length; i++) {
+		item = array[i]
+		groupKey = item[key]
+		if (groups.has(groupKey))
+			group = groups.get(groupKey)
+		else
+			groups.set(groupKey, group = [])
+		group.push(item)
+	}
+	return Array.from(groups.entries())
+}
+
+// TODO: move to utils
+function concatChunks(chunks) {
+	let buffers = chunks.map(s => s.chunk.toUint8())
+	let combined = concatBuffers(buffers)
+    return new BufferView(combined)
+}
+
+// TODO: move to utils
+function concatBuffers(buffers) {
 	let ArrayType = buffers[0].constructor
     let totalLength = 0
     for (let buffer of buffers) totalLength += buffer.length
