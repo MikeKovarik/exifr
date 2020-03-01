@@ -409,7 +409,6 @@ export class TiffExif extends TiffCore {
 	}
 
 	assignToOutput(root, tiff) {
-		console.log('assignToOutput TIFF', this.globalOptions.mergeOutput, tiff)
 		if (this.globalOptions.mergeOutput) {
 			// xmp contains only properties
 			Object.assign(root, tiff)

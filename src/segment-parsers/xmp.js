@@ -69,6 +69,8 @@ export default class XmpParser extends AppSegmentParserBase {
 	// '<x:xmpmeta><rdf:RDF>'
 
 	parse(xmpString = this.chunk) {
+		if (!this.localOptions.parse)
+			return xmpString
 		let tags = XmlTag.findAll(xmpString, 'rdf', 'Description')
 		if (tags.length === 0)
 			tags.push(new XmlTag('rdf', 'Description', undefined, xmpString))
@@ -94,7 +96,10 @@ export default class XmpParser extends AppSegmentParserBase {
 	}
 
 	assignToOutput(root, xmp) {
-		if (this.globalOptions.mergeOutput) {
+		if (!this.localOptions.parse) {
+			// xmp is not parsed, we include the string into output as is
+			root.xmp = xmp
+		} else if (this.globalOptions.mergeOutput) {
 			// xmp contains only properties
 			Object.assign(root, xmp)
 		} else {

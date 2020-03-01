@@ -55,7 +55,8 @@ class SubOptions extends SharedOptions {
 	constructor(key, defaultValue, userValue, parent) {
 		super()
 		this.key = key
-		this.enabled = defaultValue
+		this.enabled = defaultValue // todo: rename to extract
+		this.parse = this.enabled
 
 		this.applyInheritables(parent)
 
@@ -65,11 +66,12 @@ class SubOptions extends SharedOptions {
 
 		if (userValue !== undefined) {
 			if (Array.isArray(userValue)) {
-				this.enabled = true
+				this.parse = this.enabled = true
 				if (this.canBeFiltered && userValue.length > 0)
 					this.translateTagSet(userValue, this.pick)
 			} else if (typeof userValue === 'object') {
 				this.enabled = true
+				this.parse = userValue.parse !== false
 				if (this.canBeFiltered) {
 					let {pick, skip} = userValue
 					if (pick && pick.length > 0) this.translateTagSet(pick, this.pick)
@@ -77,11 +79,12 @@ class SubOptions extends SharedOptions {
 				}
 				this.applyInheritables(userValue)
 			} else if (userValue === true || userValue === false) {
-				this.enabled = userValue
+				this.parse = this.enabled = userValue
 			} else {
 				throw customError(`Invalid options argument: ${userValue}`)
 			}
 		}
+
 	}
 
 	applyInheritables(origin) {

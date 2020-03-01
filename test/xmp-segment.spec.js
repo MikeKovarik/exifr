@@ -24,7 +24,7 @@ describe('XMP Segment', () => {
 		assert.isString(xmpParser.chunk)
 	})
 
-	describe('options.mergeOutput', () => {
+	describe('options.mergeOutput & output format', () => {
 
 		async function testOptions(title, options, assertion) {
 			if (options)
@@ -45,20 +45,19 @@ describe('XMP Segment', () => {
 		testOptions(`output.xmp is undefined`, {xmp: {extract: false}}, output => {
 			assert.isUndefined(output.xmp, `output.xmp shouldn't be extracted`)
 		})
-
+*/
 		testOptions(`output.xmp is string`, {xmp: {parse: false}}, output => {
 			assert.isString(output.xmp, `output.xmp shouldn't be parsed into object`)
+			assert.include(output.xmp, '<rdf:Description')
 		})
-*/
+
 		testOptions(`output.xmp is undefined, xmp properties are merged to top level output`, {mergeOutput: true, xmp: true}, output => {
-        	console.log('output', output)
 			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
 			for (let ns of namespaces)       assert.isString(output[ns])
 			for (let prop of randomXmpProps) assert.isDefined(output[prop])
 		})
 
 		testOptions(`output.xmp is undefined, xmp namespace objects are merged to top level output`, {mergeOutput: false, xmp: true}, output => {
-        	console.log('output', output)
 			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
 			for (let ns of namespaces)       assert.isObject(output[ns])
 			for (let prop of randomXmpProps) assert.isUndefined(output[prop])
@@ -68,7 +67,6 @@ describe('XMP Segment', () => {
 			let options = {mergeOutput: false, xmp: true}
 			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
 			let output = await exifr.parse(input, options) || {}
-            console.log('output', output)
 			assert.isUndefined(output.xmp)
 			assert.isUndefined(output.tiff)
 			// data from TIFF segment, EXIF block
@@ -89,7 +87,6 @@ describe('XMP Segment', () => {
 			let options = {mergeOutput: false, xmp: true}
 			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
 			let output = await exifr.parse(input, options) || {}
-            console.log('output', output)
 			assert.isUndefined(output.xmp)
 			// data from TIFF segment, EXIF block
 			assert.equal(output.exif.ExifImageWidth, 300)
@@ -101,7 +98,7 @@ describe('XMP Segment', () => {
 
 		it(`extracts GPano namespace from XMP`, async () => {
 			let options = {xmp: true}
-			let input = await getFile('issue-exifr-4.jpg') // TODO
+			let input = await getFile('issue-exifr-4.jpg')
 			let output = await exifr.parse(input, options) || {}
 			//assert.equal(output.GPano.ProjectionType, 'equirectangular')
 			assert.equal(output.ProjectionType, 'equirectangular')
@@ -110,104 +107,111 @@ describe('XMP Segment', () => {
 
 	})
 
-	it(`should parse XMP independenly (even if the file doesn't have TIFF)`, async () => {
-		let options = {mergeOutput: false, xmp: true, chunked: false}
-		let input = getPath('issue-exifr-4.jpg')
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+	describe(`XMP extraction from scattered TIFF`, async () => {
+
+		it(`should extract XMP from .tif file with scattered data segments when {tiff: true}`, async () => {
+			let options = {mergeOutput: false, xmp: {parse: false}, tiff: true}
+			let input = await getPath('001.tif')
+			var output = await exifr.parse(input, options)
+			assert.isString(output.xmp)
+		})
+
+		it(`should extract XMP from .tif file with scattered data segments when {tiff: false}`, async () => {
+			let options = {mergeOutput: false, xmp: {parse: false}, tiff: false}
+			let input = await getPath('001.tif')
+			var output = await exifr.parse(input, options)
+			assert.isString(output.xmp)
+		})
+
+		it(`should parse 001.tif file with scattered data segments when {xmp: true, tiff: true)`, async () => {
+			let options = {xmp: true, tiff: true}
+			let input = await getFile('001.tif')
+			var output = await exifr.parse(input, options)
+			assert.equal(output.TlinearGain, 0.04)
+			assert.equal(output.FlightPitchDegree, 6)
+		})
+
+		it(`should parse 002.tiff file with scattered data segments when {xmp: true, tiff: false)`, async () => {
+			let options = {xmp: true, tiff: false}
+			let input = await getFile('002.tiff')
+			var output = await exifr.parse(input, options)
+			assert.equal(output.BandName, "LWIR")
+			assert.equal(output.FlightRollDegree, -8.8)
+		})
+
 	})
 
-	it(`should parse .tif file with scattered data segments when {xmp: true, tiff: true)`, async () => {
-		let options = {mergeOutput: false, xmp: true, tiff: true}
-		let input = await getFile('001.tif')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+	describe(`real world files, issues and edge cases`, async () => {
 
-	it(`should parse .tif file with scattered data segments when {xmp: true, tiff: false)`, async () => {
-		let options = {mergeOutput: false, xmp: true, tiff: false}
-		let input = await getFile('001.tif')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue exifr #4 whole file`, async () => {
+			let input = await getFile('issue-exifr-4.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue exifr #4 whole file`, async () => {
-		let input = await getFile('issue-exifr-4.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue exifr #4 chunked`, async () => {
+			let input = getPath('issue-exifr-4.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue exifr #4 chunked`, async () => {
-		let input = getPath('issue-exifr-4.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue exifr #13 whole file`, async () => {
+			let input = await getFile('issue-exifr-13.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue exifr #13 whole file`, async () => {
-		let input = await getFile('issue-exifr-13.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue exifr #13 chunked`, async () => {
+			let input = getPath('issue-exifr-13.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue exifr #13 chunked`, async () => {
-		let input = getPath('issue-exifr-13.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue node-exif #58 whole file`, async () => {
+			let input = await getFile('issue-node-exif-58.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue node-exif #58 whole file`, async () => {
-		let input = await getFile('issue-node-exif-58.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
+		it(`issue node-exif #58 chunked`, async () => {
+			let input = getPath('issue-node-exif-58.jpg')
+			let options = {mergeOutput: false, xmp: true}
+			let output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
+		})
 
-	it(`issue node-exif #58 chunked`, async () => {
-		let input = getPath('issue-node-exif-58.jpg')
-		let options = {mergeOutput: false, xmp: true}
-		let output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp, `output doesn't contain xmp`)
-	})
-
-	it(`should extract XMP from .tif file with scattered data segments when {tiff: true, xmp: true}`, async () => {
-		let options = {tiff: true, xmp: true, mergeOutput: false}
-		let input = await getFile('001.tif')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp)
-	})
-
-	it(`should extract XMP from .tif file with scattered data segments when {tiff: false, xmp: true}`, async () => {
-		let options = {tiff: false, xmp: true, mergeOutput: false}
-		let input = await getFile('001.tif')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp)
 	})
 
 	// this file was buggy and did not parse properly. do not remove this test.
 
-	it(`should not be empty when the XMP string starts with '<?xpacket><rdf:RDF>'`, async () => {
-		let options = {tiff: false, xmp: true, mergeOutput: false}
-		let input = await getFile('issue-exif-js-124.tiff')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp)
-	})
+	describe(`should parse with any kind of encapsulation`, async () => {
 
-	it(`should not be empty when the XMP string starts with '<x:xmpmeta><rdf:RDF>'`, async () => {
-		let options = {tiff: false, xmp: true, mergeOutput: false}
-		let input = await getFile('cookiezen.jpg')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp)
-	})
+		it(`should not be empty when the XMP string starts with '<?xpacket><rdf:RDF>'`, async () => {
+			let options = {tiff: false, xmp: true, mergeOutput: false}
+			let input = await getFile('issue-exif-js-124.tiff')
+			var output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp)
+		})
 
-	it(`should not be empty when the XMP string starts with '<?xpacket><x:xmpmeta>'`, async () => {
-		let options = {tiff: false, xmp: true, mergeOutput: false}
-		let input = await getFile('cookiezen.jpg')
-		var output = await exifr.parse(input, options)
-		assert.isNotEmpty(output.xmp)
+		it(`should not be empty when the XMP string starts with '<x:xmpmeta><rdf:RDF>'`, async () => {
+			let options = {tiff: false, xmp: true, mergeOutput: false}
+			let input = await getFile('cookiezen.jpg')
+			var output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp)
+		})
+
+		it(`should not be empty when the XMP string starts with '<?xpacket><x:xmpmeta>'`, async () => {
+			let options = {tiff: false, xmp: true, mergeOutput: false}
+			let input = await getFile('cookiezen.jpg')
+			var output = await exifr.parse(input, options)
+			assert.isNotEmpty(output.xmp)
+		})
+
 	})
 
 
@@ -300,10 +304,10 @@ describe('XMP Segment', () => {
 			let input = await getFile('Google Cardboard (multi xmp).jpg')
 			const options = {tiff: false, xmp: true, multiSegment: true, mergeOutput: false}
 			var output = await exifr.parse(input, options)
-			assert.equal(output.xmp.GImage.Data.slice(0, 8), '/9j/4AAQ')
-			assert.equal(output.xmp.GImage.Data.slice(-8),   'C6iMzP/Z')
-			assert.equal(output.xmp.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
-			assert.equal(output.xmp.GAudio.Data.slice(-8),   'AQAAACA=')
+			assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
+			assert.equal(output.GImage.Data.slice(-8),   'C6iMzP/Z')
+			assert.equal(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
+			assert.equal(output.GAudio.Data.slice(-8),   'AQAAACA=')
 		})
 
 	})

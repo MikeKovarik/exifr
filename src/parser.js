@@ -162,7 +162,6 @@ export class AppSegmentParserBase {
 	}
 
 	assignObjectToOutput(root, key, parserOutput) {
-		console.log('assignObjectToOutput', key, parserOutput)
 		if (root[key])
 			Object.assign(root[key], parserOutput)
 		else
