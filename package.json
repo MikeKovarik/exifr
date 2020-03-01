@@ -40,6 +40,8 @@
   "devDependencies": {
     "@babel/core": "^7.6.4",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
     "@babel/preset-env": "^7.6.3",
     "aurelia-script": "^1.5.2",
     "c8": "^7.0.1",
