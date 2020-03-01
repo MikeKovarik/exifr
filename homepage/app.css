@@ -239,11 +239,9 @@ table {
 	#grid p {
 		font-size: 12px;
 	}
-	/*
 	object-table table td + td {
 		word-break: break-all;
 	}
-	*/
 	object-table table td + td {
 		min-width: 100px;
 	}

@@ -149,6 +149,16 @@ class ExifrDemoApp {
 		let exr = new exifr.Exifr(options)
 		await exr.read(input)
 		let output = await exr.parse() || {}
+		// custom handling of xmp where each namespace is separate object
+		if (exr.parsers.xmp) {
+			let namespaces = exr.parsers.xmp.parse()
+			let merged = {}
+			for (let [ns, namespace] of Object.entries(namespaces)) {
+				if (ns === 'xmlns') continue
+				Object.assign(merged, namespace)
+			}
+			output.xmp = merged
+		}
 		this.output = output
 		this.browserCompatibleFile = !!exr.file.isJpeg
 

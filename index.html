@@ -93,6 +93,7 @@
 				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;translateKeys:   <input type="checkbox" checked.bind="options.translateKeys" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;translateValues: <input type="checkbox" checked.bind="options.translateValues" change.trigger="parseFile()">,</div>
+				<div>&nbsp;&nbsp;multiSegment:    <input type="checkbox" checked.bind="options.multiSegment" change.trigger="parseFile()">,</div>
 				<!--
 				<div muted>&nbsp;&nbsp;// skip or only pick tags</div>
 				<div>&nbsp;&nbsp;pick: [<input type="text" name="pick">],</div>
@@ -117,7 +118,7 @@
 		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="iptc"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="xmp" display="string"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="xmp"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="icc"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="jfif"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="makerNote" display="buffer"></segment-box>

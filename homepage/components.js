@@ -22,33 +22,28 @@ export class SegmentBoxCustomElement {
 	get data() {
 		return this.rawOutput && this.rawOutput[this.key]
 	}
-	get keys() {
-		return this.showAll ? undefined : outputFilters[this.key]
-	}
-	get canShowMore() {
+	get hasData() {
 		return this.data !== undefined
-			&& this.key !== 'xmp'
 	}
 	// overcome aurelia's bugs
 	optionsChanged(newValue) {this.options = newValue}
 	outputChanged(newValue) {this.rawOutput = newValue}
-	keysChanged(newValue) {this.keys = newValue}
 }
 
 const segmentBoxTemplate = `
 	<div class.bind="options[key] ? '' : 'disabled'">
 		<h3>
 			\${title || key}
-			<span click.trigger="showAll = !showAll" show.bind="canShowMore">
+			<span click.trigger="showAll = !showAll" show.bind="hasData">
 				\${showAll ? 'Show less' : 'Show all'}
 			</span>
 		</h3>
-		<template if.bind="data !== undefined">
-			<object-table if.bind="display === 'table'" object.bind="data" keys.bind="keys"></object-table>
+		<template if.bind="hasData">
+			<object-table if.bind="display === 'table'" object.bind="data" show-all.bind="showAll" key.bind="key"></object-table>
 			<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
 			<pre if.bind="display === 'string'">\${data | charLimit:showAll}</pre>
 		</template>
-		<span if.bind="data === undefined" class="small">
+		<span if.bind="!hasData" class="small">
 			\${options[key] ? "File doesn't contain" : 'Not parsing'} \${alias || key}
 		</span>
 	</div>
@@ -61,23 +56,28 @@ decorate(SegmentBoxCustomElement, 'display', au.bindable)
 decorate(SegmentBoxCustomElement, 'key', au.bindable)
 decorate(SegmentBoxCustomElement, 'title', au.bindable)
 decorate(SegmentBoxCustomElement, 'alias', au.bindable)
-decorate(SegmentBoxCustomElement, 'keys', au.computedFrom('key', 'showAll'))
 decorate(SegmentBoxCustomElement, 'data', au.computedFrom('key', 'output'))
-decorate(SegmentBoxCustomElement, 'canShowMore', au.computedFrom('data', 'key'))
+decorate(SegmentBoxCustomElement, 'hasData', au.computedFrom('data'))
 
 
 
 export class ObjectTableCustomElement {
 	get map() {
-		if (!this.object) return new Map
-		if (this.keys)
-			return new Map(this.keys.map(key => [key, this.object[key]]))
-		else
-			return new Map(Object.entries(this.object))
+		return new Map(this.filterObject())
+	}
+	filterObject() {
+		if (!this.object) return []
+		if (this.showAll) {
+			return Object.entries(this.object)
+		} else {
+			let keys = outputFilters[this.key] || Object.keys(this.object).slice(0, 10)
+			return keys.map(key => [key, this.object[key]])
+		}
 	}
 	// overcome aurelia's bugs
 	objectChanged(newValue) {this.object = newValue}
-	keysChanged(newValue) {this.keys = newValue}
+	keyChanged(newValue) {this.key = newValue}
+	showAllChanged(newValue) {this.showAll = newValue}
 }
 
 var objectTableTemplate = `
@@ -91,5 +91,6 @@ var objectTableTemplate = `
 
 decorate(ObjectTableCustomElement, au.inlineView(`<template>${objectTableTemplate}</template>`))
 decorate(ObjectTableCustomElement, 'object', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
-decorate(ObjectTableCustomElement, 'keys', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
-decorate(ObjectTableCustomElement, 'map', au.computedFrom('object', 'keys'))
+decorate(ObjectTableCustomElement, 'key', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
+decorate(ObjectTableCustomElement, 'showAll', au.bindable({defaultBindingMode: au.bindingMode.twoWay}))
+decorate(ObjectTableCustomElement, 'map', au.computedFrom('object', 'showAll'))
