@@ -2,15 +2,14 @@ import * as exifr from '../src/bundle-full.js'
 import {promises as fs} from 'fs'
 
 
-// This is how you can do these filters and perf improvements yourself.
-parse()
-async function parse() {
+(async function() {
 	let options = {
 		// We don't need TIFF, not thumbnail, so skip this
-		tiff: true,
+		tiff: false,
 		// Depth map is stred in XMP Extended segment (not the main one).
 		xmp: true,
 		multiSegment: true,
+		mergeOutput: false,
 	}
 	let output = await exifr.parse('../test/fixtures/xmp depth map.jpg', options)
 	if (output && output.GDepth) {
@@ -41,4 +40,4 @@ async function parse() {
 	} else {
 		console.log('the file has no depth map')
 	}
-}
+})()
