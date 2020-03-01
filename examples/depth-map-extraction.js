@@ -12,7 +12,7 @@ async function parse() {
 		xmp: true,
 		multiSegment: true,
 	}
-	let output = await exifr.parse('../test/fixtures/with deth map.jpg', options)
+	let output = await exifr.parse('../test/fixtures/xmp depth map.jpg', options)
 	if (output && output.GDepth) {
 		console.log('File image contains depth map')
 		console.log('GDepth.Format', output.GDepth.Format)
@@ -25,19 +25,20 @@ async function parse() {
 		let ext = output.GDepth.Mime.split('/').pop()
 		let fileName = 'depth-map.' + ext
 		fs.writeFile(fileName, buffer)
+		// besides depth map, there can be original image with no blurring applied.
+		if (output && output.GImage) {
+			// NOTE: GImage can be also used for "the other eye" in VR photos
+			console.log('File image contains unmodified original photo')
+			console.log('GImage.Mime', output.GImage.Mime)
+			let base64 = output.GImage.Data
+			let buffer = Buffer.from(base64, 'base64')
+			let ext = output.GImage.Mime.split('/').pop()
+			let fileName = 'depth-original.' + ext
+			fs.writeFile(fileName, buffer)
+		} else {
+			console.log(`the file doesn't contain unmodified image`)
+		}
 	} else {
 		console.log('the file has no depth map')
-	}
-	// besides depth map, there can be original image with no blurring applied.
-	if (output && output.GImage) {
-		console.log('File image contains unmodified original photo')
-		console.log('GImage.Mime', output.GImage.Mime)
-		let base64 = output.GImage.Data
-		let buffer = Buffer.from(base64, 'base64')
-		let ext = output.GImage.Mime.split('/').pop()
-		let fileName = 'depth-original.' + ext
-		fs.writeFile(fileName, buffer)
-	} else {
-		console.log(`the file doesn't contain unmodified image`)
 	}
 }

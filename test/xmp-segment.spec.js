@@ -219,7 +219,7 @@ describe('XMP Segment', () => {
 
 		const options = {tiff: false, xmp: true, multiSegment: true}
 		let input
-		before(async () => input = await getFile('Google Cardboard (multi xmp).jpg'))
+		before(async () => input = await getFile('xmp - multisegment pano with vr.jpg'))
 
 		it(`main chunk is extracted`, async () => {
 			let exr = new Exifr(options)
@@ -301,7 +301,7 @@ describe('XMP Segment', () => {
 		})
 
 		it(`XMP Extended is parsed from file`, async () => {
-			let input = await getFile('Google Cardboard (multi xmp).jpg')
+			let input = await getFile('xmp - multisegment pano with vr.jpg')
 			const options = {tiff: false, xmp: true, multiSegment: true, mergeOutput: false}
 			var output = await exifr.parse(input, options)
 			assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')

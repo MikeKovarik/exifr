@@ -39,6 +39,14 @@ export default class XmpParser extends AppSegmentParserBase {
 	static findPosition(chunk, offset) {
 		let seg = super.findPosition(chunk, offset)
 		seg.extended = seg.headerLength === XMP_EXTENDED_DATA_OFFSET
+		if (seg.extended) {
+			//seg.multiSegment = seg.extended // TODO
+			seg.chunkCount   = chunk.getUint8(offset + 72)
+			seg.chunkNumber  = chunk.getUint8(offset + 76)
+			// first and second chunk both have 0 as the chunk number.
+			// the true first chunk (the one with <x:xmpme) has zeroes in the last two bytes of the chunk header.
+			if (chunk.getUint8(offset + 77) !== 0) seg.chunkNumber++
+		}
 		return seg
 	}
 
@@ -73,34 +81,21 @@ export default class XmpParser extends AppSegmentParserBase {
 		let tags = XmlTag.findAll(xmpString, 'rdf', 'Description')
 		if (tags.length === 0)
 			tags.push(new XmlTag('rdf', 'Description', undefined, xmpString))
-		if (this.localOptions.mergeOutput) {
-			// WARNING: this is local XMP setting (options.xmp.mergeOuput), not the global one (options.mergeOuput)
-			// TODO: maybe remove this output format alltogether
-			let outputs = tags.map(tag => tag.serialize())
-			if (outputs.length === 1)
-				return undefinedIfEmpty(outputs[0])
-			else
-				return undefinedIfEmpty(Object.assign(...outputs))
-		} else {
-			let xmp = {}
-			let namespace
-			for (let tag of tags) {
-				for (let prop of tag.properties) {
-					namespace = getNamespace(prop.ns, xmp)
-					assignToObject(prop, namespace)
-				}
+		let xmp = {}
+		let namespace
+		for (let tag of tags) {
+			for (let prop of tag.properties) {
+				namespace = getNamespace(prop.ns, xmp)
+				assignToObject(prop, namespace)
 			}
-			return pruneObject(xmp)
 		}
+		return pruneObject(xmp)
 	}
 
 	assignToOutput(root, xmp) {
 		if (!this.localOptions.parse) {
 			// xmp is not parsed, we include the string into output as is
 			root.xmp = xmp
-		} else if (this.globalOptions.mergeOutput) {
-			// xmp contains only properties
-			Object.assign(root, xmp)
 		} else {
 			// properties are grouped into separate namespace objects
 			// XMP TIFF namespace is merged into IFD0 block of TIFF segment

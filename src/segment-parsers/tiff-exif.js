@@ -386,7 +386,7 @@ export class TiffExif extends TiffCore {
 	get thumbnail() {return this.ifd1}
 
 	createOutput() {
-		let output = {}
+		let tiff = {}
 		let block, blockKey, blockOutput
 		for (blockKey of tiffBlocks) {
 			block = this[blockKey]
@@ -398,14 +398,14 @@ export class TiffExif extends TiffCore {
 			if (this.options.mergeOutput) {
 				// NOTE: Not assigning thumbnail because it contains the same tags as ifd0.
 				if (blockKey === 'ifd1') continue
-				Object.assign(output, blockOutput)
+				Object.assign(tiff, blockOutput)
 			} else {
-				output[blockKey] = blockOutput
+				tiff[blockKey] = blockOutput
 			}
 		}
-		if (this.makerNote)   output.makerNote   = this.makerNote
-		if (this.userComment) output.userComment = this.userComment
-		return output
+		if (this.makerNote)   tiff.makerNote   = this.makerNote
+		if (this.userComment) tiff.userComment = this.userComment
+		return tiff
 	}
 
 	assignToOutput(root, tiff) {
