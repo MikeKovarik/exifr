@@ -58,8 +58,7 @@ export default class XmpParser extends AppSegmentParserBase {
 		//return typeof input === 'string' ? input : input.getString()
 		return typeof input === 'string'
 			? input
-			: input.getString?.()
-			?? input.toString?.()
+			: input.getString && input.getString()
 	}
 
 	// warning: The content may or may not be wrapped into <?xpacket.

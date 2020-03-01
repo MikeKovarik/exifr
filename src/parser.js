@@ -106,7 +106,7 @@ export class AppSegmentParserBase {
 		this.type = this.constructor.type
 		this.globalOptions = this.options = options // todo: rename to fileOptions ???
 		this.localOptions = options[this.type] // todo: rename to this.options
-		this.canTranslate = this.localOptions?.translate
+		this.canTranslate = this.localOptions && this.localOptions.translate
 	}
 
 	// can be overriden by parses (namely TIFF) that inherits from this base class.
