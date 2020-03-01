@@ -1,0 +1,68 @@
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about=""
+        xmlns:xmpNote="http://ns.adobe.com/xmp/note/"
+        xmlns:GCreations="http://ns.google.com/photos/1.0/creations/"
+        xmlns:GCamera="http://ns.google.com/photos/1.0/camera/"
+      xmpNote:HasExtendedXMP="979057752e0037ac7836c599dc5e004a"
+      GCreations:CameraBurstID="3e972be5-3033-4f33-a532-fe90384f280a"
+      GCamera:BurstID="3e972be5-3033-4f33-a532-fe90384f280a"
+      GCamera:BurstPrimary="1">
+      <GCamera:SpecialTypeID>
+        <rdf:Bag>
+          <rdf:li>com.google.android.apps.camera.gallery.specialtype.SpecialType-PORTRAIT</rdf:li>
+        </rdf:Bag>
+      </GCamera:SpecialTypeID>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>
+
+
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:Profile="http://ns.google.com/photos/dd/1.0/profile/" xmlns:Item="http://ns.google.com/photos/dd/1.0/item/" xmlns:Camera="http://ns.google.com/photos/dd/1.0/camera/" xmlns:Device="http://ns.google.com/photos/dd/1.0/device/" xmlns:Image="http://ns.google.com/photos/dd/1.0/image/" xmlns:DepthMap="http://ns.google.com/photos/dd/1.0/depthmap/" xmlns:ImagingModel="http://ns.google.com/photos/dd/1.0/imagingmodel/" xmlns:Container="http://ns.google.com/photos/dd/1.0/container/" rdf:about="">
+      <Device:Container rdf:parseType="Resource">
+        <Container:Directory>
+          <rdf:Seq>
+            <rdf:li>
+              <Container:Item Item:Mime="image/jpeg" Item:Length="0" Item:DataURI="primary_image"/>
+            </rdf:li>
+            <rdf:li>
+              <Container:Item Item:Mime="image/jpeg" Item:Length="2420326" Item:DataURI="android/original_image"/>
+            </rdf:li>
+            <rdf:li>
+              <Container:Item Item:Mime="image/jpeg" Item:Length="135047" Item:DataURI="android/depthmap"/>
+            </rdf:li>
+            <rdf:li>
+              <Container:Item Item:Mime="image/jpeg" Item:Length="96395" Item:DataURI="android/confidencemap"/>
+            </rdf:li>
+          </rdf:Seq>
+        </Container:Directory>
+      </Device:Container>
+      <Device:Profiles>
+        <rdf:Seq>
+          <rdf:li>
+            <Device:Profile Profile:Type="DepthPhoto">
+              <Profile:CameraIndices>
+                <rdf:Seq>
+                  <rdf:li>0</rdf:li>
+                </rdf:Seq>
+              </Profile:CameraIndices>
+            </Device:Profile>
+          </rdf:li>
+        </rdf:Seq>
+      </Device:Profiles>
+      <Device:Cameras>
+        <rdf:Seq>
+          <rdf:li>
+            <Device:Camera Camera:Trait="Physical">
+              <Camera:Image Image:ItemSemantic="Original" Image:ItemURI="android/original_image"/>
+              <Camera:DepthMap DepthMap:ItemSemantic="Segmentation" DepthMap:Format="RangeLinear" DepthMap:Units="None" DepthMap:Near="0.300000" DepthMap:Far="8.000000" DepthMap:DepthURI="android/depthmap" DepthMap:MeasureType="OpticalAxis" DepthMap:ConfidenceURI="android/confidencemap" DepthMap:FocalTableEntryCount="2" DepthMap:FocalTable="mpmZPgAAAAAAAABBAABAQQ"/>
+              <Camera:ImagingModel ImagingModel:FocalLengthX="1812.500000" ImagingModel:FocalLengthY="1812.500000" ImagingModel:ImageWidth="3264" ImagingModel:ImageHeight="2448" ImagingModel:PrincipalPointX="1643.292236" ImagingModel:PrincipalPointY="1232.100342" ImagingModel:Skew="0.000000" ImagingModel:PixelAspectRatio="1.000000" ImagingModel:DistortionCount="4" ImagingModel:Distortion="AACAP3Vz8bhHbbC8QhxTtdHNTz0AAAAAWEacvQAAAAA"/>
+            </Device:Camera>
+          </rdf:li>
+        </rdf:Seq>
+      </Device:Cameras>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>

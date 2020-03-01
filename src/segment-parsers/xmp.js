@@ -223,7 +223,12 @@ export class XmlTag {
 			&& (name === 'Seq' || name === 'Bag' || name === 'Alt')
 	}
 
+	get isListItem() {
+		return this.ns === 'rdf' && this.name === 'li'
+	}
+
 	serialize() {
+		//console.log('serialize', this.ns, this.name, this.attrs.length, this.children.length)
 		// invalid and undefined
 		if (this.properties.length === 0 && this.value === undefined)
 			return undefined
@@ -236,6 +241,9 @@ export class XmlTag {
 		// list tag itself <rdf:Seq>...</rdf:Seq>
 		if (this.isList)
 			return unwrapArray(this.children.map(serialize))
+		// sometimes <rdf:li> may have a single object-tag child. We need that object returned.
+		if (this.isListItem && this.children.length === 1 && this.attrs.length === 0)
+			return this.children[0].serialize()
 		// process attributes and children tags into object
 		let output = {}
 		for (let prop of this.properties)

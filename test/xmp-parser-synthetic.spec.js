@@ -5,8 +5,6 @@ import {XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp.js'
 
 const VALUE_PROP = 'value'
 
-const GROUP_OPTIONS = {mergeOutput: false}
-
 // TODO: test - undefine is not in object at all (rdf:about="")
 
 describe('XmpParser - synthetic tests', () => {
@@ -603,7 +601,31 @@ describe('XmpParser - synthetic tests', () => {
 				assert.lengthOf(matches, 0)
 			})
 		})
+/*
+		// syntax that used to be problemati
+		describe('complex', () => {
 
+			it('nestes lists', () => {
+				let [tag] = XmlTag.findAll(`
+					<rdf:li>
+						<Device:Profile Profile:Type="DepthPhoto">
+							<Profile:CameraIndices>
+								<rdf:Seq>
+									<rdf:li>0</rdf:li>
+								</rdf:Seq>
+							</Profile:CameraIndices>
+						</Device:Profile>
+					</rdf:li>
+				`)
+				assert.equal(tag.ns, 'rdf')
+				assert.equal(tag.name, 'li')
+				assert.lengtOf(tag.children, 1)
+				assert.equal(tag.children[0].ns, 'Device')
+				assert.equal(tag.children[0].name, 'Profile')
+			})
+
+		})
+*/
 	})
 
 
@@ -1102,6 +1124,36 @@ describe('XmpParser - synthetic tests', () => {
 				assert.hasAllKeys(serialized.arrayOfObjects[1], ['objFloat', 'objBool'])
 			})
 
+			// very oppinionated
+			it('array with single property of object', () => {
+				let [tag] = XmlTag.findAll(`
+					<Container:Directory>
+						<rdf:Seq>
+						<rdf:li>
+							<Container:Item Item:Mime="image/jpeg" Item:Length="0" Item:DataURI="primary_image"/>
+						</rdf:li>
+						<rdf:li>
+							<Container:Item Item:Mime="image/jpeg" Item:Length="2420326" Item:DataURI="android/original_image"/>
+						</rdf:li>
+						<rdf:li>
+							<Container:Item Item:Mime="image/jpeg" Item:Length="135047" Item:DataURI="android/depthmap"/>
+						</rdf:li>
+						<rdf:li>
+							<Container:Item Item:Mime="image/jpeg" Item:Length="96395" Item:DataURI="android/confidencemap"/>
+						</rdf:li>
+						</rdf:Seq>
+					</Container:Directory>
+				`)
+				let serialized = tag.serialize()
+				assert.lengthOf(serialized, 4)
+				assert.isObject(serialized[0])
+				assert.isUndefined(serialized[0].Item)
+				assert.isUndefined(serialized[0].Item)
+				assert.equal(serialized[0].Mime, 'image/jpeg')
+				assert.equal(serialized[0].Length, 0)
+				assert.equal(serialized[0].DataURI, 'primary_image')
+			})
+
 		})
 
 		describe('stress-tests', () => {
@@ -1481,7 +1533,7 @@ describe('XmpParser - synthetic tests', () => {
 						</dc:creator>
 					</rdf:Description>
 				`
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				let output = XmpParser.parse(code)
 				assert.containsAllKeys(output, ['xmlns', 'dc'])
 				assert.equal(output.xmlns.dc, 'http://purl.org/dc/elements/1.1/')
 				assert.containsAllKeys(output.dc, ['format', 'title', 'creator'])
@@ -1498,7 +1550,7 @@ describe('XmpParser - synthetic tests', () => {
 						<xapMM:InstanceID>uuid:1a365cee-e070-4b52-8278-db5e46b20a4c</xapMM:InstanceID>
 					</rdf:Description>
 				`
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				let output = XmpParser.parse(code)
 				assert.containsAllKeys(output, ['xmlns', 'xapMM'])
 				assert.equal(output.xmlns.xapMM, 'http://ns.adobe.com/xap/1.0/mm/')
 				assert.containsAllKeys(output.xapMM, ['DocumentID', 'InstanceID'])
@@ -1730,7 +1782,7 @@ describe('XmpParser - synthetic tests', () => {
 			`
 
 			it('all tags are parsed and grouped by namespace when {mergeOutput: false}', () => {
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				let output = XmpParser.parse(code)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.containsAllKeys(output, ['tiff', 'aux', 'crs'])
 				assert.equal(output.tiff.Make, 'Canon')
@@ -1742,7 +1794,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('xmlns meta tags are stored in output.xmlns when {mergeOutput: false}', () => {
-				let output = XmpParser.parse(code, GROUP_OPTIONS)
+				let output = XmpParser.parse(code)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.isObject(output.xmlns)
 				assert.isString(output.xmlns.tiff)

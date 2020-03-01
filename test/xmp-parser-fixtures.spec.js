@@ -3,8 +3,6 @@ import XmpParser from '../src/segment-parsers/xmp.js'
 import {BufferView} from '../src/util/BufferView.js'
 
 
-const GROUP_OPTIONS = {mergeOutput: false}
-
 describe('XmpParser - real world cases', () => {
 
     async function getString(name) {
@@ -16,7 +14,7 @@ describe('XmpParser - real world cases', () => {
     it('xmp-MunchSP1919.xml', async () => {
 
 		let code = await getString('xmp-MunchSP1919.xml')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		let namespaces = ['Iptc4xmpCore', 'MicrosoftPhoto', 'aux', 'crs', 'dc', 'exif', 'mediapro', 'photoshop', 'tiff', 'xmp', 'xmpMM']
 		assert.containsAllKeys(output, namespaces)
 		assert.deepEqual(output.aux, {
@@ -63,7 +61,7 @@ describe('XmpParser - real world cases', () => {
 
         it('xmp-gpano-main.xml', async () => {
 			let code = await getString('xmp-gpano-main.xml')
-			let output = XmpParser.parse(code, GROUP_OPTIONS)
+			let output = XmpParser.parse(code)
 			assert.deepEqual(output.xmlns, {
 				GPano: 'http://ns.google.com/photos/1.0/panorama/',
 				GImage: 'http://ns.google.com/photos/1.0/image/',
@@ -92,7 +90,7 @@ describe('XmpParser - real world cases', () => {
 
         it('xmp-gpano-ext.xml', async () => {
 			let code = await getString('xmp-gpano-ext.xml')
-			let output = XmpParser.parse(code, GROUP_OPTIONS)
+			let output = XmpParser.parse(code)
 			assert.isObject(output.xmlns)
 			assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
 			assert.equal(output.GImage.Data.slice(-8),   'C6iMzP/Z')
@@ -102,7 +100,7 @@ describe('XmpParser - real world cases', () => {
 
         it('synthetically combined', async () => {
 			let code = await getString('xmp-gpano-main.xml') + await getString('xmp-gpano-ext.xml')
-			let output = XmpParser.parse(code, GROUP_OPTIONS)
+			let output = XmpParser.parse(code)
 			assert.deepEqual(output.xmlns, {
 				GPano: 'http://ns.google.com/photos/1.0/panorama/',
 				GImage: 'http://ns.google.com/photos/1.0/image/',
@@ -124,7 +122,7 @@ describe('XmpParser - real world cases', () => {
 
     it('xmp1.xml', async () => {
 		let code = await getString('xmp1.xml')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		assert.equal(output.rdf.about, 'DJI Meta Data')
 		assert.equal(output['drone-dji'].AbsoluteAltitude, -8.074252)
 		assert.equal(output['drone-dji'].GimbalYawDegree, -115.300003)
@@ -138,7 +136,7 @@ describe('XmpParser - real world cases', () => {
 
     it('xmp2.xml', async () => {
 		let code = await getString('xmp2.xml')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		// defined and used namespaces
 		assert.isObject(output.tiff)
 		assert.isObject(output.xmp)
@@ -164,7 +162,7 @@ describe('XmpParser - real world cases', () => {
 
     it('cookiezen.xmp', async () => {
 		let code = await getString('cookiezen.xmp')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		// namespace definitions
 		assert.deepEqual(output.xmlns, {
 			xmpMM: 'http://ns.adobe.com/xap/1.0/mm/',
@@ -186,7 +184,7 @@ describe('XmpParser - real world cases', () => {
 
     it('xmp4.xml', async () => {
 		let code = await getString('xmp4.xml')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		assert.equal(output.xmp.CreateDate, '2017-05-06T15:24:07.63')
 		assert.equal(output.aux.ApproximateFocusDistance, '168/100')
 		assert.equal(output.crs.Sharpness, 25)
@@ -198,12 +196,40 @@ describe('XmpParser - real world cases', () => {
 
     it('xmp-random.xml', async () => {
 		let code = await getString('xmp-random.xml')
-		let output = XmpParser.parse(code, GROUP_OPTIONS)
+		let output = XmpParser.parse(code)
 		assert.deepEqual(output.dc.title, {
 			lang: 'x-default',
 			value: 'XMP Specification Part 3: Storage in Files',
 		})
 		assert.equal(output.dc.creator, 'Adobe Developer Technologies')
     })
+
+/*
+// WARNING: UNFINISHED, INCOMPLETE, INCORRECT
+    it('xmp-gcam-portrait.xml', async () => {
+		let code = await getString('xmp-gcam-portrait.xml')
+		let output = XmpParser.parse(code)
+        console.log('output', output)
+		// main xmp
+		assert.equal(output.GCamera.BurstID, '3e972be5-3033-4f33-a532-fe90384f280a')
+		assert.equal(output.GCamera.BurstPrimary, 1)
+		// extended xmp
+        console.log('output.Device.Container.Directory', output.Device.Container.Directory)
+		assert.equal(output.Device.Container.parseType, 'Resource')
+		assert.lengthOf(output.Device.Container.Directory, 4)
+		assert.equal(output.Device.Container.Directory[1].Mime, 'image/jpeg')
+		assert.equal(output.Device.Container.Directory[3].Length, 96395)
+        console.log('output.Device.Profiles', output.Device.Profiles)
+		//assert.lengthOf(output.Device.Profiles, 'Resource')
+		// array with single item become the sole object of the property
+		assert.isObject(output.Device.Profiles)
+		assert.isObject(output.Device.Cameras)
+		assert.equal(output.Device.Cameras.Image.ItemURI, 'android/original_image')
+		assert.equal(output.Device.Cameras.DepthMap.Near, 0.3)
+		assert.equal(output.Device.Cameras.DepthMap.FocalTable, 'mpmZPgAAAAAAAABBAABAQQ')
+		assert.equal(output.Device.Cameras.ImagingModel.ImageWidth, 3264)
+		assert.equal(output.Device.Cameras.ImagingModel.PrincipalPointY, 1232.100342)
+    })
+*/
 
 })
