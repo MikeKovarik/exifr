@@ -27,7 +27,11 @@ describe('XMP Segment', () => {
 	describe('options.mergeOutput', () => {
 
 		async function testOptions(title, options, assertion) {
-			it(`${title} when ${JSON.stringify(options)}`, async () => {
+			if (options)
+				title += ' when ' + JSON.stringify(options)
+			else
+				title += ' by default'
+			it(title, async () => {
 				let input = await getFile('BonTonARTSTORplusIPTC.jpg')
 				let output = await exifr.parse(input, options) || {}
 				assertion(output)
@@ -37,7 +41,7 @@ describe('XMP Segment', () => {
 		const namespaces = ['xap', 'xapMM', 'dc', 'photoshop', 'Iptc4xmpCore']
 		const randomXmpProps = ['NativeDigest', 'DocumentID', 'ARTstorClassification', 'CreatorContactInfo']
 /*
-// TODO: rename segment.enabled to segment.extract and segment.parse
+		// TODO: rename segment.enabled to segment.extract and segment.parse
 		testOptions(`output.xmp is undefined`, {xmp: {extract: false}}, output => {
 			assert.isUndefined(output.xmp, `output.xmp shouldn't be extracted`)
 		})
@@ -46,34 +50,25 @@ describe('XMP Segment', () => {
 			assert.isString(output.xmp, `output.xmp shouldn't be parsed into object`)
 		})
 */
-		testOptions(`output.xmp is object with namespace objects`, {mergeOutput: false, xmp: {mergeOutput: false}}, output => {
-			assert.isObject(output.xmp, `output.xmp should be object`)
-			for (let ns of namespaces)       assert.isObject(output.xmp[ns])
-			for (let prop of randomXmpProps) assert.isUndefined(output.xmp[prop])
-		})
-
-		testOptions(`output.xmp is object with properties`, {mergeOutput: false, xmp: {mergeOutput: true}}, output => {
-			assert.isObject(output.xmp, `output.xmp should be object`)
-			for (let ns of namespaces)       assert.isString(output.xmp[ns])
-			for (let prop of randomXmpProps) assert.isDefined(output.xmp[prop])
-		})
-
-		testOptions(`output.xmp is undefined, xmp namespace objects are merged to top level output`, {mergeOutput: true, xmp: {mergeOutput: false}}, output => {
-			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
-			for (let ns of namespaces)       assert.isObject(output[ns])
-			for (let prop of randomXmpProps) assert.isUndefined(output[prop])
-		})
-
-		testOptions(`output.xmp is undefined, xmp properties are merged to top level output`, {mergeOutput: true, xmp: {mergeOutput: true}}, output => {
+		testOptions(`output.xmp is undefined, xmp properties are merged to top level output`, {mergeOutput: true, xmp: true}, output => {
+        	console.log('output', output)
 			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
 			for (let ns of namespaces)       assert.isString(output[ns])
 			for (let prop of randomXmpProps) assert.isDefined(output[prop])
 		})
 
-		it(`TIFF namespace from XMP is integrated into IFD0`, async () => {
+		testOptions(`output.xmp is undefined, xmp namespace objects are merged to top level output`, {mergeOutput: false, xmp: true}, output => {
+        	console.log('output', output)
+			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
+			for (let ns of namespaces)       assert.isObject(output[ns])
+			for (let prop of randomXmpProps) assert.isUndefined(output[prop])
+		})
+
+		it(`XMP TIFF namespace is integrated into IFD0`, async () => {
 			let options = {mergeOutput: false, xmp: true}
 			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
 			let output = await exifr.parse(input, options) || {}
+            console.log('output', output)
 			assert.isUndefined(output.xmp)
 			assert.isUndefined(output.tiff)
 			// data from TIFF segment, EXIF block
@@ -90,10 +85,11 @@ describe('XMP Segment', () => {
 			// TODO: not important right now but should figure out the processing at some point.
 		})
 
-		it(`EXIF namespace from XMP is integrated into EXIF block from TIFF segment`, async () => {
+		it(`XMP EXIF namespace is integrated into EXIF block from TIFF segment`, async () => {
 			let options = {mergeOutput: false, xmp: true}
 			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
 			let output = await exifr.parse(input, options) || {}
+            console.log('output', output)
 			assert.isUndefined(output.xmp)
 			// data from TIFF segment, EXIF block
 			assert.equal(output.exif.ExifImageWidth, 300)

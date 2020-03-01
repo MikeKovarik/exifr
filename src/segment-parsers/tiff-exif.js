@@ -204,7 +204,6 @@ APP1 CONTENT
 export class TiffExif extends TiffCore {
 
 	static type = 'tiff'
-	static mergeOutput = true
 	static headerLength = 10
 
 	// .tif files do no have any APPn segments. and usually start right with TIFF header
@@ -407,6 +406,17 @@ export class TiffExif extends TiffCore {
 		if (this.makerNote)   output.makerNote   = this.makerNote
 		if (this.userComment) output.userComment = this.userComment
 		return output
+	}
+
+	assignToOutput(root, tiff) {
+		console.log('assignToOutput TIFF', this.globalOptions.mergeOutput, tiff)
+		if (this.globalOptions.mergeOutput) {
+			// xmp contains only properties
+			Object.assign(root, tiff)
+		} else {
+			for (let [blockKey, block] of Object.entries(tiff))
+				this.assignObjectToOutput(root, blockKey, block)
+		}
 	}
 
 }

@@ -63,8 +63,6 @@ export class AppSegmentParserBase {
 	static headerLength = 4
 	// name. Couldn't use static name property because it is used by contructor name
 	static type = undefined
-	// output is merged into library output or is assigned with parser id
-	static mergeOutput = false
 	// The data may span multiple APP segments.
 	static multiSegment = false
 
@@ -156,6 +154,19 @@ export class AppSegmentParserBase {
 			this.errors.push(error.message)
 		else
 			throw error
+	}
+
+	assignToOutput(root, parserOutput) {
+		console.log('assignObjectToOutput GENERAL')
+		this.assignObjectToOutput(root, this.constructor.type, parserOutput)
+	}
+
+	assignObjectToOutput(root, key, parserOutput) {
+		console.log('assignObjectToOutput', key, parserOutput)
+		if (root[key])
+			Object.assign(root[key], parserOutput)
+		else
+			root[key] = parserOutput
 	}
 
 }

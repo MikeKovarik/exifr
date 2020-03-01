@@ -72,22 +72,49 @@ export default class XmpParser extends AppSegmentParserBase {
 		let tags = XmlTag.findAll(xmpString, 'rdf', 'Description')
 		if (tags.length === 0)
 			tags.push(new XmlTag('rdf', 'Description', undefined, xmpString))
-		if (this.localOptions.mergeOutput !== true) {
-			let root = {}
-			let namespace
-			for (let tag of tags) {
-				for (let prop of tag.properties) {
-					namespace = getNamespace(prop.ns, root)
-					assignToObject(prop, namespace)
-				}
-			}
-			return pruneObject(root)
-		} else {
+		if (this.localOptions.mergeOutput) {
+			// WARNING: this is local XMP setting (options.xmp.mergeOuput), not the global one (options.mergeOuput)
+			// TODO: maybe remove this output format alltogether
 			let outputs = tags.map(tag => tag.serialize())
 			if (outputs.length === 1)
 				return undefinedIfEmpty(outputs[0])
 			else
 				return undefinedIfEmpty(Object.assign(...outputs))
+		} else {
+			let xmp = {}
+			let namespace
+			for (let tag of tags) {
+				for (let prop of tag.properties) {
+					namespace = getNamespace(prop.ns, xmp)
+					assignToObject(prop, namespace)
+				}
+			}
+			return pruneObject(xmp)
+		}
+	}
+
+	assignToOutput(root, xmp) {
+		if (this.globalOptions.mergeOutput) {
+			// xmp contains only properties
+			Object.assign(root, xmp)
+		} else {
+			// properties are grouped into separate namespace objects
+			// XMP TIFF namespace is merged into IFD0 block of TIFF segment
+			// XMP EXIF namespace is merged into EXIF block of TIFF segment
+			// All other namespaces are assigned
+			for (let [ns, nsObject] of Object.entries(xmp)) {
+				switch (ns) {
+					case 'tiff':
+						this.assignObjectToOutput(root, 'ifd0', nsObject)
+						break
+					case 'exif':
+						this.assignObjectToOutput(root, 'exif', nsObject)
+						break
+					default:
+						this.assignObjectToOutput(root, ns, nsObject)
+						break
+				}
+			}
 		}
 	}
 

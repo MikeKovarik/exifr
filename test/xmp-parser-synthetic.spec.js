@@ -1724,7 +1724,6 @@ describe('XmpParser - synthetic tests', () => {
 
 			it('each attr is stored in separate namespace when {mergeOutput: false}', () => {
 				let output = XmpParser.parse(code, GROUP_OPTIONS)
-                console.log('-: output', output)
 				assert.equal(output.GImage.Data, '/9j/4AAQ')
 				assert.equal(output.GAudio.Data, 'AAAAGGZ0')
 			})
