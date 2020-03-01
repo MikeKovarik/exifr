@@ -83,7 +83,6 @@ describe('XmpParser - real world cases', () => {
             it('merged', async () => {
                 let code = await getString('xmp-gpano-main.xml')
                 let output = XmpParser.parse(code)
-                console.log('-: output', output)
                 assert.deepEqual(output, {
                     GPano: 'http://ns.google.com/photos/1.0/panorama/',
                     GImage: 'http://ns.google.com/photos/1.0/image/',
@@ -104,8 +103,6 @@ describe('XmpParser - real world cases', () => {
             it('grouped', async () => {
                 let code = await getString('xmp-gpano-main.xml')
                 let output = XmpParser.parse(code, GROUP_OPTIONS)
-                console.log('-: GROUP_OPTIONS', GROUP_OPTIONS)
-                console.log('-: output', output)
                 assert.deepEqual(output.xmlns, {
                     GPano: 'http://ns.google.com/photos/1.0/panorama/',
                     GImage: 'http://ns.google.com/photos/1.0/image/',

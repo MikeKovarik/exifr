@@ -509,10 +509,11 @@ describe('ChunkedReader', () => {
 
 			if (segKeys) {
 
-				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
+				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')} (chunked)`, async () => {
 					let input = await getPath(fileName)
 					let options = {chunked: true, mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
+					if (options.xmp) options.xmp = {parse: false} // exception for the way XMP parser works with namespaces
 					let exr = new Exifr(options)
 					await exr.read(input)
 					let output = await exr.parse()
@@ -521,15 +522,15 @@ describe('ChunkedReader', () => {
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})
 
-				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')}`, async () => {
-					let input = await getPath(fileName)
-					//let input = await getFile(fileName)
+				// test to compare with
+				it(`reads fixture ${fileName} with specific segments: ${segKeys.join(', ')} (whole file)`, async () => {
+					let input = await getFile(fileName)
 					let options = {mergeOutput: false, firstChunkSize: 100}
 					for (let segKey of segKeys) options[segKey] = true
+					if (options.xmp) options.xmp = {parse: false} // exception for the way XMP parser works with namespaces
 					let exr = new Exifr(options)
 					await exr.read(input)
 					let output = await exr.parse()
-					await exr.file.close()
 					assert.isObject(output)
 					for (let segKey of segKeys) assert.exists(output[segKey], `${segKey} doesnt exist`)
 				})

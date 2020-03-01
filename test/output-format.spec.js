@@ -107,6 +107,7 @@ describe('output object format', () => {
 
 		it(`is moved from tiff to output.${segName}`, async () => {
 			let options = {mergeOutput: false, [segName]: true}
+			if (segName === 'xmp') options.xmp = {parse: false}
 			var output = await exifr.parse(input, options) || {}
 			assert.exists(output[segName])
 			assert.isUndefined(output.ifd0[propName])
@@ -115,6 +116,7 @@ describe('output object format', () => {
 
 		it(`is available as output.${segName} when {${segName}: true, tiff: false}`, async () => {
 			let options = {mergeOutput: false, [segName]: true, tiff: false}
+			if (segName === 'xmp') options.xmp = {parse: false}
 			var output = await exifr.parse(input, options) || {}
 			assert.exists(output[segName])
 		})

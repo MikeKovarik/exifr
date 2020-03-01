@@ -5,8 +5,12 @@ import * as exifr from '../src/bundle-full.js'
 
 function testFile(fileName, segmentsAndBlocks) {
 	let options = {mergeOutput: false}
-	for (let key of segmentsAndBlocks)
-		options[key] = true
+	for (let key of segmentsAndBlocks) {
+		if (key === 'xmp')
+			options[key] = {parse: false}
+		else
+			options[key] = true
+	}
 
 	it(`${fileName} - whole file`, async () => {
 		let input = await getFile(fileName)

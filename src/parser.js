@@ -157,11 +157,12 @@ export class AppSegmentParserBase {
 	}
 
 	assignToOutput(root, parserOutput) {
-		console.log('assignObjectToOutput GENERAL')
 		this.assignObjectToOutput(root, this.constructor.type, parserOutput)
 	}
 
 	assignObjectToOutput(root, key, parserOutput) {
+		if (this.globalOptions.mergeOutput)
+			return Object.assign(root, parserOutput)
 		if (root[key])
 			Object.assign(root[key], parserOutput)
 		else
