@@ -49,6 +49,8 @@ You don't need to read the whole file to tell if there's EXIF in it. And you don
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
+**Coming up** in next version: XMP parser, XMP Extended support
+
 ## Usage
 
 `file` can be any binary format (`Buffer`, `Uint8Array`, `Blob` and more), `<img>` element, string path or url.
