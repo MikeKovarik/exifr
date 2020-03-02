@@ -9,7 +9,11 @@ import {customError} from './util/helpers.js'
 const JPEG_SOI = 0xffd8
 
 function isHeic(file) {
-	let ftypLength = file.getUint32(0)
+	// FTYP length is the first 32b but it's not likely there will be more than 30, let alone 2^32 FTYPs.
+	// So it's safe to assume that if first two bytes are 0, then this is HEIC.
+	if (file.getUint16(0) !== 0) return false
+	let ftypLength = file.getUint16(2)
+	if (ftypLength > 50) return false
 	let offset = 16
 	let compatibleBrands = []
 	while (offset < ftypLength) {

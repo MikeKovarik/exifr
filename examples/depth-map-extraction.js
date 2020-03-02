@@ -11,7 +11,7 @@ import {promises as fs} from 'fs'
 		multiSegment: true,
 		mergeOutput: false,
 	}
-	let output = await exifr.parse('../test/fixtures/00100sPORTRAIT_00100_BURST20191128164738542_COVER.jpg', options)
+	let output = await exifr.parse('../test/fixtures/xmp depth map.jpg', options)
 	if (output && output.GDepth) {
 		console.log('File image contains depth map')
 		console.log('GDepth.Format', output.GDepth.Format)

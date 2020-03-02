@@ -1,4 +1,7 @@
-const BUFFER_DISPLAY_LIMIT = 16
+import {clipBytes, clipString} from './util.js'
+
+const BUFFER_LENGTH_LIMIT = 16
+const STRING_LENGTH_LIMIT = 400
 
 const reviverStart = '💿✨💀'
 const reviverEnd   = '💾✨⚡'
@@ -21,7 +24,7 @@ let byteTable = {
 function typedArrayToJson() {
 	let name = this.constructor.name
 	let valueBytes = byteTable[name]
-	let size = Math.min(this.length, BUFFER_DISPLAY_LIMIT)
+	let size = Math.min(this.length, BUFFER_LENGTH_LIMIT)
 	let values = (new Array(size))
 		.fill(0)
 		.map((val, i) => this[i])
@@ -34,11 +37,24 @@ function typedArrayToJson() {
 }
 
 function arrayToJson() {
-	return reviverWrap(`[${this.join(', ')}]`)
+	console.log('arrayToJson')
+	let primitives = this.filter(isPrimitive)
+	if (primitives.length === this.length)
+		return reviverWrap(`[${this.join(', ')}]`)
+	else
+		return this
 }
 
 function dateToJson() {
 	return reviverWrap(`<Date ${this.toISOString()}>`)
+}
+
+function isPrimitive(arg) {
+	let type = typeof arg
+	if (arg === undefined || arg === null) return true
+	return type === 'number'
+		|| type === 'string'
+		|| type === 'boolean'
 }
 
 let originalToJson = new Map([
@@ -68,12 +84,19 @@ function applyToJsonMethods(map) {
 		Class.prototype.toJSON = fn
 }
 
+function replacer(key, val) {
+	if (typeof val === 'string' && val.length > STRING_LENGTH_LIMIT)
+		return clipString(val, STRING_LENGTH_LIMIT)
+	else
+		return val
+}
+
 export class JsonValueConverter {
     toView(arg, spaces = 2) {
 		if (arg === undefined) return
 		if (arg === null) return
 		applyToJsonMethods(customToJson)
-		let json = JSON.stringify(arg, null, spaces)
+		let json = JSON.stringify(arg, replacer, spaces)
 			.replace(reviverStartRegex, '')
 			.replace(reviverEndRegex, '')
 		applyToJsonMethods(originalToJson)

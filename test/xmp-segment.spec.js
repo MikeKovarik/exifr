@@ -53,7 +53,7 @@ describe('XMP Segment', () => {
 
 		testOptions(`output.xmp is undefined, xmp properties are merged to top level output`, {mergeOutput: true, xmp: true}, output => {
 			assert.isUndefined(output.xmp, `output.xmp should be undefined`)
-			for (let ns of namespaces)       assert.isString(output[ns])
+			for (let ns of namespaces)       assert.isUndefined(output[ns])
 			for (let prop of randomXmpProps) assert.isDefined(output[prop])
 		})
 

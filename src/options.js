@@ -23,8 +23,8 @@ export const segments = ['tiff', ...otherSegments]
 export const tiffBlocks = ['ifd0', 'ifd1', 'exif', 'gps', 'interop']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 export const tiffExtractables = ['makerNote', 'userComment']
-export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment', 'mergeOutput']
-export const allFormatters = [...inheritables, 'sanitize']
+export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment']
+export const allFormatters = [...inheritables, 'sanitize', 'mergeOutput']
 
 
 class SharedOptions {

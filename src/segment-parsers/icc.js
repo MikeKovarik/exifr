@@ -16,6 +16,7 @@ const EMPTY_VALUE = '\x00\x00\x00\x00'
 export default class IccParser extends AppSegmentParserBase {
 
 	static type = 'icc'
+	static multiSegment = true
 	static headerLength = 18
 
 	static canHandle(chunk, offset) {

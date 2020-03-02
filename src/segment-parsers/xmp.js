@@ -110,6 +110,10 @@ export default class XmpParser extends AppSegmentParserBase {
 					case 'exif':
 						this.assignObjectToOutput(root, 'exif', nsObject)
 						break
+					case 'xmlns':
+						// XMLNS attributes aren't links but namespace identifiers in the URI form.
+						// TLDR: It's a useless bullshit. Don't need it. Get over it.
+						break
 					default:
 						this.assignObjectToOutput(root, ns, nsObject)
 						break

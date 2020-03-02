@@ -2,12 +2,25 @@ var exifr
 import {JsonValueConverter} from './json-beautifier.js'
 import cloneObject from './clone.js'
 import {SegmentBoxCustomElement, ObjectTableCustomElement} from './components.js'
-import {BinaryValueConverter, CharLimitValueConverter, PrettyCaseValueConverter, TableValueValueConverter} from './util.js'
+import {ByteLimitValueConverter, CharLimitValueConverter, PrettyCaseValueConverter, TableValueValueConverter} from './util.js'
 
 
 let fixtureDirPath = './test/fixtures/'
 let demoFileName = 'IMG_20180725_163423-tiny.jpg'
 let demoFileSize = 311406
+/*
+let demoFileSize = undefined
+let demoFileName = 'xmp depth map.jpg'
+let demoOptions = {
+	ifd0: false,
+	exif: false,
+	gps: false,
+	ifd1: false,
+	xmp: true,
+	multiSegment: true,
+	mergeOutput: false,
+}
+*/
 
 
 class ExifrDemoApp {
@@ -46,6 +59,7 @@ class ExifrDemoApp {
 
 		this.options = cloneObject(exifr.Options.default)
 		this.options.ifd1 = true
+		if (demoOptions) Object.assign(this.options, demoOptions)
 		// Load the demo image as array buffer to keep in memory
 		// to prevent distortion of initial parse time.
 		// i.e: show off library's performance and don't include file load time in it.
@@ -57,7 +71,7 @@ class ExifrDemoApp {
 		let filePath = fixtureDirPath + fileName
 		let res = await fetch(filePath)
 		let fetchedSize = Number(res.headers.get('content-length'))
-		if (fetchedSize === expectedFileSize) {
+		if (expectedFileSize === undefined || fetchedSize === expectedFileSize) {
 			// TODO expectedFileSize
 			let file = await res.arrayBuffer()
 			this.parseFile(file)
@@ -130,6 +144,7 @@ class ExifrDemoApp {
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
 
+		console.log('this.rawOutput', this.rawOutput)
 		this.rawOutput = output || 'The file has no EXIF'
 	}
 
@@ -198,7 +213,7 @@ au.enhance({
 	root: ExifrDemoApp,
 	host: document.body,
 	resources: [
-		BinaryValueConverter,
+		ByteLimitValueConverter,
 		CharLimitValueConverter,
 		JsonValueConverter,
 		ObjectTableCustomElement,

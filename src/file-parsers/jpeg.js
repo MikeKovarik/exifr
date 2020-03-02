@@ -99,7 +99,8 @@ export class JpegFileParser extends FileParserBase {
 		if (!findAll) {
 			for (let type of wanted) {
 				let Parser = segmentParsers.get(type)
-				if (Parser.multiSegment) {
+				let parserOptions = this.options[type]
+				if (Parser.multiSegment && parserOptions.multiSegment) {
 					findAll = true
 					if (this.file.chunked) await this.file.readWhole()
 					break
@@ -155,6 +156,7 @@ export class JpegFileParser extends FileParserBase {
 					this.appSegments.push(seg)
 					if (!findAll) {
 						if (seg.multiSegment && segOpts.multiSegment) {
+							// TODO: refactor
 							// Countable multisegments
 							// Found multisegment segment and options allow to process these.
 							if (seg.chunkNumber < seg.chunkCount) {
@@ -166,8 +168,10 @@ export class JpegFileParser extends FileParserBase {
 								remaining.delete(type)
 							}
 						} else if (Parser.multiSegment && segOpts.multiSegment) {
+							// TODO: refactor
 							// Non-countable multisegments
 						} else {
+							// TODO: refactor
 							// This is not a multisegment seg or we're not allowed to process them.
 							remaining.delete(type)
 						}

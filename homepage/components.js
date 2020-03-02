@@ -40,7 +40,7 @@ const segmentBoxTemplate = `
 		</h3>
 		<template if.bind="hasData">
 			<object-table if.bind="display === 'table'" object.bind="data" show-all.bind="showAll" key.bind="key"></object-table>
-			<pre if.bind="display === 'buffer'">\${data | binary:showAll}</pre>
+			<pre if.bind="display === 'buffer'">\${data | byteLimit:showAll}</pre>
 			<pre if.bind="display === 'string'">\${data | charLimit:showAll}</pre>
 		</template>
 		<span if.bind="!hasData" class="small">

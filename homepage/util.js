@@ -1,50 +1,51 @@
 Promise.timeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
+const MAX_CHARS_IN_TABLE = 60
+
 export class TableValueValueConverter {
     toView(arg) {
 		if (notDefined(arg)) return
-		if (arg instanceof Uint8Array) {
-			let arr = Array.from(arg)
-			let [values, remaining] = clipContent(arr, false, 8)
-			let output = formatBytes(values)
-			if (remaining > 0) output += ' ...'
-			return output
-		} else {
+		if (arg instanceof Uint8Array)
+			return clipBytes(arg, 8)
+		else if (typeof arg === 'string')
+			return clipString(arg, MAX_CHARS_IN_TABLE)
+		else
 			return arg
-		}
     }
 }
 
-export class BinaryValueConverter {
-    toView(arg, showAll) {
-		if (notDefined(arg)) return
-		let arr = Array.from(arg)
-		let [values, remaining] = clipContent(arr, showAll, 60)
-		let output = formatBytes(values)
-		if (remaining > 0) output += `\n... and ${remaining} more`
-		return output
+export class ByteLimitValueConverter {
+    toView(uint8arr, showAll) {
+		if (notDefined(uint8arr)) return
+		if (!(uint8arr instanceof Uint8Array)) return
+		if (showAll) return string
+		return clipBytes(uint8arr, 60)
     }
 }
 
 export class CharLimitValueConverter {
     toView(string, showAll) {
 		if (notDefined(string)) return
-		let arr = string.split('')
-		let [values, remaining] = clipContent(arr, showAll, 300)
-		let output = values.join('')
-		if (remaining > 0) output += `\n... and ${remaining} more`
-		return output
+		if (typeof string !== 'string') return
+		if (showAll) return string
+		return clipString(string, 300)
     }
 }
 
-function clipContent(arr, showAll, limit) {
-	if (showAll) {
-		var values = arr
-		var remaining = 0
-	} else {
-		var [values, remaining] = sliceArray(arr, limit)
-	}
-	return [values, remaining]
+export function clipBytes(uint8arr, limit) {
+	let arr = Array.from(uint8arr)
+	let [values, remaining] = sliceArray(arr, limit)
+	let output = formatBytes(values)
+	if (remaining > 0) output += `\n... and ${remaining} more`
+	return output
+}
+
+export function clipString(string, limit) {
+	let arr = string.split('')
+	let [values, remaining] = sliceArray(arr, limit)
+	let output = values.join('')
+	if (remaining > 0) output += `\n... and ${remaining} more`
+	return output
 }
 
 function sliceArray(arr, limit) {
