@@ -204,25 +204,22 @@ describe('XmpParser - real world cases', () => {
 		assert.equal(output.dc.creator, 'Adobe Developer Technologies')
     })
 
-/*
+
 // WARNING: UNFINISHED, INCOMPLETE, INCORRECT
     it('xmp-gcam-portrait.xml', async () => {
 		let code = await getString('xmp-gcam-portrait.xml')
 		let output = XmpParser.parse(code)
-        console.log('output', output)
 		// main xmp
 		assert.equal(output.GCamera.BurstID, '3e972be5-3033-4f33-a532-fe90384f280a')
 		assert.equal(output.GCamera.BurstPrimary, 1)
 		// extended xmp
-        console.log('output.Device.Container.Directory', output.Device.Container.Directory)
 		assert.equal(output.Device.Container.parseType, 'Resource')
 		assert.lengthOf(output.Device.Container.Directory, 4)
 		assert.equal(output.Device.Container.Directory[1].Mime, 'image/jpeg')
 		assert.equal(output.Device.Container.Directory[3].Length, 96395)
-        console.log('output.Device.Profiles', output.Device.Profiles)
-		//assert.lengthOf(output.Device.Profiles, 'Resource')
-		// array with single item become the sole object of the property
-		assert.isObject(output.Device.Profiles)
+		assert.equal(output.Device.Profiles.Type, 'DepthPhoto')
+		assert.equal(output.Device.Profiles.CameraIndices, 0)
+		// array with single item becomes the sole object of the property
 		assert.isObject(output.Device.Cameras)
 		assert.equal(output.Device.Cameras.Image.ItemURI, 'android/original_image')
 		assert.equal(output.Device.Cameras.DepthMap.Near, 0.3)
@@ -230,6 +227,6 @@ describe('XmpParser - real world cases', () => {
 		assert.equal(output.Device.Cameras.ImagingModel.ImageWidth, 3264)
 		assert.equal(output.Device.Cameras.ImagingModel.PrincipalPointY, 1232.100342)
     })
-*/
+
 
 })

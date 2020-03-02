@@ -78,6 +78,7 @@ export default class XmpParser extends AppSegmentParserBase {
 	parse(xmpString = this.chunk) {
 		if (!this.localOptions.parse)
 			return xmpString
+		xmpString = idNestedTags(xmpString)
 		let tags = XmlTag.findAll(xmpString, 'rdf', 'Description')
 		if (tags.length === 0)
 			tags.push(new XmlTag('rdf', 'Description', undefined, xmpString))
@@ -180,9 +181,9 @@ export class XmlTag {
 		if (ns !== undefined || name !== undefined) {
 			ns   = ns   || tagNamePartRegex
 			name = name || tagNamePartRegex
-			var regex = new RegExp(`<(${ns}):(${name})((\\s+?[\\w\\d-:]+=("[^"]*"|'[^']*'))*\\s*)(\\/>|>([\\s\\S]*?)<\\/\\1:\\2>)`, 'gm')
+			var regex = new RegExp(`<(${ns}):(${name})(#\\d+)?((\\s+?[\\w\\d-:]+=("[^"]*"|'[^']*'))*\\s*)(\\/>|>([\\s\\S]*?)<\\/\\1:\\2\\3>)`, 'gm')
 		} else {
-			var regex = /<([\w\d-]+):([\w\d-]+)((\s+?[\w\d-:]+=("[^"]*"|'[^']*'))*\s*)(\/>|>([\s\S]*?)<\/\1:\2>)/gm
+			var regex = /<([\w\d-]+):([\w\d-]+)(#\d+)?((\s+?[\w\d-:]+=("[^"]*"|'[^']*'))*\s*)(\/>|>([\s\S]*?)<\/\1:\2\3>)/gm
 		}
 		return matchAll(xmpString, regex).map(XmlTag.unpackMatch)
 	}
@@ -190,8 +191,8 @@ export class XmlTag {
 	static unpackMatch(match) {
 		let ns = match[1]
 		let name = match[2]
-		let attrString = match[3]
-		let innerXml = match[7]
+		let attrString = match[4]
+		let innerXml = match[8]
 		return new XmlTag(ns, name, attrString, innerXml)
 	}
 
@@ -228,7 +229,6 @@ export class XmlTag {
 	}
 
 	serialize() {
-		//console.log('serialize', this.ns, this.name, this.attrs.length, this.children.length)
 		// invalid and undefined
 		if (this.properties.length === 0 && this.value === undefined)
 			return undefined
@@ -297,4 +297,20 @@ function isUndefinable(value) {
 		|| value === 'undefined'
 		|| value === ''
 		|| value.trim() === ''
+}
+
+const nestedLiRegex = /(<|\/)(rdf:li|rdf:Seq|rdf:Bag|rdf:Alt)/g
+export function idNestedTags(xmpString) {
+	let counts = {
+		'rdf:li': 1,
+		'rdf:Seq': 1,
+		'rdf:Bag': 1,
+		'rdf:Alt': 1,
+	}
+	return xmpString.replace(nestedLiRegex, (match, prevChar, tag) => {
+		if (prevChar === '<')
+			return `${match}#${counts[tag]++}`
+		else
+			return `${match}#${--counts[tag]}`
+	})
 }

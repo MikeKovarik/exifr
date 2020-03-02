@@ -1,6 +1,6 @@
 import {assert, getFile} from './test-util-core.js'
 import XmpParser from '../src/segment-parsers/xmp.js'
-import {XmlTag, normalizeValue, XmlAttr} from '../src/segment-parsers/xmp.js'
+import {XmlTag, normalizeValue, XmlAttr, idNestedTags} from '../src/segment-parsers/xmp.js'
 
 
 const VALUE_PROP = 'value'
@@ -601,31 +601,7 @@ describe('XmpParser - synthetic tests', () => {
 				assert.lengthOf(matches, 0)
 			})
 		})
-/*
-		// syntax that used to be problemati
-		describe('complex', () => {
 
-			it('nestes lists', () => {
-				let [tag] = XmlTag.findAll(`
-					<rdf:li>
-						<Device:Profile Profile:Type="DepthPhoto">
-							<Profile:CameraIndices>
-								<rdf:Seq>
-									<rdf:li>0</rdf:li>
-								</rdf:Seq>
-							</Profile:CameraIndices>
-						</Device:Profile>
-					</rdf:li>
-				`)
-				assert.equal(tag.ns, 'rdf')
-				assert.equal(tag.name, 'li')
-				assert.lengtOf(tag.children, 1)
-				assert.equal(tag.children[0].ns, 'Device')
-				assert.equal(tag.children[0].name, 'Profile')
-			})
-
-		})
-*/
 	})
 
 
@@ -1827,5 +1803,243 @@ describe('XmpParser - synthetic tests', () => {
 		})
 
 	})
+
+
+
+	// syntax that used to be problematic
+	describe('nested lists of xmp-gcam-portrait.xml', () => {
+
+		it('assigns id to each list or list item', () => {
+			let input    = `<rdf:Seq><rdf:li><rdf:Seq><rdf:li>FooBar</rdf:li></rdf:Seq></rdf:li></rdf:Seq>`
+			let expected = `<rdf:Seq#1><rdf:li#1><rdf:Seq#2><rdf:li#2>FooBar</rdf:li#2></rdf:Seq#2></rdf:li#1></rdf:Seq#1>`
+			let output = idNestedTags(input)
+			assert.equal(output, expected)
+		})
+
+		describe('extraction', () => {
+
+			it('core object', () => {
+				let [CameraIndices] = XmlTag.findAll(idNestedTags(`
+					<Profile:CameraIndices>
+						<rdf:Seq>
+							<rdf:li>0</rdf:li>
+						</rdf:Seq>
+					</Profile:CameraIndices>
+				`))
+				assert.equal(CameraIndices.ns, 'Profile')
+				assert.equal(CameraIndices.name, 'CameraIndices')
+				assert.lengthOf(CameraIndices.children, 1)
+				let [Seq] = CameraIndices.children
+				assert.equal(Seq.ns, 'rdf')
+				assert.equal(Seq.name, 'Seq')
+				assert.lengthOf(Seq.children, 1)
+				let [li] = Seq.children
+				assert.equal(li.ns, 'rdf')
+				assert.equal(li.name, 'li')
+				assert.equal(li.value, 0)
+				assert.lengthOf(li.children, 0)
+			})
+
+			it('parent object', () => {
+				let [Profile] = XmlTag.findAll(idNestedTags(`
+					<Device:Profile Profile:Type="DepthPhoto">
+						<Profile:CameraIndices>
+							<rdf:Seq>
+								<rdf:li>0</rdf:li>
+							</rdf:Seq>
+						</Profile:CameraIndices>
+					</Device:Profile>
+				`))
+				assert.equal(Profile.ns, 'Device')
+				assert.equal(Profile.name, 'Profile')
+				assert.lengthOf(Profile.attrs, 1)
+				assert.lengthOf(Profile.children, 1)
+				let [CameraIndices] = Profile.children
+				assert.equal(CameraIndices.ns, 'Profile')
+				assert.equal(CameraIndices.name, 'CameraIndices')
+				assert.lengthOf(CameraIndices.children, 1)
+				let [Seq] = CameraIndices.children
+				assert.equal(Seq.ns, 'rdf')
+				assert.equal(Seq.name, 'Seq')
+				assert.lengthOf(Seq.children, 1)
+				let [li] = Seq.children
+				assert.equal(li.ns, 'rdf')
+				assert.equal(li.name, 'li')
+				assert.equal(li.value, 0)
+				assert.lengthOf(li.children, 0)
+			})
+
+			it('parent list item', () => {
+				let [parentLi] = XmlTag.findAll(idNestedTags(`
+					<rdf:li>
+						<Device:Profile Profile:Type="DepthPhoto">
+							<Profile:CameraIndices>
+								<rdf:Seq>
+									<rdf:li>0</rdf:li>
+								</rdf:Seq>
+							</Profile:CameraIndices>
+						</Device:Profile>
+					</rdf:li>
+				`))
+				assert.equal(parentLi.ns, 'rdf')
+				assert.equal(parentLi.name, 'li')
+				assert.lengthOf(parentLi.children, 1)
+				let [Profile] = parentLi.children
+				assert.equal(Profile.ns, 'Device')
+				assert.equal(Profile.name, 'Profile')
+				assert.lengthOf(Profile.attrs, 1)
+				assert.lengthOf(Profile.children, 1)
+				let [CameraIndices] = Profile.children
+				assert.equal(CameraIndices.ns, 'Profile')
+				assert.equal(CameraIndices.name, 'CameraIndices')
+				assert.lengthOf(CameraIndices.children, 1)
+				let [Seq] = CameraIndices.children
+				assert.equal(Seq.ns, 'rdf')
+				assert.equal(Seq.name, 'Seq')
+				assert.lengthOf(Seq.children, 1)
+				let [li] = Seq.children
+				assert.equal(li.ns, 'rdf')
+				assert.equal(li.name, 'li')
+				assert.equal(li.value, 0)
+				assert.lengthOf(li.children, 0)
+			})
+
+			it('parent list (Seq)', () => {
+				let [parentSeq] = XmlTag.findAll(idNestedTags(`
+					<rdf:Seq>
+						<rdf:li>
+							<Device:Profile Profile:Type="DepthPhoto">
+								<Profile:CameraIndices>
+									<rdf:Seq>
+										<rdf:li>0</rdf:li>
+									</rdf:Seq>
+								</Profile:CameraIndices>
+							</Device:Profile>
+						</rdf:li>
+					</rdf:Seq>
+				`))
+				assert.equal(parentSeq.ns, 'rdf')
+				assert.equal(parentSeq.name, 'Seq')
+				assert.lengthOf(parentSeq.children, 1)
+				let [parentLi] = parentSeq.children
+				assert.equal(parentLi.ns, 'rdf')
+				assert.equal(parentLi.name, 'li')
+				assert.lengthOf(parentLi.children, 1)
+				let [Profile] = parentLi.children
+				assert.equal(Profile.ns, 'Device')
+				assert.equal(Profile.name, 'Profile')
+				assert.lengthOf(Profile.attrs, 1)
+				assert.lengthOf(Profile.children, 1)
+				let [CameraIndices] = Profile.children
+				assert.equal(CameraIndices.ns, 'Profile')
+				assert.equal(CameraIndices.name, 'CameraIndices')
+				assert.lengthOf(CameraIndices.children, 1)
+				let [Seq] = CameraIndices.children
+				assert.equal(Seq.ns, 'rdf')
+				assert.equal(Seq.name, 'Seq')
+				assert.lengthOf(Seq.children, 1)
+				let [li] = Seq.children
+				assert.equal(li.ns, 'rdf')
+				assert.equal(li.name, 'li')
+				assert.equal(li.value, 0)
+				assert.lengthOf(li.children, 0)
+			})
+
+		})
+
+		describe('serialization', () => {
+
+			it('core object', () => {
+				let [tag] = XmlTag.findAll(idNestedTags(`
+					<Profile:CameraIndices>
+						<rdf:Seq>
+							<rdf:li>0</rdf:li>
+						</rdf:Seq>
+					</Profile:CameraIndices>
+				`))
+				let CameraIndices = tag.serialize()
+				assert.equal(CameraIndices, 0)
+			})
+
+			it('parent object', () => {
+				let [tag] = XmlTag.findAll(idNestedTags(`
+					<Device:Profile Profile:Type="DepthPhoto">
+						<Profile:CameraIndices>
+							<rdf:Seq>
+								<rdf:li>0</rdf:li>
+							</rdf:Seq>
+						</Profile:CameraIndices>
+					</Device:Profile>
+				`))
+				let Device = tag.serialize()
+				assert.equal(Device.Type, 'DepthPhoto')
+				assert.equal(Device.CameraIndices, 0)
+			})
+
+			it('parent list item', () => {
+				let [tag] = XmlTag.findAll(idNestedTags(`
+					<rdf:li>
+						<Device:Profile Profile:Type="DepthPhoto">
+							<Profile:CameraIndices>
+								<rdf:Seq>
+									<rdf:li>0</rdf:li>
+								</rdf:Seq>
+							</Profile:CameraIndices>
+						</Device:Profile>
+					</rdf:li>
+				`))
+				let li = tag.serialize()
+				assert.equal(li.Type, 'DepthPhoto')
+				assert.equal(li.CameraIndices, 0)
+			})
+
+			it('parent list (Seq)', () => {
+				let [tag] = XmlTag.findAll(idNestedTags(`
+					<rdf:Seq>
+						<rdf:li>
+							<Device:Profile Profile:Type="DepthPhoto">
+								<Profile:CameraIndices>
+									<rdf:Seq>
+										<rdf:li>0</rdf:li>
+									</rdf:Seq>
+								</Profile:CameraIndices>
+							</Device:Profile>
+						</rdf:li>
+					</rdf:Seq>
+				`))
+				let seq = tag.serialize()
+				assert.equal(seq.Type, 'DepthPhoto')
+				assert.equal(seq.CameraIndices, 0)
+			})
+
+		})
+
+		describe('parsing', () => {
+
+			it('nested list parse', () => {
+				let {Device} = XmpParser.parse(`
+					<Device:Profiles>
+						<rdf:Seq>
+							<rdf:li>
+								<Device:Profile Profile:Type="DepthPhoto">
+									<Profile:CameraIndices>
+										<rdf:Seq>
+											<rdf:li>0</rdf:li>
+										</rdf:Seq>
+									</Profile:CameraIndices>
+								</Device:Profile>
+							</rdf:li>
+						</rdf:Seq>
+					</Device:Profiles>
+				`)
+				assert.isObject(Device.Profiles)
+				assert.equal(Device.Profiles.Type, 'DepthPhoto')
+				assert.equal(Device.Profiles.CameraIndices, 0)
+			})
+
+		})
+
+	})
+
 
 })
