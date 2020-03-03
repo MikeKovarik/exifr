@@ -301,9 +301,31 @@ describe('XMP Segment', () => {
 			assert.equal(extended.slice(-13).trim(), '</x:xmpmeta>', 'should end with x:xmpmeta')
 		})
 
-		it(`XMP Extended is parsed from file`, async () => {
+		it(`XMP Extended is not parsed when {xmp: true, multiSegment: false}`, async () => {
+			let input = await getFile('xmp - multisegment pano with vr.jpg')
+			const options = {tiff: false, xmp: true, multiSegment: false, mergeOutput: false}
+			var output = await exifr.parse(input, options)
+			// Basic XMP
+			assert.isObject(output.GImage)
+			assert.isString(output.GImage.Mime)
+			assert.isString(output.xmpNote.HasExtendedXMP)
+			// Par of extended XMP
+			assert.isUndefined(output.GImage.Data)
+		})
+
+		it(`XMP Extended is parsed when {xmp: true, multiSegment: true}`, async () => {
 			let input = await getFile('xmp - multisegment pano with vr.jpg')
 			const options = {tiff: false, xmp: true, multiSegment: true, mergeOutput: false}
+			var output = await exifr.parse(input, options)
+			assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
+			assert.equal(output.GImage.Data.slice(-8),   'C6iMzP/Z')
+			assert.equal(output.GAudio.Data.slice(0, 8), 'AAAAGGZ0')
+			assert.equal(output.GAudio.Data.slice(-8),   'AQAAACA=')
+		})
+
+		it(`XMP Extended is parsed when {xmp: {multiSegment: true}}`, async () => {
+			let input = await getFile('xmp - multisegment pano with vr.jpg')
+			const options = {tiff: false, xmp: {multiSegment: true}, mergeOutput: false}
 			var output = await exifr.parse(input, options)
 			assert.equal(output.GImage.Data.slice(0, 8), '/9j/4AAQ')
 			assert.equal(output.GImage.Data.slice(-8),   'C6iMzP/Z')
