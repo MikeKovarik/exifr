@@ -128,7 +128,7 @@ class ExifrDemoApp {
 		}
 		try {
 			await this.parseForPerf(file)
-			//await this.parseForPrettyOutput(file)
+			await this.parseForPrettyOutput(file)
 		} catch (err) {
 			this.handleError(err)
 		}
@@ -164,6 +164,7 @@ class ExifrDemoApp {
 		let exr = new exifr.Exifr(options)
 		await exr.read(input)
 		let output = await exr.parse() || {}
+
 		// custom handling of xmp where each namespace is separate object
 		if (exr.parsers.xmp) {
 			let namespaces = exr.parsers.xmp.parse()
