@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
+	<style>
+	body {
+		font-family: Segoe UI;
+		box-sizing: border-box;
+	}
+	img {
+		width: 300px;
+	}
+	pre {
+		white-space: pre-line;
+	}
+	.layout {
+		display: flex;
+	}
+	.box + .box {
+		margin-left: 20px;
+	}
+	</style>
+</head>
+<body>
+
+	<input id="fileinput" type="file">
+
+	<div class="layout">
+
+		<div class="box">
+			<h3>Input photo</h3>
+			<img id="input-file">
+		</div>
+
+		<div class="box">
+			<h3>Depth map</h3>
+			<img id="depth-map">
+		</div>
+
+		<div class="box">
+			<h3>Raw source photo</h3>
+			<img id="depth-source">
+		</div>
+
+		<div class="box">
+			<h3>Log</h3>
+			<pre id="log"></pre>
+		</div>
+
+	</div>
+
+	<!-- UMD module that exports itself to window.exifr -->
+	<script type="module" src="./depth-map-extraction.js"></script>
+
+</body>
+</html>
