@@ -1,6 +1,7 @@
 import {AppSegmentParserBase} from '../parser.js'
 import {segmentParsers} from '../plugins.js'
 import {customError, normalizeString} from '../util/helpers.js'
+import {BufferView} from '../util/BufferView.js'
 
 
 const PROFILE_HEADER_LENGTH = 84
@@ -31,6 +32,10 @@ export default class IccParser extends AppSegmentParserBase {
 		seg.chunkCount   = chunk.getUint8(offset + 17)
 		seg.multiSegment = seg.chunkCount > 1
 		return seg
+	}
+
+	static handleMultiSegments(segments) {
+		return concatChunks(segments)
 	}
 
 	parse() {
@@ -174,6 +179,25 @@ function parseDate(view, offset) {
 	const minutes = view.getUint16(offset + 8)
 	const seconds = view.getUint16(offset + 10)
 	return new Date(Date.UTC(year, month, day, hours, minutes, seconds))
+}
+
+function concatChunks(chunks) {
+	let buffers = chunks.map(s => s.chunk.toUint8())
+	let combined = concatBuffers(buffers)
+    return new BufferView(combined)
+}
+
+function concatBuffers(buffers) {
+	let ArrayType = buffers[0].constructor
+    let totalLength = 0
+    for (let buffer of buffers) totalLength += buffer.length
+    let result = new ArrayType(totalLength)
+    let offset = 0
+    for (let buffer of buffers) {
+        result.set(buffer, offset)
+        offset += buffer.length
+    }
+    return result
 }
 
 segmentParsers.set('icc', IccParser)

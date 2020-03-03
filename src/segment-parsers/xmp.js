@@ -7,16 +7,11 @@ const XMP_CORE_HEADER     = 'http://ns.adobe.com/'
 const XMP_MAIN_HEADER     = 'http://ns.adobe.com/xap/1.0/'
 const XMP_EXTENDED_HEADER = 'http://ns.adobe.com/xmp/extension/'
 
-const TIFF_HEADER_LENGTH = 2 + 2
+// 2 bytes for markers + 2 bytes length
+const TIFF_HEADER_LENGTH = 4
 // Each XMP Extended segment starts with guid, length and offset (of its own, not just the one in TIFF header)
 const XMP_EXTENDED_DATA_OFFSET = 79
 
-// TODO: modify AppSegmentParserBase to accept not only buffers,
-//       XMP is usually string and we're converting it to buffer to be passed to AppSegmentParserBase
-//       and this Xmp parser then converts it back to string.
-
-//<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 5.6.0"></x>
-// XMPToolkit
 export default class XmpParser extends AppSegmentParserBase {
 
 	static type = 'xmp'
@@ -38,32 +33,31 @@ export default class XmpParser extends AppSegmentParserBase {
 
 	static findPosition(chunk, offset) {
 		let seg = super.findPosition(chunk, offset)
-		seg.extended = seg.headerLength === XMP_EXTENDED_DATA_OFFSET
-		if (seg.extended) {
-			//seg.multiSegment = seg.extended // TODO
-			seg.chunkCount   = chunk.getUint8(offset + 72)
-			seg.chunkNumber  = chunk.getUint8(offset + 76)
+		// first is the main XMP, then the extended starts counting from 0.
+		// We could determine that the XMP has extension if we looked for 'HasExtendedXMP'
+		// but we don't want to read the segment here just yet.
+		seg.multiSegment = seg.extended = seg.headerLength === XMP_EXTENDED_DATA_OFFSET
+		if (seg.multiSegment) {
+			seg.chunkCount  = chunk.getUint8(offset + 72)
+			seg.chunkNumber = chunk.getUint8(offset + 76)
 			// first and second chunk both have 0 as the chunk number.
 			// the true first chunk (the one with <x:xmpme) has zeroes in the last two bytes of the chunk header.
 			if (chunk.getUint8(offset + 77) !== 0) seg.chunkNumber++
+		} else {
+			// The main XMP segment is not numbered and we can't determine if there's any XMP Extended chunks without
+			// parsing and looking for 'HasExtendedXMP'. We don't want to read in this simple due to 1) side effects
+			// and 2) chunked reader. For now we can only tell "there's a possibility of more chunks"
+			seg.chunkCount  = Infinity
+			seg.chunkNumber = -1
 		}
 		return seg
 	}
 
-	// TODO: finish
 	static handleMultiSegments(allSegments) {
-		return allSegments[0].chunk.getString() + '\n' + this.mergeExtendedChunks(allSegments)
-	}
-
-	static mergeExtendedChunks(allSegments) {
-		return allSegments
-			.slice(1)
-			.map(seg => seg.chunk.getString())
-			.join('')
+		return allSegments.map(seg => seg.chunk.getString()).join('')
 	}
 
 	normalizeInput(input) {
-		//return typeof input === 'string' ? input : input.getString()
 		return typeof input === 'string'
 			? input
 			: input.getString && input.getString()
