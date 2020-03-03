@@ -1,4 +1,5 @@
 import {assert, getFile} from './test-util-core.js'
+// FIXME: importing directly from src/ breaks bundle tests
 import XmpParser from '../src/segment-parsers/xmp.js'
 import {XmlTag, normalizeValue, XmlAttr, idNestedTags} from '../src/segment-parsers/xmp.js'
 

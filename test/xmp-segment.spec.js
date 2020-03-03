@@ -3,6 +3,7 @@ import {getFile, getPath} from './test-util-core.js'
 import {testSegment} from './test-util-suites.js'
 import * as exifr from '../src/bundle-full.js'
 import {Exifr} from '../src/bundle-full.js'
+// FIXME: importing directly from src/ breaks bundle tests
 import XmpParser from '../src/segment-parsers/xmp.js'
 import {BufferView} from '../src/util/BufferView.js'
 
@@ -290,8 +291,8 @@ describe('XMP Segment', () => {
 			await exr.read(input)
 			await exr.parse()
 			let xmpSegments = exr.fileParser.appSegments.filter(seg => seg.type === 'xmp')
-			let extended = XmpParser.mergeExtendedChunks(xmpSegments)
-			assert.isTrue(extended.startsWith('<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.1.0-jc003">'), 'should start with x:xmpmeta')
+			let mergedXmpSegment = exr.fileParser.mergedAppSegments.find(seg => seg.type === 'xmp')
+			let extended = mergedXmpSegment.chunk
 			assert.include(extended, 'xmlns:GImage="http://ns.google.com/photos/1.0/image/"')
 			assert.include(extended, 'GImage:Data="/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAggICAgICAgICA')
 			assert.include(extended, 'pebnyHJPRQC6iMzP/Z"')

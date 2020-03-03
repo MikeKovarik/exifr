@@ -140,16 +140,18 @@
 
 
 	<h2>Examples</h2>
-	<p>You can find more examples <a href="./examples/">here</a> in the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a>.</p>
-	<p>They come in all forms, shapes and sizes. There are some that are:</p>
-	<li><a href="./examples/benchmark.html">Isomorphic (works the same in Node and browser)</a></li>
-	<li>specific to <a href="./examples/thumbnail.js">Node's file system API</a> and other are tailored to <a href="./examples/thumbnail.html">browser</a></li>
-	<li>various input formats like <a href="./examples/benchmark.html">Blob, ArrayBuffer, raw &lt;img&gt; tags</a>, <a href="./examples/base64.mjs">Base64 string</a>, etc...</a></li>
-	<li><a href="./examples/node.cjs">CommonJS</a> or <a href="./examples/esm.mjs">ES Modules</a></li>
-	<li><a href="./examples/worker.html">Web worker example</a></li>
-	<li><a href="./examples/tiff.js">Extract the full exif</a> or <a href="./examples/xmp.js">just single segment</a></li>
-	<li>Filters & perf improvements: <a href="./examples/gps.js">Parsing as little tags to get GPS as fast as possible</a></li>
-	<li><a href="./examples/benchmark.html">Tryna-be-scientific benchmark</a></li>
+	<p>You can find more examples <a href="https://github.com/MikeKovarik/exifr/tree/master/examples">here</a> in the <a href="https://github.com/MikeKovarik/exifr">GitHub repo</a>.</p>
+	<li><a href="./benchmark/gps-dnd.html">DND multiple photos, display their GPS on a map and measure time and RAM usage</a></li>
+	<li>Parsing XMP and extracting depth-map and <a href="./examples/depth-map-extraction.html">displaying it in a browser</a> or <a href="./examples/depth-map-extraction.js">saving it to disk with Node 'fs'</a></li>
+	<li>Extracting thumbnail and <a href="./examples/thumbnail.html">displaying it in a browser</a> or <a href="./examples/thumbnail.js">saving it to disk with Node 'fs'</a></li>
+	<li>Parsing in <a href="./examples/worker.html">web worker</a></li>
+	<li>Import format: <a href="./examples/fs.cjs">CommonJS</a> or <a href="./examples/esm.mjs">ES Modules</a></li>
+	<li>Filters & perf improvements: <a href="./examples/gps.js">Parsing as little tags to get GPS fast</a></li>
+	<li><a href="./examples/fs.cjs">Extract the full TIFF Segment</a> vs <a href="./examples/gps.js">just one block</a></li>
+	<li><a href="./benchmark/formats-reading.html">Speed comparison of various input formats</a></li>
+	<li><a href="./examples/base64.mjs">Using Base64 string as an input</a></a></li>
+	<li><a href="./examples/legacy.html">IE11 Support</a></li>
+	<li><a href="./examples/custom-build.js">Customization: importing file readers, segment parsers and dictionaries</a></li>
 
 	<h2>License</h2>
 	<p>MIT, Mike Kovařík</p>

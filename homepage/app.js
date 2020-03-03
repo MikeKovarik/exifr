@@ -8,6 +8,7 @@ import {ByteLimitValueConverter, CharLimitValueConverter, PrettyCaseValueConvert
 let fixtureDirPath = './test/fixtures/'
 let demoFileName = 'IMG_20180725_163423-tiny.jpg'
 let demoFileSize = 311406
+let demoOptions = {}
 /*
 let demoFileSize = undefined
 let demoFileName = 'xmp depth map.jpg'
@@ -127,7 +128,7 @@ class ExifrDemoApp {
 		}
 		try {
 			await this.parseForPerf(file)
-			await this.parseForPrettyOutput(file)
+			//await this.parseForPrettyOutput(file)
 		} catch (err) {
 			this.handleError(err)
 		}
@@ -144,7 +145,6 @@ class ExifrDemoApp {
 		let parseTime = (t2 - t1).toFixed(1)
 		this.setStatus(`parsed in ${parseTime} ms`)
 
-		console.log('this.rawOutput', this.rawOutput)
 		this.rawOutput = output || 'The file has no EXIF'
 	}
 
