@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [4.0.0]
+
+### Added
+- XMP XML Parser
+- XMP Extended support. To extract all XMP segments, set `options.multiSegment` or `options.xmp.multiSegment` to true.
+
+### Changed
+- `output.xmp` is no longer where the XMP segment data are stored. XMP tags are parsed, grouped by namespace and each namespace is assigned directly to `output` object, like `output.xmlns`, `output.GPano`, `output.crs` and more. This can be disabled by setting `options.xmp.parse: false`
+
+### Fixed
+- `window.BigInt` bug in webworker
+
 ## [3.0.1]
 
 ### Fixed
@@ -115,7 +127,8 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/MikeKovarik/exifr/compare/v3.0.1...v4.0.0
 [3.0.1]: https://github.com/MikeKovarik/exifr/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/MikeKovarik/exifr/compare/v2.1.4...v3.0.0
 [2.1.4]: https://github.com/MikeKovarik/exifr/compare/v2.1.3...v2.1.4

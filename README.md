@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/MikeKovarik/exifr/badge.svg)](https://coveralls.io/github/MikeKovarik/exifr)
 [![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/exifr/dist/mini.umd.js?compression=gzip)](https://www.jsdelivr.com/package/npm/exifr?path=dist)
 [![Dependency Status](https://david-dm.org/MikeKovarik/exifr.svg)](https://david-dm.org/MikeKovarik/exifr)
-[![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/exifr/badge?style=rounded)](https://www.jsdelivr.com/package/npm/exifr)
+[![jsDelivr downloads](https://data.jsdelivr.com/v1/package/npm/exifr/badge?style=rounded)](https://www.jsdelivr.com/package/npm/exifr?path=dist)
 [![npm downloads size](https://img.shields.io/npm/dm/exifr)](https://npmjs.org/package/exifr)
 [![NPM Version](https://img.shields.io/npm/v/exifr.svg?style=flat)](https://npmjs.org/package/exifr)
 
@@ -17,6 +17,10 @@
 [API](#api)
 •
 [Performance](#performance)
+•
+[FAQ](#faq)
+•
+[Contributing](#contributing)
 
 📷 The fastest and most versatile JavaScript EXIF reading library.
 
@@ -45,11 +49,23 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 🤙 Promises
 * 🕸 Supports even IE11
 
+<details>
+  <summary>and more (click to expand)</summary>
+  <ul>
+    <li>XMP Parser - minimalistic, reliable, without dependencies</li>
+    <li>XMP Extended</li>
+    <li>Multi-segment ICC</li>
+    <li>Handles UCS2 formatted strings (XPTitle tag), instead of leaving it as buffer</li>
+    <li>Contains less frequently used, non-standard and proprietary TIFF/EXIF tags (only in full bundle)</li>
+    <li>Normalizes strings</li>
+    <li>Revives dates into Date class instances</li>
+    <li>Converts GPS coords from DMS to DD format. From `<code>GPSLatitude</code>, <code>GPSLatitudeRef</code> tags (<code>[50, 17, 58.57]</code> & <code>"N"</code>) to single <code>latitude</code> value (<code>50.29960</code>).</li>
+  </ul>
+</details>
+
 You don't need to read the whole file to tell if there's EXIF in it. And you don't need to extract all the data when you're looking for just a few tags. Exifr just jumps through the file structure, from pointer to pointer. Instead of reading it byte by byte, from beginning to end.
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
-
-**Coming up** in next version: XMP parser, XMP Extended support
 
 ## Usage
 
@@ -106,7 +122,6 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 Of course, you can use the `full` version in browser, or use any other build in Node.js.
-
 
 <details>
 <summary><b>Detailed comparison (click to expand)</b></summary>
@@ -198,12 +213,19 @@ ESM in Browser
 
 ### Demos & more examples
 
-* [playground](https://mutiny.cz/exifr)
+* [**playground**](https://mutiny.cz/exifr)
 * [examples/thumbnail.html](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
+<br>Extracts and displays embedded thumbnail.
+* [examples/depth-map-extraction.html](https://mutiny.cz/exifr/examples/depth-map-extraction.html), [code](examples/depth-map-extraction.js)
+<br>Extracts and displays depth map.
+* [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html)
+<br>Drag-n-Drop multiple photos and mesure the time and RAM it took to extract GPS. Then they're marked on a map.
 * [examples/worker.html](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
-* [examples/legacy.html](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html) (view this in IE11)
-* [benchmark/formats-reading.html](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html) (tests speed of processing of various input types)
-* [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html) (Drag-n-Drop multiple photos and mesure the time it takes to extract GPS)
+<br>Parsing file in WebWorker.
+* [examples/legacy.html](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html)
+<br>Visit in IE11,
+* [benchmark/formats-reading.html](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html)
+<br>Compares reading speed of various input types.
 
 and a lot more in the [examples/](examples/) folder
 
@@ -219,7 +241,7 @@ Accepts [file](#file-argument) (in any format), parses it and returns exif objec
 ### `gps(file)`
 Returns: `Promise<object>`
 
-Extracts only GPS coordinates from a photo.
+Only extracts GPS coordinates.
 
 *Uses `pick`/`skip` filters and perf improvements to only extract latitude and longitude tags from GPS block. And to get GPS-IFD pointer it only scans through IFD0 without reading any other unrelated data.*
 
@@ -228,7 +250,7 @@ Check out [examples/gps.js](examples/gps.js) to learn more.
 ### `orientation(file)`
 Returns: `Promise<number>`
 
-Extracts only photo's orientation.
+Only extracts photo's orientation.
 
 ### `thumbnail(file)`
 Returns: `Promise<Buffer|Uint8Array>`
@@ -401,6 +423,62 @@ Notable large tags from EXIF block that are not parsed by default but can be ena
 * `options.userComment` type: `bool` default: `false`
 <br>0x9286 UserComment tag
 
+#### XMP
+
+Extracted XMP tags are grouped by namespace. Each ns is separate object in `output`. E.g. `output.xmlns`, `output.GPano`, `output.crs`, etc...
+
+For XMP Extended see [`options.multiSegment`](#optionsmultisegment)
+
+*Exifr contains minimalistic opinionated XML parser for parsing data from XMP. It may not be 100% spec-compliant, because XMP is based on XML which cannot be translated 1:1 to JSON. The output is opinionated and may alter or simplify the data structure. If the XMP parser doesn't suit you, it can be disabled by setting `options.xmp.parse` to `false`. Then a raw XMP string will be available at `output.xmp`.*
+
+##### Caveats & XML to JSON mapping
+
+1) Tags with both attributes and children-value are combined into object.
+2) Arrays (RDF Containers) with single item are unwrapped. The single item is used in place of the array.
+2) If `options.mergeOutput:false`: Tags of `tiff` namespace (`<tiff:Model>`) are merged into `output.ifd0`. Likewise `exif` ns is merged into `output.exif`.
+
+```xml
+<rdf:Description foo:name="Exifr">
+  <foo:author>Mike Kovařík</foo:author>
+  <foo:description xml:lang="en-us">Some string here</foo:description>
+  <foo:formats><rdf:Seq><rdf:li>jpeg</rdf:li></rdf:Seq></foo:formats>
+  <foo:segments><rdf:Seq><rdf:li>xmp</rdf:li><rdf:li>tiff</rdf:li><rdf:li>iptc</rdf:li></rdf:Seq></foo:segments>
+</rdf:Description>
+```
+
+parses as:
+
+```js
+{
+  name: 'Exifr', // attribute belonging to the same namespace
+  author: 'Mike Kovařík', // simple tag of the namespace
+  description: {lang: 'en-us', value: 'Some string here'}, // tag with attrs and value becomes object
+  formats: 'jpeg', // single item array is unwrapped
+  segments: ['xmp', 'tiff', 'iptc'] // array as usual
+}
+```
+
+#### `options.multiSegment`
+Type: `bool`
+<br>
+Default: `false`
+
+Enables looking for more than just a single segment of ICC or XMP (XMP Extended).
+
+*In some rare cases the photo can contain additional layers, embedded images, or metadata that doesn't fit inside single 64kB (JPEG) segment.*
+
+Side effect: Disables chunked reading. The whole file has to be read to locate all segments.
+
+When is it useful:
+* VR photos with combination of left/right eye (XMP Extended) 
+* "Portrait mode" photo that contains depth map (XMP Extended) 
+* Photos with custom ICC color profile
+
+Sub-options:
+
+* `options.xmp.multiSegment`
+* `options.icc.multiSegment`
+
 #### Shortcuts
 
 `options.tiff` serves as a shortcut for configuring all TIFF blocks:
@@ -427,20 +505,13 @@ TIFF blocks automatically inherit from `options.tiff` and then from `options`.
 ```js
 // Only extract FNumber + ISO tags from EXIF and GPSLatitude + GPSLongitude from GPS
 {
-  exif: true,
-  gps: true,
+  exif: true, gps: true,
   pick: ['FNumber', 'ISO', 'GPSLatitude', 0x0004] // 0x0004 is GPSLongitude
 }
 // is a shortcut for
-{
-  exif: ['FNumber', 'ISO'],
-  gps: ['GPSLatitude', 0x0004]
-}
+{exif: ['FNumber', 'ISO'], gps: ['GPSLatitude', 0x0004]}
 // which is another shortcut for
-{
-  exif: {pick: ['FNumber', 'ISO']},
-  gps: {pick: ['GPSLatitude', 0x0004]}
-}
+{exif: {pick: ['FNumber', 'ISO']}, gps: {pick: ['GPSLatitude', 0x0004]}}
 ```
 
 ### Chunked reader
@@ -481,7 +552,7 @@ Default: `5`
 
 Max amount of subsequent chunks allowed to read in which exifr searches for data segments and blocks. I.e. failsafe that prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
 
-This limit is bypassed if multi-segment segments ocurs in the file and if `options.multiSegment` allows reading all of them.
+This limit is bypassed if multi-segment segments ocurs in the file and if [`options.multiSegment`](#optionsmultisegment) allows reading all of them.
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
 
@@ -856,9 +927,33 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 
 Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr) or [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), drop in your photos and watch the *parsed in* timer.
 
-## Notable breaking changes, migration from 2.x.x
+## Breaking changes & migration
 
-see [`CHANGELOG.md`](CHANGELOG.md)
+See [`CHANGELOG.md`](CHANGELOG.md)
+
+## F.A.Q.
+
+<details>
+<summary><b>Why are there different kB sizes on npm, bundlephobia and the badge in the readme?</b></summary>
+
+**TL;DR:** Because exifr comes in four bundles, each in three variants, plus source codes are included.
+
+**npm** (~588 kB): The module includes both `src/` and `dist/`. That source codes of all the readers, parsers and dictionaries. Multiplied by 4 bundles (*full*, *lite*, *mini*, *core*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE11). But you will never use all of the files. They're there so you can choose what's best for your project.
+
+**bundlephobia** (~63/22 kB): *Full* build is the `"main"` entry point (in `package.json`) picked up by Node and bundlephobia. But it's meant for use in Node where size doesn't matter.
+
+**badge in readme** (~9 kB, ~30 files): The badge points to *mini* bundle which contains the bare minimum needed to cover the most usecases (get orientation, coords, exif info, etc...). This is meant for browsers where file size matters.
+</details>
+
+## Contributing
+
+Contribution are welcome in any form. Suggestions, bug reports, docs improvements, new tests or even feature PRs. Don't be shy, I don't bite.
+
+If you're filing a bug, please include the problematic photo. Or better yet write a test. 
+
+If you're creating a PR, please run the tests:
+* in browser by visiting `/test/index.html` (*uses import maps, you may need to enable experimental flags in your browser*)
+* in Node.js by running `npm run test`
 
 ## License
 
