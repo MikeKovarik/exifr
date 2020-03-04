@@ -55,8 +55,9 @@ Works everywhere, parses everything and handles anything you throw at it.
     <li>XMP Parser - minimalistic, reliable, without dependencies</li>
     <li>XMP Extended</li>
     <li>Multi-segment ICC</li>
-    <li>Handles UCS2 formatted strings (XPTitle tag), instead of leaving it as buffer</li>
-    <li>Contains less frequently used, non-standard and proprietary TIFF/EXIF tags (only in full bundle)</li>
+    <li>Extracts all ICC tags (RedMatrixColumn, GreenTRC, B2A2, etc...)</li>
+    <li>TIFF dictionaries contain less frequently used, non-standard and proprietary TIFF/EXIF tags (only in full bundle)</li>
+    <li>Handles UCS2 formatted strings (XPTitle tag), instead of leaving it as a buffer</li>
     <li>Normalizes strings</li>
     <li>Revives dates into Date class instances</li>
     <li>Converts GPS coords from DMS to DD format. From `<code>GPSLatitude</code>, <code>GPSLatitudeRef</code> tags (<code>[50, 17, 58.57]</code> & <code>"N"</code>) to single <code>latitude</code> value (<code>50.29960</code>).</li>
@@ -110,7 +111,7 @@ import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 ```
 
-`mini` and `lite` are recommended for browsers because of balance between features and file size.
+`lite` and `mini` are recommended for browsers because of balance between features and file size.
 
 Need to support older browsers? Use `legacy` build along with polyfills. Learn more about IE11 at [examples/legacy.html](examples/legacy.html).
 
@@ -118,7 +119,7 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 
 * **full** - Contains everything. Intended for use in Node.js.
 * **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP.
-* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. No dictionaries.
+* **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. **Has no tag dictionaries**.
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 Of course, you can use the `full` version in browser, or use any other build in Node.js.
@@ -934,7 +935,7 @@ See [`CHANGELOG.md`](CHANGELOG.md)
 ## F.A.Q.
 
 <details>
-<summary><b>Why are there different kB sizes on npm, bundlephobia and the badge in the readme?</b></summary>
+<summary><b>Why are there different kB sizes on npm, bundlephobia, and badge in the readme?</b></summary>
 
 **TL;DR:** Because exifr comes in four bundles, each in three variants, plus source codes are included.
 
@@ -942,7 +943,7 @@ See [`CHANGELOG.md`](CHANGELOG.md)
 
 **bundlephobia** (~63/22 kB): *Full* build is the `"main"` entry point (in `package.json`) picked up by Node and bundlephobia. But it's meant for use in Node where size doesn't matter.
 
-**badge in readme** (~9 kB, ~30 files): The badge points to *mini* bundle which contains the bare minimum needed to cover the most usecases (get orientation, coords, exif info, etc...). This is meant for browsers where file size matters.
+**badge in readme** (~9 kB, ~30 files): The badge points to *mini* bundle which contains the bare minimum needed to cover the most use-cases (get orientation, coords, exif info, etc...). This is meant for browsers where file size matters.
 </details>
 
 ## Contributing
