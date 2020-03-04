@@ -948,7 +948,7 @@ See [`CHANGELOG.md`](CHANGELOG.md)
 
 ## Contributing
 
-Contribution are welcome in any form. Suggestions, bug reports, docs improvements, new tests or even feature PRs. Don't be shy, I don't bite.
+Contributions are welcome in any form. Suggestions, bug reports, docs improvements, new tests or even feature PRs. Don't be shy, I don't bite.
 
 If you're filing a bug, please include the problematic photo. Or better yet write a test. 
 

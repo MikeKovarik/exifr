@@ -66,7 +66,7 @@ describe('XMP Segment', () => {
 
 		it(`XMP TIFF namespace is integrated into IFD0`, async () => {
 			let options = {mergeOutput: false, xmp: true}
-			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
+			let input = await getFile('BonTonARTSTORplusIPTC.jpg')
 			let output = await exifr.parse(input, options) || {}
 			assert.isUndefined(output.xmp)
 			assert.isUndefined(output.tiff)
@@ -86,7 +86,7 @@ describe('XMP Segment', () => {
 
 		it(`XMP EXIF namespace is integrated into EXIF block from TIFF segment`, async () => {
 			let options = {mergeOutput: false, xmp: true}
-			let input = await getFile('BonTonARTSTORplusIPTC.jpg') // TODO
+			let input = await getFile('BonTonARTSTORplusIPTC.jpg')
 			let output = await exifr.parse(input, options) || {}
 			assert.isUndefined(output.xmp)
 			// data from TIFF segment, EXIF block

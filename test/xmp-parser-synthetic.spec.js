@@ -6,8 +6,6 @@ import {XmlTag, normalizeValue, XmlAttr, idNestedTags} from '../src/segment-pars
 
 const VALUE_PROP = 'value'
 
-// TODO: test - undefine is not in object at all (rdf:about="")
-
 describe('XmpParser - synthetic tests', () => {
 
 
@@ -61,7 +59,6 @@ describe('XmpParser - synthetic tests', () => {
 	})
 
 
-	// TODO rename
 	describe('XmlAttr.findAll() regex matching & extraction', () => {
 
 		describe(`=""`, () => {
@@ -192,7 +189,6 @@ describe('XmpParser - synthetic tests', () => {
 				assert.strictEqual(tag.value, undefined)
 			})
 
-			// todo: move this to normalizationm
 			it(`empty string (with spaces) value becomes undefined`, () => {
 				let [tag] = XmlTag.findAll(`<ns:name>  </ns:name>`)
 				assert.strictEqual(tag.value, undefined)

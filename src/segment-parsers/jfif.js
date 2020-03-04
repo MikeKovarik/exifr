@@ -25,13 +25,15 @@ export default class Jfif extends AppSegmentParserBase {
 		}
 	}
 
-	// TODO: hook this in
+	// TODO: hook this in into revive/translate API
+	/*
 	static prettify(jfif) {
 		let versionInt = jfif.JFIFVersion
 		jfif.JFIFVersion = ((versionInt & 0xFF00) >> 8).toString(16) + '.' + (versionInt & 0x00FF).toString(16).padStart(2, '0')
 		jfif.ResolutionUnit = jfif.ResolutionUnit === 2 ? 'cm' : jfif.ResolutionUnit === 1 ? 'inches' : jfif.ResolutionUnit
 		return jfif
 	}
+	*/
 
 }
 
