@@ -11,21 +11,16 @@ var globals = objectFromArray(external)
 var name = pkg.name
 var amd = {id: pkg.name}
 
-const emptyFile = 'export default {}'
-const emptyFileName = '---TO-BE-IGNORED---'
-function ignoreFile(fileName) {
+function replaceFile(fileName, replacement = 'export default {}') {
+	const targetId = 'replace-' + Math.round(Math.random() * 10000)
 	return {
 		resolveId(importPath) {
-			if (importPath.endsWith(fileName)) {
-				return emptyFileName
-			} else {
-				return null
-			}
+			return importPath.endsWith(fileName) ? targetId : null
 		},
 		load(importPath) {
-			return importPath === emptyFileName ? emptyFile : null;
+			return importPath === targetId ? replacement : null
 		},
-	};
+	}
 }
 
 function injectIgnoreComments() {
@@ -33,7 +28,7 @@ function injectIgnoreComments() {
 		renderChunk(code) {
 			return code.replace(`import(`, `import(/* webpackIgnore: true */ `)
 		}
-	};
+	}
 }
 
 const terserConfig = {
@@ -72,8 +67,8 @@ function createLegacyBundle(inputPath, outputPath) {
 	return {
 		input: inputPath,
 		plugins: [
-			ignoreFile('FsReader.js'),
 			notify(),
+			replaceFile('FsReader.js'),
 			babel(babelLegacy),
 			terser(terserConfig),
 		],
@@ -93,6 +88,7 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 		input: inputPath,
 		plugins: [
 			notify(),
+			replaceFile('ieFix.js', 'export function fixIeSubclassing() {}'),
 			babel(babelModern),
 			terser(terserConfig),
 			injectIgnoreComments()

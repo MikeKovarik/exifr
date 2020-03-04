@@ -1,4 +1,4 @@
-import {fixIeSubclassing} from './plugins.js'
+import {fixIeSubclassing} from './util/ieFix.js'
 
 
 const KEYS = Symbol('keys')
