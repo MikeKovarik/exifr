@@ -4,8 +4,9 @@
 	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
 	<style>
 	body {
-		font-family: Segoe UI;
+		font-family: 'Segoe UI Light', 'Segoe UI', 'Roboto', sans-serif;
 		box-sizing: border-box;
+		margin: 16px;
 	}
 	img {
 		width: 400px;
@@ -17,7 +18,7 @@
 		display: flex;
 	}
 	.box + .box {
-		margin-left: 20px;
+		margin-left: 16px;
 	}
 	</style>
 </head>
@@ -58,7 +59,6 @@
 
 		var promiseTimeout = millis => new Promise(resolve => setTimeout(resolve, millis))
 
-		let filePicker = document.querySelector('input[type="file"]')
 		let original = document.querySelector("#original")
 		let thumbnail = document.querySelector("#thumbnail")
 		let originalDesc = document.querySelector("#original-desc")
@@ -95,7 +95,7 @@
 			].join('\n')
 		}
 
-		filePicker.addEventListener('change', async e => {
+		document.querySelector('input[type="file"]').addEventListener('change', async e => {
 			processFile(url)
 		})
 

@@ -50,10 +50,16 @@
 			<h3>File</h3>
 			<div id="dropzone">
 				<input id="picker" type="file" multiple change.trigger="onPick($event)">
-				<div if.bind="browserCompatibleFile">
+				<div if.bind="browserCompatibleFile" class="input-notice">
 					Click to open filepicker
-					<br>or<br>
+					<br>
+					or
+					<br>
 					drop your file here
+					<!--
+					<br>
+					or try <span>these</span> examples
+					-->
 				</div>
 				<div if.bind="!browserCompatibleFile">
 					WARNING
@@ -93,6 +99,7 @@
 				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;translateKeys:   <input type="checkbox" checked.bind="options.translateKeys" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;translateValues: <input type="checkbox" checked.bind="options.translateValues" change.trigger="parseFile()">,</div>
+				<div muted>&nbsp;&nbsp;// for XMP Extended</div>
 				<div>&nbsp;&nbsp;multiSegment:    <input type="checkbox" checked.bind="options.multiSegment" change.trigger="parseFile()">,</div>
 				<!--
 				<div muted>&nbsp;&nbsp;// skip or only pick tags</div>
@@ -108,7 +115,7 @@
 			<h3>Embedded thumbnail</h3>
 			<img if.bind="thumbUrl" src.bind="thumbUrl">
 			<span if.bind="thumbUrl === undefined" class="small">
-				Doesn't contain thumbnail
+				File doesn't contain thumbnail
 			</span>
 		</div>
 

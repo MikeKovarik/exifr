@@ -4,11 +4,12 @@
 	<meta name="viewport" content="width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes"/>
 	<style>
 	body {
-		font-family: Segoe UI;
+		font-family: 'Segoe UI Light', 'Segoe UI', 'Roboto', sans-serif;
 		box-sizing: border-box;
+		margin: 16px;
 	}
 	img {
-		width: 300px;
+		width: 280px;
 	}
 	pre {
 		white-space: pre-line;
@@ -17,7 +18,7 @@
 		display: flex;
 	}
 	.box + .box {
-		margin-left: 20px;
+		margin-left: 16px;
 	}
 	</style>
 </head>
@@ -28,7 +29,7 @@
 	<div class="layout">
 
 		<div class="box">
-			<h3>Input photo</h3>
+			<h3>Final photo (used as input)</h3>
 			<img id="input-file">
 		</div>
 
@@ -38,7 +39,7 @@
 		</div>
 
 		<div class="box">
-			<h3>Raw source photo</h3>
+			<h3>Raw source</h3>
 			<img id="depth-source">
 		</div>
 

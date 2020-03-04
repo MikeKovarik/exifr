@@ -14,6 +14,9 @@
 			position: absolute;
 			right: 10px;
 			top: 10px;
+		}
+		a {
+			text-decoration: underline;
 			cursor: pointer;
 		}
 	</style>
@@ -21,7 +24,7 @@
 <body>
 
 	<p>View this page in IE11 to test compatibility of <code>full.legacy.umd.js</code> bundle</p>
-	<span id="reload">force reload</span>
+	<a id="reload" class="pointer">force reload</a>
 
 	<h3>Polyfills</h3>
 	<p>Exifr is built using the latest standards and web platform features. We use Babel to transpile the new syntax down to ES5; Rollup to bundle all ESM files into single UMD bundle usable in older browsers. But it's up to you to include polyfills in your app.</p>
@@ -35,12 +38,19 @@
 	<h4>Needs to be polyfilled:</h4>
 	<p>If you decide to use core-js or another polyfill, here's a list of some of the features exifr uses.</p>
 	<ul>
-		<p>Object.assign, Object.keys, Object.values, Object.fromEntries</p>
-		<p>Array.from, Array.prototype.includes</p>
-		<p>fetch</p>
-		<p>TextDecoder</p>
-		<p>Map, Set</p>
-		<p>Uint8Array, DataView, ArrayBuffer</p>
+		<li>Object.assign, Object.keys, Object.values, Object.fromEntries</li>
+		<li>Array.from, Array.prototype.includes</li>
+		<li>fetch</li>
+		<li>TextDecoder</li>
+		<li>Map, Set</li>
+		<li>Uint8Array, DataView, ArrayBuffer</li>
+	</ul>
+
+	<h3>Demos to try: (click on)</h3>
+	<ul>
+		<li id="demo1" class="pointer"><a>Parse TIFF (EXIF)</a></li>
+		<li id="demo2" class="pointer"><a>Extract depth map from XMP Extended</a></li>
+		<li id="demo3" class="pointer"><a>Parse ICC color profile</a></li>
 	</ul>
 
 	<h3>Output:</h3>
@@ -89,26 +99,63 @@
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>
 
-		function handleFile(file) {
-			$output.innerHTML = ''
-			exifr.parse(file)
+		function printOutput(output) {
+			$output.innerHTML = JSON.stringify(output, null, 4)
+		}
+
+		function catchErrors(err) {
+			console.log('UNCAUGHT')
+			console.log(err)
+			printOutput([
+				'**************** UNCAUGHT ****************',
+				err.message,
+				err.stack,
+			])
+		}
+
+		// first demo
+		function parseFile(file, options) {
+			$output.innerHTML = 'parsing file'
+			exifr.parse(file, options)
+				.then(printOutput)
+				.catch(catchErrors)
+		}
+
+		// second demo
+		function extractDepthMap(file, options) {
+			$output.innerHTML = 'extracting depth map'
+			let img = document.createElement('img')
+			exifr.parse(file, options)
 				.then(function(output) {
-					$output.innerHTML += JSON.stringify(output, null, 4)
+					$output.innerHTML = ''
+					var mime = output.GDepth.Mime
+					var base64 = output.GDepth.Data
+					img.width = 400
+					img.src = 'data:' + mime + ';base64,' + base64
+					$output.appendChild(img)
 				})
-				.catch(function(err) {
-					console.log('UNCAUGHT')
-					console.log(err)
-					printOutput([
-						'**************** UNCAUGHT ****************',
-						err.message,
-						err.stack,
-					])
-				})
+				.catch(catchErrors)
+		}
+
+		document.getElementById('demo1').addEventListener('click', runDemo1)
+		document.getElementById('demo2').addEventListener('click', runDemo2)
+		document.getElementById('demo3').addEventListener('click', runDemo3)
+
+		function runDemo1() {
+			parseFile('../test/fixtures/IMG_20180725_163423-tiny.jpg')
+		}
+
+		function runDemo2() {
+			extractDepthMap('../test/fixtures/xmp depth map.jpg', {xmp: true, mergeOutput: false, multiSegment: true})
+		}
+
+		function runDemo3() {
+			parseFile('../test/fixtures/IMG_20180725_163423-tiny.jpg', {tiff: false, icc: true, multiSegment: true})
 		}
 
 		// load demo file first
-		handleFile('../test/fixtures/IMG_20180725_163423-tiny.jpg')
-		
+		runDemo1()
+
 		let dropzone = document.body
 		function prevent(e) {
 			e.preventDefault()
@@ -117,7 +164,7 @@
 		dropzone.addEventListener('dragover', prevent)
 		dropzone.addEventListener('drop', function(e) {
 			e.preventDefault()
-			handleFile(e.dataTransfer.files[0])
+			parseFile(e.dataTransfer.files[0])
 		})
 
 	</script>

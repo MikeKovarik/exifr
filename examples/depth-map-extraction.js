@@ -15,6 +15,23 @@ const options = {
 	mergeOutput: false,
 }
 
+// browser only
+var dom
+if (isBrowser) {
+	dom = {
+		filePicker: document.querySelector('input[type="file"]'),
+		log: document.querySelector('#log'),
+		'input-file': document.querySelector('#input-file'),
+		'depth-map': document.querySelector('#depth-map'),
+		'depth-source': document.querySelector('#depth-source'),
+	}
+	dom.filePicker.addEventListener('change', async e => {
+		let url = URL.createObjectURL(e.target.files[0])
+		extractDepthMap(url)
+	})
+}
+
+// do the extraction with demo file
 extractDepthMap('../test/fixtures/xmp depth map.jpg')
 
 // Node.js only
@@ -28,12 +45,11 @@ async function saveToDisk(xmpNamespace, fileName) {
 }
 
 // Browser only
-async function displayInBrowser(xmpNamespace, fileName) {
+async function displayInBrowser(xmpNamespace, id) {
 	let base64 = xmpNamespace.Data
 	let mime = xmpNamespace.Mime
-	//console.log('base64', base64)
-	let $img = document.querySelector('#' + fileName)
-	$img.src = `data:${mime};base64,${base64}`
+	let img = dom[id]
+	img.src = `data:${mime};base64,${base64}`
 }
 
 function handleFile(xmpNamespace, fileName) {
@@ -44,8 +60,14 @@ function handleFile(xmpNamespace, fileName) {
 }
 
 async function extractDepthMap(filePath) {
+	// clear previous image
+	if (isBrowser) {
+		dom['input-file'].src   = filePath
+		dom['depth-map'].src    = ''
+		dom['depth-source'].src = ''
+		dom['log'].innerHTML = ''
+	}
 	// extract the data from file
-	if (isBrowser) document.querySelector('#input-file').src = filePath
 	let output = await exifr.parse(filePath, options)
 	if (output && output.GDepth) {
 		log('The file contains depth map')
@@ -73,8 +95,7 @@ async function extractDepthMap(filePath) {
 
 function log(...args) {
 	if (isBrowser) {
-		let $log = document.querySelector('#log')
-		$log.innerHTML += args.join(' ') + '\n'
+		dom.log.innerHTML += args.join(' ') + '\n'
 	} else {
 		console.log(...args)
 	}

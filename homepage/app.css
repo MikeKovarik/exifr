@@ -121,6 +121,13 @@ p {
 	margin-top: 8px;
 	margin-bottom: 8px;
 }
+/* TODO */
+#dropzone .input-notice {
+	line-height: 28px;
+}
+#dropzone span {
+	border-bottom: 1px dashed;
+}
 
 h3 {
 	display: flex;
