@@ -122,7 +122,7 @@ export default class XmpParser extends AppSegmentParserBase {
 // removes undefined properties and empty objects
 function pruneObject(object) {
 	let val
-	for (let key of Object.keys(object)) {
+	for (let key in object) {
 		val = object[key] = undefinedIfEmpty(object[key])
 		if (val === undefined)
 			delete object[key]

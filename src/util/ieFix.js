@@ -3,13 +3,14 @@ export function fixIeSubclassing(target, Class, methods = [], getters = []) {
 	// PluginList doesn't change behavior of .get(), we just add checks that throw if key was not found.
 	// IE wont throw these errors but will work. I'm ok with this regression.
 	// We just need to copy additional custom method.
-	for (let key of methods)
+	methods.forEach(key => {
 		if (target[key] === undefined) target[key] = Class.prototype[key]
-	for (let key of getters) {
+	})
+	getters.forEach(key => {
 		let targetDesc = Object.getOwnPropertyDescriptor(target, key)
 		if (targetDesc === undefined) {
 			let protoDesc = Object.getOwnPropertyDescriptor(Class.prototype, key)
 			Object.defineProperty(target, key, protoDesc)
 		}
-	}
+	})
 }

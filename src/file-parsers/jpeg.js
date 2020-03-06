@@ -253,7 +253,7 @@ function groupBy(array, key) {
 			groups.set(groupKey, group = [])
 		group.push(item)
 	}
-	return Array.from(groups.entries())
+	return Array.from(groups)
 }
 
 fileParsers.set('jpeg', JpegFileParser)
