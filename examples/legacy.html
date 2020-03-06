@@ -32,14 +32,7 @@
 	<h4>In this example we use:</h4>
 	<ul>
 		<li>polyfill.io with <strong>es2015</strong> preset</li>
-		<li>TextDecoder</li>
 		<li>regeneratorRuntime (needed by babel)</li>
-	</ul>
-	<h4>Needs to be polyfilled:</h4>
-	<p>If you decide to use core-js or another polyfill, here's a list of some of the features exifr uses.</p>
-	<ul>
-		<li>TextDecoder</li>
-		<li>Map, Set</li>
 	</ul>
 
 	<h3>Demos to try: (click on)</h3>
@@ -87,12 +80,9 @@
 
 	<!-- polyfill.io with: ES2015, ES2016, ES2017, fetch, Object.fromEntries -->
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015"></script>
-	<!-- TextDecoder polyfill -->
-	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding-indexes.js"></script>
-	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding.js"></script>
 	<!-- regeneratorRuntime needed by babel to make async work -->
 	<script src="https://unpkg.com/regenerator-runtime@0.13.3/runtime.js"></script>
-
+	<!-- exifr -->
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>
 

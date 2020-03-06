@@ -1,4 +1,3 @@
-import {promises as fs} from 'fs'
 import path from 'path'
 import babel from 'rollup-plugin-babel'
 import notify from 'rollup-plugin-notify'
@@ -112,7 +111,7 @@ function createLegacyBundle(inputPath, outputPath) {
 			replaceFile('FsReader.js'),
 			replaceBuiltinsWithIePolyfills(),
 			babel(babelLegacy),
-			//terser(terserConfig),
+			//terser(terserConfig), // TODO re-enable
 		],
 		external,
 		output: {
@@ -133,7 +132,7 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 			replaceFile('iePolyfill.js'),
 			replaceFile('ieFix.js', 'export function fixIeSubclassing() {}'),
 			babel(babelModern),
-			//terser(terserConfig),
+			//terser(terserConfig), // TODO re-enable
 			injectIgnoreComments()
 		],
 		external,

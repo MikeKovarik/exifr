@@ -51,7 +51,12 @@ function includes(item) {
 if (!Array.prototype.includes)  Array.prototype.includes  = includes
 if (!String.prototype.includes) String.prototype.includes = includes
 
-// TextDecoder
+export function TextDecoder() {}
+TextDecoder.prototype.decode = function(uintArray) {
+	var encodedString = String.fromCharCode.apply(null, uintArray)
+	var decodedString = decodeURIComponent(escape(encodedString))
+	return decodedString
+}
 
 export function fetch(url, options = {}) {
 	return new Promise((resolve, reject) => {
