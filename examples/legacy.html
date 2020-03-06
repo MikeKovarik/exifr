@@ -31,19 +31,15 @@
 
 	<h4>In this example we use:</h4>
 	<ul>
-		<li>polyfill.io with presets <strong>es2015</strong>, <strong>es2016</strong>, <strong>es2017</strong> and polyfills <strong>Object.fromEntries</strong>, <strong>fetch</strong></li>
+		<li>polyfill.io with <strong>es2015</strong> preset</li>
 		<li>TextDecoder</li>
 		<li>regeneratorRuntime (needed by babel)</li>
 	</ul>
 	<h4>Needs to be polyfilled:</h4>
 	<p>If you decide to use core-js or another polyfill, here's a list of some of the features exifr uses.</p>
 	<ul>
-		<li>Object.assign, Object.keys, Object.values, Object.fromEntries</li>
-		<li>Array.from, Array.prototype.includes</li>
-		<li>fetch</li>
 		<li>TextDecoder</li>
 		<li>Map, Set</li>
-		<li>Uint8Array, DataView, ArrayBuffer</li>
 	</ul>
 
 	<h3>Demos to try: (click on)</h3>
@@ -63,6 +59,7 @@
 		var $reload = document.querySelector('#reload')
 
 		window.onerror = function(message, source, lone, col, error) {
+			console.log('ONERROR')
 			var lines = [
 				'**************** ERROR ****************',
 				'message: ' + message,
@@ -81,7 +78,7 @@
 		}
 
 		function printOutput(lines) {
-			$output.innerHTML += lines.join('\n') + '\n\n'
+			$output.innerHTML += '\n' + lines.join('\n') + '\n\n'
 		}
 		
 		// way to force-reload on phones where you can't do ctr+shift+r.
@@ -89,7 +86,7 @@
 	</script>
 
 	<!-- polyfill.io with: ES2015, ES2016, ES2017, fetch, Object.fromEntries -->
-	<script src="https://polyfill.io/v3/polyfill.min.js?features=es2017%2Ces2016%2CObject.fromEntries%2Cfetch%2Ces2015"></script>
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015"></script>
 	<!-- TextDecoder polyfill -->
 	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding-indexes.js"></script>
 	<script src="https://unpkg.com/text-encoding@0.6.4/lib/encoding.js"></script>
@@ -99,8 +96,8 @@
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>
 
-		function printOutput(output) {
-			$output.innerHTML = JSON.stringify(output, null, 4)
+		function printExif(output) {
+			$output.innerHTML += JSON.stringify(output, null, 4)
 		}
 
 		function catchErrors(err) {
@@ -115,15 +112,13 @@
 
 		// first demo
 		function parseFile(file, options) {
-			$output.innerHTML = 'parsing file'
 			exifr.parse(file, options)
-				.then(printOutput)
+				.then(printExif)
 				.catch(catchErrors)
 		}
 
 		// second demo
 		function extractDepthMap(file, options) {
-			$output.innerHTML = 'extracting depth map'
 			let img = document.createElement('img')
 			exifr.parse(file, options)
 				.then(function(output) {
@@ -141,20 +136,23 @@
 		document.getElementById('demo2').addEventListener('click', runDemo2)
 		document.getElementById('demo3').addEventListener('click', runDemo3)
 
-		function runDemo1() {
+		function runDemo1(clear) {
+			if (clear) $output.innerHTML = 'parsing file'
 			parseFile('../test/fixtures/IMG_20180725_163423-tiny.jpg')
 		}
 
-		function runDemo2() {
+		function runDemo2(clear) {
+			if (clear) $output.innerHTML = 'extracting depth map'
 			extractDepthMap('../test/fixtures/xmp depth map.jpg', {xmp: true, mergeOutput: false, multiSegment: true})
 		}
 
-		function runDemo3() {
+		function runDemo3(clear) {
+			if (clear) $output.innerHTML = 'parsing file'
 			parseFile('../test/fixtures/IMG_20180725_163423-tiny.jpg', {tiff: false, icc: true, multiSegment: true})
 		}
 
 		// load demo file first
-		runDemo1()
+		runDemo1(false)
 
 		let dropzone = document.body
 		function prevent(e) {

@@ -1,3 +1,4 @@
+import './util/iePolyfill.js'
 export * from './highlevel.js'
 export {Exifr} from './Exifr.js'
 // for advanced users
