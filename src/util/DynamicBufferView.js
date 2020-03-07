@@ -82,20 +82,8 @@ export class Ranges {
 
 	list = []
 
-	constructor(list) {
-		if (list !== undefined && Array.isArray(list))
-			this.addMultiple(list)
-	}
-
 	get length() {
 		return this.list.length
-	}
-
-	addMultiple(list) {
-		if (Array.isArray(list[0]))
-			for (let [offset, length] of list) this.add(offset, length)
-		else
-			for (let {offset, length} of list) this.add(offset, length)
 	}
 
 	// TODO: add padding - because it's better to do just one disk read instead of two

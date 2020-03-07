@@ -221,12 +221,21 @@ export class TiffExif extends TiffCore {
 		this.parseHeader()
 		// WARNING: In .tif files, exif can be before ifd0 (issue-metadata-extractor-152.tif has: EXIF 2468122, IFD0 2468716)
 		if (this.options.ifd0.enabled)    await this.parseIfd0Block()                              // APP1 - IFD0
-		if (this.options.exif.enabled)    await this.parseExifBlock().catch(this.handleError)      // APP1 - EXIF IFD
-		if (this.options.gps.enabled)     await this.parseGpsBlock().catch(this.handleError)       // APP1 - GPS IFD
-		if (this.options.interop.enabled) await this.parseInteropBlock().catch(this.handleError)   // APP1 - Interop IFD
-		if (this.options.ifd1.enabled)    await this.parseThumbnailBlock().catch(this.handleError) // APP1 - IFD1
+		if (this.options.exif.enabled)    await this.saveParseBlock('parseExifBlock')      // APP1 - EXIF IFD
+		if (this.options.gps.enabled)     await this.saveParseBlock('parseGpsBlock')       // APP1 - GPS IFD
+		if (this.options.interop.enabled) await this.saveParseBlock('parseInteropBlock')   // APP1 - Interop IFD
+		if (this.options.ifd1.enabled)    await this.saveParseBlock('parseThumbnailBlock') // APP1 - IFD1
 		return this.createOutput()
 		//return this.output
+	}
+
+	// this is ugly but needed for async-to-promise babel plugin to work
+	async saveParseBlock(methodName) {
+		try {
+			return await this[methodName]()
+		} catch {err} {
+			this.handleError(err)
+		}
 	}
 
 	findIfd0Offset() {
@@ -352,7 +361,7 @@ export class TiffExif extends TiffCore {
 	async parseInteropBlock() {
 		if (this.interop) return
 		if (!this.ifd0) await this.parseIfd0Block()
-		if (this.interopOffset === undefined && !this.exif) this.parseExifBlock()
+		if (this.interopOffset === undefined && !this.exif) await this.parseExifBlock()
 		if (this.interopOffset === undefined) return
 		return this.parseBlock(this.interopOffset, 'interop')
 	}

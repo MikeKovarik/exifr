@@ -32,7 +32,8 @@
 	<h4>In this example we use:</h4>
 	<ul>
 		<li>polyfill.io with <strong>es2015</strong> preset</li>
-		<li>regeneratorRuntime (needed by babel)</li>
+		<li>Promise polyfill</li>
+		<li>IE10 requires map and set (TODO)</li>
 	</ul>
 
 	<h3>Demos to try: (click on)</h3>
@@ -73,15 +74,16 @@
 		function printOutput(lines) {
 			$output.innerHTML += '\n' + lines.join('\n') + '\n\n'
 		}
-		
+	
 		// way to force-reload on phones where you can't do ctr+shift+r.
 		$reload.addEventListener('click', function() {window.location.reload(true)})
 	</script>
 
-	<!-- polyfill.io with: ES2015, ES2016, ES2017, fetch, Object.fromEntries -->
+	<!-- polyfill.io with: ES2015 -->
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015"></script>
-	<!-- regeneratorRuntime needed by babel to make async work -->
-	<script src="https://unpkg.com/regenerator-runtime@0.13.3/runtime.js"></script>
+	<!--
+	<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js"></script>
+	-->
 	<!-- exifr -->
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>

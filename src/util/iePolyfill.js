@@ -17,9 +17,10 @@ export var ObjectEntries = Object.entries || (object => {
 })
 
 export var ObjectAssign = Object.assign || ((target, ...objects) => {
-	for (let object of objects)
+	objects.forEach(object => {
 		for (let key in object)
 			target[key] = object[key]
+	})
 	return target
 })
 
@@ -51,11 +52,12 @@ function includes(item) {
 if (!Array.prototype.includes)  Array.prototype.includes  = includes
 if (!String.prototype.includes) String.prototype.includes = includes
 
-export function TextDecoder() {}
-TextDecoder.prototype.decode = function(uintArray) {
-	var encodedString = String.fromCharCode.apply(null, uintArray)
-	var decodedString = decodeURIComponent(escape(encodedString))
-	return decodedString
+export class TextDecoder {
+	decode(uintArray) {
+		var encodedString = String.fromCharCode.apply(null, uintArray)
+		var decodedString = decodeURIComponent(escape(encodedString))
+		return decodedString
+	}
 }
 
 export function fetch(url, options = {}) {

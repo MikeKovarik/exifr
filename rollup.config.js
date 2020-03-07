@@ -71,15 +71,14 @@ const terserConfig = {
 	toplevel: true
 }
 
-const babelShared = {
-	plugins: [
-		//'@babel/plugin-proposal-nullish-coalescing-operator',
-		//'@babel/plugin-proposal-optional-chaining',
-		'@babel/plugin-proposal-class-properties',
-	],
-}
+const babelPlugins = [
+	//'@babel/plugin-proposal-nullish-coalescing-operator',
+	//'@babel/plugin-proposal-optional-chaining',
+	'@babel/plugin-proposal-class-properties',
+]
 
-const babelModern = Object.assign({}, babelShared, {
+const babelModern = {
+	plugins: babelPlugins,
 	presets: [
 		['@babel/preset-env', {
 			targets: '>1%, not dead, not ie 10-11'
@@ -87,15 +86,30 @@ const babelModern = Object.assign({}, babelShared, {
 		
 	],
 	"comments": false
-})
+}
 
-const babelLegacy = Object.assign({}, babelShared, {
-	presets: [
-		['@babel/preset-env', {
-			targets: '>0.25%, not dead'
-		}],
+const babelLegacy = {
+	plugins: [
+		...babelPlugins,
+		//'./src/util/babel-plugin-transform-for-of-array-to-array.cjs',
+		'babel-plugin-transform-for-of-without-iterator',
+		'babel-plugin-transform-async-to-promises',
+		// select es2015 preset builtins
+		'@babel/plugin-transform-arrow-functions',
+		'@babel/plugin-transform-block-scoping',
+		'@babel/plugin-transform-classes',
+		'@babel/plugin-transform-computed-properties',
+		['@babel/plugin-transform-destructuring', {loose: true, useBuiltIns: true}],
+		'@babel/plugin-transform-duplicate-keys',
+		'@babel/plugin-transform-function-name',
+		'@babel/plugin-transform-literals',
+		'@babel/plugin-transform-parameters',
+		'@babel/plugin-transform-shorthand-properties',
+		['@babel/plugin-transform-spread', {loose: true}],
+		'@babel/plugin-transform-template-literals',
+
 	],
-})
+}
 
 var external = [...builtinModules, ...Object.keys(pkg.dependencies || {})]
 var globals = objectFromArray(external)
@@ -132,7 +146,7 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 			replaceFile('iePolyfill.js'),
 			replaceFile('ieFix.js', 'export function fixIeSubclassing() {}'),
 			babel(babelModern),
-			//terser(terserConfig), // TODO re-enable
+			terser(terserConfig), // TODO re-enable
 			injectIgnoreComments()
 		],
 		external,
