@@ -1,19 +1,18 @@
 import {fixIeSubclassing} from './util/ieFix.js'
 
 
-const KEYS = Symbol('keys')
-const VALUES = Symbol('values')
-
 class Dictionary extends Map {
 
 	get tagKeys() {
-		if (!this[KEYS]) this[KEYS] = Array.from(this.keys())
-		return this[KEYS]
+		if (!this.allKeys)
+			this.allKeys = Array.from(this.keys())
+		return this.allKeys
 	}
 
 	get tagValues() {
-		if (!this[VALUES]) this[VALUES] = Array.from(this.values())
-		return this[VALUES]
+		if (!this.allValues)
+			this.allValues = Array.from(this.values())
+		return this.allValues
 	}
 
 }

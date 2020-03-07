@@ -233,7 +233,7 @@ export class TiffExif extends TiffCore {
 	async saveParseBlock(methodName) {
 		try {
 			return await this[methodName]()
-		} catch {err} {
+		} catch (err) {
 			this.handleError(err)
 		}
 	}

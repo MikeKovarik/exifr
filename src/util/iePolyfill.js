@@ -26,7 +26,7 @@ export var ObjectAssign = Object.assign || ((target, ...objects) => {
 
 export var ObjectFromEntries = Object.fromEntries || (entries => {
 	let object = {}
-	// no using for of because it would transpile to use of Symbol.iterator
+	// not using for-of because it would transpile to use of Symbol.iterator
 	ArrayFrom(entries).forEach(([key, val]) => {
 		object[key] = val
 	})
@@ -52,7 +52,9 @@ function includes(item) {
 if (!Array.prototype.includes)  Array.prototype.includes  = includes
 if (!String.prototype.includes) String.prototype.includes = includes
 
-export class TextDecoder {
+let theGlobal = typeof self !== 'undefined' ? self : global
+
+export var TextDecoder = theGlobal.TextDecoder || class {
 	decode(uintArray) {
 		var encodedString = String.fromCharCode.apply(null, uintArray)
 		var decodedString = decodeURIComponent(escape(encodedString))
@@ -60,7 +62,7 @@ export class TextDecoder {
 	}
 }
 
-export function fetch(url, options = {}) {
+export var fetch = theGlobal.fetch || function(url, options = {}) {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
 		xhr.open('get', url, true)
