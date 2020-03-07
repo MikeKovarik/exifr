@@ -96,16 +96,14 @@ export class JpegFileParser extends FileParserBase {
 	async findAppSegments(offset = 0, wantedArray) {
 		this.setupSegmentFinderArgs(wantedArray)
 		let {file, findAll, wanted, remaining} = this
-		if (!findAll) {
-			for (let type of wanted) {
+		if (!findAll && this.file.chunked) {
+			// note: not using for-of syntax because of transpilation for IE11.
+			findAll = Array.from(wanted).some(type => {
 				let Parser = segmentParsers.get(type)
 				let segOpts = this.options[type]
-				if (Parser.multiSegment && segOpts.multiSegment) {
-					findAll = true
-					if (this.file.chunked) await this.file.readWhole()
-					break
-				}
-			}
+				return Parser.multiSegment && segOpts.multiSegment
+			})
+			if (findAll) await this.file.readWhole()
 		}
 		// _findAppSegments() returns offset where next segment starts. If we didn't store it, next time we continue
 		// we might start in middle of data segment and would uselessly read & parse through noise.
