@@ -6,9 +6,9 @@ interface Tags {
 	[name: string]: string | number | number[] | Uint8Array
 }
 
-type Input = ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array | DataView | string | Blob | File
+type Input = ArrayBuffer | SharedArrayBuffer | Buffer | Uint8Array | DataView | string | Blob | File | HTMLImageElement
 
-type Output = Tags | ExpandedTags
+type Filter = (string | number)[];
 
 interface GpsOutput {
 	latitude: number,
@@ -16,8 +16,8 @@ interface GpsOutput {
 }
 
 interface FormatOptions {
-	skip?: (string | number)[],
-	pick?: (string | number)[],
+	skip?: Filter,
+	pick?: Filter,
 	translateKeys?: boolean,
 	translateValues?: boolean,
 	reviveValues?: boolean,
@@ -46,23 +46,9 @@ interface Options extends FormatOptions {
 	chunkLimit?: number,
 }
 
-interface ExpandedTags {
-	// TIFF segment
-	ifd0?: Tags,
-	ifd1?: Tags,
-	exif?: Tags,
-	gps?: Tags & GpsOutput,
-	interop?: Tags,
-	// Other segments
-	jfif?: Tags,
-	iptc?: Tags,
-	xmp?: Tags,
-	icc?: Tags
-}
-
-export function parse(data: Input, options?: Options): Promise<ExpandedTags>;
-export function thumbnail(data: Input, options?: Options): Promise<Uint8Array | Buffer | undefined>;
-export function thumbnailUrl(data: Input, options?: Options): Promise<string>;
+export function parse(data: Input, options?: Options | Filter): Promise<any>;
+export function thumbnail(data: Input): Promise<Uint8Array | Buffer | undefined>;
+export function thumbnailUrl(data: Input): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
 export function orientation(data: Input): Promise<number | undefined>;
 
@@ -77,6 +63,6 @@ export const fileReaders: Map<string, any>;
 export class Exifr {
 	constructor(options?: Options);
 	read(data: Input): Promise<void>;
-	parse(): Promise<Output>;
+	parse(): Promise<any>;
 	extractThumbnail(): Promise<Uint8Array | undefined>;
 }

@@ -403,3 +403,10 @@ export const orientationOnlyOptions = Object.assign({}, disableAllOptions, {
 	firstChunkSize: 40000,
 	ifd0: [TAG_ORIENTATION],
 })
+
+export const thumbnailOnlyOptions = Object.assign({}, disableAllOptions, {
+	tiff: false,
+	ifd1: true,
+	// needed to prevent options from disabling ifd1
+	mergeOutput: false
+})

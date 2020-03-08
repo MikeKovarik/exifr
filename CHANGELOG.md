@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [4.2.0]
+
+### Changed
+- Simplified and improved implementation of `thumbnail()` and `thumbnailUrl()`.
+- Improved typescript types. Added `HTMLImageElement` to `input`.
+
 ## [4.1.0]
 
 ### Added
@@ -136,7 +142,8 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.2.0...HEAD
+[4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...v4.2.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v3.0.1...v4.0.0
 [3.0.1]: https://github.com/MikeKovarik/exifr/compare/v3.0.0...v3.0.1

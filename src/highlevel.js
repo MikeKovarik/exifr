@@ -1,6 +1,6 @@
 import * as platform from './util/platform.js'
 import {Exifr} from './Exifr.js'
-import {gpsOnlyOptions, orientationOnlyOptions} from './options.js'
+import {thumbnailOnlyOptions, gpsOnlyOptions, orientationOnlyOptions} from './options.js'
 import {TAG_ORIENTATION} from './tags.js'
 
 
@@ -10,10 +10,9 @@ export async function parse(input, options) {
 	return exr.parse()
 }
 
-export async function thumbnail(input, options = {}) {
-	options.ifd1 = true
-	options.mergeOutput = true
-	let exr = new Exifr(options)
+export async function thumbnail(input) {
+
+	let exr = new Exifr(thumbnailOnlyOptions)
 	await exr.read(input)
 	let u8arr = await exr.extractThumbnail()
 	if (u8arr && platform.hasBuffer)
@@ -23,8 +22,8 @@ export async function thumbnail(input, options = {}) {
 }
 
 // only available in browser
-export async function thumbnailUrl(...args) {
-	let u8arr = await this.thumbnail(...args)
+export async function thumbnailUrl(input) {
+	let u8arr = await this.thumbnail(input)
 	if (u8arr !== undefined) {
 		let blob = new Blob([u8arr]) // note: dont use AB directly, because of byteOffset
 		return URL.createObjectURL(blob)
