@@ -24,7 +24,7 @@
 </head>
 <body>
 
-	<input type="file">
+	<input id="fileinput" type="file">
 
 	<div class="layout">
 
@@ -48,13 +48,14 @@
 	<script>
 
 		function promiseImg(img) {
-			if (img.naturalWidth !== 0)
+			if (img.naturalWidth !== 0) {
 				return Promise.resolve()
-			else
+			} else {
 				return new Promise((resolve, reject) => {
 					img.onload = resolve
 					img.onerror = reject
 				})
+			}
 		}
 
 		var promiseTimeout = millis => new Promise(resolve => setTimeout(resolve, millis))
@@ -69,7 +70,7 @@
 		async function processFile(arg) {
 			let url
 			if (arg instanceof Blob)
-				url = URL.createObjectURL(e.target.files[0])
+				url = URL.createObjectURL(arg)
 			else
 				url = arg
 			original.src = url
@@ -82,21 +83,29 @@
 			let t1 = performance.now()
 			// thumb extracted
 			printImgInfo(original, originalDesc)
-			await promiseTimeout() // needed for reloading after selecting another img
-			await promiseImg(thumbnail)
-			printImgInfo(thumbnail, thumbnailDesc, `extracted in ${Math.round(t1 - t0)} ms`)
+			try {
+				await promiseTimeout() // needed for reloading after selecting another img
+				await promiseImg(thumbnail)
+				printImgInfo(thumbnail, thumbnailDesc, `extracted in ${Math.round(t1 - t0)} ms`)
+			} catch (err) {
+				printImgInfo(thumbnail, thumbnailDesc, `No thumbnail`)
+			}
 		}
 
 		function printImgInfo(img, pre, ...lines) {
-			pre.innerHTML = [
-				`width: ${img.naturalWidth}`,
-				`height: ${img.naturalHeight}`,
-				...lines
-			].join('\n')
+			if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+				pre.innerHTML = [
+					`width: ${img.naturalWidth}`,
+					`height: ${img.naturalHeight}`,
+					...lines
+				].join('\n')
+			} else {
+				pre.innerHTML = lines.join('\n')
+			}
 		}
 
 		document.querySelector('input[type="file"]').addEventListener('change', async e => {
-			processFile(url)
+			processFile(e.target.files[0])
 		})
 
 	</script>
