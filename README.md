@@ -14,6 +14,8 @@
 •
 [Quick start](#examples)
 •
+[Demos](#demos)
+•
 [API](#api)
 •
 [Performance](#performance)
@@ -229,7 +231,7 @@ ESM in Browser
 </script>
 ```
 
-### Demos & more examples
+### Demos
 
 * [**playground**](https://mutiny.cz/exifr)
 * [examples/thumbnail.html](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)

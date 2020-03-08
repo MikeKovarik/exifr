@@ -29,11 +29,23 @@
 		#map {
 			flex: 1;
 		}
+		input[type="file"] {
+			opacity: 0;
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
 	</style>
 </head>
 <body>
 
-	<div id="log">Drop files here</div>
+	<input type="file" multiple>
+
+	<div id="log">Drop files here (or click to open file picker)</div>
 	<div id="map"></div>
 
 	<script src="https://maps.googleapis.com/maps/api/js"></script>
@@ -47,23 +59,33 @@
 		let dropzone = document.body
 		dropzone.addEventListener('dragenter', e => e.preventDefault())
 		dropzone.addEventListener('dragover', e => e.preventDefault())
-		dropzone.addEventListener('drop', async e => {
+		dropzone.addEventListener('drop', e => {
 			e.preventDefault()
-			let files = Array.from(e.dataTransfer.files)
+			handleFiles(e.dataTransfer.files)
+		})
+
+		document.querySelector('input[type="file"]').addEventListener('change', e => {
+			e.preventDefault()
+			handleFiles(e.target.files)
+		})
+
+		async function handleFiles(files) {
+			files = Array.from(files)
 			let totalBytes = sum(files.map(f => f.size))
-			let [time, memory] = await processImages(files)
+			let [time, memory] = await parseAndMeasureImages(files)
 			$log.innerHTML = [
 				`files:     <strong>${files.length}</strong> = <strong class="red">${(totalBytes / 1024 / 1024).toFixed(1)} MB</strong>`,
 				`RAM used:  <strong class="green">${(memory / 1024 / 1024).toFixed(1)} MB</strong>`,
 				`parsed in: <strong class="green">${Math.floor(time)} ms</strong> (${(time / files.length).toFixed(1)} ms per file)`,
 			].join('\n')
-		})
+		}
 
-		async function processImages(files) {
+		async function parseAndMeasureImages(files) {
 			memUsed = 0
 			let m1 = performance.memory.usedJSHeapSize
 			let t1 = performance.now()
-			let coords = await Promise.all(files.map(exifr.gps))
+			let promises = files.map(exifr.gps).map(promise => promise.catch(() => {}))
+			let coords = await Promise.all(promises)
 			let m2 = performance.memory.usedJSHeapSize
 			let t2 = performance.now()
 			renderMap(coords)
