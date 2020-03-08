@@ -137,7 +137,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 * **ESM** - Modern syntax for use in [modern browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) and [Node.js](https://nodejs.org/api/esm.html).
 <br>Uses `import` syntax.
 * **UMD** - Universal format for browsers and Node.js.
-<br>Supports CJS `require('exifr')` AMD/RequireJS and global `window.exifr`.
+<br>Supports CJS `require('exifr')`, AMD/RequireJS and global `window.exifr`.
 * **legacy UMD** - For use in older browsers (up to IE10).
 <br>Bundled with polyfills & shims, except for `Promise` polyfill. [Learn more here](https://mutiny.cz/exifr/examples/legacy.html).
 

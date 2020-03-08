@@ -5,6 +5,7 @@ import pkg from './package.json'
 import {builtinModules} from 'module'
 import {terser} from 'rollup-plugin-terser'
 import * as polyfills from './src/util/iePolyfill.js'
+import {fileURLToPath} from 'url'
 
 
 function replaceBuiltinsWithIePolyfills() {
@@ -22,8 +23,9 @@ function replaceBuiltinsWithIePolyfills() {
 	]
 	// keys of translatables and builtings (like fetch)
 	let polyfillKeys = Object.keys(polyfills)
-	let rollupFilePath = path.dirname(import.meta.url.replace('file:///', ''))
-	let polyFilePath = path.join(rollupFilePath, './src/util/iePolyfill.js')
+	let exifrDir = path.dirname(fileURLToPath(import.meta.url))
+	let polyFilePath = path.join(exifrDir, './src/util/iePolyfill.js')
+    console.log('polyFilePath', polyFilePath)
 	function createImportLine(keys, importPath) {
 		return `import {${keys.join(', ')}} from '${importPath}'\n`
 	}
@@ -41,6 +43,8 @@ function replaceBuiltinsWithIePolyfills() {
 			for (let [from, to] of translatables)
 				code = code.replace(new RegExp(from, 'g'), to)
 			let importPath = createRelativeImportPath(filePath)
+            console.log('filePath  ', filePath)
+            console.log('importPath', importPath)
 			let importLine = createImportLine(polyfillKeys, importPath)
 			code = importLine + '\n' + code
 			return code
@@ -148,7 +152,7 @@ function createLegacyBundle(inputPath, outputPath) {
 			babel(babelLegacy),
 			replaceBuiltinsWithIePolyfills(),
 			fixIeStaticMethodSubclassing(),
-			//terser(terserConfig), // TODO re-enable
+			terser(terserConfig),
 		],
 		external,
 		output: {
@@ -167,7 +171,7 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 		plugins: [
 			notify(),
 			babel(babelModern),
-			terser(terserConfig), // TODO re-enable
+			terser(terserConfig),
 			injectIgnoreComments()
 		],
 		external,
@@ -186,12 +190,14 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 }
 
 export default [
+	/*
 	createModernBundle('src/bundle-full.js','dist/full.esm.js', 'dist/full.umd.js'),
 	createModernBundle('src/bundle-lite.js','dist/lite.esm.js', 'dist/lite.umd.js'),
 	createModernBundle('src/bundle-mini.js','dist/mini.esm.js', 'dist/mini.umd.js'),
 	createModernBundle('src/bundle-core.js','dist/core.esm.js', 'dist/core.umd.js'),
 	createLegacyBundle('src/bundle-full.js', 'dist/full.legacy.umd.js'),
 	createLegacyBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js'),
+	*/
 	createLegacyBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js'),
 ]
 
