@@ -78,7 +78,7 @@ async function extractDepthMap(filePath) {
 		// store or display the depth map image
 		handleFile(output.GDepth, 'depth-map')
 	} else {
-		log('the file has no depth map')
+		log('The file has no depth map')
 		return
 	}
 	// Besides depth map, there can be original image with no blurring applied.
@@ -89,7 +89,7 @@ async function extractDepthMap(filePath) {
 		// store or display the source image
 		handleFile(output.GImage, 'depth-source')
 	} else {
-		log(`the file doesn't contain unmodified image`)
+		log(`The file doesn't contain unmodified image`)
 	}
 }
 
