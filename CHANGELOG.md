@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [4.1.0]
+
+### Added
+- Support for IE10
+
+### Breaking changes (for IE / `legacy` bundle)
+- No need to use these polyfills anymore: `TextDecoder`, `Object.assign`, `Object.keys`, `Object.values`, `Object.fromEntries`, `Array.from`, `Array.prototype.includes`, `fetch`, `Map`, `Set`.
+- `Promise` polyfill is needed now instead of `regeneratorRuntime`
+
 ## [4.0.0]
 
 ### Added
@@ -127,7 +136,8 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...HEAD
+[4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v3.0.1...v4.0.0
 [3.0.1]: https://github.com/MikeKovarik/exifr/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/MikeKovarik/exifr/compare/v2.1.4...v3.0.0

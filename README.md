@@ -47,7 +47,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 📦 Bundled as UMD/CJS or ESM
 * ✔ Tested and benchmarked
 * 🤙 Promises
-* 🕸 Supports even IE11
+* 🕸 Supports even ~IE11~ **IE10**
 
 <details>
   <summary>and more (click to expand)</summary>
@@ -93,27 +93,35 @@ npm install exifr
 
 Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
 
+#### Node.js
 
-**Old Node.js users**: This library is written as an ES module. If you still use CommonJS, you need load UMD bundle.
+**New Node**: This library is written as an ES module, with `import` syntax and `"type":"module"` in package.json.
+
+**Old Node**: If you still use CommonJS (`require()` syntax), you need load UMD bundle.
 
 ```js
-// node.js
-import * as exifr from 'exifr' // loads 'full' build by default
+// modern node.js
+import * as exifr from 'exifr' // => exifr/dist/full.esm.js
 // older Node.js or CJS project
 var exifr = require('exifr/dist/full.umd.js')
-// modern browser
-import * as exifr from 'node_modules/exifr/dist/mini.esm.js'
 ```
 
-**Browser users**: UMD is also compatible with RequireJS. Otherwise exports everything as `window.exifr`
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
-```
+#### Browsers
 
 `lite` and `mini` are recommended for browsers because of balance between features and file size.
 
-Need to support older browsers? Use `legacy` build along with polyfills. Learn more about IE11 at [examples/legacy.html](examples/legacy.html).
+UMD format supports AMD (RequireJS) or attached everything to the global `window.exifr` object.
+
+**IE & old browsers:** `legacy` build comes bundled with polyfills. [Learn more](examples/legacy.html).
+
+```html
+<!-- modern browsers -->
+<script type="module">import * as exifr from 'node_modules/exifr/dist/mini.esm.js'</script>
+<!-- classic -->
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
+<!-- IE10 & old browsers. You also need Promise polyfill -->
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.legacy.umd.js"></script>
+```
 
 #### Bundles
 
@@ -123,6 +131,13 @@ Need to support older browsers? Use `legacy` build along with polyfills. Learn m
 * **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 Of course, you can use the `full` version in browser, or use any other build in Node.js.
+
+#### Variants
+
+* **ESM** - Modern syntax for use in [modern browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) and [Node.js](https://nodejs.org/api/esm.html).
+* **UMD** - Universal format for browsers and Node.js. Supports CJS (`require('exifr')`), AMD (RequireJS) and globals (`window.exifr`).
+
+* **legacy UMD** - For use in older browsers (up to IE10). Bundled with polyfills & shims, except for `Promise` polyfill. [Learn more here](https://mutiny.cz/exifr/examples/legacy.html).
 
 <details>
 <summary><b>Detailed comparison (click to expand)</b></summary>
@@ -224,7 +239,7 @@ ESM in Browser
 * [examples/worker.html](https://mutiny.cz/exifr/examples/worker.html), [code](examples/worker.html)
 <br>Parsing file in WebWorker.
 * [examples/legacy.html](https://mutiny.cz/exifr/examples/legacy.html), [code](examples/legacy.html)
-<br>Visit in IE11,
+<br>Visit in IE10/IE11,
 * [benchmark/formats-reading.html](https://mutiny.cz/exifr/benchmark/formats-reading.html), [code](benchmark/formats-reading.html)
 <br>Compares reading speed of various input types.
 
@@ -939,7 +954,7 @@ See [`CHANGELOG.md`](CHANGELOG.md)
 
 **TL;DR:** Because exifr comes in four bundles, each in three variants, plus source codes are included.
 
-**npm** (~588 kB): The module includes both `src/` and `dist/`. That source codes of all the readers, parsers and dictionaries. Multiplied by 4 bundles (*full*, *lite*, *mini*, *core*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE11). But you will never use all of the files. They're there so you can choose what's best for your project.
+**npm** (~600 kB): The module includes both `src/` and `dist/`. That source codes of all the readers, parsers and dictionaries. Multiplied by 4 bundles (*full*, *lite*, *mini*, *core*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE11). But you will never use all of the files. They're there so you can choose what's best for your project.
 
 **bundlephobia** (~63/22 kB): *Full* build is the `"main"` entry point (in `package.json`) picked up by Node and bundlephobia. But it's meant for use in Node where size doesn't matter.
 

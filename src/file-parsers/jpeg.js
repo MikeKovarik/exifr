@@ -97,7 +97,6 @@ export class JpegFileParser extends FileParserBase {
 		this.setupSegmentFinderArgs(wantedArray)
 		let {file, findAll, wanted, remaining} = this
 		if (!findAll && this.file.chunked) {
-			// note: not using for-of syntax because of transpilation for IE11.
 			findAll = Array.from(wanted).some(type => {
 				let Parser = segmentParsers.get(type)
 				let segOpts = this.options[type]
