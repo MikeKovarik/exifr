@@ -56,7 +56,7 @@
     "@babel/preset-env": "^7.6.3",
     "aurelia-script": "^1.5.2",
     "babel-plugin-transform-async-to-promises": "^0.8.15",
-    "babel-plugin-transform-for-of-without-iterator": "^1.0.1",
+    "babel-plugin-transform-for-of-without-iterator": "^1.0.2",
     "c8": "^7.0.1",
     "chai": "^4.2.0",
     "coveralls": "^3.0.7",

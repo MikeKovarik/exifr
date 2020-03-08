@@ -1,5 +1,4 @@
 import {customError} from './util/helpers.js'
-import {fixIeSubclassing} from './util/ieFix.js'
 
 
 export function throwUnknown(kind, key) {
@@ -39,7 +38,3 @@ class PluginList extends Map {
 export var fileParsers    = new PluginList('file parser')
 export var segmentParsers = new PluginList('segment parser')
 export var fileReaders    = new PluginList('file reader')
-
-fixIeSubclassing(fileParsers,    PluginList, ['keyList'])
-fixIeSubclassing(segmentParsers, PluginList, ['keyList'])
-fixIeSubclassing(fileReaders,    PluginList, ['keyList'])

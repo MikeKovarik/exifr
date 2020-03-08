@@ -45,19 +45,6 @@ export var ArrayFrom = Array.from || (arg => {
 	}
 })
 
-// IE doesnt support initialization with constructor argument
-export var NewSet = arr => {
-	let set = new Set
-	if (Array.isArray(arr)) arr.forEach(val => set.add(val))
-	return set
-}
-export var NewMap = arr => {
-	let map = new Map
-	if (Array.isArray(arr))
-		arr.forEach(entry => map.set(entry[0], entry[1]))
-	return map
-}
-
 function includes(item) {
 	return this.indexOf(item) !== -1
 }
@@ -102,17 +89,102 @@ export var fetch = theGlobal.fetch || function(url, options = {}) {
 }
 
 
-if (typeof 'Map' === undefined) {
-	theGlobal.Map = function() {}
-} else {
-	if (!Map.prototype.keys) Map.prototype.keys = function() {
-		let arr = []
-		this.forEach((val, key) => arr.push(key))
-		return arr
+
+// IE doesnt support initialization with constructor argument
+export var NewSet = arr => {
+	let set = []
+	Object.defineProperties(set, {
+		size: {
+			get() {
+				return this.length
+			}
+		},
+		has: {
+			value(item) {
+				return this.indexOf(item) !== -1
+			}
+		},
+		add: {
+			value(item) {
+				if (!this.has(item)) this.push(item)
+			}
+		},
+		delete: {
+			value(item) {
+				if (this.has(item)) {
+					let index = this.indexOf(item)
+					this.splice(index, 1)
+				}
+			}
+		},
+	})
+	if (Array.isArray(arr))
+		for (let i = 0; i < arr.length; i++)
+			set.add(arr[i])
+	return set
+}
+
+export var NewMap = arr => {
+	return new Map(arr)
+}
+
+//var hasFullyImplementedMap = typeof theGlobal.Map !== 'undefined' && theGlobal.Map.prototype.keys !== undefined
+var hasFullyImplementedMap = false
+export var Map = hasFullyImplementedMap ? theGlobal.Map : class Map {
+
+	constructor(init) {
+		this.clear()
+		if (init)
+			for (var i = 0; i < init.length; i++)
+				this.set(init[i][0], init[i][1])
 	}
-	if (!Map.prototype.values) Map.prototype.values = function() {
-		let arr = []
-		this.forEach((val, key) => arr.push(val))
-		return arr
+
+	clear() {
+		this._map = {}
+		this._keys = []
 	}
+
+	get size() {
+		return this._keys.length
+	}
+
+	get(key) {
+		return this._map["map_"+key];
+	}
+
+	set(key, value) {
+		this._map["map_"+key]=value;
+		if(this._keys.indexOf(key)<0)this._keys.push(key);
+		return this;
+	}
+
+	has(key) {
+		return this._keys.indexOf(key)>=0;
+	}
+
+	delete(key) {
+		var idx=this._keys.indexOf(key)
+		if (idx < 0) return false
+		delete this._map["map_" + key]
+		this._keys.splice(idx, 1)
+		return true
+	}
+
+	keys() {
+		return this._keys.slice(0)
+	}
+
+	values() {
+		return this._keys.map(key => this.get(key))
+	}
+
+	entries() {
+		return this._keys.map(key => [key, this.get(key)])
+	}
+
+	forEach(callback, thisArg) {
+		for (var i = 0; i < this._keys.length; i++)
+		callback.call(thisArg, this._map["map_" + this._keys[i]], this._keys[i], this);
+	}
+
 }

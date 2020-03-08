@@ -1,6 +1,3 @@
-import {fixIeSubclassing} from './util/ieFix.js'
-
-
 class Dictionary extends Map {
 
 	get tagKeys() {
@@ -23,7 +20,6 @@ export function createDictionary(group, key, entries) {
 	// ie doesnt support constructor initialization
 	for (let [key, val] of entries)
 		dict.set(key, val)
-	fixIeSubclassing(dict, Dictionary, undefined, ['tagKeys', 'tagValues'])
 	if (Array.isArray(key))
 		for (let k of key) group.set(k, dict)
 	else

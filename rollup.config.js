@@ -146,8 +146,6 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 		input: inputPath,
 		plugins: [
 			notify(),
-			replaceFile('iePolyfill.js'),
-			replaceFile('ieFix.js', 'export function fixIeSubclassing() {}'),
 			babel(babelModern),
 			terser(terserConfig), // TODO re-enable
 			injectIgnoreComments()
