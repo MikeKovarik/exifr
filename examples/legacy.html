@@ -23,16 +23,13 @@
 </head>
 <body>
 
-	<p>View this page in IE11 to test compatibility of <code>full.legacy.umd.js</code> bundle</p>
+	<p>View this page in IE10 or IE11 to test compatibility of <code>full.legacy.umd.js</code> bundle</p>
 	<a id="reload" class="pointer">force reload</a>
 
-	<h3>Polyfills</h3>
-	<p>Exifr is built using the latest standards and web platform features. We use Babel to transpile the new syntax down to ES5; Rollup to bundle all ESM files into single UMD bundle usable in older browsers. But it's up to you to include polyfills in your app.</p>
+	<p>Exifr is built using the latest standards and web platform features. We use Babel to transpile the new syntax down to ES5 and Rollup to bundle all ESM files into single UMD bundle, compatible with older browsers.</p>
 
-	<h4>Polyfills needed:</h4>
-	<ul>
-		<li>Promise</li>
-	</ul>
+	<h3>Polyfills</h3>
+	<p><strong>Since v4.1.0</strong> there are multiple shims baked into the <code>legacy</code> bundle. <strong>You are now required to only use <code>Promise</code> Polyfill.</strong></p>
 
 	<h3>Demos to try: (click on)</h3>
 	<ul>
@@ -84,7 +81,7 @@
 	<script>
 
 		function printExif(output) {
-			$output.innerHTML += JSON.stringify(output, null, 4)
+			$output.innerHTML += '\n' + JSON.stringify(output, null, 4)
 		}
 
 		function catchErrors(err) {
@@ -106,7 +103,7 @@
 
 		// second demo
 		function extractDepthMap(file, options) {
-			let img = document.createElement('img')
+			var img = document.createElement('img')
 			exifr.parse(file, options)
 				.then(function(output) {
 					$output.innerHTML = ''
@@ -141,7 +138,7 @@
 		// load demo file first
 		runDemo1(false)
 
-		let dropzone = document.body
+		var dropzone = document.body
 		function prevent(e) {
 			e.preventDefault()
 		}

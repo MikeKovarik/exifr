@@ -60,6 +60,25 @@ function replaceFile(fileName, replacement = 'export default {}') {
 	}
 }
 
+// IE10 doesn't copy static methods to inherited classes. Babel know about it for years
+// but they are stubborn to do anything about it. So we inject the method copying to their _inherits().
+function fixIeStaticMethodSubclassing() {
+	let searched = 'if (superClass) _setPrototypeOf'
+	let injection = `
+	var builtins = ['prototype', '__proto__', 'caller', 'arguments', 'length', 'name']
+	Object.getOwnPropertyNames(superClass).forEach(function(key) {
+		if (builtins.indexOf(key) !== -1) return
+		if (subClass[key] !== superClass[key]) subClass[key] = superClass[key]
+	})`
+	let replacement = injection + '\n' + searched
+	return {
+		renderChunk(code) {
+			return code.replace(searched, replacement)
+		}
+	}
+}
+
+// Webpack magic comment to ignore import('fs')
 function injectIgnoreComments() {
 	return {
 		renderChunk(code) {
@@ -128,6 +147,7 @@ function createLegacyBundle(inputPath, outputPath) {
 			replaceFile('FsReader.js'),
 			babel(babelLegacy),
 			replaceBuiltinsWithIePolyfills(),
+			fixIeStaticMethodSubclassing(),
 			//terser(terserConfig), // TODO re-enable
 		],
 		external,
@@ -166,17 +186,13 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 }
 
 export default [
-	/*
 	createModernBundle('src/bundle-full.js','dist/full.esm.js', 'dist/full.umd.js'),
 	createModernBundle('src/bundle-lite.js','dist/lite.esm.js', 'dist/lite.umd.js'),
 	createModernBundle('src/bundle-mini.js','dist/mini.esm.js', 'dist/mini.umd.js'),
 	createModernBundle('src/bundle-core.js','dist/core.esm.js', 'dist/core.umd.js'),
-	*/
 	createLegacyBundle('src/bundle-full.js', 'dist/full.legacy.umd.js'),
-	/*
 	createLegacyBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js'),
 	createLegacyBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js'),
-	*/
 ]
 
 function objectFromArray(modules) {
