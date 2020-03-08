@@ -25,7 +25,6 @@ function replaceBuiltinsWithIePolyfills() {
 	let polyfillKeys = Object.keys(polyfills)
 	let exifrDir = path.dirname(fileURLToPath(import.meta.url))
 	let polyFilePath = path.join(exifrDir, './src/util/iePolyfill.js')
-    console.log('polyFilePath', polyFilePath)
 	function createImportLine(keys, importPath) {
 		return `import {${keys.join(', ')}} from '${importPath}'\n`
 	}
@@ -43,8 +42,6 @@ function replaceBuiltinsWithIePolyfills() {
 			for (let [from, to] of translatables)
 				code = code.replace(new RegExp(from, 'g'), to)
 			let importPath = createRelativeImportPath(filePath)
-            console.log('filePath  ', filePath)
-            console.log('importPath', importPath)
 			let importLine = createImportLine(polyfillKeys, importPath)
 			code = importLine + '\n' + code
 			return code
@@ -190,14 +187,12 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 }
 
 export default [
-	/*
 	createModernBundle('src/bundle-full.js','dist/full.esm.js', 'dist/full.umd.js'),
 	createModernBundle('src/bundle-lite.js','dist/lite.esm.js', 'dist/lite.umd.js'),
 	createModernBundle('src/bundle-mini.js','dist/mini.esm.js', 'dist/mini.umd.js'),
 	createModernBundle('src/bundle-core.js','dist/core.esm.js', 'dist/core.umd.js'),
 	createLegacyBundle('src/bundle-full.js', 'dist/full.legacy.umd.js'),
 	createLegacyBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js'),
-	*/
 	createLegacyBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js'),
 ]
 
