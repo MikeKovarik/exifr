@@ -128,8 +128,7 @@ export var NewMap = arr => {
 	return new Map(arr)
 }
 
-//var hasFullyImplementedMap = typeof theGlobal.Map !== 'undefined' && theGlobal.Map.prototype.keys !== undefined
-var hasFullyImplementedMap = false
+var hasFullyImplementedMap = typeof theGlobal.Map !== 'undefined' && theGlobal.Map.prototype.keys !== undefined
 export var Map = hasFullyImplementedMap ? theGlobal.Map : class Map {
 
 	constructor(init) {
