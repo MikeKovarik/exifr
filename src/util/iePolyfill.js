@@ -36,7 +36,7 @@ export var ObjectFromEntries = Object.fromEntries || (entries => {
 export var ArrayFrom = Array.from || (arg => {
 	if (arg instanceof Map) {
 		let entries = []
-		arg.forEach(key => entries.push(key, arg[key]))
+		arg.forEach((val, key) => entries.push([key, val]))
 		return entries
 		// todo iterators (map.keys(), map.values())
 	} else {
@@ -45,12 +45,31 @@ export var ArrayFrom = Array.from || (arg => {
 	}
 })
 
+// IE doesnt support initialization with constructor argument
+export var NewSet = arr => {
+	let set = new Set
+	if (Array.isArray(arr)) arr.forEach(val => set.add(val))
+	return set
+}
+export var NewMap = arr => {
+	let map = new Map
+	if (Array.isArray(arr))
+		arr.forEach(entry => map.set(entry[0], entry[1]))
+	return map
+}
+
 function includes(item) {
 	return this.indexOf(item) !== -1
 }
 
 if (!Array.prototype.includes)  Array.prototype.includes  = includes
 if (!String.prototype.includes) String.prototype.includes = includes
+if (!String.prototype.startsWith) String.prototype.startsWith = function(search, pos = 0) {
+	return this.substring(pos, pos + search.length) === search
+}
+if (!String.prototype.endsWith) String.prototype.endsWith = function(search, len = this.length) {
+	return this.substring(len - search.length, len) === search
+}
 
 let theGlobal = typeof self !== 'undefined' ? self : global
 
@@ -80,4 +99,20 @@ export var fetch = theGlobal.fetch || function(url, options = {}) {
 		}
 		xhr.send(null)
 	})
+}
+
+
+if (typeof 'Map' === undefined) {
+	theGlobal.Map = function() {}
+} else {
+	if (!Map.prototype.keys) Map.prototype.keys = function() {
+		let arr = []
+		this.forEach((val, key) => arr.push(key))
+		return arr
+	}
+	if (!Map.prototype.values) Map.prototype.values = function() {
+		let arr = []
+		this.forEach((val, key) => arr.push(val))
+		return arr
+	}
 }

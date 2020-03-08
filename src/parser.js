@@ -128,9 +128,9 @@ export class AppSegmentParserBase {
 		let valDict  = tagValues.get(blockKey)
 		let keyDict  = tagKeys.get(blockKey)
 		let blockOptions = this.options[blockKey] // todo: refactor tiff so this isn't needed anymore (in favor of segOptions & options)
-		let canRevive       = blockOptions.reviveValues    && revivers
-		let canTranslateVal = blockOptions.translateValues && valDict
-		let canTranslateKey = blockOptions.translateKeys   && keyDict
+		let canRevive       = blockOptions.reviveValues    && !!revivers
+		let canTranslateVal = blockOptions.translateValues && !!valDict
+		let canTranslateKey = blockOptions.translateKeys   && !!keyDict
 		let output = {}
 		for (let [key, val] of rawTags) {
 			if (canRevive && revivers.has(key))

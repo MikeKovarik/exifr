@@ -29,11 +29,9 @@
 	<h3>Polyfills</h3>
 	<p>Exifr is built using the latest standards and web platform features. We use Babel to transpile the new syntax down to ES5; Rollup to bundle all ESM files into single UMD bundle usable in older browsers. But it's up to you to include polyfills in your app.</p>
 
-	<h4>In this example we use:</h4>
+	<h4>Polyfills needed:</h4>
 	<ul>
-		<li>polyfill.io with <strong>es2015</strong> preset</li>
-		<li>Promise polyfill</li>
-		<li>IE10 requires map and set (TODO)</li>
+		<li>Promise</li>
 	</ul>
 
 	<h3>Demos to try: (click on)</h3>
@@ -79,11 +77,8 @@
 		$reload.addEventListener('click', function() {window.location.reload(true)})
 	</script>
 
-	<!-- polyfill.io with: ES2015 -->
-	<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015"></script>
-	<!--
+	<!-- Promise polyfill -->
 	<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js"></script>
-	-->
 	<!-- exifr -->
 	<script src="../dist/full.legacy.umd.js"></script>
 	<script>

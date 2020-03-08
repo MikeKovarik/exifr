@@ -18,7 +18,11 @@ class Dictionary extends Map {
 }
 
 export function createDictionary(group, key, entries) {
-	let dict = new Dictionary(entries)
+	//let dict = new Dictionary(entries)
+	let dict = new Dictionary()
+	// ie doesnt support constructor initialization
+	for (let [key, val] of entries)
+		dict.set(key, val)
 	fixIeSubclassing(dict, Dictionary, undefined, ['tagKeys', 'tagValues'])
 	if (Array.isArray(key))
 		for (let k of key) group.set(k, dict)

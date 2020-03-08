@@ -16,6 +16,9 @@ function replaceBuiltinsWithIePolyfills() {
 		['Object.assign',      'ObjectAssign'],
 		['Object.fromEntries', 'ObjectFromEntries'],
 		['Array.from',         'ArrayFrom'],
+		['new Set',            'NewSet'],
+		['new Map',            'NewMap'],
+		['Number.isNaN',       'isNaN'],
 	]
 	// keys of translatables and builtings (like fetch)
 	let polyfillKeys = Object.keys(polyfills)
@@ -123,8 +126,8 @@ function createLegacyBundle(inputPath, outputPath) {
 		plugins: [
 			notify(),
 			replaceFile('FsReader.js'),
-			replaceBuiltinsWithIePolyfills(),
 			babel(babelLegacy),
+			replaceBuiltinsWithIePolyfills(),
 			//terser(terserConfig), // TODO re-enable
 		],
 		external,
