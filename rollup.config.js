@@ -187,13 +187,13 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 }
 
 export default [
-	createModernBundle('src/bundle-full.js','dist/full.esm.js', 'dist/full.umd.js'),
-	createModernBundle('src/bundle-lite.js','dist/lite.esm.js', 'dist/lite.umd.js'),
-	createModernBundle('src/bundle-mini.js','dist/mini.esm.js', 'dist/mini.umd.js'),
-	createModernBundle('src/bundle-core.js','dist/core.esm.js', 'dist/core.umd.js'),
-	createLegacyBundle('src/bundle-full.js', 'dist/full.legacy.umd.js'),
-	createLegacyBundle('src/bundle-lite.js', 'dist/lite.legacy.umd.js'),
-	createLegacyBundle('src/bundle-mini.js', 'dist/mini.legacy.umd.js'),
+	createModernBundle('src/bundle-full.mjs','dist/full.esm.js', 'dist/full.umd.js'),
+	createModernBundle('src/bundle-lite.mjs','dist/lite.esm.js', 'dist/lite.umd.js'),
+	createModernBundle('src/bundle-mini.mjs','dist/mini.esm.js', 'dist/mini.umd.js'),
+	createModernBundle('src/bundle-core.mjs','dist/core.esm.js', 'dist/core.umd.js'),
+	createLegacyBundle('src/bundle-full.mjs', 'dist/full.legacy.umd.js'),
+	createLegacyBundle('src/bundle-lite.mjs', 'dist/lite.legacy.umd.js'),
+	createLegacyBundle('src/bundle-mini.mjs', 'dist/mini.legacy.umd.js'),
 ]
 
 function objectFromArray(modules) {

@@ -1,4 +1,4 @@
-import * as exifr from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.mjs'
 
 const isBrowser = typeof navigator === 'object'
 

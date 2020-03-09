@@ -1,6 +1,6 @@
 import {promises as fs} from 'fs'
 import bench from './benchlib.js'
-import * as exifr from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.mjs'
 
 
 main()

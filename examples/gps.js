@@ -1,4 +1,4 @@
-import * as exifr from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.mjs'
 
 // This is NOT just nice wrapper method that only returns GPS coords.
 // exifr.gps uses a lot of performance improvements to only read the GPS as fast as possible.

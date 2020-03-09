@@ -9,7 +9,7 @@
 // Also the module imports 'fs' module and it fails in browsers. For that you could
 // use newly drafted importmaps.
 
-import * as exifr from '../src/bundle-full.js'
+import * as exifr from '../src/bundle-full.mjs'
 
 async function main() {
 	var exif = await exifr.gps('../test/fixtures/IMG_20180725_163423.jpg')
