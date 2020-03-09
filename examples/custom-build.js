@@ -1,4 +1,4 @@
-import * as exifr from '../src/bundle-core.mjs'
+import * as exifr from '../src/bundles/core.mjs'
 // We're in node.js so we'll be reading the file using 'fs' module
 import '../src/file-readers/FsReader.js'
 // We only have jpg files

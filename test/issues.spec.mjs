@@ -1,6 +1,6 @@
 import {assert} from './test-util-core.mjs'
 import {getFile, getPath} from './test-util-core.mjs'
-import * as exifr from '../src/bundle-full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
 
 
 describe('issues (special cases)', () => {

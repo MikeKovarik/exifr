@@ -1,8 +1,8 @@
 import {assert} from './test-util-core.mjs'
 import {getFile, getPath} from './test-util-core.mjs'
 import {testSegment} from './test-util-suites.mjs'
-import * as exifr from '../src/bundle-full.mjs'
-import {Exifr} from '../src/bundle-full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
+import {Exifr} from '../src/bundles/full.mjs'
 // FIXME: importing directly from src/ breaks bundle tests
 import XmpParser from '../src/segment-parsers/xmp.mjs'
 import {BufferView} from '../src/util/BufferView.mjs'

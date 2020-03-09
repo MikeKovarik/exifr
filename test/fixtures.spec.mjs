@@ -1,6 +1,6 @@
 import {assert} from './test-util-core.mjs'
 import {getPath, getFile} from './test-util-core.mjs'
-import * as exifr from '../src/bundle-full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
 
 
 function testFile(fileName, segmentsAndBlocks) {

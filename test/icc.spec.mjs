@@ -2,7 +2,7 @@ import {assert} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util-suites.mjs'
 import IccParser from '../src/segment-parsers/icc.mjs'
-import * as exifr from '../src/bundle-full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
 
 
 function testProfile(filePath, results = {}) {

@@ -1,5 +1,5 @@
 import {testBundle} from './test-util-bundles.mjs'
-import * as exifr from '../src/bundle-full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
 
 
 testBundle('full', exifr, {

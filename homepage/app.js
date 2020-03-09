@@ -51,7 +51,7 @@ class ExifrDemoApp {
 			// Only load live version in Chrome or the new Edge.
 			// Doing this because neither the latest firefox nor safari support
 			// class properties and thus fat arrow autobound methods. 
-			exifr = await import('../src/bundle-full.mjs')
+			exifr = await import('../src/bundles/full.mjs')
 			console.log('loaded live code from src/')
 		} else {
 			exifr = await import('../dist/full.esm.js')

@@ -3,9 +3,9 @@ import {getFile} from './test-util-core.mjs'
 import {testMergeSegment, testSegmentTranslation, testPickOrSkipTags} from './test-util-suites.mjs'
 import {testGlobalFormatterInheritance, testTiffFormatterInheritance} from './test-util-suites.mjs'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../src/tags.mjs'
-import {Exifr} from '../src/bundle-full.mjs'
-import * as exifr from '../src/bundle-full.mjs'
-import {tiffBlocks} from '../src/bundle-full.mjs'
+import {Exifr} from '../src/bundles/full.mjs'
+import * as exifr from '../src/bundles/full.mjs'
+import {tiffBlocks} from '../src/bundles/full.mjs'
 
 
 function testBlockResult(output, blockName, results = {}) {
