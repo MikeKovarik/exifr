@@ -54,7 +54,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 🕸 Supports even ~IE11~ **IE10**
 
 <details>
-  <summary><small>and more (click to expand)</small></summary>
+  <summary>and more (click to expand)</summary>
   <ul>
     <li>XMP Parser - minimalistic, reliable, without dependencies</li>
     <li>XMP Extended</li>
@@ -135,7 +135,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 <br>Bundled with polyfills & shims, except for `Promise` polyfill. [Learn more here](https://mutiny.cz/exifr/examples/legacy.html).
 
 <details>
-<summary><small>Detailed comparison (click to expand)</small></summary>
+<summary>Detailed comparison (click to expand)</summary>
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
@@ -150,12 +150,10 @@ Of course, you can use the `full` version in browser, or use any other build in 
 
 #### ESM, .js .mjs .cjs extensions, "main", "module", "type":"module"
 
-TL;DR: All ESM bundles are available in two identical copies, one with `.mjs`, the other with `.js`. Likewise with UMD as `.cjs` and `.js`. Pick one that works with your tooling or webserver.
+TL;DR: All bundles are available in two identical copies. `.mjs` and `.js` for ESM. `.cjs` and `.js` for UMD. Pick one that works with your tooling or webserver.
 
 <details>
-<summary><small>(click to expand for more info)</small></summary>
-
-As of v5 we're backtracking on use of ES Module and the main entry point.
+<summary>(click to expand for more info)</summary>
 
 Current state of ESM is complicated. Node.js can already handle ESM files with `.mjs` extension and modules with `"type":"module"` in package.json. We tried both but turns out the type:module approach alone is not yet ready for production.
 
@@ -170,7 +168,9 @@ If your webserver isn't configured to handle `.mjs` or `.cjs` files you can use 
 
 #### Named exports vs default export
 
-There are both named exports and a default export object containing all the named exports. This is again due to tooling. You can use `import * as exifr from 'exifr'` if your tool or env allows it, but `import exifr from 'exifr'` is recommended and used in examples for simplicity.
+Exifr exports both named exports and a default export object containing all the named exports.
+
+This is again due to tooling. You can use `import * as exifr from 'exifr'` if your tool or env allows it, but `import exifr from 'exifr'` is recommended and used in examples for simplicity.
 
 ## Examples
 
