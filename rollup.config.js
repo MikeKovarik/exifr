@@ -1,11 +1,12 @@
+import {promises as fs} from 'fs'
+import {builtinModules} from 'module'
+import {fileURLToPath} from 'url'
 import path from 'path'
 import babel from 'rollup-plugin-babel'
 import notify from 'rollup-plugin-notify'
-import pkg from './package.json'
-import {builtinModules} from 'module'
 import {terser} from 'rollup-plugin-terser'
-import * as polyfills from './src/util/iePolyfill.js'
-import {fileURLToPath} from 'url'
+import * as polyfills from './src/util/iePolyfill.mjs'
+import pkg from './package.json'
 
 
 function replaceBuiltinsWithIePolyfills() {
@@ -24,7 +25,7 @@ function replaceBuiltinsWithIePolyfills() {
 	// keys of translatables and builtings (like fetch)
 	let polyfillKeys = Object.keys(polyfills)
 	let exifrDir = path.dirname(fileURLToPath(import.meta.url))
-	let polyFilePath = path.join(exifrDir, './src/util/iePolyfill.js')
+	let polyFilePath = path.join(exifrDir, './src/util/iePolyfill.mjs')
 	function createImportLine(keys, importPath) {
 		return `import {${keys.join(', ')}} from '${importPath}'\n`
 	}
@@ -38,7 +39,7 @@ function replaceBuiltinsWithIePolyfills() {
 	return {
 		async transform(code, filePath) {
 			if (!filePath.includes('exifr')) return null
-			if (filePath.endsWith('iePolyfill.js')) return null
+			if (filePath.endsWith('iePolyfill.mjs')) return null
 			for (let [from, to] of translatables)
 				code = code.replace(new RegExp(from, 'g'), to)
 			let importPath = createRelativeImportPath(filePath)
@@ -84,6 +85,16 @@ function injectIgnoreComments() {
 	return {
 		renderChunk(code) {
 			return code.replace(`import(`, `import(/* webpackIgnore: true */ `)
+		}
+	}
+}
+
+function cloneCjsAndMjsToJs() {
+	return {
+		writeBundle(arg) {
+			let fileName    = 'dist/' + Object.keys(arg)[0]
+			let newFileName = fileName.replace('.cjs', '.js').replace('.mjs', '.js')
+			fs.copyFile(fileName, newFileName)
 		}
 	}
 }
@@ -145,7 +156,7 @@ function createLegacyBundle(inputPath, outputPath) {
 		input: inputPath,
 		plugins: [
 			notify(),
-			replaceFile('FsReader.js'),
+			replaceFile('FsReader.mjs'),
 			babel(babelLegacy),
 			replaceBuiltinsWithIePolyfills(),
 			fixIeStaticMethodSubclassing(),
@@ -155,6 +166,7 @@ function createLegacyBundle(inputPath, outputPath) {
 		output: {
 			file: outputPath,
 			format: 'umd',
+			exports: 'named',
 			name,
 			amd,
 			globals,
@@ -169,31 +181,36 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 			notify(),
 			babel(babelModern),
 			terser(terserConfig),
-			injectIgnoreComments()
+			injectIgnoreComments(),
+			cloneCjsAndMjsToJs(),
 		],
 		external,
-		output: [{
-			file: umdPath,
-			format: 'umd',
-			name,
-			amd,
-			globals,
-		}, {
-			file: esmPath,
-			format: 'esm',
-			globals,
-		}],
+		output: [
+			{
+				file: esmPath,
+				format: 'esm',
+				exports: 'named',
+				globals,
+			},
+			{
+				file: umdPath,
+				format: 'umd',
+				exports: 'named',
+				globals,
+				name,
+				amd,
+			}
+		]
 	}
 }
 
 export default [
-	createModernBundle('src/bundle-full.mjs','dist/full.esm.js', 'dist/full.umd.js'),
-	createModernBundle('src/bundle-lite.mjs','dist/lite.esm.js', 'dist/lite.umd.js'),
-	createModernBundle('src/bundle-mini.mjs','dist/mini.esm.js', 'dist/mini.umd.js'),
-	createModernBundle('src/bundle-core.mjs','dist/core.esm.js', 'dist/core.umd.js'),
-	createLegacyBundle('src/bundle-full.mjs', 'dist/full.legacy.umd.js'),
-	createLegacyBundle('src/bundle-lite.mjs', 'dist/lite.legacy.umd.js'),
-	createLegacyBundle('src/bundle-mini.mjs', 'dist/mini.legacy.umd.js'),
+	createModernBundle('src/bundles/full.mjs', 'dist/full.esm.mjs', 'dist/full.umd.cjs'),
+	createModernBundle('src/bundles/lite.mjs', 'dist/lite.esm.mjs', 'dist/lite.umd.cjs'),
+	createModernBundle('src/bundles/mini.mjs', 'dist/mini.esm.mjs', 'dist/mini.umd.cjs'),
+	createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.js'),
+	createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.js'),
+	createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.js'),
 ]
 
 function objectFromArray(modules) {
