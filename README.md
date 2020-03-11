@@ -18,7 +18,9 @@
 •
 [API](#api)
 •
-[Performance](#performance)
+[Perf](#performance)
+•
+[Changelog](#changelog)
 •
 [FAQ](#faq)
 •
@@ -52,7 +54,7 @@ Works everywhere, parses everything and handles anything you throw at it.
 * 🕸 Supports even ~IE11~ **IE10**
 
 <details>
-  <summary>and more (click to expand)</summary>
+  <summary><small>and more (click to expand)</small></summary>
   <ul>
     <li>XMP Parser - minimalistic, reliable, without dependencies</li>
     <li>XMP Extended</li>
@@ -93,48 +95,37 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 npm install exifr
 ```
 
-Exifr comes in four prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, build your own around `core` build.
-
-#### Node.js
-
-**New Node**: This library is written as an ES module, with `import` syntax and `"type":"module"` in package.json.
-
-**Old Node**: If you still use CommonJS (`require()` syntax), you need load UMD bundle.
+Exifr comes in three prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, [build your own](#advanced) around modular core.
 
 ```js
-// modern node.js
-import * as exifr from 'exifr' // => exifr/dist/full.esm.js
-// older Node.js or CJS project
-var exifr = require('exifr/dist/full.umd.js')
+// Modern Node.js can import CommonJS
+import exifr from 'exifr' // => exifr/dist/full.umd.cjs
+// Explicily import ES Module
+import exifr from 'exifr/dist/full.esm.mjs' // to use ES Modules
+// CommonJS, old Node.js
+var exifr = require('exifr') // => exifr/dist/full.umd.cjs
 ```
 
-#### Browsers
-
-`lite` and `mini` are recommended for browsers because of balance between features and file size.
-
-UMD format supports AMD (RequireJS) or attached everything to the global `window.exifr` object.
-
-**IE & old browsers:** `legacy` build comes bundled with polyfills. [Learn more](examples/legacy.html).
-
 ```html
-<!-- modern browsers -->
-<script type="module">import * as exifr from 'node_modules/exifr/dist/mini.esm.js'</script>
-<!-- classic -->
+<!-- ES Module in modern browsers -->
+<script type="module">import exifr from 'node_modules/exifr/dist/lite.esm.js';</script>
+<!-- classic UMD script -->
 <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 <!-- IE10 & old browsers. You also need Promise polyfill -->
 <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.legacy.umd.js"></script>
 ```
 
-#### Bundles
+**Browsers**: `lite` and `mini` are recommended because of balance between features and file size. UMD format attaches the library to global `window.exifr` object.
+
+**IE & old browsers:** `legacy` builds come bundled with polyfills. [Learn more](examples/legacy.html).
+
+#### Bundles & formats
 
 * **full** - Contains everything. Intended for use in Node.js.
 * **lite** - Reads JPEG and HEIC. Parses TIFF/EXIF and XMP.
 * **mini** - Stripped down to basics. Parses most useful TIFF/EXIF from JPEGs. **Has no tag dictionaries**.
-* **core** - Contains nothing. It's up to you to import readers, parser and dictionaries you need.
 
 Of course, you can use the `full` version in browser, or use any other build in Node.js.
-
-#### Variants
 
 * **ESM** - Modern syntax for use in [modern browsers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) and [Node.js](https://nodejs.org/api/esm.html).
 <br>Uses `import` syntax.
@@ -144,7 +135,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 <br>Bundled with polyfills & shims, except for `Promise` polyfill. [Learn more here](https://mutiny.cz/exifr/examples/legacy.html).
 
 <details>
-<summary><b>Detailed comparison (click to expand)</b></summary>
+<summary><small>Detailed comparison (click to expand)</small></summary>
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
@@ -154,8 +145,32 @@ Of course, you can use the `full` version in browser, or use any other build in 
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
-| file            | `full.esm.js`<br>`full.umd.js`<br>`full.legacy.umd.js` | `lite.esm.js`<br>`lite.umd.js`<br>`lite.legacy.umd.js` | `mini.esm.js`<br>`mini.umd.js`<br>`mini.legacy.umd.js` | `core.esm.js`<br>`core.umd.js` |
+| file            | `full.umd.js`<br>`full.esm.js`<br>`full.esm.mjs`<br>`full.legacy.umd.js` | `lite.umd.js`<br>`lite.esm.js`<br>`lite.esm.mjs`<br>`lite.legacy.umd.js` | `mini.umd.js`<br>`mini.esm.js`<br>`mini.esm.mjs`<br>`mini.legacy.umd.js` | [Learn more](#advanced) |
 </details>
+
+#### ESM, .js .mjs .cjs extensions, "main", "module", "type":"module"
+
+TL;DR: All ESM bundles are available in two identical copies, one with `.mjs`, the other with `.js`. Likewise with UMD as `.cjs` and `.js`. Pick one that works with your tooling or webserver.
+
+<details>
+<summary><small>(click to expand for more info)</small></summary>
+
+As of v5 we're backtracking on use of ES Module and the main entry point.
+
+Current state of ESM is complicated. Node.js can already handle ESM files with `.mjs` extension and modules with `"type":"module"` in package.json. We tried both but turns out the type:module approach alone is not yet ready for production.
+
+Some bundlers and tools may work or break with `.mjs` extension, whereas it's important for Node.js. The same applies to the new `.cjs` extension (introduced in Node.js 13).
+
+The library is written in ESM, with `.mjs` extensions and transpiled to both ESM and UMD formats.
+
+To avoid problems, the `"main"` entry point is now `full.umd.cjs` but you can still use ESM by explicitly importing `full.esm.mjs`.
+
+If your webserver isn't configured to handle `.mjs` or `.cjs` files you can use their identical `.js` clone. For example `full.esm.mjs` is identical to `full.esm.js`. So is `lite.esm.cjs` to `lite.esm.js`. Just pick one that fits your tools or environment.
+</details>
+
+#### Named exports vs default export
+
+There are both named exports and a default export object containing all the named exports. This is again due to tooling. You can use `import * as exifr from 'exifr'` if your tool or env allows it, but `import exifr from 'exifr'` is recommended and used in examples for simplicity.
 
 ## Examples
 
@@ -221,10 +236,10 @@ ESM in Browser
 ```html
 <input id="filepicker" type="file" multiple>
 <script type="module">
-  import {parse} from './node_modules/exifr/dist/lite.esm.js'
+  import exifr from './node_modules/exifr/dist/lite.esm.js'
   document.querySelector('#filepicker').addEventListener('change', async e => {
     let files = Array.from(e.target.files)
-    let exifs = await Promise.all(files.map(parse))
+    let exifs = await Promise.all(files.map(exifr.parse))
     let dates = exifs.map(exif => exif.DateTimeOriginal.toGMTString())
     console.log(`${files.length} photos taken on:`, dates)
   })
@@ -250,8 +265,6 @@ ESM in Browser
 and a lot more in the [examples/](examples/) folder
 
 ## API
-
-exifr exports `parse()`, `gps()`, `orientation()`, `thumbnail()`, `thumbnailUrl()` functions and `Exifr` class
 
 ### `parse(file[, options])`
 Returns: `Promise<object>`
@@ -704,19 +717,21 @@ Learn more about [dictionaries](#modularity-pugin-api).
 }
 </pre></td></tr></table>
 
-## Advanced
+## Advanced APIs
 
 Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
 
-#### Modularity, Pugin API
+<details>
+<summary><b>Modularity, Pugin API, Configure custom bundle</b></summary>
 
 This is mostly **relevant for Web Browsers**, where file size and unused code elimination is important.
 
 The library's functionality is divided into four categories.
 
-* **File reader** reads different input data structures by chunks.
+* **(Chunked) File reader** reads different input data structures by chunks.
 <br> `BlobReader` (browser), `UrlFetcher` (browser), `FsReader` (Node.js), `Base64Reader`
 <br>See [`src/file-parsers/`](src/file-readers).
+<br>*NOTE: Everything can read everything out-of-the-box as a whole file. But file readers are needed to enable chunked mode.*
 * **File parser** looks for metadata in different file formats
 <br>`.jpg`, `.tiff`, `.heic`
 <br>See [`src/file-parsers/`](src/file-parsers).
@@ -726,11 +741,37 @@ The library's functionality is divided into four categories.
 * **Dictionary** affects the way the parsed output looks.
 <br>See [`src/dicts/`](src/dicts).
 
-Each reader, parser and dictionary is broken into a separate file that can be loaded and used independently. This way you can build your own bundle with only what you need, eliminate dead code and save tens of KBs of unused dictionaries.
+Each reader, parser and dictionary is a separate file that can be used independently. This way you can configure your own bundle with only what you need, eliminate dead code and save tens of KBs of unused dictionaries.
 
-Any file format can be read out of the box. But custom reader class for each format is needed to enable chunked reading.
+Check out <a href="examples/custom-build.js">examples/custom-build.js</a>.
 
-### Translation dictionaries
+Scenario 1: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human-readable format. For that we'll need dictionaries for ICC segment.
+
+```js
+// Core bundle has nothing in it
+import * as exifr from 'exifr/src/core.mjs'
+// Now we import what we need
+import 'exifr/src/file-readers/BlobReader.mjs'
+import 'exifr/src/file-parsers/jpeg.mjs'
+import 'exifr/src/segment-parsers/icc.mjs'
+import 'exifr/src/dicts/icc-keys.mjs'
+import 'exifr/src/dicts/icc-values.mjs'
+```
+
+Scenario 2: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we don't mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also, we're not importing any (chunked) file reader because we only work with Uint8Array data.
+
+```js
+import * as exifr from 'exifr/src/core.mjs'
+import 'exifr/src/file-parsers/heic.mjs'
+import 'exifr/src/file-parsers/tiff.mjs'
+import 'exifr/src/segment-parsers/tiff.mjs'
+import 'exifr/src/dicts/tiff-exif-values.mjs'
+```
+</details>
+
+
+<details>
+<summary><b>Translation dictionaries, customization</b></summary>
 
 EXIF Data are mostly numeric enums, stored under numeric code. Dictionaries are needed to translate them into meaningful output. But they take up a lot of space (40 KB out of `full` build's 60 KB). So it's a good idea to make your own bundle and shave off the dicts you don't need.
 
@@ -744,52 +785,11 @@ TIFF ([EXIF](https://exiftool.org/TagNames/EXIF.html) & [GPS](https://exiftool.o
 [IPTC](https://exiftool.org/TagNames/IPTC.html),
 [JFIF](https://exiftool.org/TagNames/JFIF.html)
 
-<details>
-<summary><b>Configure your own exifr</b></summary>
-Check out <a href="examples/custom-build.js">examples/custom-build.js</a>.
-
-Scenario 1: We're using `lite` build and it's ok, but some tags are left untranslated. To fix that we need to import extension of TIFF dictionary with less frequent tags.
-
-```js
-// Lite bundle only contains basic set of TIFF tags
-import * as exifr from 'exifr/dist/lite.esm.js'
-// Load TIFF dict extension with names of less frequent tags.
-import 'exifr/src/dicts/tiff-other-keys.js'
-```
-
-Scenario 2: We'll be handling `.jpg` files in blob format and we want to extract ICC data in human-readable format. For that we'll need dictionaries for ICC segment.
-
-```js
-// Core bundle has nothing in it
-import * as exifr from 'exifr/dist/core.esm.js'
-// Now we import what we need
-import 'exifr/src/file-readers/BlobReader.js'
-import 'exifr/src/file-parsers/jpeg.js'
-import 'exifr/src/segment-parsers/icc.js'
-import 'exifr/src/dicts/icc-keys.js'
-import 'exifr/src/dicts/icc-values.js'
-```
-
-Scenario 3: We want to parse `.heic` and `.tiff` photos, extract EXIF block (of TIFF segment). We only need the values to be translated. Keys will be left untranslated but we don't mind accessing them with raw numeric keys - `output[0xa40a]` instead of `output.Sharpness`. Also, we're not importing any (chunked) file reader because we only work with Uint8Array data.
-
-```js
-import * as exifr from 'exifr/dist/core.esm.js'
-import 'exifr/src/file-parsers/heic.js'
-import 'exifr/src/file-parsers/tiff.js'
-import 'exifr/src/segment-parsers/tiff.js'
-import 'exifr/src/dicts/tiff-exif-values.js'
-```
-</details>
-
-
-<details>
-<summary><b>Dictionary customization</b></summary>
-
 ```js
 // Modify single tag's 0xa409 (Saturation) translation
-import {tagKeys, tagValues} from 'exifr'
-let exifKeys   = tagKeys.get('exif')
-let exifValues = tagValues.get('exif')
+import exifr from 'exifr'
+let exifKeys   = exifr.tagKeys.get('exif')
+let exifValues = exifr.tagValues.get('exif')
 exifKeys.set(0xa409, 'Saturation')
 exifValues.set(0xa409, {
   0: 'Normal',
@@ -800,8 +800,8 @@ exifValues.set(0xa409, {
 
 ```js
 // Modify single tag's GPSDateStamp value is processed
-import {tagRevivers} from 'exifr'
-let gpsRevivers = tagRevivers.get('gps')
+import exifr from 'exifr'
+let gpsRevivers = exifr.tagRevivers.get('gps')
 gpsRevivers.set(0x001D, rawValue => {
   let [year, month, day] = rawValue.split(':').map(str => parseInt(str))
   return new Date(year, month - 1, day)
@@ -810,8 +810,8 @@ gpsRevivers.set(0x001D, rawValue => {
 
 ```js
 // Create custom dictionary for GPS block
-import {tagKeys, createDictionary} from 'exifr'
-createDictionary(tagKeys, 'gps', [
+import exifr from 'exifr'
+exifr.createDictionary(exifr.tagKeys, 'gps', [
   [0x0001, 'LatitudeRef'],
   [0x0002, 'Latitude'],
   [0x0003, 'LongitudeRef'],
@@ -821,8 +821,8 @@ createDictionary(tagKeys, 'gps', [
 
 ```js
 // Extend existing IFD0 dictionary
-import {tagKeys, createDictionary} from 'exifr'
-createDictionary(tagKeys, 'ifd0', [
+import exifr from 'exifr'
+exifr.createDictionary(exifr.tagKeys, 'ifd0', [
   [0xc7b5, 'DefaultUserCrop'],
   [0xc7d5, 'NikonNEFInfo'],
   ...
@@ -842,23 +842,6 @@ Alternatively, create your own bundle around <code>core</code> build and do not 
 
 Exifr is written using modern syntax, mainly async/await. You may need to add <code>regenerator-runtime</code> or reconfigure babel.
 
-</details>
-
-<details>
-<summary><b>Custom XMP parser</b></summary>
-Exifr does not come with an XML parser out of the box to keep the library simple and light-weight. There's plenty of XML parsers on npm. Exifr only extracts the XMP string and you can parse it.
-
-You can also inject XML parser into exifr and have it process the XMP string.
-
-```js
-// Exifr offers you an API for using your own XML parser while parsing XMP.
-// 1) get the XmlParser class.
-let XmpParser = Exifr.segmentParsers.get('xmp')
-// 2) Implement parseXml() method. It accepts string argument. What is returned ends up as output.xmp.
-XmpParser.prototype.parseXml = function(xmpString) {
-  return 'Bring Your Own XML parser here: ' + xmpString
-}
-```
 </details>
 
 ## Performance
@@ -947,31 +930,43 @@ Observations from testing with +-4MB pictures (*Highest quality Google Pixel pho
 
 Be sure to visit [**the exifr playground**](https://mutiny.cz/exifr) or [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), drop in your photos and watch the *parsed in* timer.
 
-## Breaking changes & migration
+## Changelog
 
-See [`CHANGELOG.md`](CHANGELOG.md)
+For full changelog visit [`CHANGELOG.md`](CHANGELOG.md).
+
+### Notable changes
+
+* **4.3.0** Package.json's `"main"` now points to UMD bundle for better compatibility.
+* **4.1.0** Started bundling shims and polyfills with `legacy` builds. Suppporting IE10.
+* **4.0.0** Added XMP Parser and XMP Extended support.
+* **3.0.0** Major rewrite, added ICC parser, HEIC file support, IE11 back compat, reimplemented chunked reader.
 
 ## F.A.Q.
 
 <details>
 <summary><b>Why are there different kB sizes on npm, bundlephobia, and badge in the readme?</b></summary>
 
-**TL;DR:** Because exifr comes in four bundles, each in three variants, plus source codes are included.
+**TL;DR:** Because exifr comes in three bundles, each in three format variants (ESM, UMD, legacy), each in two extensions (.js and .mjs or .mjs) due to tooling. Plus source codes are included.
 
-**npm** (~600 kB): The module includes both `src/` and `dist/`. That source codes of all the readers, parsers and dictionaries. Multiplied by 4 bundles (*full*, *lite*, *mini*, *core*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE11). But you will never use all of the files. They're there so you can choose what's best for your project.
+**npm** (~900 kB, ~60 files): The module includes both `src/` and `dist/`. That's source codes of all the readers, parsers and dictionaries. Multiplied by 3 bundles (*full*, *lite*, *mini*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE10). But you won't use all of the files. They're there so you can choose what's best for your project.
 
 **bundlephobia** (~63/22 kB): *Full* build is the `"main"` entry point (in `package.json`) picked up by Node and bundlephobia. But it's meant for use in Node where size doesn't matter.
 
-**badge in readme** (~9 kB, ~30 files): The badge points to *mini* bundle which contains the bare minimum needed to cover the most use-cases (get orientation, coords, exif info, etc...). This is meant for browsers where file size matters.
+**badge in readme** (~9 kB): The badge points to *mini* bundle which contains the bare minimum needed to cover the most use-cases (get orientation, coords, exif info, etc...). This is meant for browsers where file size matters.
 </details>
 
 ## Contributing
 
 Contributions are welcome in any form. Suggestions, bug reports, docs improvements, new tests or even feature PRs. Don't be shy, I don't bite.
 
-If you're filing a bug, please include the problematic photo. Or better yet write a test. 
+If you're filing an issue, please include:
 
-If you're creating a PR, please run the tests:
+* The photo that's missing metadata or causing the bug 
+* Repo or a sandbox ([like this one](https://github.com/MikeKovarik/exifr/issues/20)) with minimal code where the bug is reproducible.
+
+There are so many environments, tools and frameworks and I can't know, nor try them all out. Letting me peek into your setup makes tracking down the problem so much easier.
+
+PRs are gladly accepted. Please run tests before you create one:
 * in browser by visiting `/test/index.html` (*uses import maps, you may need to enable experimental flags in your browser*)
 * in Node.js by running `npm run test`
 

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [4.3.0]
+
+Quality-Of-Life release. Improves compatibility and ease of use with various tools and environments.
+
+### Changed
+- all ESM bundles are now available in two identical copies with different file extensions. `.mjs` and `.js` for ESM, `.cjs` and `.js` for UMD. Just pick one that works with your tooling or environment.
+- Backtracking on using only `"type":"module"` in package.json as the only way to define the module as ESM.
+- package.json's `"main"` points to UMD bundle `full.esm.mjs` instead of UMD `full.umd.js`.
+- Added default export which wraps all named exports into single object.
+
 ## [4.2.0]
 
 ### Changed
@@ -142,7 +152,8 @@
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.2.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.3.0...HEAD
+[4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.2.0...v4.3.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...v4.2.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...v4.1.0
 [4.0.0]: https://github.com/MikeKovarik/exifr/compare/v3.0.1...v4.0.0
