@@ -1,4 +1,6 @@
 export * from './mini.mjs'
+import * as mini from './mini.mjs'
+export default mini
 
 
 // File Readers

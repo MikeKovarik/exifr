@@ -9,11 +9,11 @@
 // Also the module imports 'fs' module and it fails in browsers. For that you could
 // use newly drafted importmaps.
 
-import * as exifr from '../src/bundles/full.mjs'
+import * as exifr from '../dist/full.esm.mjs'
 
 async function main() {
 	var exif = await exifr.gps('../test/fixtures/IMG_20180725_163423.jpg')
-	if (typeof document !== undefined) {
+	if (typeof document !== 'undefined') {
 		document.write('latitude'  + exif.latitude)
 		document.write('longitude' + exif.longitude)
 	} else {

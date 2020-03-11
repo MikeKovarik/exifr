@@ -1,4 +1,4 @@
-import * as exifr from '../src/bundles/full.mjs'
+import exifr from '../dist/lite.esm.js'
 
 const isBrowser = typeof navigator === 'object'
 

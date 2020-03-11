@@ -1,4 +1,4 @@
-import * as exifr from '../src/index-full.js'
+import * as exifr from '../dist/full.esm.mjs'
 
 setTimeout(() => {
 	exifr.parse(base64)

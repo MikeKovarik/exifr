@@ -1,4 +1,6 @@
 export * from './lite.mjs'
+import * as lite from './lite.mjs'
+export default lite
 
 
 // File Readers
