@@ -155,13 +155,11 @@ TL;DR: All bundles are available in two identical copies. `.mjs` and `.js` for E
 <details>
 <summary>(click to expand for more info)</summary>
 
-Current state of ESM is complicated. Node.js can already handle ESM files with `.mjs` extension and modules with `"type":"module"` in package.json. We tried both but turns out the type:module approach alone is not yet ready for production.
-
-Some bundlers and tools may work or break with `.mjs` extension, whereas it's important for Node.js. The same applies to the new `.cjs` extension (introduced in Node.js 13).
+Current state of ESM is complicated. Node.js can already handle ESM files with `.mjs` extension and modules with `"type":"module"` in package.json. Turns out the `"type":"module"` approach alone is not yet ready for production. Some bundlers and tools may work or break with `.mjs` extension, whereas it's important for Node.js. The same applies to the new `.cjs` extension (introduced in Node.js 13).
 
 The library is written in ESM, with `.mjs` extensions and transpiled to both ESM and UMD formats.
 
-To avoid problems, the `"main"` entry point is now `full.umd.cjs` but you can still use ESM by explicitly importing `full.esm.mjs`.
+The `"main"` (field in package.json) entry point is now `full.umd.cjs` but you can still use ESM by explicitly importing `full.esm.mjs`. `"module"` field (used by some tools) points to `full.esm.mjs`.
 
 If your webserver isn't configured to handle `.mjs` or `.cjs` files you can use their identical `.js` clone. For example `full.esm.mjs` is identical to `full.esm.js`. So is `lite.esm.cjs` to `lite.esm.js`. Just pick one that fits your tools or environment.
 </details>
