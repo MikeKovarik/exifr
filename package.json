@@ -25,8 +25,9 @@
     "type": "git",
     "url": "https://github.com/MikeKovarik/exifr.git"
   },
-  "main": "dist/full.esm.js",
   "type": "module",
+  "main": "./dist/full.umd.cjs",
+  "module": "./dist/full.esm.mjs",
   "types": "index.d.ts",
   "scripts": {
     "test": "mocha test/**.spec.mjs --exclude test/bundle-mini.spec.mjs --exclude test/bundle-lite.spec.mjs --exclude test/bundle-full.spec.mjs",
