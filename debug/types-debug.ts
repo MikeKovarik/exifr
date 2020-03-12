@@ -1,4 +1,5 @@
 import * as exifr from '../index'
+import exifrDefault from '../index'
 
 async function main() {
 	let input = Buffer.from([])
@@ -12,6 +13,10 @@ async function main() {
 	exifr.orientation('').then(or => console.log(or))
 	let parser = exifr.segmentParsers.get('exif')
 	let {longitude, latitude} = parser.gps(Buffer.from([0, 0]))
+	exifrDefault.parse('', {})
+	exifrDefault.parse('')
+	exifrDefault.parse('', ['foo'])
+	exifrDefault.orientation('').then(or => console.log(or))
 }
 
 main()

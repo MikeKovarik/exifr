@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-export as namespace Exifr
+export as namespace exifr;
 
 interface Tags {
 	[name: string]: string | number | number[] | Uint8Array
@@ -52,13 +52,13 @@ export function thumbnailUrl(data: Input): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
 export function orientation(data: Input): Promise<number | undefined>;
 
-export const tagKeys: Map<string, Map<number, string>>;
-export const tagValues: Map<string, Map<number, any>>;
+export const tagKeys:     Map<string, Map<number, string>>;
+export const tagValues:   Map<string, Map<number, any>>;
 export const tagRevivers: Map<string, Map<number, any>>;
 
-export const fileParsers: Map<string, any>;
+export const fileParsers:    Map<string, any>;
 export const segmentParsers: Map<string, any>;
-export const fileReaders: Map<string, any>;
+export const fileReaders:    Map<string, any>;
 
 export class Exifr {
 	constructor(options?: Options);
@@ -66,3 +66,23 @@ export class Exifr {
 	parse(): Promise<any>;
 	extractThumbnail(): Promise<Uint8Array | undefined>;
 }
+
+declare const _default: {
+	parse:        typeof parse;
+	thumbnail:    typeof thumbnail;
+	thumbnailUrl: typeof thumbnailUrl;
+	gps:          typeof gps;
+	orientation:  typeof orientation;
+
+	tagKeys:      typeof tagKeys;
+	tagValues:    typeof tagValues;
+	tagRevivers:  typeof tagRevivers;
+
+	fileParsers:    typeof fileParsers;
+	segmentParsers: typeof segmentParsers;
+	fileReaders:    typeof fileReaders;
+
+	Exifr: Exifr;
+}
+
+export default _default
