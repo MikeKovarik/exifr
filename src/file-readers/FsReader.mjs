@@ -6,8 +6,8 @@ import * as platform from '../util/platform.mjs'
 if (platform.node) {
 	// warning: this can be triggered when building server-side-rendered pages.
 	// the environment shims require() but it may not be the same as global.require.
-	let nodeRequire = global['req' + 'uire']
-	var fsPromise = typeof require === 'function' && require === nodeRequire
+	let nodeRequire = global && global['req' + 'uire']
+	var fsPromise = typeof nodeRequire === 'function'
 		? Promise.resolve(nodeRequire('fs').promises)
 		: import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
 }
