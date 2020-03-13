@@ -59,3 +59,4 @@ typings/
 
 package-lock.json
 /dist
+/test/webpack/dist
