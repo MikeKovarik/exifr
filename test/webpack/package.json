@@ -1,0 +1,9 @@
+{
+  "name": "webpack-test",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  }
+}
