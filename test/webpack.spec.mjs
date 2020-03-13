@@ -1,7 +1,7 @@
 import cp from 'child_process'
 import util from 'util'
 import {assert} from './test-util-core.mjs'
-import {getPath, isNode, isBrowser} from './test-util-core.mjs'
+import {getFile, getPath, isNode, isBrowser} from './test-util-core.mjs'
 
 
 isNode && describe('webpack', () => {
@@ -34,6 +34,14 @@ isNode && describe('webpack', () => {
 			if (stdout.toLowerCase().includes('warning')) assert.fail(stdout)
 		} else {
 			console.warn(`couldn't test webpack because it is not installed`)
+		}
+	})
+
+	it(`webpacked output shouldn't contain Buffer`, async () => {
+		let bundleFilePath = '../webpack/dist/bundle.js'
+		let bundleFile = (await getFile(bundleFilePath)).toString()
+		if (bundleFile.includes('The buffer module from node.js, for the browser.')) {
+			assert.fail('webpack bundled Buffer module with exifr')
 		}
 	})
 
