@@ -1,9 +1,6 @@
 import {customError} from './helpers.mjs'
-import * as platform from '../util/platform.mjs'
+import {BigInt} from '../util/platform.mjs'
 
-
-// Needed for ESLint. It doesn't yet support this global.
-let BigInt = platform.node ? global.BigInt : self.BigInt
 
 const utf8 = new TextDecoder('utf-8')
 //const utf16 = new TextDecoder('utf-16')

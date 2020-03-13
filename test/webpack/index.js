@@ -3,8 +3,6 @@ import * as esm from '../../dist/full.esm.js'
 
 let filePath = '../fixtures/img_1771.jpg'
 
-// The buffer module from node.js, for the browser.
-
 ;(async function() {
 	let arrayBuffer = await fetch(filePath).then(res => res.arrayBuffer())
 	let umdResult = await umd.parse(arrayBuffer)

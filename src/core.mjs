@@ -9,6 +9,7 @@ export {fetchUrlAsArrayBuffer, readBlobAsArrayBuffer} from './reader.mjs'
 
 // High level API.
 import * as platform from './util/platform.mjs'
+import {Buffer} from './util/platform.mjs'
 import {Exifr} from './Exifr.mjs'
 import {thumbnailOnlyOptions, gpsOnlyOptions, orientationOnlyOptions} from './options.mjs'
 import {TAG_ORIENTATION} from './tags.mjs'

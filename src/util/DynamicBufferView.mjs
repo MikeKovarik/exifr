@@ -1,6 +1,7 @@
 import * as platform from './platform.mjs'
 import {BufferView} from './BufferView.mjs'
 import {customError} from './helpers.mjs'
+import {Buffer} from './platform.mjs'
 
 
 export class DynamicBufferView extends BufferView {
