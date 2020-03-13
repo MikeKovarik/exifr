@@ -1,6 +1,6 @@
 {
   "name": "exifr",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "description": "📷 The fastest and most versatile JavaScript EXIF reading library.",
   "author": "Mike Kovarik",
   "license": "MIT",
