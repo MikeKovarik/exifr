@@ -1,7 +1,7 @@
 import cp from 'child_process'
 import util from 'util'
 import {assert} from './test-util-core.mjs'
-import {getFile, getPath, isNode, isBrowser} from './test-util-core.mjs'
+import {getFile, getPath, isNode, isBrowser, createIframe} from './test-util-core.mjs'
 
 
 describe('webpack', () => {
@@ -45,19 +45,7 @@ describe('webpack', () => {
 	if (isBrowser) {
 
 		it(`parses photo properly`, async () => {
-			let {umdResult, esmResult} = await new Promise((resolve, reject) => {
-				let iframe = document.createElement('iframe')
-				iframe.src = './webpack/index.html'
-				iframe.style.width = '0px'
-				iframe.style.height = '0px'
-				iframe.style.opacity = 0
-				iframe.onerror = reject
-				iframe.onload = e => {
-					iframe.contentWindow.onerror = reject
-					iframe.contentWindow.testResult = resolve
-				}
-				document.body.append(iframe)
-			})
+			let {umdResult, esmResult} = await createIframe('./webpack/index.html')
 			assert.equal(umdResult.Model, 'Canon PowerShot S40')
 			assert.equal(esmResult.Model, 'Canon PowerShot S40')
 		})

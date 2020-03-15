@@ -90,17 +90,45 @@ export function testBundle(bundleName, exifr, bundleOptions) {
 			for (let [key, enabled] of Object.entries(bundleOptions.segmentParsers)) {
 
 				let outputKey = key === 'tiff' ? 'ifd0' : key
+				let enabled = bundleOptions.segmentParsers[key]
 
 				it(`${key.toUpperCase()} ${enabled ? 'should' : 'should not'} be included`, async () => {
 					let parseOptions = Object.assign({}, baseOptions, {[key]: true, mergeOutput: false})
 					let output = await exifr.parse(file, parseOptions).catch(err => err)
-					if (bundleOptions.segmentParsers[key])
-						assert.isDefined(output[outputKey])
-					else
-						assert.instanceOf(output, Error)
+					if (key === 'xmp') {
+						if (enabled) {
+							assert.equal(output.photoshop.ColorMode, 3)
+							assert.equal(output.art.Culture, 'French')
+						} else {
+							assert.isUndefined(output.photoshop)
+							assert.isUndefined(output.art)
+						}
+					} else {
+						if (enabled)
+							assert.isDefined(output[outputKey])
+						else
+							assert.instanceOf(output, Error)
+					}
 				})
 
 			}
+
+		})
+
+		describe('segment parsers', () => {
+
+			it('extracts basic TIFF info', async () => {
+				let file = await getFile('IMG_20180725_163423-tiny.jpg')
+				let output = await exifr.parse(file)
+				assert.equal(output.Model       || output[0x0110] , 'Pixel')
+				assert.equal(output.ISO         || output[0x8827] , 50)
+				assert.equal(output.GPSAltitude || output[0x0006] , 252)
+			})
+
+			it('.orientation()', async () => {
+				let file = await getFile('IMG_20180725_163423-tiny.jpg')
+				assert.equal(await exifr.orientation(file), 1)
+			})
 
 		})
 

@@ -57,3 +57,19 @@ export async function getFile(urlOrPath) {
 		cachedFiles[urlOrPath] = await fs.readFile(fullPath)
 	return cachedFiles[urlOrPath]
 }
+
+export function createIframe(url) {
+	return new Promise((resolve, reject) => {
+		let iframe = document.createElement('iframe')
+		iframe.src = url
+		iframe.style.width = '0px'
+		iframe.style.height = '0px'
+		iframe.style.opacity = 0
+		iframe.onerror = reject
+		iframe.onload = e => {
+			iframe.contentWindow.onerror = reject
+			iframe.contentWindow.testResult = resolve
+		}
+		document.body.append(iframe)
+	})
+}
