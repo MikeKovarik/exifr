@@ -48,7 +48,7 @@ async function callReaderClass(input, options, readerName) {
 
 async function callReaderFunction(input, readerFn) {
 	let rawData = await readerFn(input)
-	return new DataView(rawData)
+	return new BufferView(rawData)
 }
 
 // FALLBACK FULL-FILE READERS (when ChunkedReader and the classes aren't available)

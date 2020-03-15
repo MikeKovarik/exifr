@@ -96,16 +96,20 @@ class SubOptions extends SharedOptions {
 	}
 
 	translateTagSet(inputArray, outputSet) {
-		let {tagKeys, tagValues} = this.dict
-		let tag, index
-		for (tag of inputArray) {
-			if (typeof tag === 'string') {
-				index = tagValues.indexOf(tag)
-				if (index === -1) index = tagKeys.indexOf(Number(tag))
-				if (index !== -1) outputSet.add(Number(tagKeys[index]))
-			} else {
-				outputSet.add(tag)
+		if (this.dict) {
+			let {tagKeys, tagValues} = this.dict
+			let tag, index
+			for (tag of inputArray) {
+				if (typeof tag === 'string') {
+					index = tagValues.indexOf(tag)
+					if (index === -1) index = tagKeys.indexOf(Number(tag))
+					if (index !== -1) outputSet.add(Number(tagKeys[index]))
+				} else {
+					outputSet.add(tag)
+				}
 			}
+		} else {
+			for (let tag of inputArray) outputSet.add(tag)
 		}
 	}
 
