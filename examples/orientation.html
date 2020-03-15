@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1"/>
+	<title>Exifr legacy bundle tester</title>
+	<link rel="stylesheet" type="text/css" href="../homepage/app.css">
+	<style>
+		table { 
+			border-spacing: 8px;
+			border-collapse: separate;
+		}
+		table,
+		table tr,
+		table td {
+			text-align: center;
+			vertical-align: middle;
+			white-space: pre-wrap;
+			margin: 0 !important;
+			padding: 0 !important;
+		}
+	</style>
+</head>
+<body>
+
+	<table></table>
+
+	<script src="../dist/mini.umd.js"></script>
+	<script>
+
+		const manipulations = {
+			1: {
+				rotation: 0,
+				scaleX: 1,
+				scaleY: 1
+			},
+			2: {
+				rotation: 0,
+				scaleX: -1,
+				scaleY: 1
+			},
+			3: {
+				rotation: 180,
+				scaleX: 1,
+				scaleY: 1
+			},
+			4: {
+				rotation: 180,
+				scaleX: -1,
+				scaleY: 1
+			},
+			5: {
+				rotation: 90,
+				scaleX: 1,
+				scaleY: -1
+			},
+			6: {
+				rotation: 90,
+				scaleX: 1,
+				scaleY: 1
+			},
+			7: {
+				rotation: 270,
+				scaleX: 1,
+				scaleY: -1
+			},
+			8: {
+				rotation: 270,
+				scaleX: 1,
+				scaleY: 1
+			}
+		}
+
+		let table = document.querySelector('table')
+
+		function createElement(name) {
+			return document.createElement(name)
+		}
+
+		function createRow(name, array) {
+			let tr = createElement('tr')
+			let head = createElement('td')
+			head.innerHTML = name
+			tr.append(head)
+			for (let item of array) {
+				let td = createElement('td')
+				td.append(item)
+				tr.append(td)
+			}
+			table.append(tr)
+		}
+
+		function createImg(url) {
+			let img = createElement('img')
+			img.src = url
+			return img
+		}
+
+		let samples = [
+			'../test/fixtures/orientation/f1t.jpg',
+			'../test/fixtures/orientation/f2t.jpg',
+			'../test/fixtures/orientation/f3t.jpg',
+			'../test/fixtures/orientation/f4t.jpg',
+			'../test/fixtures/orientation/f5t.jpg',
+			'../test/fixtures/orientation/f6t.jpg',
+			'../test/fixtures/orientation/f7t.jpg',
+			'../test/fixtures/orientation/f8t.jpg',
+		]
+
+
+		;(async function() {
+			let orientations = await Promise.all(samples.map(exifr.orientation))
+			let images = samples.map(createImg)
+			await Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
+			let rotated1 = images.map((img, i) => {
+				let orientation = orientations[i]
+				let manipulation = manipulations[orientation]
+				let canvas = createRotatedCanvas(img, manipulation)
+				return canvas
+			})
+			let rotated2 = samples.map((url, i) => {
+				let orientation = orientations[i]
+				let manipulation = manipulations[orientation]
+				let canvas = createRotatedImg(url, manipulation)
+				return canvas
+			})
+			createRow('orientation', orientations)
+			createRow('original', images)
+			createRow('rotated\n(canvas)', rotated1)
+			createRow('rotated\n(css transform)', rotated2)
+		})();
+
+		function createRotatedCanvas(img, manipulation) {
+			if (manipulation.rotation === 90 || manipulation.rotation === 270) {
+				var w = img.height
+				var h = img.width
+			} else {
+				var w = img.width
+				var h = img.height
+			}
+			var canvas = document.createElement('canvas')
+			canvas.width = w
+			canvas.height = h
+			var ctx = canvas.getContext('2d')
+			ctx.translate(w / 2, h / 2)
+			ctx.rotate(manipulation.rotation * Math.PI / 180)
+			ctx.scale(manipulation.scaleX, manipulation.scaleY)
+			ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height)
+			return canvas
+		}
+
+		function createRotatedImg(url, {scaleX, scaleY, rotation}) {
+			let img = createImg(url)
+			img.style.transform = `rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`
+			return img
+		}
+
+	</script>
+
+</body>
+</html>
