@@ -6,6 +6,8 @@ import {getFile, getPath, isNode, isBrowser, createIframe} from './test-util-cor
 
 describe('webpack', () => {
 
+	let hasWebPack = false
+
 	if (isNode) {
 
 		async function execute(...args) {
@@ -19,7 +21,6 @@ describe('webpack', () => {
 			}
 		}
 
-		let hasWebPack = false
 		before(async () => {
 			try {
 				const stdout = await execute('webpack -v')
@@ -42,7 +43,17 @@ describe('webpack', () => {
 
 	}
 
+	let bundleFilePath = '../webpack/dist/bundle.js'
+
 	if (isBrowser) {
+
+		before(async () => {
+			try {
+				hasWebPack = await fetch(getPath(bundleFilePath)).then(res => res.ok)
+			} catch (err) {
+				hasWebPack = false
+			}
+		})
 
 		it(`parses photo properly`, async () => {
 			let {umdResult, esmResult} = await createIframe('./webpack/index.html')
@@ -52,12 +63,17 @@ describe('webpack', () => {
 
 	}
 
-	it(`webpacked output shouldn't contain Buffer`, async () => {
-		let bundleFilePath = '../webpack/dist/bundle.js'
-		let bundleFile = toString(await getFile(bundleFilePath))
-		if (bundleFile.includes('The buffer module from node.js, for the browser.'))
-			assert.fail('webpack bundled Buffer module with exifr')
-	})
+	if (hasWebPack) {
+
+		// isomorphic but needs the webpack bundle to be built first
+
+		it(`webpacked output shouldn't contain Buffer`, async () => {
+			let bundleFile = toString(await getFile(bundleFilePath))
+			if (bundleFile.includes('The buffer module from node.js, for the browser.'))
+				assert.fail('webpack bundled Buffer module with exifr')
+		})
+
+	}
 
 })
 
