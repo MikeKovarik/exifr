@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [4.3.x]
+
+### Fixed
+- `orientation()` in mini bundle (possibly more mini-bundle related bugs)
+- bug: **Critical dependency: require function** related to bundling UMD with webpack
+- d.ts types
+
 ## [4.3.0]
 
 Quality-Of-Life release. Improves compatibility and ease of use with various tools and environments.
@@ -152,7 +159,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.3.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.3.3...HEAD
+[4.3.x]: https://github.com/MikeKovarik/exifr/compare/v4.3.0...v4.3.3
 [4.3.0]: https://github.com/MikeKovarik/exifr/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/MikeKovarik/exifr/compare/v4.0.0...v4.1.0
