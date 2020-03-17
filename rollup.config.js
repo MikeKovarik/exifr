@@ -161,6 +161,7 @@ function createLegacyBundle(inputPath, outputPath) {
 			replaceBuiltinsWithIePolyfills(),
 			fixIeStaticMethodSubclassing(),
 			terser(terserConfig),
+			cloneCjsAndMjsToJs(),
 		],
 		external,
 		output: {
@@ -208,9 +209,9 @@ export default [
 	createModernBundle('src/bundles/full.mjs', 'dist/full.esm.mjs', 'dist/full.umd.cjs'),
 	createModernBundle('src/bundles/lite.mjs', 'dist/lite.esm.mjs', 'dist/lite.umd.cjs'),
 	createModernBundle('src/bundles/mini.mjs', 'dist/mini.esm.mjs', 'dist/mini.umd.cjs'),
-	createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.js'),
-	createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.js'),
-	createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.js'),
+	createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.cjs'),
+	createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.cjs'),
+	createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.cjs'),
 ]
 
 function objectFromArray(modules) {

@@ -947,7 +947,7 @@ For full changelog visit [`CHANGELOG.md`](CHANGELOG.md).
 
 **TL;DR:** Because exifr comes in three bundles, each in three format variants (ESM, UMD, legacy), each in two extensions (.js and .mjs or .mjs) due to tooling. Plus source codes are included.
 
-**npm** (~900 kB, ~60 files): The module includes both `src/` and `dist/`. That's source codes of all the readers, parsers and dictionaries. Multiplied by 3 bundles (*full*, *lite*, *mini*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE10). But you won't use all of the files. They're there so you can choose what's best for your project.
+**npm** (~1MB, ~65 files): The module includes both `src/` and `dist/`. That's source codes of all the readers, parsers and dictionaries. Multiplied by 3 bundles (*full*, *lite*, *mini*). Then multiplied by 3 bundle formats (*ESM*, *UMD*, *legacy* for IE10) and multiplied by 2 extensions (`.mjs`+`.js` or `.cjs`+`.js`). But you won't use all of the files. They're there so you can choose what's best for your project, tooling and environment.
 
 **bundlephobia** (~63/22 kB): *Full* build is the `"main"` entry point (in `package.json`) picked up by Node and bundlephobia. But it's meant for use in Node where size doesn't matter.
 

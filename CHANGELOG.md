@@ -8,6 +8,10 @@
 - `orientation()` in mini bundle (possibly more mini-bundle related bugs)
 - bug: **Critical dependency: require function** related to bundling UMD with webpack
 - d.ts types
+- IE10 DataView related bug
+
+### Added
+- `.cjs` copy of all `legacy` builds in dist/.
 
 ## [4.3.0]
 
