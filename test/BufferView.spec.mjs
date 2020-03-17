@@ -23,15 +23,51 @@ describe('BufferView', () => {
 
 	describe('constructor new BufferView', () => {
 
-		it(`(Uint8Array)`, async () => {
-			let uint8 = new Uint8Array(3)
-			uint8[2] = 5
-			let view = new BufferView(uint8)
-			assert.equal(view.byteLength, 3)
-			assert.equal(view.getUint8(0), uint8[0])
-			assert.equal(view.getUint8(1), uint8[1])
-			assert.equal(view.getUint8(2), uint8[2])
-			assert.equal(view.getUint8(2), 5)
+		describe(`Uint8Array`, async () => {
+
+			it(`(Uint8Array)`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				let view = new BufferView(uint8)
+				assert.equal(view.byteLength, 5)
+				assert.equal(view.getUint8(0), uint8[0])
+				assert.equal(view.getUint8(1), uint8[1])
+				assert.equal(view.getUint8(2), uint8[2])
+				assert.equal(view.getUint8(3), uint8[3])
+				assert.equal(view.getUint8(4), uint8[4])
+			})
+
+			it(`(Uint8Array, 0, 3) creates subview`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				let view = new BufferView(uint8, 0, 3)
+				assert.equal(view.byteLength, 3)
+				assert.equal(view.getUint8(0), 0)
+				assert.equal(view.getUint8(1), 1)
+				assert.equal(view.getUint8(2), 2)
+			})
+
+			it(`(Uint8Array, 1, 3) creates subview`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				let view = new BufferView(uint8, 1, 3)
+				assert.equal(view.byteLength, 3)
+				assert.equal(view.getUint8(0), 1)
+				assert.equal(view.getUint8(1), 2)
+				assert.equal(view.getUint8(2), 3)
+			})
+
+			it(`(Uint8Array, 2, 3) creates subview`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				let view = new BufferView(uint8, 2, 3)
+				assert.equal(view.byteLength, 3)
+				assert.equal(view.getUint8(0), 2)
+				assert.equal(view.getUint8(1), 3)
+				assert.equal(view.getUint8(2), 4)
+			})
+
+			it(`(Uint8Array, 3, 3) throws out of range`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				assert.throws(() => new BufferView(uint8, 3, 3))
+			})
+
 		})
 
 		it(`(number) creates new view`, async () => {
