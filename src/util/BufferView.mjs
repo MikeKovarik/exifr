@@ -36,7 +36,7 @@ export class BufferView {
 			this.byteOffset = 0
 			this.byteLength = 0
 		} else if (arg instanceof ArrayBuffer) {
-			let dataView = new DataView(arg, offset, length)
+			let dataView = new DataView(arg, offset, length === undefined ? arg.byteLength : length)
 			this._swapDataView(dataView)
 		} else if (arg instanceof Uint8Array || arg instanceof DataView || arg instanceof BufferView) {
 			// Node.js Buffer is also instance of Uint8Array, but small ones are backed
