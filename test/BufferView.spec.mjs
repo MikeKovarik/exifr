@@ -134,8 +134,8 @@ describe('BufferView', () => {
 		describe(`DataView`, async () => {
 
 			it(`(DataView, 0, 3) creates subview`, async () => {
-				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
-				let view = new BufferView(arrayBuffer, 0, 3)
+				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
+				let view = new BufferView(dataView, 0, 3)
 				assert.equal(view.byteLength, 3)
 				assert.equal(view.getUint8(0), 0)
 				assert.equal(view.getUint8(1), 1)
@@ -143,8 +143,8 @@ describe('BufferView', () => {
 			})
 
 			it(`(DataView, 1, 3) creates subview`, async () => {
-				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
-				let view = new BufferView(arrayBuffer, 1, 3)
+				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
+				let view = new BufferView(dataView, 1, 3)
 				assert.equal(view.byteLength, 3)
 				assert.equal(view.getUint8(0), 1)
 				assert.equal(view.getUint8(1), 2)
@@ -152,8 +152,8 @@ describe('BufferView', () => {
 			})
 
 			it(`(DataView, 2, 3) creates subview`, async () => {
-				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
-				let view = new BufferView(arrayBuffer, 2, 3)
+				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
+				let view = new BufferView(dataView, 2, 3)
 				assert.equal(view.byteLength, 3)
 				assert.equal(view.getUint8(0), 2)
 				assert.equal(view.getUint8(1), 3)
@@ -161,8 +161,8 @@ describe('BufferView', () => {
 			})
 
 			it(`(DataView, 3, 3) throws out of range`, async () => {
-				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
-				assert.throws(() => new BufferView(arrayBuffer, 3, 3))
+				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
+				assert.throws(() => new BufferView(dataView, 3, 3))
 			})
 
 		})
