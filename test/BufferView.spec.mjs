@@ -82,9 +82,18 @@ describe('BufferView', () => {
 				assert.throws(() => new BufferView(uint8, 3, 3))
 			})
 
+			it(`(Uint8Array, 3) creates subview from middle to end`, async () => {
+				let uint8 = Uint8Array.of(0, 1, 2, 3, 4)
+				let view = new BufferView(uint8, 3)
+				assert.equal(view.byteLength, 2)
+				assert.equal(view.getUint8(0), 3)
+				assert.equal(view.getUint8(1), 4)
+			})
+
 		})
 
 		describe(`ArrayBuffer`, async () => {
+
 			it(`(ArrayBuffer) creates new view`, async () => {
 				let arrayBuffer = createIsolatedArrayBuffer(0, 1, 2, 3, 4)
 				let view = new BufferView(arrayBuffer)
@@ -123,15 +132,23 @@ describe('BufferView', () => {
 				assert.throws(() => new BufferView(arrayBuffer, 3, 3))
 			})
 
-			it(`(DataView) creates new view`, async () => {
-				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
-				let view = new BufferView(arrayBuffer)
-				assert.equal(view.byteLength, 5)
+			it(`(ArrayBuffer, 3) creates subview from middle to end`, async () => {
+				let arrayBuffer = createIsolatedArrayBuffer(0, 1, 2, 3, 4)
+				let view = new BufferView(arrayBuffer, 3)
+				assert.equal(view.byteLength, 2)
+				assert.equal(view.getUint8(0), 3)
+				assert.equal(view.getUint8(1), 4)
 			})
 
 		})
 
 		describe(`DataView`, async () => {
+
+			it(`(DataView) creates new view`, async () => {
+				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
+				let view = new BufferView(dataView)
+				assert.equal(view.byteLength, 5)
+			})
 
 			it(`(DataView, 0, 3) creates subview`, async () => {
 				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
@@ -163,6 +180,14 @@ describe('BufferView', () => {
 			it(`(DataView, 3, 3) throws out of range`, async () => {
 				let dataView = createIsolatedDataView(0, 1, 2, 3, 4)
 				assert.throws(() => new BufferView(dataView, 3, 3))
+			})
+
+			it(`(DataView, 3) creates subview from middle to end`, async () => {
+				let arrayBuffer = createIsolatedDataView(0, 1, 2, 3, 4)
+				let view = new BufferView(arrayBuffer, 3)
+				assert.equal(view.byteLength, 2)
+				assert.equal(view.getUint8(0), 3)
+				assert.equal(view.getUint8(1), 4)
 			})
 
 		})
