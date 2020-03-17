@@ -36,15 +36,15 @@ export class BufferView {
 			this.byteOffset = 0
 			this.byteLength = 0
 		} else if (arg instanceof ArrayBuffer) {
-			let dataView = new DataView(arg, offset, length === undefined ? arg.byteLength : length)
+			if (length === undefined) length = arg.byteLength - offset
+			let dataView = new DataView(arg, offset, length)
 			this._swapDataView(dataView)
 		} else if (arg instanceof Uint8Array || arg instanceof DataView || arg instanceof BufferView) {
 			// Node.js Buffer is also instance of Uint8Array, but small ones are backed
 			// by single large ArrayBuffer pool, so we always need to check for arg.byteOffset.
-			let {byteOffset, byteLength} = arg
-			if (length === undefined) length = byteLength - offset
-			offset += byteOffset
-			if (offset + length > byteOffset + byteLength)
+			if (length === undefined) length = arg.byteLength - offset
+			offset += arg.byteOffset
+			if (offset + length > arg.byteOffset + arg.byteLength)
 				throw customError('Creating view outside of available memory in ArrayBuffer')
 			let dataView = new DataView(arg.buffer, offset, length)
 			this._swapDataView(dataView)
