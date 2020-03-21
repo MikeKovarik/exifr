@@ -107,7 +107,7 @@ describe('ChunkedReader', () => {
 				assert.equal(file.byteLength, jfifEnd)
 				if (file.close) await file.close()
 			})
-
+/*
 			it(`space between sparse segments does not contain useful data`, async () => {
 				let {input, jfifOffset, jfifLength, jfifEnd} = file1
 				let file = new ReaderClass(input, options)
@@ -119,7 +119,7 @@ describe('ChunkedReader', () => {
 				assert.equal(file.getUint32(jfifOffset), 0xffe00010)
 				if (file.close) await file.close()
 			})
-
+*/
 			it(`reading beyond the end of file doesn't throw or malform the view`, async () => {
 				let file = new ReaderClass(file1.input, options)
 				await file.readChunked()
