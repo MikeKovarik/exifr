@@ -14,9 +14,12 @@ describe('webpack', () => {
 			let exec = util.promisify(cp.exec)
 			try {
 				let {stdout, stderr} = await exec(...args)
-				if (stderr) throw stderr
+				if (stderr) assert.fail(stderr)
 				return stdout
 			} catch(err) {
+				if (err.stderr) assert.fail(err.stderr)
+				if (err.stdout) assert.fail(err.stdout)
+				if (err.message) assert.fail(err.message)
 				throw err
 			}
 		}
@@ -35,7 +38,7 @@ describe('webpack', () => {
 			if (hasWebPack) {
 				let webpackFixturePath = getPath('../webpack')
 				let stdout = await execute('webpack', {cwd: webpackFixturePath})
-				if (stdout.toLowerCase().includes('warning')) assert.fail(stdout)
+				if (stdout.includes('ERROR in')) assert.fail(stdout)
 			} else {
 				console.warn(`couldn't test webpack because it is not installed`)
 			}
