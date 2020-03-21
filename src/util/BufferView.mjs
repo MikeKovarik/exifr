@@ -1,21 +1,25 @@
 import {customError} from './helpers.mjs'
-import {BigInt} from '../util/platform.mjs'
+import {BigInt, hasBuffer} from '../util/platform.mjs'
 
 
-const utf8 = new TextDecoder('utf-8')
-//const utf16 = new TextDecoder('utf-16')
+const utf8decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8') : undefined
+
+export function uint8ArrayToUtf8String(uint8array) {
+	if (utf8decoder)
+		return utf8decoder.decode(uint8array)
+	else if (hasBuffer)
+		return Buffer.from(uint8array).toString('utf8')
+	else
+		return decodeURIComponent(escape(String.fromCharCode.apply(null, uint8array)))
+}
 
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
 //       we can safely use it along with TextDecoder API.
 export function toAsciiString(arg) {
 	if (typeof arg !== 'string')
-		return uint8ArrayToAsciiString(arg)
+		return uint8ArrayToUtf8String(arg)
 	else
 		return arg
-}
-
-export function uint8ArrayToAsciiString(uint8array) {
-	return utf8.decode(uint8array)
 }
 
 const FULL_20_BITS = 0b11111111111111111111
@@ -107,7 +111,7 @@ export class BufferView {
 
 	getString(offset = 0, length = this.byteLength) {
 		let arr = this.getUint8Array(offset, length)
-		return uint8ArrayToAsciiString(arr)
+		return uint8ArrayToUtf8String(arr)
 	}
 
 	// TODO: refactor
