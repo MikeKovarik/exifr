@@ -60,14 +60,6 @@ if (!String.prototype.endsWith) String.prototype.endsWith = function(search, len
 
 let theGlobal = typeof self !== 'undefined' ? self : global
 
-export var TextDecoder = theGlobal.TextDecoder || class {
-	decode(uintArray) {
-		var encodedString = String.fromCharCode.apply(null, uintArray)
-		var decodedString = decodeURIComponent(escape(encodedString))
-		return decodedString
-	}
-}
-
 export var fetch = theGlobal.fetch || function(url, options = {}) {
 	return new Promise((resolve, reject) => {
 		const xhr = new XMLHttpRequest()
