@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [5.0.1]
+
+### Changed
+
+- `"main"` field in package.json now points to `./dist/full.umd.js` instead of `./dist/full.umd.cjs`.
+
 ## [5.0.0]
 
 ### Changed
@@ -171,7 +177,9 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v4.3.3...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.1...HEAD
+[5.0.1]: https://github.com/MikeKovarik/exifr/compare/v5.0.0...v5.0.1
+[5.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.3.3...v5.0.0
 [4.3.x]: https://github.com/MikeKovarik/exifr/compare/v4.3.0...v4.3.3
 [4.3.0]: https://github.com/MikeKovarik/exifr/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/MikeKovarik/exifr/compare/v4.1.0...v4.2.0
