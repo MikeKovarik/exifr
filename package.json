@@ -25,7 +25,6 @@
     "type": "git",
     "url": "https://github.com/MikeKovarik/exifr.git"
   },
-  "type": "module",
   "main": "./dist/full.umd.cjs",
   "module": "./dist/full.esm.mjs",
   "types": "index.d.ts",

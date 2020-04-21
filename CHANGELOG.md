@@ -4,6 +4,9 @@
 
 ## [5.0.0]
 
+### Changed
+- package.json no longer includes `"type": "module"` for now. Tools don't support it yet and `"main"` field was already pointing to UMD (CJS). Source codes were using `.mjs` extension for a while so nothing should break, but it's a major release just in case.
+
 ### Added
 - `exifr.rotation()`
 
