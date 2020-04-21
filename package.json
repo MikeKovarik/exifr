@@ -62,7 +62,7 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.7",
     "decorate": "^1.0.0",
-    "mocha": "7.0.0-esm1",
+    "mocha": "^7.1.1",
     "rollup": "^1.25.2",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-notify": "^1.0.1",
@@ -73,6 +73,10 @@
       "src/file-readers/BlobReader.js",
       "src/file-readers/UrlFetcher.js",
       "src/util/debug.js",
+      "benchmark/**.*",
+      "debug/**.*",
+      "examples/**.*",
+      "dist/**.*",
       "test/**.*"
     ],
     "reporter": [
