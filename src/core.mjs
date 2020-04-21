@@ -58,3 +58,37 @@ export async function orientation(input) {
 		return output.ifd0[TAG_ORIENTATION]
 	}
 }
+
+export const rotations = {
+	1: {dimensionSwapped: false, scaleX:  1, scaleY:  1, deg:   0, rad:   0                },
+	2: {dimensionSwapped: false, scaleX: -1, scaleY:  1, deg:   0, rad:   0                },
+	3: {dimensionSwapped: false, scaleX:  1, scaleY:  1, deg: 180, rad: 180 * Math.PI / 180},
+	4: {dimensionSwapped: false, scaleX: -1, scaleY:  1, deg: 180, rad: 180 * Math.PI / 180},
+	5: {dimensionSwapped: true,  scaleX:  1, scaleY: -1, deg:  90, rad:  90 * Math.PI / 180},
+	6: {dimensionSwapped: true,  scaleX:  1, scaleY:  1, deg:  90, rad:  90 * Math.PI / 180},
+	7: {dimensionSwapped: true,  scaleX:  1, scaleY: -1, deg: 270, rad: 270 * Math.PI / 180},
+	8: {dimensionSwapped: true,  scaleX:  1, scaleY:  1, deg: 270, rad: 270 * Math.PI / 180}
+}
+
+export var rotateCanvas = true
+export var rotateCss = true
+
+if (typeof navigator === 'object') {
+	let ua = navigator.userAgent
+	if (ua.includes('iPad') || ua.includes('iPhone')) {
+		let [match, major, minor] = ua.match(/OS (\d+)_(\d+)/)
+		let version = Number(major) + Number(minor) * 0.1
+		// before ios 13.4, orientation is needed for canvas
+		// since ios 13.4, the data passed to canvas is already rotated
+		rotateCanvas = version < 13.4
+		rotateCss = false
+	}
+}
+
+export async function rotation(input) {
+	let or = await orientation(input)
+	return Object.assign({
+		canvas: rotateCanvas,
+		css: rotateCss,
+	}, rotations[or])
+}

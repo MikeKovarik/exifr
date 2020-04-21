@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [5.0.0]
+
+### Added
+- `exifr.rotation()`
+
 ## [4.3.x]
 
 ### Fixed

@@ -23,53 +23,13 @@
 </head>
 <body>
 
+	<p><strong>Warning:</strong> Safari on iOs automatically rotates &lt;img&gt; and has yet another behavior since 13.4. First row may look all the same because of that. Use <code>exifr.orientation()</code> to extract the raw EXIF orientation. But rather use <code>exifr.rotation()</code> if you want to manipulate the image and avoid afore mentioned problems with iOs.</p>
+
+
 	<table></table>
 
 	<script src="../dist/mini.umd.js"></script>
 	<script>
-
-		const manipulations = {
-			1: {
-				rotation: 0,
-				scaleX: 1,
-				scaleY: 1
-			},
-			2: {
-				rotation: 0,
-				scaleX: -1,
-				scaleY: 1
-			},
-			3: {
-				rotation: 180,
-				scaleX: 1,
-				scaleY: 1
-			},
-			4: {
-				rotation: 180,
-				scaleX: -1,
-				scaleY: 1
-			},
-			5: {
-				rotation: 90,
-				scaleX: 1,
-				scaleY: -1
-			},
-			6: {
-				rotation: 90,
-				scaleX: 1,
-				scaleY: 1
-			},
-			7: {
-				rotation: 270,
-				scaleX: 1,
-				scaleY: -1
-			},
-			8: {
-				rotation: 270,
-				scaleX: 1,
-				scaleY: 1
-			}
-		}
 
 		let table = document.querySelector('table')
 
@@ -84,7 +44,14 @@
 			tr.append(head)
 			for (let item of array) {
 				let td = createElement('td')
-				td.append(item)
+				if (item.toString() == '[object Object]') {
+					td.style.textAlign = 'left';
+					td.style.whiteSpace = 'pre-wrap';
+					td.style.fontSize = '10px';
+					td.append(JSON.stringify(item, null, 2))
+				} else {
+					td.append(item)
+				}
 				tr.append(td)
 			}
 			table.append(tr)
@@ -109,29 +76,23 @@
 
 
 		;(async function() {
-			let orientations = await Promise.all(samples.map(exifr.orientation))
+			let orientationsPromises = samples.map(exifr.orientation)
+			let rotationsPromises    = samples.map(exifr.rotation)
+			let orientations = await Promise.all(orientationsPromises)
+			let rotations    = await Promise.all(rotationsPromises)
 			let images = samples.map(createImg)
 			await Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
-			let rotated1 = images.map((img, i) => {
-				let orientation = orientations[i]
-				let manipulation = manipulations[orientation]
-				let canvas = createRotatedCanvas(img, manipulation)
-				return canvas
-			})
-			let rotated2 = samples.map((url, i) => {
-				let orientation = orientations[i]
-				let manipulation = manipulations[orientation]
-				let canvas = createRotatedImg(url, manipulation)
-				return canvas
-			})
+			let rotated1 = images.map((img, i) => createRotatedCanvas(img, rotations[i]))
+			let rotated2 = samples.map((url, i) => createRotatedImg(url, rotations[i]))
 			createRow('orientation', orientations)
 			createRow('original', images)
 			createRow('rotated\n(canvas)', rotated1)
 			createRow('rotated\n(css transform)', rotated2)
+			createRow('rotation', rotations)
 		})();
 
 		function createRotatedCanvas(img, manipulation) {
-			if (manipulation.rotation === 90 || manipulation.rotation === 270) {
+			if (manipulation.dimensionSwapped) {
 				var w = img.height
 				var h = img.width
 			} else {
@@ -142,16 +103,22 @@
 			canvas.width = w
 			canvas.height = h
 			var ctx = canvas.getContext('2d')
-			ctx.translate(w / 2, h / 2)
-			ctx.rotate(manipulation.rotation * Math.PI / 180)
-			ctx.scale(manipulation.scaleX, manipulation.scaleY)
-			ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height)
+			if (manipulation.canvas) {
+				ctx.translate(w / 2, h / 2)
+				ctx.rotate(manipulation.rad)
+                console.log('-', manipulation.deg, manipulation.rad, manipulation.deg * Math.PI / 180)
+				ctx.scale(manipulation.scaleX, manipulation.scaleY)
+				ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height)
+			} else {
+				ctx.drawImage(img, 0, 0)
+			}
 			return canvas
 		}
 
-		function createRotatedImg(url, {scaleX, scaleY, rotation}) {
+		function createRotatedImg(url, manipulation) {
 			let img = createImg(url)
-			img.style.transform = `rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`
+			if (manipulation.css)
+				img.style.transform = `rotate(${manipulation.deg}deg) scale(${manipulation.scaleX}, ${manipulation.scaleY})`
 			return img
 		}
 

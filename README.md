@@ -86,7 +86,8 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 |`exifr.parse(file, {options})`|`object`|Custom settings|
 |`exifr.gps(file)`|`{latitude, longitude}`|Parses only GPS coords|
 |`exifr.orientation(file)`|`number`|Parses only orientation|
-|`exifr.thumbnail(file)`|`Buffer|Uint8Array` binary|Extracts embedded thumbnail|
+|`exifr.rotation(file)`|`object`|Returns how to rotate the photo|
+|`exifr.thumbnail(file)`|`Buffer\|Uint8Array` binary|Extracts embedded thumbnail|
 |`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
 
 ## Installation
@@ -166,9 +167,9 @@ If your webserver isn't configured to handle `.mjs` or `.cjs` files you can use 
 
 #### Named exports vs default export
 
-Exifr exports both named exports and a default export object containing all the named exports.
+Exifr exports both named exports and a default export - object containing all the named exports.
 
-This is again due to tooling. You can use `import * as exifr from 'exifr'` if your tool or env allows it, but `import exifr from 'exifr'` is recommended and used in examples for simplicity.
+You can use `import * as exifr from 'exifr'` as well as `import exifr from 'exifr'` (recommended).
 
 ## Examples
 
@@ -283,6 +284,28 @@ Check out [examples/gps.js](examples/gps.js) to learn more.
 Returns: `Promise<number>`
 
 Only extracts photo's orientation.
+
+### `rotation(file)`
+Returns: `Promise<object>`
+
+Only extracts photo's orientation. Returns object with instructions how to rotate the image:
+
+* `deg` `<number>`: angle in degrees (i.e. `180`), useful for css `transform: rotate()`
+* `rad` `<number>`: angle in radians (i.e. `3.141592653589793`) useful for canvas' `ctx.rotate()`
+* `scaleX` `<number>`: image is (`-1`) or isn't (`1`) mirrored horizontally
+* `scaleY` `<number>`: image is (`-1`) or isn't (`1`) mirrored upside down
+* `dimensionSwapped` `<boolean>`: image is rotated by 90° or 270°. Fixing rotation would swap `width` and `height`.
+* `css` `<boolean>`: can/can't be rotated with CSS and `transform: rotate()` (important for ios Safari)
+* `canvas` `<boolean>`: can/can't be rotated with canvas and `ctx.rotate()` (important for ios Safari)
+
+**Warning:** Safari on ios (but not on macos) autorotates `<img>` elements, but does not alter EXIF. The behavior has changed yet again for canvas and `ctx.drawImage()` since Safari 13.4. If you don't handle this quirk, you may end up with over-rotated image.
+
+```js
+let r = await exifr.rotation(image)
+if (r.css) {
+  img.style.transform = `rotate(${r.deg}deg) scale(${r.scaleX}, ${r.scaleY})`
+}
+```
 
 ### `thumbnail(file)`
 Returns: `Promise<Buffer|Uint8Array>`
