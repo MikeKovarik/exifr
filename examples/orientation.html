@@ -19,11 +19,15 @@
 			margin: 0 !important;
 			padding: 0 !important;
 		}
+		table tr td:first-child {
+			max-width: 120px;
+		}
 	</style>
 </head>
 <body>
 
 	<p><strong>Warning:</strong> Safari on iOs automatically rotates &lt;img&gt; and has yet another behavior since 13.4. First row may look all the same because of that. Use <code>exifr.orientation()</code> to extract the raw EXIF orientation. But rather use <code>exifr.rotation()</code> if you want to manipulate the image and avoid afore mentioned problems with iOs.</p>
+	<p>Chormium 81 and newer (Chrome, new Edge, and other chromium based browsers) also now autorotates images.</p>
 
 
 	<table></table>
@@ -85,28 +89,29 @@
 			let rotated1 = images.map((img, i) => createRotatedCanvas(img, rotations[i]))
 			let rotated2 = samples.map((url, i) => createRotatedImg(url, rotations[i]))
 			createRow('orientation', orientations)
-			createRow('original', images)
+			createRow('original\n(may be autorotated in modern browsers)', images)
 			createRow('rotated\n(canvas)', rotated1)
 			createRow('rotated\n(css transform)', rotated2)
 			createRow('rotation', rotations)
 		})();
 
 		function createRotatedCanvas(img, manipulation) {
-			if (manipulation.dimensionSwapped) {
+			var w = img.width
+			var h = img.height
+			// only swap width and height if the image is rotated 90 or 270 degrees
+			// and if the browser doesn't do autorotation already
+			if (manipulation.canvas && manipulation.dimensionSwapped) {
 				var w = img.height
 				var h = img.width
-			} else {
-				var w = img.width
-				var h = img.height
 			}
 			var canvas = document.createElement('canvas')
 			canvas.width = w
 			canvas.height = h
 			var ctx = canvas.getContext('2d')
+			// only rotate the image using canvas if browser doesn't do autorotation already
 			if (manipulation.canvas) {
 				ctx.translate(w / 2, h / 2)
 				ctx.rotate(manipulation.rad)
-                console.log('-', manipulation.deg, manipulation.rad, manipulation.deg * Math.PI / 180)
 				ctx.scale(manipulation.scaleX, manipulation.scaleY)
 				ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height)
 			} else {
@@ -117,6 +122,7 @@
 
 		function createRotatedImg(url, manipulation) {
 			let img = createImg(url)
+			// only rotate the image using css if browser doesn't do autorotation already
 			if (manipulation.css)
 				img.style.transform = `rotate(${manipulation.deg}deg) scale(${manipulation.scaleX}, ${manipulation.scaleY})`
 			return img

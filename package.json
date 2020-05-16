@@ -36,6 +36,9 @@
     "test-mini": "mocha test/bundle-mini.spec.mjs",
     "coverage": "c8 npm test",
     "dev": "rollup -c rollup.config.js -w",
+    "build-mini": "rollup -c rollup.config.js mini",
+    "build-lite": "rollup -c rollup.config.js lite",
+    "build-full": "rollup -c rollup.config.js full",
     "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {

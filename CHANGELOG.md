@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [5.0.2]
+
+### Fixed
+
+- Updated `exifr.rotation()` with Chrome 81' new autorotation behavior. Applies to all Chromium browsers (like the new Edge).
+
 ## [5.0.1]
 
 ### Changed
@@ -177,7 +183,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.1...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.2...HEAD
+[5.0.2]: https://github.com/MikeKovarik/exifr/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/MikeKovarik/exifr/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.3.3...v5.0.0
 [4.3.x]: https://github.com/MikeKovarik/exifr/compare/v4.3.0...v4.3.3

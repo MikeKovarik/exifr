@@ -205,14 +205,36 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 	}
 }
 
-export default [
-	createModernBundle('src/bundles/full.mjs', 'dist/full.esm.mjs', 'dist/full.umd.cjs'),
-	createModernBundle('src/bundles/lite.mjs', 'dist/lite.esm.mjs', 'dist/lite.umd.cjs'),
-	createModernBundle('src/bundles/mini.mjs', 'dist/mini.esm.mjs', 'dist/mini.umd.cjs'),
-	createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.cjs'),
-	createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.cjs'),
-	createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.cjs'),
-]
+export default args => {
+	let [bundle] = args.input || []
+	if (typeof args.watch === 'string') {
+		bundle = args.watch
+		args.watch = args.w = true
+	}
+	let output = []
+	if (bundle === 'mini' || bundle === undefined) {
+		delete args.input
+		output.push(
+			createModernBundle('src/bundles/mini.mjs', 'dist/mini.esm.mjs', 'dist/mini.umd.cjs'),
+			createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.cjs'),
+		)
+	}
+	if (bundle === 'lite' || bundle === undefined) {
+		delete args.input
+		output.push(
+			createModernBundle('src/bundles/lite.mjs', 'dist/lite.esm.mjs', 'dist/lite.umd.cjs'),
+			createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.cjs'),
+		)
+	}
+	if (bundle === 'full' || bundle === undefined) {
+		delete args.input
+		output.push(
+			createModernBundle('src/bundles/full.mjs', 'dist/full.esm.mjs', 'dist/full.umd.cjs'),
+			createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.cjs'),
+		)
+	}
+	return output
+}
 
 function objectFromArray(modules) {
 	var obj = {}

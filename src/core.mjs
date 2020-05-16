@@ -83,6 +83,11 @@ if (typeof navigator === 'object') {
 		rotateCanvas = version < 13.4
 		rotateCss = false
 	}
+	if (ua.includes('Chrome/')) {
+		let [match, version] = ua.match(/Chrome\/(\d+)/)
+		if (Number(version) >= 81)
+			rotateCanvas = rotateCss = false
+	}
 }
 
 export async function rotation(input) {
