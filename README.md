@@ -65,6 +65,7 @@ Works everywhere, parses everything and handles anything you throw at it.
     <li>Normalizes strings</li>
     <li>Revives dates into Date class instances</li>
     <li>Converts GPS coords from DMS to DD format. From `<code>GPSLatitude</code>, <code>GPSLatitudeRef</code> tags (<code>[50, 17, 58.57]</code> & <code>"N"</code>) to single <code>latitude</code> value (<code>50.29960</code>).</li>
+    <li>Instructs how to rotate photo with exifr.rotation() and accounts for quirky autorotation behavior of iOs Safari and Chrome 81 and newer</li>
   </ul>
 </details>
 
@@ -251,6 +252,8 @@ ESM in Browser
 * [**playground**](https://mutiny.cz/exifr)
 * [examples/thumbnail.html](https://mutiny.cz/exifr/examples/thumbnail.html), [code](examples/thumbnail.html)
 <br>Extracts and displays embedded thumbnail.
+* [examples/orientation.html](https://mutiny.cz/exifr/examples/orientation.html), [code](examples/orientation.html)
+<br>Extracts orientation and rotates the image with canvas or css.
 * [examples/depth-map-extraction.html](https://mutiny.cz/exifr/examples/depth-map-extraction.html), [code](examples/depth-map-extraction.js)
 <br>Extracts and displays depth map.
 * [benchmark/gps-dnd.html](https://mutiny.cz/exifr/benchmark/gps-dnd.html), [code](benchmark/gps-dnd.html)
