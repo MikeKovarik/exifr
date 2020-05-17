@@ -113,34 +113,35 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 	parseTag(offset, tag, blockKey) {
-		let type = this.chunk.getUint16(offset + 2)
-		let valueCount = this.chunk.getUint32(offset + 4)
+		let {chunk} = this
+		let type       = chunk.getUint16(offset + 2)
+		let valueCount = chunk.getUint32(offset + 4)
 		let valueSize = SIZE_LOOKUP[type]
 		let totalSize = valueSize * valueCount
 		if (totalSize <= 4)
 			offset = offset + 8
 		else
-			offset = this.chunk.getUint32(offset + 8)
+			offset = chunk.getUint32(offset + 8)
 
 		if (type < BYTE || type > IFD)
 			throw customError(`Invalid TIFF value type. block: ${blockKey.toUpperCase()}, tag: ${tag.toString(16)}, type: ${type}, offset ${offset}`)
 
-		if (offset > this.chunk.byteLength) {
+		if (offset > chunk.byteLength) {
 			// TODO: future API
 			//this.tagsOutsideChunk.push({tag, offset, type, valueCount, valueSize, totalSize})
-			throw customError(`Invalid TIFF value offset. block: ${blockKey.toUpperCase()}, tag: ${tag.toString(16)}, type: ${type}, offset ${offset} is outside of chunk size ${this.chunk.byteLength}`)
+			throw customError(`Invalid TIFF value offset. block: ${blockKey.toUpperCase()}, tag: ${tag.toString(16)}, type: ${type}, offset ${offset} is outside of chunk size ${chunk.byteLength}`)
 		}
 
 		if (type === BYTE) // type 1
-			return this.chunk.getUint8Array(offset, valueCount)
+			return chunk.getUint8Array(offset, valueCount)
 
 		// ascii strings, array of 8bits/1byte values.
 		if (type === ASCII) // type 2
-			return normalizeString(this.chunk.getString(offset, valueCount))
+			return normalizeString(chunk.getString(offset, valueCount))
 
 		// undefined/buffers of 8bit/1byte values.
 		if (type === UNDEFINED) // type 7
-			return this.chunk.getUint8Array(offset, valueCount)
+			return chunk.getUint8Array(offset, valueCount)
 
 		// Now that special cases are solved, we can return the normal uint/int value(s).
 		if (valueCount === 1) {
@@ -161,18 +162,19 @@ export class TiffCore extends AppSegmentParserBase {
 	}
 
 	parseTagValue(type, offset) {
+		let {chunk} = this
 		switch (type) {
-			case BYTE     : return this.chunk.getUint8(offset)
-			case SHORT    : return this.chunk.getUint16(offset)
-			case LONG     : return this.chunk.getUint32(offset)
-			case RATIONAL : return this.chunk.getUint32(offset) / this.chunk.getUint32(offset + 4)
-			case SBYTE    : return this.chunk.getInt8(offset)
-			case SSHORT   : return this.chunk.getInt16(offset)
-			case SLONG    : return this.chunk.getInt32(offset)
-			case SRATIONAL: return this.chunk.getInt32(offset) / this.chunk.getInt32(offset + 4)
-			case FLOAT    : return this.chunk.getFloat(offset)
-			case DOUBLE   : return this.chunk.getDouble(offset)
-			case 13: return this.chunk.getUint32(offset)
+			case BYTE     : return chunk.getUint8(offset)
+			case SHORT    : return chunk.getUint16(offset)
+			case LONG     : return chunk.getUint32(offset)
+			case RATIONAL : return chunk.getUint32(offset) / chunk.getUint32(offset + 4)
+			case SBYTE    : return chunk.getInt8(offset)
+			case SSHORT   : return chunk.getInt16(offset)
+			case SLONG    : return chunk.getInt32(offset)
+			case SRATIONAL: return chunk.getInt32(offset) / chunk.getInt32(offset + 4)
+			case FLOAT    : return chunk.getFloat(offset)
+			case DOUBLE   : return chunk.getDouble(offset)
+			case 13: return chunk.getUint32(offset)
 			default: throw customError(`Invalid tiff type ${type}`)
 		}
 	}
@@ -270,7 +272,7 @@ export class TiffExif extends TiffCore {
 		if (!this.file.chunked && this.ifd0Offset > this.file.byteLength)
 			throw customError(`IFD0 offset points to outside of file.\nthis.ifd0Offset: ${this.ifd0Offset}, file.byteLength: ${this.file.byteLength}`)
 		//await this.ensureBlockChunk(this.ifd0Offset, estimateMetadataSize(this.options))
-		if (this.file.isTiff)
+		if (this.file.tiff)
 			await this.file.ensureChunk(this.ifd0Offset, estimateMetadataSize(this.options))
 		// Parse IFD0 block.
 		let ifd0 = this.parseBlock(this.ifd0Offset, 'ifd0')
@@ -295,29 +297,13 @@ export class TiffExif extends TiffCore {
 		return ifd0
 	}
 
-	async ensureBlockChunk(offset, length) {
-		if (this.file.isTiff) {
-			// This is unusual case in jpeg files, but happens often in tiff files.
-			// .tif files start with TIFF structure header. It contains pointer to IFD0. But the IFD0 data can be at the end of the file.
-			// We only read a small chunk, managed to find IFD0, but that position in the file isn't read yet.
-			await this.file.ensureChunk(offset, length)
-		}
-		if (offset/* + length*/ > this.chunk.byteLength) {
-			// We need to step outside, and work with the whole file because all other pointers are absolute values from start of the file.
-			// That includes other IFDs and even tag values longer than 4 bytes are indexed (see .parseTag())
-			// WARNING: Creating different view on top of file with TIFFs endian mode, because TIFF structure typically uses different endiannness.
-			this.chunk = BufferView.from(this.file, this.le)
-		}
-	}
-
 	// EXIF block of TIFF of APP1 segment
 	// 0x8769
 	async parseExifBlock() {
 		if (this.exif) return
 		if (!this.ifd0) await this.parseIfd0Block()
 		if (this.exifOffset === undefined) return
-		//await this.ensureBlockChunk(this.exifOffset, estimateMetadataSize(this.options))
-		if (this.file.isTiff)
+		if (this.file.tiff)
 			await this.file.ensureChunk(this.exifOffset, estimateMetadataSize(this.options))
 		let exif = this.parseBlock(this.exifOffset, 'exif')
 		if (!this.interopOffset) this.interopOffset = exif.get(TAG_IFD_INTEROP)

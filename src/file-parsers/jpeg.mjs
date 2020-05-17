@@ -2,6 +2,8 @@ import {FileParserBase, AppSegmentParserBase} from '../parser.mjs'
 import {fileParsers, segmentParsers} from '../plugins.mjs'
 
 
+const JPEG_SOI = 0xffd8
+
 const MARKER_1         = 0xff
 const MARKER_2_APP0    = 0xe0 // ff e0
 const MARKER_2_APP15   = 0xef // ff ef
@@ -58,6 +60,12 @@ function getSegmentType(buffer, offset) {
 // - 1th IFD + value
 // - may contain additional GPS, Interop, SubExif blocks (pointed to from IFD0)
 export class JpegFileParser extends FileParserBase {
+
+	static type = 'jpeg'
+
+	static canHandle(file, marker) {
+		return marker === JPEG_SOI
+	}
 
 	appSegments = []
 	jpegSegments = []

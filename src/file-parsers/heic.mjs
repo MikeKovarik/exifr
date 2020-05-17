@@ -1,5 +1,7 @@
 import {fileParsers} from '../plugins.mjs'
 import {FileParserBase} from '../parser.mjs'
+// Only HEIC uses BufferView.getUint64
+import '../util/BufferView-get64.mjs'
 
 
 export class IsoBmffParser extends FileParserBase {
@@ -47,6 +49,25 @@ export class IsoBmffParser extends FileParserBase {
 }
 
 export class HeicFileParser extends IsoBmffParser {
+
+	static type = 'heic'
+
+	// NOTE: most parsers check if bytes 4-8 are 'ftyp' and then if 8-12 is one of heic/heix/hevc/hevx/heim/heis/hevm/hevs/mif1/msf1
+	//       but bytes 20-24 are actually always 'heic' for all of these formats
+	static canHandle(file) {
+		// FTYP length is the first 32b but it's not likely there will be more than 30, let alone 2^32 FTYPs.
+		// So it's safe to assume that if first two bytes are 0, then this is HEIC.
+		if (file.getUint16(0) !== 0) return false
+		let ftypLength = file.getUint16(2)
+		if (ftypLength > 50) return false
+		let offset = 16
+		let compatibleBrands = []
+		while (offset < ftypLength) {
+			compatibleBrands.push(file.getString(offset, 4))
+			offset += 4
+		}
+		return compatibleBrands.includes('heic')
+	}
 
 	async parse() {
 		var metaBoxOffset = this.file.getUint32(0)
