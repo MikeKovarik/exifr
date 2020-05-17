@@ -1,6 +1,6 @@
-export * from '../core.mjs'
-import * as core from '../core.mjs'
-export default core
+export * from './nano.mjs'
+import * as nano from './nano.mjs'
+export default nano
 
 
 // File Readers
