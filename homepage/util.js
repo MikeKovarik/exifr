@@ -18,7 +18,7 @@ export class ByteLimitValueConverter {
     toView(uint8arr, showAll) {
 		if (notDefined(uint8arr)) return
 		if (!(uint8arr instanceof Uint8Array)) return
-		if (showAll) return string
+		if (showAll) return uint8arr
 		return clipBytes(uint8arr, 60)
     }
 }
