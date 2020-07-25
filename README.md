@@ -34,7 +34,7 @@ Try it yourself - [demo page & playground](https://mutiny.cz/exifr/).
 
 <img src="https://raw.githubusercontent.com/MikeKovarik/exifr/master/logo/readme-gif.gif" width="35%" align="right">
 
-Works everywhere, parses everything and handles anything you throw at it.
+Works everywhere, parses anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
