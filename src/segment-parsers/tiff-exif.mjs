@@ -235,7 +235,10 @@ export class TiffExif extends TiffCore {
 
 	// this is ugly but needed for async-to-promise babel plugin to work
 	safeParse(methodName) {
-		return this[methodName]().catch(this.handleError)
+		let result = this[methodName]()
+		// Ugly IE fix, async functions always return promises, but not when transpiled.
+		if (result.catch !== undefined) result = result.catch(this.handleError)
+		return result
 	}
 
 	findIfd0Offset() {
