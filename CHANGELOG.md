@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [5.0.3]
+
+### Fixed
+
+- Bug: Reading photo in chunked mode where segment header is split between chunks.
+- Bug: ICC Text fields (of type 'text') are no longer missing last few characters.
+- Bug: IPTC out of range error.
+
+### Changed
+
+- Initial work on reducing the library's filesize
+- Slightly improved IPTC performance.
+
 ## [5.0.2]
 
 ### Fixed
@@ -183,7 +196,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.2...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.3...HEAD
+[5.0.3]: https://github.com/MikeKovarik/exifr/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/MikeKovarik/exifr/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/MikeKovarik/exifr/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/MikeKovarik/exifr/compare/v4.3.3...v5.0.0
