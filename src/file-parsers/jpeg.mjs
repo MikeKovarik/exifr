@@ -140,6 +140,9 @@ export class JpegFileParser extends FileParserBase {
 	}
 
 	_findAppSegments(offset, end) {
+		// TLDR: Make space for MARKER and LENGTH.
+		// Don't read right till end. If the last byte is marker, then length is out of bounds and crashes.
+		end -= 2
 		let {file, findAll, wanted, remaining, options} = this
 		let marker2, length, type, Parser, seg, segOpts
 		for (; offset < end; offset++) {

@@ -103,7 +103,7 @@ export default class IccParser extends AppSegmentParserBase {
 	}
 
 	parseText(offset, length) {
-		return normalizeString(this.chunk.getString(offset + 8, length - 15))
+		return normalizeString(this.chunk.getString(offset + 8, length - 8))
 	}
 
 	// NOTE: some tags end with empty space. TODO: investigate. maybe add .trim() 

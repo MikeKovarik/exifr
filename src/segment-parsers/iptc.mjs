@@ -50,14 +50,16 @@ export default class Iptc extends AppSegmentParserBase {
 
 	parse() {
 		let {raw} = this
-		let length = this.chunk.byteLength
-		for (let offset = 0; offset < length; offset++) {
+		let iterableLength = this.chunk.byteLength - 1
+		for (let offset = 0; offset < iterableLength; offset++) {
 			// reading Uint8 and then another to prevent unnecessarry read of two subsequent bytes, when iterating
 			if (this.chunk.getUint8(offset) === 0x1C && this.chunk.getUint8(offset + 1) === 0x02) {
 				let size = this.chunk.getUint16(offset + 3)
 				let key = this.chunk.getUint8(offset + 2)
 				let val = this.chunk.getString(offset + 5, size)
 				raw.set(key, this.pluralizeValue(raw.get(key), val))
+				// skip iterating over the bytes we've already read
+				offset += 4 + size
 			}
 		}
 		this.translate()
