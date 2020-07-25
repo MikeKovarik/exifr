@@ -440,6 +440,22 @@ describe('ChunkedReader', () => {
 		assert.equal(exr.fileParser.appSegments.length, 9, 'Should find all 9 ICC segments')
 	})
 
+	it(`file with segment header split between chunks (markers at 510-512, length at 512-514, firstChunkSize: 512)`, async () => {
+		let input = await getPath('door-knocker.jpg')
+		let options = {
+			chunked: true,
+			// some segment starts at 510. since header is 4 bytes long, it spans to next chunk.
+			firstChunkSize: 512,
+			// this just causes jpeg segment parser to keep looking
+			xmp: true
+		}
+		let exr = new Exifr(options)
+		await exr.read(input)
+		let output = await exr.parse()
+		await exr.file.close()
+		assert.equal(output.Make, 'OLYMPUS IMAGING CORP.')
+	})
+
 	describe(`001.tif - reading scattered (IFD0 pointing to the end of file)`, async () => {
 
 		it(`input path & {chunked: true, firstChunkSize: 100}`, async () => {

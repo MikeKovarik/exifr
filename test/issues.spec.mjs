@@ -24,6 +24,30 @@ describe('issues (special cases)', () => {
         assert.exists(output.gps)
     })
 
+	it(`#31 IPTC BUG: RangeError_Offset_outside_bounds.jpg`, async () => {
+		let input = await getPath('RangeError_Offset_outside_bounds.jpg')
+		let options = {
+			tiff: false,
+			iptc: true
+		}
+        var output = await exifr.parse(input, options)
+		assert.equal(output.ApplicationRecordVersion, '\x00\x02')
+		assert.equal(output.ObjectName, 'THYSSENKRUPP-RESTRUCTURING/STEEL')
+		assert.equal(output.City, 'NEUSS')
+		assert.equal(output.LanguageIdentifier, 'en')
+	})
+
+	it(`#31 ICC BUG: RangeError_Invalid_typed_array_length.jpg`, async () => {
+		let input = await getPath('RangeError_Invalid_typed_array_length.jpg')
+		let options = {
+			tiff: false,
+			icc: true
+		}
+        var output = await exifr.parse(input, options)
+		assert.equal(output.ProfileVersion, '2.0.0')
+		assert.equal(output.ProfileDescription, 'opRGB')
+	})
+
     it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
         var output = await exifr.parse(await getFile('issue-fast-exif-2.jpg'), true)
         assert.exists(output, `output is undefined`)
