@@ -1,12 +1,12 @@
-import {customError} from './util/helpers.mjs'
+import {throwError} from './util/helpers.mjs'
 
 
 export function throwUnknown(kind, key) {
-	throw customError(`Unknown ${kind} '${key}'.`)
+	throwError(`Unknown ${kind} '${key}'.`)
 }
 
 export function throwNotLoaded(kind, key) {
-	throw customError(`${kind} '${key}' was not loaded, try using full build of exifr.`)
+	throwError(`${kind} '${key}' was not loaded, try using full build of exifr.`)
 }
 
 class PluginList extends Map {

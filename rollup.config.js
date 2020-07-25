@@ -181,9 +181,9 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 		plugins: [
 			notify(),
 			babel(babelModern),
-			//terser(terserConfig), // TODO enable
+			terser(terserConfig),
 			injectIgnoreComments(),
-			//cloneCjsAndMjsToJs(), // TODO enable
+			cloneCjsAndMjsToJs(),
 		],
 		external,
 		output: [
@@ -193,8 +193,6 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 				exports: 'named',
 				globals,
 			},
-			// TODO enable
-			/*
 			{
 				file: umdPath,
 				format: 'umd',
@@ -203,7 +201,6 @@ function createModernBundle(inputPath, esmPath, umdPath) {
 				name,
 				amd,
 			}
-			*/
 		]
 	}
 }
@@ -219,30 +216,33 @@ export default args => {
 		delete args.input
 		output.push(
 			createModernBundle('src/bundles/full.mjs', 'dist/full.esm.mjs', 'dist/full.umd.cjs'),
-			//createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.cjs'), // TODO enabke
+			createLegacyBundle('src/bundles/full.mjs', 'dist/full.legacy.umd.cjs'),
 		)
 	}
 	if (bundle === 'lite' || bundle === undefined) {
 		delete args.input
 		output.push(
 			createModernBundle('src/bundles/lite.mjs', 'dist/lite.esm.mjs', 'dist/lite.umd.cjs'),
-			//createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.cjs'), // TODO enabke
+			createLegacyBundle('src/bundles/lite.mjs', 'dist/lite.legacy.umd.cjs'),
 		)
 	}
 	if (bundle === 'mini' || bundle === undefined) {
 		delete args.input
 		output.push(
 			createModernBundle('src/bundles/mini.mjs', 'dist/mini.esm.mjs', 'dist/mini.umd.cjs'),
-			//createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.cjs'), // TODO enabke
+			createLegacyBundle('src/bundles/mini.mjs', 'dist/mini.legacy.umd.cjs'),
 		)
 	}
+	// TO BE WORKED ON
+	/*
 	if (bundle === 'nano' || bundle === undefined) {
 		delete args.input
 		output.push(
 			createModernBundle('src/bundles/nano.mjs', 'dist/nano.esm.mjs', 'dist/nano.umd.cjs'),
-			//createLegacyBundle('src/bundles/nano.mjs', 'dist/nano.legacy.umd.cjs'), // TODO enabke
+			createLegacyBundle('src/bundles/nano.mjs', 'dist/nano.legacy.umd.cjs'),
 		)
 	}
+	*/
 	return output
 }
 

@@ -1,5 +1,6 @@
 import {BufferView} from './BufferView.mjs'
 import {BigInt} from '../util/platform.mjs'
+import {throwError} from '../util/helpers.mjs'
 
 
 const FULL_20_BITS = 0b11111111111111111111
@@ -20,6 +21,6 @@ BufferView.prototype.getUint64 = function(offset) {
 	} else {
 		// The value (when both 32b parts combined) is larger than 53 bits so we can't just use Number type
 		// and this environment doesn't support BigInt... throw error.
-		throw customError(`Trying to read 64b value but JS can only handle 53b numbers.`)
+		throwError(`Trying to read 64b value but JS can only handle 53b numbers.`)
 	}
 }

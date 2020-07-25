@@ -18,10 +18,10 @@ export function isEmpty(arg) {
 	    return Object.values(arg).filter(isDefined).length === 0
 }
 
-export function customError(message) {
+export function throwError(message) {
 	let err = new Error(message)
 	delete err.stack
-	return err
+	throw err
 }
 
 export function removeNullTermination(string) {

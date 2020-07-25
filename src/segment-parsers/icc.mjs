@@ -1,6 +1,6 @@
 import {AppSegmentParserBase} from '../parser.mjs'
 import {segmentParsers} from '../plugins.mjs'
-import {customError, normalizeString} from '../util/helpers.mjs'
+import {throwError, normalizeString} from '../util/helpers.mjs'
 import {BufferView} from '../util/BufferView.mjs'
 
 
@@ -49,7 +49,7 @@ export default class IccParser extends AppSegmentParserBase {
 	parseHeader() {
 		let {raw} = this
 		if (this.chunk.byteLength < PROFILE_HEADER_LENGTH)
-			throw customError('ICC header is too short')
+			throwError('ICC header is too short')
 		for (let [offset, parse] of Object.entries(headerParsers)) {
 			offset = parseInt(offset, 10)
 			let val = parse(this.chunk, offset)

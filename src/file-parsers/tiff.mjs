@@ -2,7 +2,7 @@ import {FileParserBase} from '../parser.mjs'
 import {BufferView} from '../util/BufferView.mjs'
 import {TAG_XMP, TAG_IPTC, TAG_ICC} from '../tags.mjs'
 import {fileParsers} from '../plugins.mjs'
-import {customError, estimateMetadataSize} from '../util/helpers.mjs'
+import {estimateMetadataSize} from '../util/helpers.mjs'
 import {TIFF_LITTLE_ENDIAN, TIFF_BIG_ENDIAN} from '../util/helpers.mjs'
 
 

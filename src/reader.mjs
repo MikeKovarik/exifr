@@ -1,10 +1,12 @@
 import * as platform from './util/platform.mjs'
 import {BufferView} from './util/BufferView.mjs'
-import {customError} from './util/helpers.mjs'
+import {throwError} from './util/helpers.mjs'
 import {fileReaders} from './plugins.mjs'
 
 
 // TODO: - API for including 3rd party XML parser
+
+const INVALID_INPUT = 'Invalid input argument'
 
 export function read(arg, options) {
 	if (typeof arg === 'string')
@@ -16,7 +18,7 @@ export function read(arg, options) {
 	else if (platform.browser && arg instanceof Blob)
 		return callReader(arg, options, 'blob', readBlobAsArrayBuffer)
 	else
-		throw customError('Invalid input argument')
+		throwError(INVALID_INPUT)
 }
 
 function readString(arg, options) {
@@ -27,7 +29,7 @@ function readString(arg, options) {
 	else if (platform.node)
 		return callReaderClass(arg, options, 'fs')
 	else
-		throw customError('Invalid input argument')
+		throwError(INVALID_INPUT)
 }
 
 async function callReader(url, options, readerName, readerFn) {
@@ -36,7 +38,7 @@ async function callReader(url, options, readerName, readerFn) {
 	else if (readerFn)
 		return callReaderFunction(url, readerFn)
 	else
-		throw customError(`Parser ${readerName} is not loaded`)
+		throwError(`Parser ${readerName} is not loaded`)
 }
 
 async function callReaderClass(input, options, readerName) {

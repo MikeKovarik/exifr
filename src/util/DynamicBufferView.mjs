@@ -1,6 +1,6 @@
 import * as platform from './platform.mjs'
 import {BufferView} from './BufferView.mjs'
-import {customError} from './helpers.mjs'
+//import {throwError} from './helpers.mjs'
 import {Buffer} from './platform.mjs'
 
 
@@ -38,18 +38,7 @@ export class DynamicBufferView extends BufferView {
 		uintView.set(new Uint8Array(this.buffer, this.byteOffset, this.byteLength), 0)
 		return {uintView, dataView}
 	}
-/*
-	append(chunk) {
-		if (chunk instanceof DataView || chunk instanceof BufferView)
-			chunk = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
-		else if ((!chunk instanceof Uint8Array))
-			throw customError('Invalid chunk type to extend with')
-		let {uintView, dataView} = this._extend(this.byteLength + chunk.byteLength)
-		uintView.set(chunk, this.byteLength)
-		this.ranges.add(this.byteLength, chunk.byteLength)
-		this._swapDataView(dataView)
-	}
-*/
+
 	subarray(offset, length, canExtend = false) {
 		length = length || this._lengthToEnd(offset)
 		if (canExtend) this._tryExtend(offset, length)

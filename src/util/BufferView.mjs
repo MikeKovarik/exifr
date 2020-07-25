@@ -1,4 +1,4 @@
-import {customError} from './helpers.mjs'
+import {throwError} from './helpers.mjs'
 import {hasBuffer} from '../util/platform.mjs'
 
 
@@ -47,14 +47,14 @@ export class BufferView {
 			if (length === undefined) length = arg.byteLength - offset
 			offset += arg.byteOffset
 			if (offset + length > arg.byteOffset + arg.byteLength)
-				throw customError('Creating view outside of available memory in ArrayBuffer')
+				throwError('Creating view outside of available memory in ArrayBuffer')
 			let dataView = new DataView(arg.buffer, offset, length)
 			this._swapDataView(dataView)
 		} else if (typeof arg === 'number') {
 			let dataView = new DataView(new ArrayBuffer(arg))
 			this._swapDataView(dataView)
 		} else {
-			throw customError('Invalid input argument for BufferView: ' + arg)
+			throwError('Invalid input argument for BufferView: ' + arg)
 		}
 	}
 
@@ -83,7 +83,7 @@ export class BufferView {
 		else if (arg instanceof ArrayBuffer)
 			arg = new Uint8Array(arg)
 		if (!(arg instanceof Uint8Array))
-			throw customError(`BufferView.set(): Invalid data argument.`)
+			throwError(`BufferView.set(): Invalid data argument.`)
 		let uintView = this.toUint8()
 		uintView.set(arg, offset)
 		return new Class(this, offset, arg.byteLength)

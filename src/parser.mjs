@@ -1,7 +1,7 @@
 import {BufferView} from './util/BufferView.mjs'
 import {Options} from './options.mjs'
 import {tagKeys, tagValues, tagRevivers} from './tags.mjs'
-import {customError} from './util/helpers.mjs'
+import {throwError} from './util/helpers.mjs'
 import {segmentParsers} from './plugins.mjs'
 
 
@@ -34,7 +34,7 @@ export class FileParserBase {
 				try {
 					seg.chunk = await this.file.readChunk(start, size)
 				} catch (err) {
-					throw customError(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
+					throwError(`Couldn't read segment: ${JSON.stringify(seg)}. ${err.message}`)
 				}
 			}
 		} else if (this.file.byteLength > start + size) {
@@ -43,7 +43,7 @@ export class FileParserBase {
 			// we dont know the length of segment and the file is much smaller than the fallback size of 64kbs (MAX_APP_SIZE)
 			seg.chunk = this.file.subarray(start)
 		} else {
-			throw customError(`Segment unreachable: ` + JSON.stringify(seg))
+			throwError(`Segment unreachable: ` + JSON.stringify(seg))
 		}
 		return seg.chunk
 	}

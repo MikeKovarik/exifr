@@ -2,7 +2,7 @@ import {read} from './reader.mjs'
 import {undefinedIfEmpty} from './util/helpers.mjs'
 import {Options} from './options.mjs'
 import {fileParsers, segmentParsers} from './plugins.mjs'
-import {customError} from './util/helpers.mjs'
+import {throwError} from './util/helpers.mjs'
 
 
 export class Exifr {
@@ -27,7 +27,7 @@ export class Exifr {
 				return file[type] = true
 			}
 		}
-		throw customError(`Unknown file format`)
+		throwError(`Unknown file format`)
 	}
 
 	async read(arg) {
@@ -49,7 +49,7 @@ export class Exifr {
 				}
 				// TIFF has many blocks and usually just one fails while the other contain valid data.
 				// We want to get as much data as possible.
-				if (parser.errors.length) errors.push(...parser.errors)
+				errors.push(...parser.errors)
 			} else {
 				parserOutput = await parser.parse()
 			}
@@ -57,24 +57,24 @@ export class Exifr {
 		})
 		await Promise.all(promises)
 		if (this.options.silentErrors && errors.length > 0) output.errors = errors
-		output = undefinedIfEmpty(output)
 		if (this.file.close) this.file.close()
-		return output
+		return undefinedIfEmpty(output)
 	}
 
 	async extractThumbnail() {
 		this.setup()
-		let TiffParser = segmentParsers.get('tiff', this.options)
+		let {options, file} = this
+		let TiffParser = segmentParsers.get('tiff', options)
 		var seg
-		if (this.file.tiff)
+		if (file.tiff)
 			seg = {start: 0, type: 'tiff'}
-		else if (this.file.jpeg)
+		else if (file.jpeg)
 			seg = await this.fileParser.getOrFindSegment('tiff')
 		if (seg === undefined) return
 		let chunk = await this.fileParser.ensureSegmentChunk(seg)
-		let parser = this.parsers.tiff = new TiffParser(chunk, this.options, this.file)
+		let parser = this.parsers.tiff = new TiffParser(chunk, options, file)
 		let thumb = await parser.extractThumbnail()
-		if (this.file.close) this.file.close()
+		if (file.close) file.close()
 		return thumb
 	}
 
