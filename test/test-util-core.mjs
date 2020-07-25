@@ -73,3 +73,10 @@ export function createIframe(url) {
 		document.body.append(iframe)
 	})
 }
+
+let yellow = '\x1b[33m'
+let colorReset = '\x1b[0m'
+let warn = console.warn.bind(console)
+console.warn = function(...args) {
+	warn(yellow + 'FOO', ...args, colorReset)
+}

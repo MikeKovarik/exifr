@@ -1,12 +1,10 @@
 // node --experimental-modules enumerate-segments.js
 import {Exifr} from '../src/bundles/full.mjs'
-import {createReadStream, promises as fs} from 'fs'
+import {promises as fs} from 'fs'
 import path from 'path'
 
 
-//let dirPath = '../test/fixtures'
-//let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/fixtures'
-let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/all'
+let sizes = new Map
 
 let options = {
 	stopAfterSos: false,
@@ -14,8 +12,11 @@ let options = {
 	recordUnknownSegments: true,
 }
 
-let sizes = new Map
-
+//let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/fixtures'
+//let dirPath = 'C:/Users/m.kovarik/Desktop/deleteme/all'
+let dirPath = '../test/fixtures'
+handleFile('door-knocker.jpg')
+/*
 fs.readdir(dirPath).then(async files => {
     let promises = files
 		.filter(fileName => isJpeg(fileName))
@@ -29,7 +30,7 @@ fs.readdir(dirPath).then(async files => {
 		console.log(segSizes.map(size => toOneDecimal(size / 1024)).join(', '))
     }
 })
-
+*/
 function isJpeg(fileName) {
 	fileName = fileName.toLowerCase()
 	return fileName.endsWith('.jpg')
@@ -87,5 +88,3 @@ function avg(arr) {
 		result += item
 	return result / arr.length
 }
-
-//handleFile('BonTonARTSTORplusIPTC.jpg')

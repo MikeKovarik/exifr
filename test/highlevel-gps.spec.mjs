@@ -2,7 +2,7 @@ import {assert} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {Exifr} from '../src/bundles/full.mjs'
 import * as exifr from '../src/bundles/full.mjs'
-import {gpsOnlyOptions} from '../src/options.mjs'
+import {gpsOnlyOptions} from '../src/highlevel-api.mjs'
 
 
 describe('exifr.gps()', () => {

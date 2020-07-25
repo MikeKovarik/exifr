@@ -2,7 +2,7 @@ import {assert, isNode} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {Exifr} from '../src/bundles/full.mjs'
 import * as exifr from '../src/bundles/full.mjs'
-import {orientationOnlyOptions} from '../src/options.mjs'
+import {orientationOnlyOptions} from '../src/highlevel-api.mjs'
 
 
 describe('exifr.orientation()', () => {

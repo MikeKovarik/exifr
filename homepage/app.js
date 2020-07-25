@@ -175,8 +175,7 @@ class ExifrDemoApp {
 			}
 			output.xmp = merged
 		}
-		this.output = output
-		this.browserCompatibleFile = !!exr.file.isJpeg
+		this.browserCompatibleFile = !!exr.file.jpeg
 
 		if (output.ifd1) {
 			let arrayBuffer = await exr.extractThumbnail()
