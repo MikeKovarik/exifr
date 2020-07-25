@@ -146,6 +146,7 @@ class ExifrDemoApp {
 		this.setStatus(`parsed in ${parseTime} ms`)
 
 		this.rawOutput = output || 'The file has no EXIF'
+        console.log('this.rawOutput', this.rawOutput)
 	}
 
 	setStatus(text, color = '') {
@@ -164,6 +165,7 @@ class ExifrDemoApp {
 		let exr = new exifr.Exifr(options)
 		await exr.read(input)
 		let output = await exr.parse() || {}
+        console.log('ExifrDemoApp -> parseForPrettyOutput -> output', output)
 
 		// custom handling of xmp where each namespace is separate object
 		if (exr.parsers.xmp) {
@@ -175,6 +177,8 @@ class ExifrDemoApp {
 			}
 			output.xmp = merged
 		}
+
+		this.output = output
 		this.browserCompatibleFile = !!exr.file.jpeg
 
 		if (output.ifd1) {
