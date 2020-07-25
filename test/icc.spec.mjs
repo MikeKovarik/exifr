@@ -51,7 +51,7 @@ describe('ICC Segment', () => {
 				'MSFT', 'Microsoft',
 			], [
 				'cprt', 'ProfileCopyright',
-				'Copyright (c) 1998 Hewlett-Packard C',
+				'Copyright (c) 1998 Hewlett-Packard Company',
 			]
 		]
 	})
@@ -102,7 +102,7 @@ describe('ICC Segment', () => {
 			DeviceModelDesc: 'IEC 61966-2-1 Default RGB Colour Space - sRGB',
 			Technology: 'Cathode Ray Tube Display',
 			ViewingCondDesc: 'Reference Viewing Condition in IEC 61966-2-1',
-			ProfileCopyright: 'Copyright Hewlett Packard'
+			ProfileCopyright: 'Copyright Hewlett Packard, 2004'
 		})
 
 		testProfile('sRGB_IEC61966-2-1_black_scaled.icc', {
@@ -117,7 +117,7 @@ describe('ICC Segment', () => {
 			DeviceModelDesc: 'IEC 61966-2-1 Default RGB Colour Space - sRGB',
 			Technology: 'Cathode Ray Tube Display',
 			ViewingCondDesc: 'Reference Viewing Condition in IEC 61966-2-1',
-			ProfileCopyright: 'Copyright International Color Consortium'
+			ProfileCopyright: 'Copyright International Color Consortium, 2009'
 		})
 
 		testProfile('sRGB_v4_ICC_preference.icc', {
@@ -145,7 +145,7 @@ describe('ICC Segment', () => {
 			DeviceModelDesc: 'IEC 61966-2-1 Default RGB Colour Space - sRGB',
 			Technology: 'Cathode Ray Tube Display',
 			ViewingCondDesc: 'Reference Viewing Condition in IEC 61966-2-1',
-			ProfileCopyright: 'Copyright International Color Consortium'
+			ProfileCopyright: 'Copyright International Color Consortium, 2015'
 		})
 
 		testProfile('USWebCoatedSWOP.icc', {
@@ -161,14 +161,14 @@ describe('ICC Segment', () => {
 			RenderingIntent: 'Perceptual',
 			ProfileCreator: 'Adobe',
 			ProfileDescription: 'U.S. Web Coated (SWOP) v2',
-			ProfileCopyright: 'Copyright 2000 Adobe Systems'
+			ProfileCopyright: 'Copyright 2000 Adobe Systems, Inc.'
 		})
 
 	})
 
 	testImage('icc', 'issue-fast-exif-2.jpg', {
 		// TEXT tag
-		ProfileCopyright: 'Copyright (c) 1998 Hewlett-Packard C',
+		ProfileCopyright: 'Copyright (c) 1998 Hewlett-Packard Company',
 		// SIG tag
 		Technology: 'Cathode Ray Tube Display',
 		// ???
@@ -203,7 +203,7 @@ describe('ICC Segment', () => {
 		DeviceModel: 'sRGB',
 		RenderingIntent: 'Perceptual',
 		ProfileCreator: 'Hewlett-Packard',
-		ProfileCopyright: 'Copyright (c) 1998 Hewlett-Packard C',
+		ProfileCopyright: 'Copyright (c) 1998 Hewlett-Packard Company',
 		ProfileDescription: 'sRGB IEC61966-2.1',
 		DeviceMfgDesc: 'IEC http://www.iec.ch',
 		DeviceModelDesc: 'IEC 61966-2.1 Default RGB colour space - sRGB',
@@ -224,7 +224,7 @@ describe('ICC Segment', () => {
 		DeviceModel: 'ROMM',
 		RenderingIntent: 'Perceptual',
 		ProfileCreator: 'Kodak',
-		ProfileCopyright: 'Copyright (c) Eastman Kodak Company, 1999, all rights res',
+		ProfileCopyright: 'Copyright (c) Eastman Kodak Company, 1999, all rights reserved.',
 		ProfileDescription: 'ProPhoto RGB',
 		DeviceMfgDesc: 'KODAK',
 		DeviceModelDesc: 'Reference Output Medium Metric(ROMM)'
