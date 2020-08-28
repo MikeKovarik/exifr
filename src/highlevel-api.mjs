@@ -103,6 +103,10 @@ if (typeof navigator === 'object') {
 		let [match, version] = ua.match(/Chrome\/(\d+)/)
 		if (Number(version) >= 81)
 			rotateCanvas = rotateCss = false
+	} else if (ua.includes('Firefox/')) {
+		let [match, version] = ua.match(/Firefox\/(\d+)/)
+    if (Number(version) >= 77)
+      rotateCanvas = rotateCss = false
 	}
 }
 
