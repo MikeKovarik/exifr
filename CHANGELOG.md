@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [5.0.4]
+
+### Fixed
+
+- Issue 35 - reading heic file if mdat box preceded meta.
+- autorotation detection in firefox 77
+
 ## [5.0.3]
 
 ### Fixed
@@ -196,7 +203,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.3...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.4...HEAD
+[5.0.3]: https://github.com/MikeKovarik/exifr/compare/v5.0.3...v5.0.4
 [5.0.3]: https://github.com/MikeKovarik/exifr/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/MikeKovarik/exifr/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/MikeKovarik/exifr/compare/v5.0.0...v5.0.1
