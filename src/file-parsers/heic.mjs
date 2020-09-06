@@ -70,8 +70,12 @@ export class HeicFileParser extends IsoBmffParser {
 	}
 
 	async parse() {
-		var metaBoxOffset = this.file.getUint32(0)
-		let meta = this.parseBoxHead(metaBoxOffset)
+		let nextBoxOffset = this.file.getUint32(0)
+		let meta = this.parseBoxHead(nextBoxOffset)
+		while (meta.kind !== 'meta') {
+			nextBoxOffset += meta.length
+			meta = this.parseBoxHead(nextBoxOffset)
+		}
 		await this.file.ensureChunk(meta.offset, meta.length)
 		this.parseBoxFullHead(meta)
 		this.parseSubBoxes(meta)
