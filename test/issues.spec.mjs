@@ -55,6 +55,12 @@ describe('issues (special cases)', () => {
         assert.equal(output.LensModel, '24.0-70.0 mm f/2.8')
     })
 
+    it(`exifr #35`, async () => {
+        var output = await exifr.parse(await getFile('issue-exifr-35.heic'), true)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output.Make, 'samsung')
+    })
+
     it(`exif-js #124`, async () => {
         var output = await exifr.parse(await getFile('issue-exif-js-124.tiff'), true)
         assert.exists(output, `output is undefined`)
