@@ -48,17 +48,25 @@ describe('issues (special cases)', () => {
 		assert.equal(output.ProfileDescription, 'opRGB')
 	})
 
+	it(`#35 - path input`, async () => {
+		let input = await getPath('issue-exifr-35.heic')
+		let output = await exifr.parse(input, true)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output.Make, 'samsung')
+	})
+
+    it(`#35 - file input`, async () => {
+		let input = await getFile('issue-exifr-35.heic')
+        var output = await exifr.parse(input, true)
+        assert.exists(output, `output is undefined`)
+        assert.equal(output.Make, 'samsung')
+    })
+
     it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
         var output = await exifr.parse(await getFile('issue-fast-exif-2.jpg'), true)
         assert.exists(output, `output is undefined`)
         assert.equal(output.ApertureValue, 5.655638)
         assert.equal(output.LensModel, '24.0-70.0 mm f/2.8')
-    })
-
-    it(`exifr #35`, async () => {
-        var output = await exifr.parse(await getFile('issue-exifr-35.heic'), true)
-        assert.exists(output, `output is undefined`)
-        assert.equal(output.Make, 'samsung')
     })
 
     it(`exif-js #124`, async () => {

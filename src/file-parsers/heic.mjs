@@ -4,6 +4,9 @@ import {FileParserBase} from '../parser.mjs'
 import '../util/BufferView-get64.mjs'
 
 
+// 4 length + 4 kind + 8 (not always) for additional 64b length field
+const boxHeaderLength = 16
+
 export class IsoBmffParser extends FileParserBase {
 
 	parseBoxes(offset = 0) {
@@ -27,9 +30,9 @@ export class IsoBmffParser extends FileParserBase {
 	}
 
 	parseBoxHead(offset) {
-		let length     = this.file.getUint32(offset)
-		let kind       = this.file.getString(offset + 4, 4)
-		let start = offset + 8 // 4+4 bytes
+		let length = this.file.getUint32(offset)
+		let kind   = this.file.getString(offset + 4, 4)
+		let start  = offset + 8 // 4+4 bytes
 		// length can be larger than 32b number in which case it is the first 64bits after header
 		if (length === 1) {
 			length = this.file.getUint64(offset + 8)
@@ -74,6 +77,7 @@ export class HeicFileParser extends IsoBmffParser {
 		let meta = this.parseBoxHead(nextBoxOffset)
 		while (meta.kind !== 'meta') {
 			nextBoxOffset += meta.length
+			await this.file.ensureChunk(nextBoxOffset, boxHeaderLength)
 			meta = this.parseBoxHead(nextBoxOffset)
 		}
 		await this.file.ensureChunk(meta.offset, meta.length)
