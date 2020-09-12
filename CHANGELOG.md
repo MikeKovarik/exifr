@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [5.0.6]
+
+### Fixed
+
+- Chunked reading of heic file, related to Issue 35
+
 ## [5.0.5]
 
 ### Changed
@@ -209,7 +215,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.5...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.6...HEAD
+[5.0.6]: https://github.com/MikeKovarik/exifr/compare/v5.0.5...v5.0.6
 [5.0.5]: https://github.com/MikeKovarik/exifr/compare/v5.0.4...v5.0.5
 [5.0.4]: https://github.com/MikeKovarik/exifr/compare/v5.0.3...v5.0.4
 [5.0.3]: https://github.com/MikeKovarik/exifr/compare/v5.0.2...v5.0.3
