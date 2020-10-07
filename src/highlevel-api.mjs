@@ -92,6 +92,7 @@ export var rotateCss = true
 if (typeof navigator === 'object') {
 	let ua = navigator.userAgent
 	if (ua.includes('iPad') || ua.includes('iPhone')) {
+		// doesn't always match in webview: https://github.com/MikeKovarik/exifr/pull/42
 		let matchArray = ua.match(/OS (\d+)_(\d+)/)
 		if (matchArray) {
 			let [match, major, minor] = matchArray
