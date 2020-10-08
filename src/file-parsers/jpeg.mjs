@@ -112,9 +112,9 @@ export class JpegFileParser extends FileParserBase {
 			})
 			if (findAll) await this.file.readWhole()
 		}
-		// _findAppSegments() returns offset where next segment starts. If we didn't store it, next time we continue
+		// findAppSegmentsInRange() returns offset where next segment starts. If we didn't store it, next time we continue
 		// we might start in middle of data segment and would uselessly read & parse through noise.
-		offset = this._findAppSegments(offset, file.byteLength, findAll, wanted, remaining)
+		offset = this.findAppSegmentsInRange(offset, file.byteLength)
 		// If user only requests TIFF it's not necessary to read any more chunks. Because EXIF in jpg is always near the start of the file.
 		if (this.options.onlyTiff) return
 		if (file.chunked) {
@@ -132,14 +132,14 @@ export class JpegFileParser extends FileParserBase {
 					eof = !await file.readNextChunk(offset)
 				else
 					eof = !await file.readNextChunk(nextChunkOffset)
-				offset = this._findAppSegments(offset, file.byteLength)
+				offset = this.findAppSegmentsInRange(offset, file.byteLength)
 				// search for APP segments was cancelled because we reached raw jpeg image data.
 				if (offset === undefined) return
 			}
 		}
 	}
 
-	_findAppSegments(offset, end) {
+	findAppSegmentsInRange(offset, end) {
 		// TLDR: Make space for MARKER and LENGTH.
 		// Don't read right till end. If the last byte is marker, then length is out of bounds and crashes.
 		end -= 2
