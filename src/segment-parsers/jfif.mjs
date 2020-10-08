@@ -15,14 +15,20 @@ export default class Jfif extends AppSegmentParserBase {
 	}
 
 	parse() {
-		return {
-			JFIFVersion:     this.chunk.getUint16(0),
-			ResolutionUnit:  this.chunk.getUint8(2),
-			XResolution:     this.chunk.getUint16(3),
-			YResolution:     this.chunk.getUint16(5),
-			ThumbnailWidth:  this.chunk.getUint8(7),
-			ThumbnailHeight: this.chunk.getUint8(8),
-		}
+		this.parseTags()
+		this.translate()
+		return this.output
+	}
+
+	parseTags() {
+		this.raw = new Map([
+			[0, this.chunk.getUint16(0)],
+			[2, this.chunk.getUint8(2)],
+			[3, this.chunk.getUint16(3)],
+			[5, this.chunk.getUint16(5)],
+			[7, this.chunk.getUint8(7)],
+			[8, this.chunk.getUint8(8)],
+		])
 	}
 
 	// TODO: hook this in into revive/translate API
