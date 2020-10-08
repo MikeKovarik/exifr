@@ -18,6 +18,7 @@ import '../dicts/tiff-gps-values.mjs'
 
 // JFIF
 import '../segment-parsers/jfif.mjs'
+import '../dicts/jfif-keys.mjs'
 
 // ICC
 import '../segment-parsers/icc.mjs'
