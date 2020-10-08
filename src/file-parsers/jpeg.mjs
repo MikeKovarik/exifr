@@ -67,22 +67,20 @@ export class JpegFileParser extends FileParserBase {
 		return marker === JPEG_SOI
 	}
 
+	extendOptions(options) {
+		// disable IHDR, it's a chunk only present in PNG files.
+		options.ihdr.enabled = false
+	}
+
 	appSegments = []
 	jpegSegments = []
 	unknownSegments = []
 
 	async parse() {
 		await this.findAppSegments()
-		await this.readSegments()
+		await this.readSegments(this.appSegments)
 		this.mergeMultiSegments()
-		this.createParsers()
-	}
-
-	async readSegments() {
-		//let ranges = new Ranges(this.appSegments)
-		//await Promise.all(ranges.list.map(range => this.file.ensureChunk(range.offset, range.length)))
-		let promises = this.appSegments.map(this.ensureSegmentChunk)
-		await Promise.all(promises)
+		this.createParsers(this.mergedAppSegments || this.appSegments)
 	}
 
 	setupSegmentFinderArgs(wanted) {
@@ -210,28 +208,6 @@ export class JpegFileParser extends FileParserBase {
 				return typeSegments[0]
 			}
 		})
-	}
-
-	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
-	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
-	async createParsers() {
-		// IDEA: dynamic loading through import(parser.type) ???
-		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
-		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
-		let segments = this.mergedAppSegments || this.appSegments
-		for (let segment of segments) {
-			let {type, chunk} = segment
-			if (!this.options[type].enabled) continue
-			let parser = this.parsers[type]
-			if (parser && parser.append) {
-				// TODO multisegment: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
-				//parser.append(chunk)
-			} else if (!parser) {
-				let Parser = segmentParsers.get(type, this.options)
-				let parser = new Parser(chunk, this.options, this.file)
-				this.parsers[type] = parser
-			}
-		}
 	}
 
 	getSegment(type) {

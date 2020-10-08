@@ -72,6 +72,11 @@ export class HeicFileParser extends IsoBmffParser {
 		return compatibleBrands.includes('heic')
 	}
 
+	extendOptions(options) {
+		// disable IHDR, it's a chunk only present in PNG files.
+		options.ihdr.enabled = false
+	}
+
 	async parse() {
 		let nextBoxOffset = this.file.getUint32(0)
 		let meta = this.parseBoxHead(nextBoxOffset)

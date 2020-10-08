@@ -307,3 +307,13 @@ export function testImage(segKey, filePath, results = {}) {
 		}
 	})
 }
+
+export function testImageFull(filePath, results = {}) {
+	it(`testing all parsed properties against file ${filePath}`, async () => {
+		let file = await getFile(filePath)
+		let output = await exifr.parse(file, true)
+		for (let [tagKey, tagVal] of Object.entries(results)) {
+			assert.equal(output[tagKey], tagVal)
+		}
+	})
+}

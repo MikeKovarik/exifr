@@ -19,10 +19,42 @@ export class FileParserBase {
 		this.parsers = parsers
 	}
 
+	injectSegment(type, chunk) {
+		if (this.options[type].enabled)
+			this.createParser(type, chunk)
+	}
+
 	createParser(type, chunk) {
 		let Parser = segmentParsers.get(type)
 		let parser = new Parser(chunk, this.options, this.file)
 		return this.parsers[type] = parser
+	}
+
+	// NOTE: This method was created to be reusable and not just one off. Mainly due to parsing ifd0 before thumbnail extraction.
+	//       But also because we want to enable advanced users selectively add and execute parser on the fly.
+	createParsers(segments) {
+		// IDEA: dynamic loading through import(parser.type) ???
+		//       We would need to know the type of segment, but we dont since its implemented in parser itself.
+		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
+		for (let segment of segments) {
+			let {type, chunk} = segment
+			if (this.options[type]?.enabled) {
+				let parser = this.parsers[type]
+				if (parser && parser.append) {
+					// TODO multisegment: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
+					//parser.append(chunk)
+				} else if (!parser) {
+					this.createParser(type, chunk)
+				}
+			}
+		}
+	}
+
+	async readSegments(segments) {
+		//let ranges = new Ranges(this.appSegments)
+		//await Promise.all(ranges.list.map(range => this.file.ensureChunk(range.offset, range.length)))
+		let promises = segments.map(this.ensureSegmentChunk)
+		await Promise.all(promises)
 	}
 
 	// TODO: deprecate

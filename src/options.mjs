@@ -16,7 +16,9 @@ export const chunkedProps = [
 	'chunkLimit',
 ]
 
-export const otherSegments = ['jfif', 'xmp', 'icc', 'iptc']
+// List of other segments besides the tiff/exif itself
+export const otherSegments = ['jfif', 'xmp', 'icc', 'iptc', 'ihdr']
+// List of all other segments
 export const segments = ['tiff', ...otherSegments]
 // WARNING: this order is necessary for correctly assigning pick tags.
 export const tiffBlocks = ['ifd0', 'ifd1', 'exif', 'gps', 'interop']
@@ -125,7 +127,7 @@ class SubOptions extends SharedOptions {
 
 var defaults = {
 	// APP Segments
-	jfif: false,
+	jfif: false, // jpeg only (jpeg file header)
 	tiff: true,
 	xmp: false,
 	icc: false,
@@ -136,7 +138,9 @@ var defaults = {
 	ifd1: false, // thumbnail
 	exif: true,
 	gps: true,
-	interop: false,
+	interop: false, // jpeg only
+
+	ihdr: true, // png only (png file header)
 
 	// Notable TIFF tags
 	makerNote: false,

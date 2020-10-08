@@ -16,6 +16,8 @@ export class TiffFileParser extends FileParserBase {
 	}
 
 	extendOptions(options) {
+		// disable IHDR, it's a chunk only present in PNG files.
+		options.ihdr.enabled = false
 		// note: skipping is done on global level in Options class
 		let {ifd0, xmp, iptc, icc} = options
 		if (xmp.enabled)  ifd0.deps.add(TAG_XMP)
@@ -43,12 +45,11 @@ export class TiffFileParser extends FileParserBase {
 		}
 	}
 
-	adaptTiffPropAsSegment(key) {
-		if (this.parsers.tiff[key]) {
-			let rawData = this.parsers.tiff[key]
+	adaptTiffPropAsSegment(type) {
+		if (this.parsers.tiff[type]) {
+			let rawData = this.parsers.tiff[type]
 			let chunk = BufferView.from(rawData)
-			if (this.options[key].enabled)
-				this.createParser(key, chunk)
+			this.injectSegment(type, chunk)
 		}
 	}
 
