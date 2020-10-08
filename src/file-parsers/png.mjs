@@ -18,8 +18,7 @@ const IHDR = 'ihdr'
 const ICCP = 'iccp'
 const TEXT = 'text'
 const ITXT = 'itxt'
-const ZTXT = 'ztxt'
-const pngMetaChunks = [IHDR, ICCP, TEXT, ITXT, ZTXT]
+const pngMetaChunks = [IHDR, ICCP, TEXT, ITXT]
 
 export class PngFileParser extends FileParserBase {
 
@@ -37,8 +36,6 @@ export class PngFileParser extends FileParserBase {
 		await this.readSegments(this.metaChunks)
 		await this.createParsers(this.metaChunks)
 		this.parseTextChunks()
-		this.itxtChunks = this.metaChunks.filter(info => info.type === ITXT)
-		await this.findExif()
 		await this.findXmp()
 		await this.findIcc()
 	}
@@ -92,48 +89,14 @@ export class PngFileParser extends FileParserBase {
 		while (nameLength < 80 && chunkHead[nameLength] !== 0) nameLength++
 		// Recalculate actual ICC data position.
 		let iccpHeaderLength = nameLength + 2 // 1 byte null terminator, + 1 byte compression
-		let actualDataOffset = seg.start + iccpHeaderLength
-		let actualDataLength = seg.size - iccpHeaderLength
-		//let profileName = this.file.getString(seg.start, nameLength)
 		let profileName = chunk.getString(0, nameLength)
 		this.injectKeyValToIhdr('ProfileName', profileName)
 		// ICC data is zlib compressed by default. Spec doesn't even allow raw data.
 		let inflate = await this.getZlibInflate()
 		if (inflate) {
-			//let dataChunk = this.file.getUint8Array(actualDataOffset, actualDataLength)
 			let dataChunk = chunk.getUint8Array(iccpHeaderLength)
 			dataChunk = inflate(dataChunk)
 			this.injectSegment('icc', dataChunk)
-		}
-	}
-
-	async findExif() {
-		// TODO
-		this.ztxtChunks = this.metaChunks.filter(info => info.type === ZTXT)
-		for (let seg of this.ztxtChunks) {
-			console.log('seg', seg)
-			console.log('seg.length', seg.length)
-			let {chunk} = seg
-			console.log(seg.chunk.getUint8Array(0, 100))
-			console.log(seg.chunk.getString())
-			let inflate = await this.getZlibInflate()
-			if (inflate) {
-				let start = 23
-				let size = seg.length - start
-				let dataChunk = chunk.getUint8Array(start, size)
-                console.log('dataChunk', dataChunk)
-				dataChunk = inflate(dataChunk)
-                console.log('dataChunk', dataChunk)
-				let str = dataChunk.toString()
-				let arr = hexStringToByte(str)
-                console.log(str)
-                console.log(arr)
-			}
-			/*
-			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
-			if (prefix === PNG_XMP_PREFIX)
-				this.injectSegment('xmp', seg.chunk)
-			*/
 		}
 	}
 
@@ -141,7 +104,8 @@ export class PngFileParser extends FileParserBase {
 	// iTXt chunk header is slightly complicated. It contains multiple null-terminator-separated info.
 	// The XMP data is present after third null-terminator.
 	async findXmp() {
-		for (let seg of this.itxtChunks) {
+		let itxtChunks = this.metaChunks.filter(info => info.type === ITXT)
+		for (let seg of itxtChunks) {
 			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
 			if (prefix === PNG_XMP_PREFIX)
 				this.injectSegment('xmp', seg.chunk)
@@ -158,17 +122,6 @@ export class PngFileParser extends FileParserBase {
 		}
 	}
 
-}
-
-function hexStringToByte(hexString) {
-	if (!hexString) {
-		return new Uint8Array()
-	}
-	var a = []
-	for (var i = 0; i < hexString.length; i+=2) {
-		a.push(parseInt(hexString.substr(i, 2), 16))
-	}
-	return new Uint8Array(a)
 }
 
 fileParsers.set('png', PngFileParser)
