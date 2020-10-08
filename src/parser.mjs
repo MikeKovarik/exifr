@@ -7,6 +7,8 @@ import {segmentParsers} from './plugins.mjs'
 
 const MAX_APP_SIZE = 65536 // 64kb
 
+const DEFAULT = 'DEFAULT'
+
 export class FileParserBase {
 
 	constructor(options, file, parsers) {
@@ -146,7 +148,7 @@ export class AppSegmentParserBase {
 
 	// can be overriden by parses (namely ICC) that inherits from this base class.
 	translateValue(val, tagEnum) {
-		return tagEnum[val] || val
+		return tagEnum[val] || tagEnum[DEFAULT] || val
 	}
 
 	handleError = error => {
