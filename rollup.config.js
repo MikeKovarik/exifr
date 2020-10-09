@@ -157,7 +157,8 @@ function createLegacyBundle(inputPath, outputPath) {
 		input: inputPath,
 		plugins: [
 			notify(),
-			replaceFile('FsReader.mjs'),
+			replaceFile('FsReader.mjs', 'export default {}'),
+			replaceFile('import.mjs',   'export default function() {}'),
 			babel(babelLegacy),
 			replaceBuiltinsWithIePolyfills(),
 			fixIeStaticMethodSubclassing(),

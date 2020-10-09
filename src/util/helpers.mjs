@@ -1,6 +1,3 @@
-import * as platform from './platform.mjs'
-
-
 export const TIFF_LITTLE_ENDIAN = 0x4949
 export const TIFF_BIG_ENDIAN    = 0x4D4D
 
@@ -59,17 +56,4 @@ export function estimateMetadataSize(options) {
 	if (options.iptc.enabled) bytes += 14000
 	if (options.icc.enabled)  bytes += 6000
 	return bytes
-}
-
-const pass = arg => arg
-export function dynamicImport(name, wrapper = pass) {
-	if (platform.node) {
-		try {
-			return typeof require === 'function'
-				? Promise.resolve(wrapper(require(name)))
-				: import(/* webpackIgnore: true */ name).then(wrapper)
-		} catch(err) {
-			console.warn(`Couldn't load ${name}`)
-		}
-	}
 }
