@@ -1,4 +1,4 @@
-import {assert} from './test-util-core.mjs'
+import {assert, assertOutputWithoutErrors} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util-suites.mjs'
 import {Exifr} from '../src/bundles/full.mjs'
@@ -6,6 +6,13 @@ import * as exifr from '../src/bundles/full.mjs'
 
 
 describe('IPTC Segment', () => {
+
+	it(`APP13 Without IPTC should be discarded and not throw error`, async () => {
+		let options = {iptc: true, xmp: false}
+		let buffer = await getFile(`issue-exifr-41-Error_Segment_Unreachable.jpg`)
+		let output = await exifr.parse(buffer, options)
+		assertOutputWithoutErrors(output)
+	})
 
 	describe('options.iptc enable/disable', () => {
 		testSegment({
