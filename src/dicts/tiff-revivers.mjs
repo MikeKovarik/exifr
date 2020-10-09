@@ -20,12 +20,22 @@ createDictionary(tagRevivers, 'exif', [
 	[0x9000, reviveVersion],
 	[0x9003, reviveDate],
 	[0x9004, reviveDate],
+	// https://github.com/MikeKovarik/exifr/issues/36
+	[0xa002, unwrapExifSizeArray],
+	[0xa003, unwrapExifSizeArray],
 ])
 
 createDictionary(tagRevivers, 'gps', [
 	[0x0000, val => Array.from(val).join('.')], // GPSVersionID
 	[0x0007, val => Array.from(val).join(':')], // GPSTimeStamp
 ])
+
+function unwrapExifSizeArray(arr) {
+	if (typeof arr === 'object' && arr.length !== undefined)
+		return arr[0]
+	else
+		return arr
+}
 
 function reviveVersion(bytes) {
 	let array = Array.from(bytes).slice(1)
