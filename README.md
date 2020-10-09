@@ -153,9 +153,9 @@ Of course, you can use the `full` version in browser, or use any other build in 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
 | chunked<br>file readers | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
-| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
-| segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
-| dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
+| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif`<br>`*.png` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
+| segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF<br>IHDR | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
+| dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC<br>JFIF<br>IHDR | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
 | file            | `full.umd.js`<br>`full.esm.js`<br>`full.esm.mjs`<br>`full.legacy.umd.js` | `lite.umd.js`<br>`lite.esm.js`<br>`lite.esm.mjs`<br>`lite.legacy.umd.js` | `mini.umd.js`<br>`mini.esm.js`<br>`mini.esm.mjs`<br>`mini.legacy.umd.js` | [Learn more](#advanced) |
