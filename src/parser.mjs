@@ -40,7 +40,8 @@ export class FileParserBase {
 		//       I.E. Unless we first load apropriate parser, the segment is of unknown type.
 		for (let segment of segments) {
 			let {type, chunk} = segment
-			if (this.options[type]?.enabled) {
+			let segOpts = this.options[type]
+			if (segOpts && segOpts.enabled) {
 				let parser = this.parsers[type]
 				if (parser && parser.append) {
 					// TODO multisegment: to be implemented. or deleted. some types of data may be split into multiple APP segments (FLIR, maybe ICC)
