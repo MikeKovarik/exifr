@@ -78,5 +78,19 @@ let yellow = '\x1b[33m'
 let colorReset = '\x1b[0m'
 let warn = console.warn.bind(console)
 console.warn = function(...args) {
-	warn(yellow + 'FOO', ...args, colorReset)
+	warn(yellow, ...args, colorReset)
+}
+
+export function assertOutputIsNotEmpty(output) {
+	assert.exists(output, `output is undefined`)
+}
+
+export function assertOutputWithoutErrors(output) {
+	assert.isNotEmpty(output, `output is empty`)
+	assert.isUndefined(output.errors, 'there are errors in output')
+}
+
+export function assertOutputHasErrors(output) {
+	assert.isNotEmpty(output, `output is empty`)
+	assert.isUndefined(output.errors, 'there are no errors in output')
 }

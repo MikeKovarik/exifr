@@ -1,4 +1,4 @@
-import {assert, getPath, getFile} from './test-util-core.mjs'
+import {assert, getPath, getFile, assertOutputWithoutErrors} from './test-util-core.mjs'
 import * as exifr from '../src/bundles/full.mjs'
 
 
@@ -80,7 +80,7 @@ export function testSegmentTranslation({type, file, tags}) {
 			let options = {mergeOutput: false, [type]: true}
 			let output = await exifr.parse(input, options)
 			let segment = output[type]
-			assert.exists(output, `output is undefined`)
+			assertOutputWithoutErrors(output)
 			for (let [rawKey, translatedKey] of tags) {
 				assert.isUndefined(segment[rawKey])
 				assert.exists(segment[translatedKey])
@@ -92,7 +92,7 @@ export function testSegmentTranslation({type, file, tags}) {
 			let options = {mergeOutput: false, [type]: true, translateKeys: true}
 			let output = await exifr.parse(input, options)
 			let segment = output[type]
-			assert.exists(output, `output is undefined`)
+			assertOutputWithoutErrors(output)
 			for (let [rawKey, translatedKey] of tags) {
 				assert.isUndefined(segment[rawKey])
 				assert.exists(segment[translatedKey])
@@ -104,7 +104,7 @@ export function testSegmentTranslation({type, file, tags}) {
 			let options = {mergeOutput: false, [type]: true, translateKeys: false}
 			let output = await exifr.parse(input, options)
 			let segment = output[type]
-			assert.exists(output, `output is undefined`)
+			assertOutputWithoutErrors(output)
 			for (let [rawKey, translatedKey] of tags) {
 				assert.exists(segment[rawKey])
 				assert.isUndefined(segment[translatedKey])
@@ -119,7 +119,7 @@ export function testSegmentTranslation({type, file, tags}) {
 				let options = {mergeOutput: false, [type]: true}
 				let output = await exifr.parse(input, options)
 				let segment = output[type]
-				assert.exists(output, `output is undefined`)
+				assertOutputWithoutErrors(output)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue // this is to test non-translatable values
 					if (val === undefined) continue
@@ -132,7 +132,7 @@ export function testSegmentTranslation({type, file, tags}) {
 				let options = {mergeOutput: false, [type]: true, translateValues: true}
 				let output = await exifr.parse(input, options)
 				let segment = output[type]
-				assert.exists(output, `output is undefined`)
+				assertOutputWithoutErrors(output)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue // this is to test non-translatable values
 					if (val === undefined) continue
@@ -145,7 +145,7 @@ export function testSegmentTranslation({type, file, tags}) {
 				let options = {mergeOutput: false, [type]: true, translateValues: false}
 				let output = await exifr.parse(input, options)
 				let segment = output[type]
-				assert.exists(output, `output is undefined`)
+				assertOutputWithoutErrors(output)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					assert.equal(segment[rawKey] || segment[translatedKey], rawValue)
 				}
@@ -156,7 +156,7 @@ export function testSegmentTranslation({type, file, tags}) {
 				let options = {mergeOutput: false, [type]: true}
 				let output = await exifr.parse(input, options)
 				let segment = output[type]
-				assert.exists(output, `output is undefined`)
+				assertOutputWithoutErrors(output)
 				for (let [rawKey, translatedKey, rawValue, translatedValue] of tags) {
 					let val = translatedValue || rawValue
 					assert.equal(segment[translatedKey], val)

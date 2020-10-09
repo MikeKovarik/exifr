@@ -1,4 +1,4 @@
-import {assert} from './test-util-core.mjs'
+import {assert, assertOutputWithoutErrors} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util-suites.mjs'
 import IccParser from '../src/segment-parsers/icc.mjs'
@@ -9,7 +9,7 @@ function testProfile(filePath, results = {}) {
 	it(`parsing .icc fixture ${filePath}`, async () => {
 		var buffer = await getFile(filePath)
 		var output = await IccParser.parse(buffer)
-		assert.exists(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		for (let [key, val] of Object.entries(results)) {
 			assert.equal(output[key], val)
 		}

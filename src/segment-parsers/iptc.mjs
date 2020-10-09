@@ -13,6 +13,12 @@ Resource ID 0x0422 contains Exif data.
 Resource ID 0x0424 contains XMP data.
 */
 
+const HEADER_8    = 0x38
+const HEADER_8BIM = 0x3842494D
+const HEADER_IPTC = 0x0404
+const MARKER = 0xED
+const PHOTOSHOP = 'Photoshop'
+
 export default class Iptc extends AppSegmentParserBase {
 
 	static type = 'iptc'
@@ -20,32 +26,48 @@ export default class Iptc extends AppSegmentParserBase {
 	static translateValues = false
 	static reviveValues = false
 
-	static canHandle(file, offset) {
-		return file.getUint8(offset + 1) === 0xED
-			&& file.getString(offset + 4, 9) === 'Photoshop'
+	// APP13 very complicated and doesn't just simply contain IPTC data.
+	// It is in fact Photoshop format, which contains it's own chunks, each starting with 8BIM header.
+	// IPTC is just one of those chunks and may start several hundreds of bytes into the segment.
+	// IPTC chunk in the format starts with 8BIM followed by 4 4 (0x0404)
+	// TLDR: We can't just compare bytes. The chunk has to be traversed.
+
+	static canHandle(file, offset, length) {
+		let isApp13 = file.getUint8(offset + 1) === MARKER
+				   && file.getString(offset + 4, 9) === PHOTOSHOP
+		if (!isApp13) return false
+		let i = this.containsIptc8bim(file, offset, length)
+		return i !== undefined
 	}
 
-	static headerLength(file, offset, length) {
-		for (let i = 0; i < length; i++) {
-			if (this.isIptcSegmentHead(file, offset + i)) {
-				// Get the length of the name header (which is padded to an even number of bytes)
-				var nameHeaderLength = file.getUint8(offset + i + 7)
-				if (nameHeaderLength % 2 !== 0) nameHeaderLength += 1
-				// Check for pre photoshop 6 format
-				if (nameHeaderLength === 0) nameHeaderLength = 4
-				return i + 8 + nameHeaderLength
-			}
+	// WARNING: There can be files with APP13 segment, containing various Photoshop related
+	// data, but no IPTC. We musn't falsely accept these segments as IPTC!
+	static headerLength(chunk, offset, length) {
+		let nameHeaderLength
+		let i = this.containsIptc8bim(chunk, offset, length)
+		if (i !== undefined) {
+			// Get the length of the name header (which is padded to an even number of bytes)
+			nameHeaderLength = chunk.getUint8(offset + i + 7)
+			if (nameHeaderLength % 2 !== 0) nameHeaderLength += 1
+			// Check for pre photoshop 6 format
+			if (nameHeaderLength === 0) nameHeaderLength = 4
+			return i + 8 + nameHeaderLength
 		}
 	}
 
+	static containsIptc8bim(chunk, offset, length) {
+		for (let i = 0; i < length; i++)
+			if (this.isIptcSegmentHead(chunk, offset + i))
+				return i
+	}
+
 	static isIptcSegmentHead(chunk, offset) {
-		return chunk.getUint8(offset)     === 0x38 // I - photoshop segment start
-			&& chunk.getUint8(offset + 1) === 0x42 // B - photoshop segment start
-			&& chunk.getUint8(offset + 2) === 0x49 // I - photoshop segment start
-			&& chunk.getUint8(offset + 3) === 0x4D // M - photoshop segment start
-			&& chunk.getUint8(offset + 4) === 0x04 // IPTC segment head
-			&& chunk.getUint8(offset + 5) === 0x04 // IPTC segment head
-			// NOTE: theres much more in the Photoshop format than just IPTC
+		// isIptcSegmentHead is called on each byte while traversing the file.
+		// This could be hundreds of times. We don't want to read the same overlaping range
+		// over and over, so just read the first byte and only then continue.
+		return chunk.getUint8(offset)      === HEADER_8    // 8 - photoshop segment start
+			&& chunk.getUint32(offset)     === HEADER_8BIM // 8BIM - photoshop segment start
+			&& chunk.getUint16(offset + 4) === HEADER_IPTC // IPTC segment head
 	}
 
 	parse() {
