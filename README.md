@@ -38,8 +38,8 @@ Works everywhere, parses anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
-* 📷 Files: **.jpg**, **.tif**, **.heic**
-* 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, **JFIF**
+* 📷 Files: **.jpg**, **.tif**, **.heic**, **.png**
+* 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, JFIF, IHDR
 * 📑 **Reads only first few bytes**
 * 🔬 **Skips parsing tags you don't need**
 * ✨ **Isomorphic**: Browser & Node.js
@@ -72,6 +72,17 @@ Works everywhere, parses anything you throw at it.
 You don't need to read the whole file to tell if there's EXIF in it. And you don't need to extract all the data when you're looking for just a few tags. Exifr just jumps through the file structure, from pointer to pointer. Instead of reading it byte by byte, from beginning to end.
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
+
+| Segments | JPEG | TIFF | HEIC | PNG  |
+|-|-|-|-|-|
+| EXIF/TIFF | ✔ | ✔ | ✔ | ❌ |
+| XMP | ✔ | ✔ | ❌ | ✔ |
+| IPTC | ✔ | ✔ | ❌ | ❌ |
+| ICC | ✔ | ✔ | ✔ | ✔ *(Node.js only, requires zlib)* |
+| Thumbnail | ✔ | ❌ | ❌ | ❌ |
+| JFIF *(JPEG header)* | ✔ | ❌ | ❌ | ❌ |
+| IHDR *(PNG header)* | ❌ | ❌ | ❌ | ✔ |
+
 
 ## Usage
 
@@ -365,13 +376,14 @@ All other and undefined properties are inherited from defaults:
 
 ```js
 let defaultOptions = {
-  // APP Segments
-  jfif: false,
+  // Segments (JPEG APP Segment, PNG Chunks, HEIC Boxes, etc...)
   tiff: true,
   xmp: false,
   icc: false,
   iptc: false,
-  // TIFF Blocks
+  jfif: false, // (jpeg only)
+  ihdr: false, // (png only)
+  // Sub-blocks inside TIFF segment
   ifd0: true, // aka image
   ifd1: false, // aka thumbnail
   exif: true,
@@ -442,7 +454,7 @@ By default, MakerNote and UserComment tags are skipped. But that is configured [
 
 EXIF became synonymous for all image metadata, but it's actually just one of many blocks inside TIFF segment. And there are more segment than just TIFF.
 
-#### APP Segments
+#### Segments (JPEG APP Segments, HEIC Boxes, PNG Chunks)
 
 Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats use different structures or naming conventions but the idea is the same, so we refer to TIFF, XMP, IPTC, ICC and JFIF as Segments.
 
@@ -456,6 +468,8 @@ Jpeg stores various formats of data in APP-Segments. Heic and Tiff file formats 
 <br>IPTC APP13 Segment - Captions and copyrights
 * `options.icc` type `bool` default: `false`
 <br>ICC APP2 Segment - Color profile
+* `options.ihdr` type `bool` default: `true` (only for PNG)
+<br>PNG Header chunk - Basic file info
 
 #### TIFF IFD Blocks
 

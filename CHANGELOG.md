@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [6.0.0]
+
+### Added
+
+- **PNG SUPPORT**
+
+### Fixed
+
+- Orientation bug related to ios and webview (PR 42)
+- Reading APP13 Segment not containing IPTC
+- Unwrapping value of ExifImageHeight ExifImageWidth in case it is in typed array
+
 ## [5.0.6]
 
 ### Fixed
@@ -215,7 +227,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v5.0.6...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.0.0...HEAD
+[6.0.0]: https://github.com/MikeKovarik/exifr/compare/v5.0.6...v6.0.0
 [5.0.6]: https://github.com/MikeKovarik/exifr/compare/v5.0.5...v5.0.6
 [5.0.5]: https://github.com/MikeKovarik/exifr/compare/v5.0.4...v5.0.5
 [5.0.4]: https://github.com/MikeKovarik/exifr/compare/v5.0.3...v5.0.4
