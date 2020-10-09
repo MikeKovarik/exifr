@@ -1,17 +1,10 @@
 import {fileReaders} from '../plugins.mjs'
 import {ChunkedReader} from './ChunkedReader.mjs'
 import * as platform from '../util/platform.mjs'
+import {dynamicImport} from '../util/helpers.mjs'
 
 
-if (platform.node) {
-	try {
-		var fsPromise = typeof require === 'function'
-			? Promise.resolve(require('fs').promises)
-			: import(/* webpackIgnore: true */ 'fs').then(module => module.promises)
-	} catch(err) {
-		console.warn(`Couldn't load 'fs'`)
-	}
-}
+let fsPromise = dynamicImport('fs', fs => fs.promises)
 
 export class FsReader extends ChunkedReader {
 

@@ -109,6 +109,8 @@ const babelPlugins = [
 	//'@babel/plugin-proposal-nullish-coalescing-operator',
 	//'@babel/plugin-proposal-optional-chaining',
 	'@babel/plugin-proposal-class-properties',
+	'@babel/plugin-proposal-optional-chaining',
+	'@babel/plugin-syntax-dynamic-import',
 ]
 
 const babelModern = {
@@ -141,7 +143,6 @@ const babelLegacy = {
 		'@babel/plugin-transform-shorthand-properties',
 		['@babel/plugin-transform-spread', {loose: true}],
 		'@babel/plugin-transform-template-literals',
-
 	],
 }
 

@@ -1,7 +1,10 @@
 import {FileParserBase} from '../parser.mjs'
 import {fileParsers, segmentParsers} from '../plugins.mjs'
 import * as platform from '../util/platform.mjs'
-import {BufferView} from '../util/BufferView.mjs'
+import {dynamicImport} from '../util/helpers.mjs'
+
+
+let zlibPromise = dynamicImport('zlib')
 
 // https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_PNG_files
 // http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
@@ -103,10 +106,10 @@ export class PngFileParser extends FileParserBase {
 		let profileName = chunk.getString(0, nameLength)
 		this.injectKeyValToIhdr('ProfileName', profileName)
 		// ICC data is zlib compressed by default. Spec doesn't even allow raw data.
-		let inflate = await this.getZlibInflate()
-		if (inflate) {
+		if (platform.node) {
+			let zlib = await zlibPromise
 			let dataChunk = chunk.getUint8Array(iccpHeaderLength)
-			dataChunk = inflate(dataChunk)
+			dataChunk = zlib.inflateSync(dataChunk)
 			this.injectSegment('icc', dataChunk)
 		}
 	}
@@ -120,16 +123,6 @@ export class PngFileParser extends FileParserBase {
 			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
 			if (prefix === PNG_XMP_PREFIX)
 				this.injectSegment('xmp', seg.chunk)
-		}
-	}
-
-	async getZlibInflate() {
-		if (platform.node) {
-			if (!this.nodeZlib)
-				this.nodeZlib = await import('zlib')
-			return this.nodeZlib.inflateSync
-		} else {
-			console.warn(`ICC Profiles in PNG files are zlib compressed.`)
 		}
 	}
 
