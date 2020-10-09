@@ -6,7 +6,9 @@
 
 ### Added
 
-- **PNG SUPPORT**
+- **PNG SUPPORT** (and IHDR segment parser which implements the PNG header structure)
+- IHDR dictionary
+- JFIF dictionary - the keys are now in configurable dictionary instead of hardcoded into a parser.
 
 ### Fixed
 
