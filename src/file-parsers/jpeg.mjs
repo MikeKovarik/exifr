@@ -30,9 +30,9 @@ function isAppMarker(marker2) {
 		&& marker2 <= MARKER_2_APP15
 }
 
-function getSegmentType(buffer, offset) {
+function getSegmentType(buffer, offset, length) {
 	for (let [type, Parser] of segmentParsers)
-		if (Parser.canHandle(buffer, offset))
+		if (Parser.canHandle(buffer, offset, length))
 			return type
 }
 
@@ -65,11 +65,6 @@ export class JpegFileParser extends FileParserBase {
 
 	static canHandle(file, marker) {
 		return marker === JPEG_SOI
-	}
-
-	extendOptions(options) {
-		// disable IHDR, it's a chunk only present in PNG files.
-		options.ihdr.enabled = false
 	}
 
 	appSegments = []
@@ -150,7 +145,7 @@ export class JpegFileParser extends FileParserBase {
 			if (isAppMarker(marker2)) {
 				// WE FOUND APP-N SEGMENT
 				length = file.getUint16(offset + 2)
-				type = getSegmentType(file, offset)
+				type = getSegmentType(file, offset, length)
 				if (type && wanted.has(type)) {
 					// known and parseable segment found
 					Parser = segmentParsers.get(type)

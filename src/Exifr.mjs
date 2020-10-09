@@ -36,29 +36,43 @@ export class Exifr {
 
 	async parse() {
 		this.setup()
-		await this.fileParser.parse()
 		let output = {}
 		let errors = []
+		// We're try catching here and not inside the doParse() because we shouldn't parse
+		// segments if file parser throws.
+		if (this.options.silentErrors) {
+			await this.doParse(output, errors).catch(err => errors.push(err))
+			errors.push(...this.fileParser.errors)
+		} else {
+			await this.doParse(output, errors)
+		}
+		if (this.file.close) this.file.close()
+		if (this.options.silentErrors && errors.length > 0) output.errors = errors
+		return undefinedIfEmpty(output)
+	}
+
+	// TODO: Silent error handling needs major rework in order to enable reading 
+	//       at least some segments while others are corrupted.
+	//       It'd be nice to move more functionality into segment parsers and hollow out
+	//       the file parsers. This way each semgnet would be in own (kinda) thread.
+	// EXAMPLE1: All the chunk header calculation happens inside file parser.
+	//           If something goes wrong (like bug in IPTC's static canHandle() and headerLength)
+	//           it crashes right in fileParser.parse().
+	//           tldr: file crashes prematurely on IPTC, no other segments are read.
+	// EXAMPLE2: PNG file parser does a lot of parsing inside its .parse()
+	//           If it crashed, we'd also prematurely close before extracting any data.
+	async doParse(output, errors) {
+		await this.fileParser.parse()
 		let promises = Object.values(this.parsers).map(async parser => {
-			let parserOutput
-			if (this.options.silentErrors) {
-				try {
-					parserOutput = await parser.parse()
-				} catch(err) {
-					errors.push(err)
-				}
-				// TIFF has many blocks and usually just one fails while the other contain valid data.
-				// We want to get as much data as possible.
-				errors.push(...parser.errors)
-			} else {
-				parserOutput = await parser.parse()
-			}
+			let parserOutput = await parser.parse()
+			// each parser may want to merge its output into global differently.
 			parser.assignToOutput(output, parserOutput)
 		})
+		if (this.options.silentErrors) {
+			const pushToErrors = err => errors.push(err)
+			promises = promises.map(promise => promise.catch(pushToErrors))
+		}
 		await Promise.all(promises)
-		if (this.options.silentErrors && errors.length > 0) output.errors = errors
-		if (this.file.close) this.file.close()
-		return undefinedIfEmpty(output)
 	}
 
 	async extractThumbnail() {

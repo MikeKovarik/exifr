@@ -1,4 +1,4 @@
-import {assert} from './test-util-core.mjs'
+import {assert, assertOutputWithoutErrors} from './test-util-core.mjs'
 import {getFile, getPath} from './test-util-core.mjs'
 import {Exifr} from '../src/bundles/full.mjs'
 import * as exifr from '../src/bundles/full.mjs'
@@ -16,14 +16,14 @@ describe('output object format', () => {
 		let exr = new Exifr()
 		await exr.read(intput)
 		let output = await exr.parse()
-		assert.isUndefined(output)
+		assert.equal(output, undefined)
 	})
 
 	it(`contains multiple requested segments`, async () => {
 		let options = {xmp: true, jfif: true, chunked: false, mergeOutput: false}
 		let input = getPath('issue-exifr-4.jpg')
 		let output = await exifr.parse(input, options)
-		assert.isObject(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		assert.exists(output.jfif)
 		assert.exists(output.xmp)
 	})
@@ -31,7 +31,7 @@ describe('output object format', () => {
 	it(`should merge all segments by default`, async () => {
 		let input = await getFile('IMG_20180725_163423.jpg')
 		let output = await exifr.parse(input)
-		assert.exists(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		assert.equal(output.Make, 'Google')
 		assert.equal(output.ExposureTime, 0.000376)
 		assert.equal(output.GPSLongitude.length, 3)
@@ -41,7 +41,7 @@ describe('output object format', () => {
 		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {}
 		let output = await exifr.parse(input, options)
-		assert.exists(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		assert.instanceOf(output.DateTimeOriginal, Date)
 	})
 
@@ -49,7 +49,7 @@ describe('output object format', () => {
 		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {reviveValues: true}
 		let output = await exifr.parse(input, options)
-		assert.exists(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		assert.instanceOf(output.DateTimeOriginal, Date)
 	})
 
@@ -57,7 +57,7 @@ describe('output object format', () => {
 		let input = await getFile('IMG_20180725_163423.jpg')
 		let options = {reviveValues: false}
 		let output = await exifr.parse(input, options)
-		assert.exists(output, `output is undefined`)
+		assertOutputWithoutErrors(output)
 		assert.equal(output.DateTimeOriginal, '2018:07:25 16:34:23')
 	})
 

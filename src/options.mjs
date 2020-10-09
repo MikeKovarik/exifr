@@ -25,7 +25,7 @@ export const tiffBlocks = ['ifd0', 'ifd1', 'exif', 'gps', 'interop']
 export const segmentsAndBlocks = [...segments, ...tiffBlocks]
 export const tiffExtractables = ['makerNote', 'userComment']
 export const inheritables = ['translateKeys', 'translateValues', 'reviveValues', 'multiSegment']
-export const allFormatters = [...inheritables, 'sanitize', 'mergeOutput']
+export const allFormatters = [...inheritables, 'sanitize', 'mergeOutput', 'silentErrors']
 
 
 class SharedOptions {
@@ -140,7 +140,9 @@ var defaults = {
 	gps: true,
 	interop: false, // jpeg only
 
-	ihdr: true, // png only (png file header)
+	// undefined because we don't want Jpeg or Heic file parser to pick it up.
+	// Png parser will use Ihdr implicitly unless it's disabled by user.
+	ihdr: undefined, // png only (png file header)
 
 	// Notable TIFF tags
 	makerNote: false,
@@ -171,7 +173,7 @@ var defaults = {
 	// Changes output format by merging all segments and blocks into single object.
 	// NOTE = Causes loss of thumbnail EXIF data.
 	mergeOutput: true,
-	// Fails silently and logs the file errors in output.error instead of throwing error.
+	// Fails silently and logs the file errors in output.errors instead of throwing error.
 	silentErrors: true,
 
 	// CHUNKED READER
@@ -200,6 +202,7 @@ var existingInstances = new Map
 
 export class Options extends SharedOptions {
 
+	// exporting for user to change
 	static default = defaults
 
 	static useCached(userOptions) {

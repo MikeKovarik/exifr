@@ -16,8 +16,6 @@ export class TiffFileParser extends FileParserBase {
 	}
 
 	extendOptions(options) {
-		// disable IHDR, it's a chunk only present in PNG files.
-		options.ihdr.enabled = false
 		// note: skipping is done on global level in Options class
 		let {ifd0, xmp, iptc, icc} = options
 		if (xmp.enabled)  ifd0.deps.add(TAG_XMP)

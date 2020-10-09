@@ -34,11 +34,13 @@ export class PngFileParser extends FileParserBase {
 		let {file} = this
 		await this.findPngChunksInRange(PNG_MAGIC_BYTES.length, file.byteLength)
 		await this.readSegments(this.metaChunks)
-		await this.createParsers(this.metaChunks)
+		this.findIhdr()
 		this.parseTextChunks()
-		await this.findXmp()
-		await this.findIcc()
+		await this.findXmp().catch(this.catchError)
+		await this.findIcc().catch(this.catchError)
 	}
+
+	catchError = err => this.errors.push(err)
 
 	metaChunks = []
 	unknownChunks = []
@@ -76,6 +78,15 @@ export class PngFileParser extends FileParserBase {
 	injectKeyValToIhdr(key, val) {
 		let parser = this.parsers.ihdr
 		if (parser) parser.raw.set(key, val)
+	}
+
+	findIhdr() {
+		let seg = this.metaChunks.find(seg => seg.type === IHDR)
+		if (!seg) return
+		// ihdr option is undefined by default (because we don't want jpegs and heic files to pick it up)
+		// so here we create it for every png file. But only if user didn't explicitly disabled it.
+		if (this.options[IHDR].enabled !== false)
+			this.createParser(IHDR, seg.chunk)
 	}
 
 	async findIcc() {

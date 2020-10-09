@@ -1,4 +1,4 @@
-import {assert} from './test-util-core.mjs'
+import {assert, isNode} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import * as exifr from '../src/bundles/full.mjs'
 import {testSegment, testMergeSegment, testImage, testImageFull} from './test-util-suites.mjs'
@@ -17,11 +17,13 @@ describe('PNG File format', () => {
 			assert.equal(output.BitDepth, 8)
 		})
 
-		it(`handles broken file (invalid crc) without crashing`, async () => {
+		it(`recovers from broken file (invalid crc) without crashing`, async () => {
 			let options = undefined
 			let input = await getFile('png/invalid-iCCP-missing-adler32-checksum.png')
 			let output = await exifr.parse(input, options)
 			assert.equal(output.ImageWidth, 460)
+			// ICC from PNG is currently available only on Nodejs
+			if (isNode) assert.isNotEmpty(output.errors)
 		})
 
 	})
@@ -83,6 +85,27 @@ describe('PNG File format', () => {
 				//DeviceManufacturer: 'Google',
 				//ProfileConnectionSpace: 'XYZ',
 			})
+
+			if (isNode) {
+				// with ICC
+				testImageFull('png/IMG_20180725_163423-2.png', {
+					ImageWidth: 40,
+					ImageHeight: 30,
+					BitDepth: 8,
+					// text chunk
+					Software: 'Adobe ImageReady',
+					// text name of ICCP chunk
+					ProfileName: 'ICC profile',
+					//ProfileName: 'ICC profile',
+					// XMP
+					CreatorTool: 'HDR+ 1.0.199571065z',
+					format: 'image/png', // WARNING: yes, the key in XMP is lowercase
+					// ICC
+					ProfileFileSignature: 'acsp',
+					DeviceManufacturer: 'Google',
+					ProfileConnectionSpace: 'XYZ',
+				})
+			}
 
 		})
 

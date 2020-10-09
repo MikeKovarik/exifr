@@ -19,6 +19,8 @@ export class FileParserBase {
 		this.parsers = parsers
 	}
 
+	errors = []
+
 	injectSegment(type, chunk) {
 		if (this.options[type].enabled)
 			this.createParser(type, chunk)

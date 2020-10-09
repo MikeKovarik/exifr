@@ -8,16 +8,6 @@ describe('parser core', () => {
 
 	describe(`throws if the input file isn't supported`, () => {
 
-		it(`rejects png`, async () => {
-			let input = await getFile('../../logo/blue-small.png')
-			try {
-				await exifr.parse(input)
-			} catch(err) {
-				assert.instanceOf(err, Error)
-				assert.equal(err.message, 'Unknown file format')
-			}
-		})
-
 		it(`rejects random file 1`, async () => {
 			let input = await getFile('D65_XYZ.icc')
 			try {
@@ -48,6 +38,10 @@ describe('parser core', () => {
 
 		it(`accepts HEIC`, async () => {
 			await exifr.parse(await getFile('heic-empty.heic'))
+		})
+
+		it(`accepts PNG`, async () => {
+			await exifr.parse(await getFile('png/IMG_20180725_163423-1.png'))
 		})
 
 	})
