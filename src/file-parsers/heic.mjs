@@ -2,10 +2,13 @@ import {fileParsers} from '../plugins.mjs'
 import {FileParserBase} from '../parser.mjs'
 // Only HEIC uses BufferView.getUint64
 import '../util/BufferView-get64.mjs'
+import {BufferView} from '../util/BufferView.mjs'
 
 
 // 4 length + 4 kind + 8 (not always) for additional 64b length field
 const boxHeaderLength = 16
+
+// boxes with full head: meta, iinf, iref
 
 export class IsoBmffParser extends FileParserBase {
 
@@ -44,6 +47,7 @@ export class IsoBmffParser extends FileParserBase {
 	parseBoxFullHead(box) {
 		// ISO boxes come in 'old' and 'full' variants.
 		// The 'full' variant also contains version and flags information.
+		if (box.version !== undefined) return
 		let vflags = this.file.getUint32(box.start)
 		box.version = vflags >> 24
 		box.start += 4
@@ -83,6 +87,7 @@ export class HeicFileParser extends IsoBmffParser {
 		await this.file.ensureChunk(meta.offset, meta.length)
 		this.parseBoxFullHead(meta)
 		this.parseSubBoxes(meta)
+		//await this.findThumb(meta)
 		if (this.options.icc.enabled)  await this.findIcc(meta)
 		if (this.options.tiff.enabled) await this.findExif(meta)
 	}
@@ -92,7 +97,26 @@ export class HeicFileParser extends IsoBmffParser {
 		let chunk = this.file.subarray(offset, length)
 		this.createParser(key, chunk)
 	}
-
+/*
+	async findThumb(meta) {
+		let iref = this.findBox(meta, 'iref')
+		if (iref === undefined) return
+		this.parseBoxFullHead(iref)
+		let thmb = this.findBox(iref, 'thmb')
+		if (thmb === undefined) return
+		let thumbLocId = this.file.getUint16(thmb.offset + 8)
+		let iloc = this.findBox(meta, 'iloc')
+		if (iloc === undefined) return
+		let extent = this.findExtentInIloc(iloc, thumbLocId)
+		if (extent === undefined) return
+		let [thumbOffset, thumbLength] = extent
+		console.log('thumbOffset', thumbOffset)
+		console.log('thumbLength', thumbLength)
+		await this.file.ensureChunk(thumbOffset, thumbLength)
+		let chunk = this.file.subarray(thumbOffset, thumbLength)
+		return chunk.toUint8()
+	}
+*/
 	async findIcc(meta) {
 		let iprp = this.findBox(meta, 'iprp')
 		if (iprp === undefined) return
@@ -100,7 +124,7 @@ export class HeicFileParser extends IsoBmffParser {
 		if (ipco === undefined) return
 		let colr = this.findBox(ipco, 'colr')
 		if (colr === undefined) return
-		await this.registerSegment('icc',  colr.offset + 12, colr.length)
+		await this.registerSegment('icc', colr.offset + 12, colr.length)
 	}
 
 	async findExif(meta) {
