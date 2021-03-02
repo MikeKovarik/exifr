@@ -28,7 +28,7 @@ interface Options extends FormatOptions {
 	tiff?: FormatOptions | boolean,
 	ifd0?: FormatOptions, // cannot be disabled. 
 	ifd1?: FormatOptions | boolean,
-	exfif?: FormatOptions | boolean,
+	exif?: FormatOptions | boolean,
 	gps?: FormatOptions | boolean,
 	interop?: FormatOptions | boolean,
 	// Other segments
@@ -46,11 +46,23 @@ interface Options extends FormatOptions {
 	chunkLimit?: number,
 }
 
+interface IRotation {
+	dimensionSwapped: boolean;
+	scaleX: number;
+	scaleY: number;
+	deg: number;
+	rad: number;
+}
+
 export function parse(data: Input, options?: Options | Filter): Promise<any>;
 export function thumbnail(data: Input): Promise<Uint8Array | Buffer | undefined>;
 export function thumbnailUrl(data: Input): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
 export function orientation(data: Input): Promise<number | undefined>;
+export const rotations: {[index: number]: IRotation};
+export let rotateCanvas: boolean;
+export let rotateCss: boolean;
+export function rotation(data: Input): Promise<IRotation | undefined>;
 
 export const tagKeys:     Map<string, Map<number, string>>;
 export const tagValues:   Map<string, Map<number, any>>;
