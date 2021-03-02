@@ -287,6 +287,7 @@ export class TiffExif extends TiffCore {
 		this.xmp           = ifd0.get(TAG_XMP)
 		this.iptc          = ifd0.get(TAG_IPTC)
 		this.icc           = ifd0.get(TAG_ICC)
+		//this.photoshop     = ifd0.get(0x8649)
 		// IFD0 segment also contains offset pointers to another segments deeper within the EXIF.
 		if (this.options.sanitize) {
 			ifd0.delete(TAG_IFD_EXIF)

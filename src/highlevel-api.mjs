@@ -75,7 +75,7 @@ export async function orientation(input) {
 	}
 }
 
-export const rotations = {
+export const rotations = Object.freeze({
 	1: {dimensionSwapped: false, scaleX:  1, scaleY:  1, deg:   0, rad:   0                },
 	2: {dimensionSwapped: false, scaleX: -1, scaleY:  1, deg:   0, rad:   0                },
 	3: {dimensionSwapped: false, scaleX:  1, scaleY:  1, deg: 180, rad: 180 * Math.PI / 180},
@@ -84,10 +84,10 @@ export const rotations = {
 	6: {dimensionSwapped: true,  scaleX:  1, scaleY:  1, deg:  90, rad:  90 * Math.PI / 180},
 	7: {dimensionSwapped: true,  scaleX:  1, scaleY: -1, deg: 270, rad: 270 * Math.PI / 180},
 	8: {dimensionSwapped: true,  scaleX:  1, scaleY:  1, deg: 270, rad: 270 * Math.PI / 180}
-}
+})
 
-export var rotateCanvas = true
-export var rotateCss = true
+export let rotateCanvas = true
+export let rotateCss = true
 
 if (typeof navigator === 'object') {
 	let ua = navigator.userAgent
@@ -109,9 +109,9 @@ if (typeof navigator === 'object') {
 			rotateCanvas = rotateCss = false
 	} else if (ua.includes('Firefox/')) {
 		let [match, version] = ua.match(/Firefox\/(\d+)/)
-    if (Number(version) >= 77)
-      rotateCanvas = rotateCss = false
-	}
+		if (Number(version) >= 77)
+			rotateCanvas = rotateCss = false
+		}
 }
 
 export async function rotation(input) {

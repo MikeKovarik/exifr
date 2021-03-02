@@ -31,6 +31,7 @@ export default class Iptc extends AppSegmentParserBase {
 	// IPTC is just one of those chunks and may start several hundreds of bytes into the segment.
 	// IPTC chunk in the format starts with 8BIM followed by 4 4 (0x0404)
 	// TLDR: We can't just compare bytes. The chunk has to be traversed.
+	// https://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_38034
 
 	static canHandle(file, offset, length) {
 		let isApp13 = file.getUint8(offset + 1) === MARKER
