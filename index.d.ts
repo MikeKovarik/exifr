@@ -47,11 +47,13 @@ interface Options extends FormatOptions {
 }
 
 interface IRotation {
-	dimensionSwapped: boolean;
-	scaleX: number;
-	scaleY: number;
 	deg: number;
 	rad: number;
+	scaleX: number;
+	scaleY: number;
+	dimensionSwapped: boolean;
+	css: boolean;
+	canvas: boolean;
 }
 
 export function parse(data: Input, options?: Options | Filter): Promise<any>;
