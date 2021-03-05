@@ -207,6 +207,9 @@ h3 span {
 #options {
 	font-family: monospace;
 }
+	#options span {
+		font-size: 14px;
+	}
 @media only screen and (min-width: 500px) {
 	#options {
 		position: sticky;
