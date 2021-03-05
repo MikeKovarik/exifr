@@ -312,7 +312,7 @@ Only extracts photo's orientation. Returns object with instructions how to rotat
 * `css` `<boolean>`: can/can't be rotated with CSS and `transform: rotate()` (important for ios Safari)
 * `canvas` `<boolean>`: can/can't be rotated with canvas and `ctx.rotate()` (important for ios Safari)
 
-**Warning:** Safari on ios (but not on macos) autorotates `<img>` elements, but does not alter EXIF. The behavior has changed yet again for canvas and `ctx.drawImage()` since Safari 13.4. If you don't handle this quirk, you may end up with over-rotated image.
+**Warning:** Some modern browsers autorotate `<img>` elements, `background-image` and/or data passed to `<canvas>` without altering the EXIF. The behavior is extra quirky on iOs 13.4 Safari and newer (though not on macos). You may end up with over-rotated image if you don't handle this quirk. See [examples/orientation.html](examples/orientation.html) to learn more.
 
 ```js
 let r = await exifr.rotation(image)
