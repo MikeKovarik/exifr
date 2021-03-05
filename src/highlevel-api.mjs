@@ -95,23 +95,24 @@ if (typeof navigator === 'object') {
 		// doesn't always match in webview: https://github.com/MikeKovarik/exifr/pull/42
 		let matchArray = ua.match(/OS (\d+)_(\d+)/)
 		if (matchArray) {
-			let [match, major, minor] = matchArray
+			let [, major, minor] = matchArray
 			let version = Number(major) + Number(minor) * 0.1
 			// before ios 13.4, orientation is needed for canvas
 			// since ios 13.4, the data passed to canvas is already rotated
 			rotateCanvas = version < 13.4
 			rotateCss = false
 		}
+	} else if (ua.includes('OS X 10')) {
+		let [, version] = ua.match(/OS X 10[_.](\d+)/)
+		rotateCanvas = rotateCss = Number(version) < 15
 	}
 	if (ua.includes('Chrome/')) {
-		let [match, version] = ua.match(/Chrome\/(\d+)/)
-		if (Number(version) >= 81)
-			rotateCanvas = rotateCss = false
+		let [, version] = ua.match(/Chrome\/(\d+)/)
+		rotateCanvas = rotateCss = Number(version) < 81
 	} else if (ua.includes('Firefox/')) {
-		let [match, version] = ua.match(/Firefox\/(\d+)/)
-		if (Number(version) >= 77)
-			rotateCanvas = rotateCss = false
-		}
+		let [, version] = ua.match(/Firefox\/(\d+)/)
+		rotateCanvas = rotateCss = Number(version) < 77
+	}
 }
 
 export async function rotation(input) {
