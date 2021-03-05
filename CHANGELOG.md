@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [6.1.0]
+
+### Fixed
+
+- d.ts: typo; additional type for `exifr.rotation()`
+- `exifr.rotation()` works correctly on latest macos safari.
+
 ## [6.0.0]
 
 ### Added
