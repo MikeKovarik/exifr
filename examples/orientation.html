@@ -20,15 +20,31 @@
 			padding: 0 !important;
 		}
 		table tr td:first-child {
-			max-width: 120px;
+			min-width: 140px;
+			max-width: 160px;
+		}
+		.name {
+			font-size: 14px;
+			margin: 2px 0;
+			font-weight: 700;
+		}
+		.subtitle {
+			font-size: 11px;
+			margin: 2px 0;
+			font-style: italic;
+			opacity: 0.6;
+		}
+		.code {
+			font-size: 10px;
 		}
 	</style>
 </head>
 <body>
 
-	<p><strong>Warning:</strong> Safari on iOs automatically rotates &lt;img&gt; and has yet another behavior since 13.4. First row may look all the same because of that. Use <code>exifr.orientation()</code> to extract the raw EXIF orientation. But rather use <code>exifr.rotation()</code> if you want to manipulate the image and avoid afore mentioned problems with iOs.</p>
-	<p>Chormium 81 and newer (Chrome, new Edge, and other chromium based browsers) also now autorotates images.</p>
-
+	<p><strong>Warning:</strong> Some modern browsers automatically rotate images based on their exif. They're changing default value of the css property <code>image-orientation</code> from <code>'none'</code> to <code>'from-image'</code> on <code>&lt;img&gt;</code> elements and <code>background-image</code>. However they can also pass rotated photo to <code>&lt;canvas&gt;</code> through <code>ctx.drawImage()</code>. Though this behavior is quirky and differs from browser to browser, especially in Safari on iOs 13.4 and newer.</p>
+	<p>Use <code>exifr.rotation()</code> if you want to manipulate the image and avoid afore mentioned problems.</p>
+	<p>If <code>canvas</code> property is <code>true</code>, you need to rotate the image yourself in <code>&lt;canvas&gt;</code> using <code>ctx.rotate(...)</code>.</p>
+	<p>If <code>css</code> property is <code>true</code>, you need to rotate the image yourself with CSS using <code>transform:rotate(...)</code>.</p>
 
 	<table></table>
 
@@ -41,21 +57,15 @@
 			return document.createElement(name)
 		}
 
-		function createRow(name, array) {
+		function createRow(name, subtitle, array) {
 			let tr = createElement('tr')
 			let head = createElement('td')
-			head.innerHTML = name
+			head.innerHTML = `<p class="name">${name}</p>`
+			if (subtitle) head.innerHTML += `<p class="subtitle">${subtitle}</p>`
 			tr.append(head)
 			for (let item of array) {
 				let td = createElement('td')
-				if (item.toString() == '[object Object]') {
-					td.style.textAlign = 'left';
-					td.style.whiteSpace = 'pre-wrap';
-					td.style.fontSize = '10px';
-					td.append(JSON.stringify(item, null, 2))
-				} else {
-					td.append(item)
-				}
+				td.append(item)
 				tr.append(td)
 			}
 			table.append(tr)
@@ -67,7 +77,7 @@
 			return img
 		}
 
-		let samples = [
+		let urls = [
 			'../test/fixtures/orientation/f1t.jpg',
 			'../test/fixtures/orientation/f2t.jpg',
 			'../test/fixtures/orientation/f3t.jpg',
@@ -78,41 +88,70 @@
 			'../test/fixtures/orientation/f8t.jpg',
 		]
 
+		let rawTransforms = [
+			{deg: 0, scaleX: 1, scaleY: 1},
+			{deg: 0, scaleX: -1, scaleY: 1},
+			{deg: 0, scaleX: -1, scaleY: -1},
+			{deg: 0, scaleX: 1, scaleY: -1},
+			{deg: 90, scaleX: 1, scaleY: -1},
+			{deg: 90, scaleX: -1, scaleY: -1},
+			{deg: 90, scaleX: -1, scaleY: 1},
+			{deg: 90, scaleX: 1, scaleY: 1},
+		]
+
 
 		;(async function() {
-			let orientationsPromises = samples.map(exifr.orientation)
-			let rotationsPromises    = samples.map(exifr.rotation)
+			let orientationsPromises = urls.map(exifr.orientation)
+			let rotationsPromises    = urls.map(exifr.rotation)
 			let orientations = await Promise.all(orientationsPromises)
 			let rotations    = await Promise.all(rotationsPromises)
-			let images = samples.map(createImg)
+			let images = urls.map(createImg)
 			await Promise.all(images.map(img => new Promise(resolve => img.onload = resolve)))
+			let raw      = rawTransforms.map(rot => createRaw(urls[0], rot))
 			let rotated1 = images.map((img, i) => createRotatedCanvas(img, rotations[i]))
-			let rotated2 = samples.map((url, i) => createRotatedImg(url, rotations[i]))
-			createRow('orientation', orientations)
-			createRow('original\n(may be autorotated in modern browsers)', images)
-			createRow('rotated\n(canvas)', rotated1)
-			createRow('rotated\n(css transform)', rotated2)
-			createRow('rotation', rotations)
+			let rotated2 = urls.map((url, i) => createRotatedImg(url, rotations[i]))
+			createRow('orientation', 'standardized EXIF number', orientations)
+			createRow('raw image', 'The way it looks in basic photo viewers or old browsers.', raw)
+			createRow('unmodified &lt;img&gt;', 'The way browser renders it. May be autorotated in modern browsers.', images)
+			createRow('rotated &lt;canvas&gt;', 'Using <code>ctx.rotate()</code> with <code>ctx.drawImage()</code> if <code>rotation.canvas===true</code>', rotated1)
+			createRow('rotated with css', 'Using property <code>transform:rotate()</code> if <code>rotation.css===true</code>', rotated2)
+			createRow('exifr.rotation()', 'Output of exifr describing if and how rotation should be handled depending on current browser.', rotations.map(rot => {
+				rot = JSON.parse(JSON.stringify(rot))
+				rot.rad = Number(rot.rad.toFixed(3))
+				let json = Object.entries(rot).map(([key, val]) => `${key}: ${val}`).join('\n')
+				let div = document.createElement('div')
+				div.style.textAlign = 'left'
+				div.style.whiteSpace = 'pre-wrap'
+				div.style.fontSize = '10px'
+				div.innerHTML = json
+				return div
+			}))
 		})();
 
-		function createRotatedCanvas(img, manipulation) {
-			var w = img.width
-			var h = img.height
+		function createRaw(url, rot) {
+			let img = createImg(url)
+			img.style.transform = `rotate(${rot.deg}deg) scale(${rot.scaleX}, ${rot.scaleY})`
+			return img
+		}
+
+		function createRotatedCanvas(img, rot) {
+			let w = img.width
+			let h = img.height
 			// only swap width and height if the image is rotated 90 or 270 degrees
 			// and if the browser doesn't do autorotation already
-			if (manipulation.canvas && manipulation.dimensionSwapped) {
-				var w = img.height
-				var h = img.width
+			if (rot.canvas && rot.dimensionSwapped) {
+				w = img.height
+				h = img.width
 			}
-			var canvas = document.createElement('canvas')
+			let canvas = document.createElement('canvas')
 			canvas.width = w
 			canvas.height = h
-			var ctx = canvas.getContext('2d')
+			let ctx = canvas.getContext('2d')
 			// only rotate the image using canvas if browser doesn't do autorotation already
-			if (manipulation.canvas) {
+			if (rot.canvas) {
 				ctx.translate(w / 2, h / 2)
-				ctx.rotate(manipulation.rad)
-				ctx.scale(manipulation.scaleX, manipulation.scaleY)
+				ctx.rotate(rot.rad)
+				ctx.scale(rot.scaleX, rot.scaleY)
 				ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height)
 			} else {
 				ctx.drawImage(img, 0, 0)
@@ -120,11 +159,10 @@
 			return canvas
 		}
 
-		function createRotatedImg(url, manipulation) {
+		function createRotatedImg(url, rot) {
 			let img = createImg(url)
 			// only rotate the image using css if browser doesn't do autorotation already
-			if (manipulation.css)
-				img.style.transform = `rotate(${manipulation.deg}deg) scale(${manipulation.scaleX}, ${manipulation.scaleY})`
+			if (rot.css) img.style.transform = `rotate(${rot.deg}deg) scale(${rot.scaleX}, ${rot.scaleY})`
 			return img
 		}
 
