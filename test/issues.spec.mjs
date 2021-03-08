@@ -83,6 +83,12 @@ describe('issues (special cases)', () => {
 		assert.equal(output.ExifImageHeight, 78)
 	})
 
+	it(`#44 - ICC RangeError`, async () => {
+		let input = await getFile('issue-exifr-44.jpeg')
+		var output = await exifr.parse(input, {icc: true})
+		assert.equal(output.ProfileCreator, 'Monaco Systems')
+	})
+
 	it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
 		var output = await exifr.parse(await getFile('issue-fast-exif-2.jpg'), true)
 		assertOutputWithoutErrors(output)

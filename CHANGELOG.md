@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [6.1.1]
+
+### Fixed
+
+- Encoding in IPTC (issue 47)
+
 ## [6.1.0]
 
 ### Fixed
@@ -236,7 +242,9 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.0.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.1.1...HEAD
+[6.1.1]: https://github.com/MikeKovarik/exifr/compare/v6.1.0...v6.1.1
+[6.1.0]: https://github.com/MikeKovarik/exifr/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/MikeKovarik/exifr/compare/v5.0.6...v6.0.0
 [5.0.6]: https://github.com/MikeKovarik/exifr/compare/v5.0.5...v5.0.6
 [5.0.5]: https://github.com/MikeKovarik/exifr/compare/v5.0.4...v5.0.5

@@ -7,11 +7,18 @@ import * as exifr from '../src/bundles/full.mjs'
 
 describe('IPTC Segment', () => {
 
-	it(`APP13 Without IPTC should be discarded and not throw error`, async () => {
+	it(`#41 - APP13 Without IPTC should be discarded and not throw error`, async () => {
 		let options = {iptc: true, xmp: false}
 		let buffer = await getFile(`issue-exifr-41-Error_Segment_Unreachable.jpg`)
 		let output = await exifr.parse(buffer, options)
 		assertOutputWithoutErrors(output)
+	})
+
+	it(`#47 - Handles special unicode characters`, async () => {
+		let input = await getFile('issue-exifr-47.jpeg')
+		var output = await exifr.parse(input, true)
+		assert.equal(output.BylineTitle, '[Lerakják a síneket a Hatvani utcában]')
+		assert.equal(output.Keywords.slice(0, 154), 'Budapest. 5. kerület. Kossuth Lajos utca ; Budapest. 5. kerület. Szabad sajtó út 5-6. ; Budapest. 5. kerület. Március 15. tér. Belvárosi Fõplébániatemplom')
 	})
 
 	describe('options.iptc enable/disable', () => {
@@ -96,9 +103,9 @@ describe('IPTC Segment', () => {
 		Country: 'India',
 		OriginalTransmissionReference: 'Sacred India',
 		Headline: 'Southern Himalayan Mountains.',
-		Credit: '�1985 David Riecks: www.riecks.c',
+		Credit: '©1985 David Riecks: www.riecks.c',
 		Source: 'David Riecks Photography',
-		CopyrightNotice: '�1985 David Riecks, All Rights Reserved',
+		CopyrightNotice: '©1985 David Riecks, All Rights Reserved',
 	})
 
 	testImage('iptc', 'iptc-staff-photographer-example.jpg', {
@@ -115,7 +122,7 @@ describe('IPTC Segment', () => {
 		Headline: 'Farmer planting onions',
 		Credit: 'Big Newspaper',
 		Source: 'John Doe / Big Newspaper',
-		CopyrightNotice: '�2010 Big Newspaper, all rights reserved',
+		CopyrightNotice: '©2010 Big Newspaper, all rights reserved',
 		Writer: 'Susan Brown'
 	})
 

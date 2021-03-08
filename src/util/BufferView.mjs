@@ -2,6 +2,8 @@ import {throwError} from './helpers.mjs'
 import {hasBuffer} from '../util/platform.mjs'
 
 
+const arrayToCharCode = arr => String.fromCharCode.apply(null, arr)
+
 const utf8decoder = typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8') : undefined
 
 export function uint8ArrayToUtf8String(uint8array) {
@@ -10,7 +12,7 @@ export function uint8ArrayToUtf8String(uint8array) {
 	else if (hasBuffer)
 		return Buffer.from(uint8array).toString('utf8')
 	else
-		return decodeURIComponent(escape(String.fromCharCode.apply(null, uint8array)))
+		return decodeURIComponent(escape(arrayToCharCode(uint8array)))
 }
 
 // NOTE: EXIF strings are ASCII encoded, but since ASCII is subset of UTF-8
@@ -112,13 +114,18 @@ export class BufferView {
 		return uint8ArrayToUtf8String(arr)
 	}
 
+	getLatin1String(offset = 0, length = this.byteLength) {
+		let arr = this.getUint8Array(offset, length)
+		return arrayToCharCode(arr)
+	}
+
 	// TODO: refactor
 	getUnicodeString(offset = 0, length = this.byteLength) {
 		// cannot use Uint16Array because it uses the other fucking endian order.
 		const chars = []
 		for (let i = 0; i < length && offset + i < this.byteLength; i += 2)
 			chars.push(this.getUint16(offset + i))
-		return chars.map(charCode => String.fromCharCode(charCode)).join('')
+		return arrayToCharCode(chars)
 	}
 
 	getInt8(offset)                  {return this.dataView.getInt8(offset)}
