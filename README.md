@@ -348,7 +348,8 @@ You can instantiate `Exif` yourself to parse metadata and extract thumbnail effi
 
 ```js
 let exr = new Exifr(options)
-let output = await exr.read(file)
+await exr.read(file)
+let output = await exr.parse()
 let buffer = await exr.extractThumbnail()
 await exr.file?.close?.()
 ```
