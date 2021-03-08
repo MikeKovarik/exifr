@@ -341,16 +341,16 @@ Exports the thumbnail wrapped in [Object URL](https://developer.mozilla.org/en-U
 
 Aforementioned functions are wrappers that internally:
 1) instantiate `new Exifr(options)` class
-2) call `.read(file)` to read the file
-3) call `.parse()` or `.extractThumbnail()`
+2) call `.read(file)` to load the file
+3) call `.parse()` or `.extractThumbnail()` to get an output
 
-You can instantiate `Exif` yourself to parse metadata and extract thumbnail efficiently at the same time. In Node.js it's also necessary to close the file with `.file.close()` if it's read in chunked mode.
+You can instantiate `Exif` yourself to parse metadata and extract thumbnail efficiently at the same time. In Node.js it's also necessary to close the file with `.file.close()` if it's read in the chunked mode.
 
 ```js
 let exr = new Exifr(options)
 let output = await exr.read(file)
 let buffer = await exr.extractThumbnail()
-if (exr.file.chunked) await exr.file.close()
+await exr.file?.close?.()
 ```
 
 ### `file` argument
