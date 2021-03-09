@@ -9,7 +9,9 @@ import {fileReaders} from './plugins.mjs'
 const INVALID_INPUT = 'Invalid input argument'
 
 export function read(arg, options) {
-	if (typeof arg === 'string')
+	if (options.externalReader && (typeof options.externalReader === 'function'))
+		return callReaderClass(arg, options, 'external')
+	else if (typeof arg === 'string')
 		return readString(arg, options)
 	else if (platform.browser && !platform.worker && arg instanceof HTMLImageElement)
 		return readString(arg.src, options)

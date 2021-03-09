@@ -44,6 +44,7 @@ interface Options extends FormatOptions {
 	firstChunkSize?: number,
 	chunkSize?: number,
 	chunkLimit?: number,
+	externalReader?: function,
 }
 
 interface IRotation {

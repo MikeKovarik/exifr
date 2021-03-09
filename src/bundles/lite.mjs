@@ -6,6 +6,7 @@ export default mini
 // File Readers
 import '../file-readers/UrlFetcher.mjs'
 import '../file-readers/BlobReader.mjs'
+import '../file-readers/ExternalReader.mjs'
 
 // File Parser
 import '../file-parsers/jpeg.mjs'

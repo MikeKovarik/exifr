@@ -625,9 +625,16 @@ Default: `5`
 
 Max amount of subsequent chunks allowed to read in which exifr searches for data segments and blocks. I.e. failsafe that prevents from reading the whole file if it does not contain all of the segments or blocks requested in `options`.
 
-This limit is bypassed if multi-segment segments ocurs in the file and if [`options.multiSegment`](#optionsmultisegment) allows reading all of them.
+This limit is bypassed if multi-segment segments occurs in the file and if [`options.multiSegment`](#optionsmultisegment) allows reading all of them.
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
+
+#### `options.externalReader`
+Type: `function`
+<br>
+Default: `undefined`
+
+Async function that receives three parameters - `input`, `offset`, and `length` – and returns an `ArrayBuffer` containing the requested chunk from the input source. If `offset` is missing, `undefined`, or `null`, the function should return the whole file.
 
 ### Output format
 
