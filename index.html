@@ -92,8 +92,11 @@
 				<div>&nbsp;&nbsp;xmp:       <input type="checkbox" checked.bind="options.xmp" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;icc:       <input type="checkbox" checked.bind="options.icc" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;iptc:      <input type="checkbox" checked.bind="options.iptc" change.trigger="parseFile()">,</div>
+				<div muted>&nbsp;&nbsp;// <i>JPEG only</i></div>
 				<div>&nbsp;&nbsp;jfif:      <input type="checkbox" checked.bind="options.jfif" change.trigger="parseFile()">,</div>
-				<div muted>&nbsp;&nbsp;// <i>output style</i></div>
+				<div muted>&nbsp;&nbsp;// <i>PNG only</i></div>
+				<div>&nbsp;&nbsp;ihdr:      <input type="checkbox" checked.bind="options.ihdr" change.trigger="parseFile()">,</div>
+				<div muted>&nbsp;&nbsp;// <i>output styles</i></div>
 				<div title="combine all segments and blocks into single output object">&nbsp;&nbsp;mergeOutput: <input type="checkbox" checked.bind="options.mergeOutput" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;sanitize:        <input type="checkbox" checked.bind="options.sanitize" change.trigger="parseFile()">,</div>
 				<div>&nbsp;&nbsp;reviveValues:    <input type="checkbox" checked.bind="options.reviveValues" change.trigger="parseFile()">,</div>
@@ -119,17 +122,22 @@
 			</span>
 		</div>
 
-		<segment-box options.bind="options" output.bind="output" key="exif"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="exif" title="EXIF"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="ifd1" title="Thumbnail (IFD1)" alias="ifd1"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="ifd0" title="Image (IFD0)" alias="ifd0"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="gps"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="gps"  title="GPS"></segment-box>
+		<!--
 		<segment-box options.bind="options" output.bind="output" key="interop"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="iptc"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="xmp"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="icc"></segment-box>
-		<segment-box options.bind="options" output.bind="output" key="jfif"></segment-box>
+		-->
+		<segment-box options.bind="options" output.bind="output" key="iptc" title="IPTC"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="xmp"  title="XMP"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="icc"  title="ICC"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="jfif" title="JFIF (JPEG only)"></segment-box>
+		<segment-box options.bind="options" output.bind="output" key="ihdr" title="IHDR (PNG only)"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="makerNote" display="buffer"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="userComment" display="buffer"></segment-box>
+
+		<!-- TODO: add IHDR -->
 
 		<div id="raw" class="wrap">
 			<template if.bind="rawOutput.errors && rawOutput.errors.length > 0">

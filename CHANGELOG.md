@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [6.2.0]
+
+### Added
+
+- **EXIF** segment (and thus GPS) extraction from **PNG files**. Only parses the modern `eXIf` chunks and not `zTXt`
+- IIQ file support
+
+### Fixed
+
+- `Invalid input argument for BufferView` bug when parsing XMP from TIFF file if the XMP IFD0 tag was of type string (2) instead of byte array (1)
+
 ## [6.1.1]
 
 ### Fixed
@@ -242,7 +253,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.1.1...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.2.0...HEAD
+[6.2.0]: https://github.com/MikeKovarik/exifr/compare/v6.1.1...v6.2.0
 [6.1.1]: https://github.com/MikeKovarik/exifr/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/MikeKovarik/exifr/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/MikeKovarik/exifr/compare/v5.0.6...v6.0.0

@@ -38,7 +38,7 @@ Works everywhere, parses anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
-* 📷 Files: **.jpg**, **.tif**, **.heic**, **.png**
+* 📷 Files: **.jpg**, **.tif**, **.heic**, **.png**, **.iiq**
 * 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, JFIF, IHDR
 * 📑 **Reads only first few bytes**
 * 🔬 **Skips parsing tags you don't need**
@@ -73,15 +73,15 @@ You don't need to read the whole file to tell if there's EXIF in it. And you don
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
-| Segments | JPEG | TIFF | HEIC | PNG  |
+| Segments | JPEG | TIFF / IIQ | HEIC | PNG  |
 |-|-|-|-|-|
-| EXIF/TIFF | ✔ | ✔ | ✔ | ❌ |
+| EXIF/TIFF, GPS | ✔ | ✔ | ✔ | ✔ |
 | XMP | ✔ | ✔ | ❌ | ✔ |
-| IPTC | ✔ | ✔ | ❌ | ❌ |
+| IPTC | ✔ | ✔ | ❌ | 🟡 *(If it's a part of IHDR)* |
 | ICC | ✔ | ✔ | ✔ | ✔ *(Node.js only, requires zlib)* |
 | Thumbnail | ✔ | ❌ | ❌ | ❌ |
-| JFIF *(JPEG header)* | ✔ | ❌ | ❌ | ❌ |
-| IHDR *(PNG header)* | ❌ | ❌ | ❌ | ✔ |
+| JFIF *(JPEG header)* | ✔ | ⚫ | ⚫ | ⚫ |
+| IHDR *(PNG header)* | ⚫ | ⚫ | ⚫ | ✔ |
 
 
 ## Usage
@@ -153,7 +153,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
 | chunked<br>file readers | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
-| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif`<br>`*.png` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
+| file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif`/`*.iiq`<br>`*.png` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
 | segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF<br>IHDR | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC<br>JFIF<br>IHDR | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
