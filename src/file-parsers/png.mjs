@@ -21,7 +21,8 @@ const IHDR = 'ihdr'
 const ICCP = 'iccp'
 const TEXT = 'text'
 const ITXT = 'itxt'
-const pngMetaChunks = [IHDR, ICCP, TEXT, ITXT]
+const EXIF = 'exif' // eXIf
+const pngMetaChunks = [IHDR, ICCP, TEXT, ITXT, EXIF]
 
 export class PngFileParser extends FileParserBase {
 
@@ -39,6 +40,7 @@ export class PngFileParser extends FileParserBase {
 		await this.readSegments(this.metaChunks)
 		this.findIhdr()
 		this.parseTextChunks()
+		await this.findExif().catch(this.catchError)
 		await this.findXmp().catch(this.catchError)
 		await this.findIcc().catch(this.catchError)
 	}
@@ -92,6 +94,24 @@ export class PngFileParser extends FileParserBase {
 			this.createParser(IHDR, seg.chunk)
 	}
 
+	async findExif() {
+		let seg = this.metaChunks.find(info => info.type === 'exif')
+		if (!seg) return
+		this.injectSegment('tiff', seg.chunk)
+	}
+
+	// http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.iTXt
+	// iTXt chunk header is slightly complicated. It contains multiple null-terminator-separated info.
+	// The XMP data is present after third null-terminator.
+	async findXmp() {
+		let itxtChunks = this.metaChunks.filter(info => info.type === ITXT)
+		for (let seg of itxtChunks) {
+			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
+			if (prefix === PNG_XMP_PREFIX)
+				this.injectSegment('xmp', seg.chunk)
+		}
+	}
+
 	async findIcc() {
 		let seg = this.metaChunks.find(info => info.type === ICCP)
 		if (!seg) return
@@ -111,18 +131,6 @@ export class PngFileParser extends FileParserBase {
 			let dataChunk = chunk.getUint8Array(iccpHeaderLength)
 			dataChunk = zlib.inflateSync(dataChunk)
 			this.injectSegment('icc', dataChunk)
-		}
-	}
-
-	// http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html#C.iTXt
-	// iTXt chunk header is slightly complicated. It contains multiple null-terminator-separated info.
-	// The XMP data is present after third null-terminator.
-	async findXmp() {
-		let itxtChunks = this.metaChunks.filter(info => info.type === ITXT)
-		for (let seg of itxtChunks) {
-			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
-			if (prefix === PNG_XMP_PREFIX)
-				this.injectSegment('xmp', seg.chunk)
 		}
 	}
 
