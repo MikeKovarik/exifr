@@ -7,7 +7,7 @@ import {testSegment, testMergeSegment, testImage, testImageFull} from './test-ut
 describe('PNG File format', () => {
 
 
-	describe(`IHDR segment`, () => {
+	describe('IHDR Segment (IHDR Chunk)', () => {
 
 		it(`IHDR should be parsed with default options`, async () => {
 			let options = undefined
@@ -25,10 +25,6 @@ describe('PNG File format', () => {
 			// ICC from PNG is currently available only on Nodejs
 			if (isNode) assert.isNotEmpty(output.errors)
 		})
-
-	})
-
-	describe('IHDR Segment', () => {
 
 		describe('options.ihdr enable/disable', () => {
 			testSegment({
@@ -106,6 +102,46 @@ describe('PNG File format', () => {
 					ProfileConnectionSpace: 'XYZ',
 				})
 			}
+
+		})
+
+	})
+
+	describe('TIFF Segment (eXIf Chunk)', () => {
+
+		describe('IFD0 Block', () => {
+
+			describe('options.ifd0 enable/disable', () => {
+				testSegment({
+					key: 'ifd0',
+					fileWith: 'png/png_with_exif_and_gps.png',
+					definedByDefault: true,
+				})
+			})
+
+			testMergeSegment({
+				key: 'ifd0',
+				file: 'png/png_with_exif_and_gps.png',
+				properties: ['Make', 'Model', 'Orientation']
+			})
+
+		})
+
+		describe('GPS Block', () => {
+
+			describe('options.gps enable/disable', () => {
+				testSegment({
+					key: 'gps',
+					fileWith: 'png/png_with_exif_and_gps.png',
+					definedByDefault: true,
+				})
+			})
+
+			testMergeSegment({
+				key: 'gps',
+				file: 'png/png_with_exif_and_gps.png',
+				properties: ['GPSLatitude', 'GPSLongitude', 'GPSAltitude']
+			})
 
 		})
 
