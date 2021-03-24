@@ -8,9 +8,16 @@ import {throwError} from './util/helpers.mjs'
 export class Exifr {
 
 	parsers = {}
+	output = {}
+	errors = []
+	pushToErrors = err => this.errors.push(err)
 
 	constructor(options) {
 		this.options = Options.useCached(options)
+	}
+
+	async read(arg) {
+		this.file = await read(arg, this.options)
 	}
 
 	setup() {
@@ -27,24 +34,21 @@ export class Exifr {
 				return file[type] = true
 			}
 		}
+		// setup is called after read, so we need to close potentially open fs
+		if (this.file.close) this.file.close()
 		throwError(`Unknown file format`)
 	}
 
-	async read(arg) {
-		this.file = await read(arg, this.options)
-	}
-
 	async parse() {
+		let {output, errors} = this
 		this.setup()
-		let output = {}
-		let errors = []
-		// We're try catching here and not inside the doParse() because we shouldn't parse
+		// We're try catching here and not inside the executeParsers() because we shouldn't parse
 		// segments if file parser throws.
 		if (this.options.silentErrors) {
-			await this.doParse(output, errors).catch(err => errors.push(err))
+			await this.executeParsers().catch(this.pushToErrors)
 			errors.push(...this.fileParser.errors)
 		} else {
-			await this.doParse(output, errors)
+			await this.executeParsers()
 		}
 		if (this.file.close) this.file.close()
 		if (this.options.silentErrors && errors.length > 0) output.errors = errors
@@ -61,7 +65,8 @@ export class Exifr {
 	//           tldr: file crashes prematurely on IPTC, no other segments are read.
 	// EXAMPLE2: PNG file parser does a lot of parsing inside its .parse()
 	//           If it crashed, we'd also prematurely close before extracting any data.
-	async doParse(output, errors) {
+	async executeParsers() {
+		let {output} = this
 		await this.fileParser.parse()
 		let promises = Object.values(this.parsers).map(async parser => {
 			let parserOutput = await parser.parse()
@@ -69,8 +74,7 @@ export class Exifr {
 			parser.assignToOutput(output, parserOutput)
 		})
 		if (this.options.silentErrors) {
-			const pushToErrors = err => errors.push(err)
-			promises = promises.map(promise => promise.catch(pushToErrors))
+			promises = promises.map(promise => promise.catch(this.pushToErrors))
 		}
 		await Promise.all(promises)
 	}

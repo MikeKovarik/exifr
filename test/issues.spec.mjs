@@ -1,5 +1,5 @@
 import {assert, assertOutputWithoutErrors} from './test-util-core.mjs'
-import {getFile, getPath} from './test-util-core.mjs'
+import {getFile, getPath, isNode} from './test-util-core.mjs'
 import * as exifr from '../src/bundles/full.mjs'
 
 
@@ -87,6 +87,18 @@ describe('issues (special cases)', () => {
 		let input = await getFile('issue-exifr-44.jpeg')
 		var output = await exifr.parse(input, {icc: true})
 		assert.equal(output.ProfileCreator, 'Monaco Systems')
+	})
+
+	if (isNode) it(`#46 - FsReader closes FH if reading fails`, async () => {
+		let exr = new exifr.Exifr
+		try {
+			let input = getPath('BonTonARTSTORplusIPTC.xmp')
+			await exr.read(input)
+			await exr.parse()
+		} catch(err) {}
+		assert.isUndefined(exr.file.fh, 'Exifr threw error but did not close fd')
+		console.log(exr.file.fh)
+		// throws Unknown file format
 	})
 
 	it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {

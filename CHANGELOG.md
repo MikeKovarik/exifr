@@ -12,6 +12,7 @@
 ### Fixed
 
 - `Invalid input argument for BufferView` bug when parsing XMP from TIFF file if the XMP IFD0 tag was of type string (2) instead of byte array (1)
+- `Closing file descriptor N on garbage collection` when reading unknown format.
 
 ## [6.1.1]
 
