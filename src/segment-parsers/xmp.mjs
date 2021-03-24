@@ -1,6 +1,7 @@
 import {AppSegmentParserBase} from '../parser.mjs'
 import {segmentParsers} from '../plugins.mjs'
 import {undefinedIfEmpty} from '../util/helpers.mjs'
+import {BufferView} from '../util/BufferView.mjs'
 
 
 const XMP_CORE_HEADER     = 'http://ns.adobe.com/'
@@ -57,10 +58,12 @@ export default class XmpParser extends AppSegmentParserBase {
 		return allSegments.map(seg => seg.chunk.getString()).join('')
 	}
 
+	// WARNING: XMP as IFD0 tag in TIFF can be either Uint8Array or string.
+	// We need to be ready to accept any input data and turn it into string.
 	normalizeInput(input) {
 		return typeof input === 'string'
 			? input
-			: input.getString && input.getString()
+			: BufferView.from(input).getString()
 	}
 
 	// warning: The content may or may not be wrapped into <?xpacket.
