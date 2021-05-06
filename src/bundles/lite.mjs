@@ -9,7 +9,7 @@ import '../file-readers/BlobReader.mjs'
 
 // File Parser
 import '../file-parsers/jpeg.mjs'
-import '../file-parsers/heic.mjs'
+import '../file-parsers/heif.mjs'
 
 // TIFF Parser
 import '../segment-parsers/tiff-exif.mjs'

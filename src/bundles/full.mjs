@@ -9,7 +9,7 @@ import '../file-readers/Base64Reader.mjs'
 
 // File Parsers
 import '../file-parsers/tiff.mjs'
-import '../file-parsers/heic.mjs'
+import '../file-parsers/heif.mjs'
 import '../file-parsers/png.mjs'
 
 // TIFF - Additional tags

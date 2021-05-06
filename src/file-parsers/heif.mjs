@@ -55,9 +55,7 @@ export class IsoBmffParser extends FileParserBase {
 
 }
 
-export class HeicFileParser extends IsoBmffParser {
-
-	static type = 'heic'
+export class HeifFileParser extends IsoBmffParser {
 
 	// NOTE: most parsers check if bytes 4-8 are 'ftyp' and then if 8-12 is one of heic/heix/hevc/hevx/heim/heis/hevm/hevs/mif1/msf1
 	//       but bytes 20-24 are actually always 'heic' for all of these formats
@@ -73,7 +71,7 @@ export class HeicFileParser extends IsoBmffParser {
 			compatibleBrands.push(file.getString(offset, 4))
 			offset += 4
 		}
-		return compatibleBrands.includes('heic')
+		return compatibleBrands.includes(this.type)
 	}
 
 	async parse() {
@@ -207,4 +205,13 @@ export class HeicFileParser extends IsoBmffParser {
 
 }
 
+export class HeicFileParser extends HeifFileParser {
+	static type = 'heic'
+}
+
+export class AvifFileParser extends HeifFileParser {
+	static type = 'avif'
+}
+
 fileParsers.set('heic', HeicFileParser)
+fileParsers.set('avif', AvifFileParser)
