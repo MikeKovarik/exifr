@@ -300,18 +300,29 @@ function isUndefinable(value) {
 		|| value.trim() === ''
 }
 
-const nestedLiRegex = /(<|\/)(rdf:li|rdf:Seq|rdf:Bag|rdf:Alt)/g
+const identifiableTags = [
+	// Basic lists and items
+	'rdf:li', 'rdf:Seq', 'rdf:Bag', 'rdf:Alt',
+	// This is special case when list items can immediately contain nested rdf:Description
+	// e.g. <rdf:Bag><rdf:li><rdf:Description mwg-rs:Name="additional data"><... actual inner tag ...></rdf:Description></rdf:li></rdf:Bag>
+	'rdf:Description'
+]
+const nestedLiRegex = new RegExp(`(<|\\/)(${identifiableTags.join('|')})`, 'g')
 export function idNestedTags(xmpString) {
-	let counts = {
-		'rdf:li': 1,
-		'rdf:Seq': 1,
-		'rdf:Bag': 1,
-		'rdf:Alt': 1,
+	let stacks = {}
+	let counts = {}
+	for (let tag of identifiableTags) {
+		stacks[tag] = []
+		counts[tag] = 0
 	}
 	return xmpString.replace(nestedLiRegex, (match, prevChar, tag) => {
-		if (prevChar === '<')
-			return `${match}#${counts[tag]++}`
-		else
-			return `${match}#${--counts[tag]}`
+		if (prevChar === '<') {
+			let id = ++counts[tag]
+			stacks[tag].push(id)
+			return `${match}#${id}`
+		} else {
+			let id = stacks[tag].pop()
+			return `${match}#${id}`
+		}
 	})
 }
