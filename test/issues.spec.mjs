@@ -101,6 +101,15 @@ describe('issues (special cases)', () => {
 		// throws Unknown file format
 	})
 
+	it(`#59 - Region (incorrect XMP parsing)`, async () => {
+		let input = await getFile('issue-exifr-59.jpg')
+		var output = await exifr.parse(input, {xmp: true})
+		assert.isObject(output.Regions)
+		assert.isObject(output.Regions.RegionList)
+		assert.equal(output.Regions.RegionList.Name, 'Alvin the Squirrel')
+		assert.equal(output.Regions.RegionList.Area.x, 0.41794)
+	})
+
 	it(`fast-exif #2 - should not skip exif if 0xFF byte precedes marker`, async () => {
 		var output = await exifr.parse(await getFile('issue-fast-exif-2.jpg'), true)
 		assertOutputWithoutErrors(output)
