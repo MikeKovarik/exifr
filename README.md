@@ -38,7 +38,7 @@ Works everywhere, parses anything you throw at it.
 
 * 🏎️ **Fastest EXIF lib**: +-1ms per file
 * 🗃️ **Any input**: buffers, url, &lt;img&gt; tag, and more
-* 📷 Files: **.jpg**, **.tif**, **.heic**, **.png**, **.iiq**
+* 📷 Files: **.jpg**, **.tif**, **.png**, **.heic**, .avif, .iiq
 * 🔎 Segments: **TIFF** (EXIF, GPS, etc...), **XMP**, **ICC**, **IPTC**, JFIF, IHDR
 * 📑 **Reads only first few bytes**
 * 🔬 **Skips parsing tags you don't need**
@@ -73,7 +73,7 @@ You don't need to read the whole file to tell if there's EXIF in it. And you don
 
 Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 
-| Segments | JPEG | TIFF / IIQ | HEIC | PNG  |
+| Segments | JPEG | TIFF / IIQ | HEIF (HEIC, AVIF) | PNG  |
 |-|-|-|-|-|
 | EXIF/TIFF, GPS | ✔ | ✔ | ✔ | ✔ |
 | XMP | ✔ | ✔ | ❌ | ✔ |
