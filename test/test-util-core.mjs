@@ -45,6 +45,11 @@ export function getPath(filePath) {
 		return testFolderPath + '/' + fileInFixturesPath
 }
 
+export function getUrl(filePath) {
+	if (filePath.startsWith('http')) return filePath
+	return 'http://localhost/test/' + ensurePathInFixtures(filePath)
+}
+
 let cachedFiles = {}
 
 export async function getFile(urlOrPath) {

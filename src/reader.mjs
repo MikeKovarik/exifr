@@ -2,6 +2,7 @@ import * as platform from './util/platform.mjs'
 import {BufferView} from './util/BufferView.mjs'
 import {throwError} from './util/helpers.mjs'
 import {fileReaders} from './plugins.mjs'
+import _fetch from './util/fetch-polyfill.mjs'
 
 
 // TODO: - API for including 3rd party XML parser
@@ -22,13 +23,13 @@ export function read(arg, options) {
 }
 
 function readString(arg, options) {
-	// IMPORTANT NOTE: Keep node before browser platform check due to electron/nwjs
-	//                 where node's fs should take priority over fetch and file:///
 	if (isBase64Url(arg))
 		return callReaderClass(arg, options, 'base64')
-	else if (platform.node)
+	else if (platform.node && arg.includes('://')) // fs.read takes precedence over fetch but node can now fetch as well. This needs to be before fs.
+		return callReader(arg, options, 'url', fetchUrlAsArrayBuffer)
+	else if (platform.node) // Keep node before browser platform check due to electron/nwjs where node's fs should take priority over fetch and file:///
 		return callReaderClass(arg, options, 'fs')
-	else if (platform.browser)
+	else if (platform.browser) // All other string here are just urls and we can safely fetch them
 		return callReader(arg, options, 'url', fetchUrlAsArrayBuffer)
 	else
 		throwError(INVALID_INPUT)
@@ -57,18 +58,14 @@ async function callReaderFunction(input, readerFn) {
 
 // FALLBACK FULL-FILE READERS (when ChunkedReader and the classes aren't available)
 
-export async function fetchUrlAsArrayBuffer(url) {
-	return fetch(url).then(res => res.arrayBuffer())
-}
+export const fetchUrlAsArrayBuffer = url => _fetch(url).then(res => res.arrayBuffer())
 
-export async function readBlobAsArrayBuffer(blob) {
-	return new Promise((resolve, reject) => {
-		let reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
-		reader.onerror = reject
-		reader.readAsArrayBuffer(blob)
-	})
-}
+export const readBlobAsArrayBuffer = blob => new Promise((resolve, reject) => {
+	let reader = new FileReader()
+	reader.onloadend = () => resolve(reader.result || new ArrayBuffer)
+	reader.onerror = reject
+	reader.readAsArrayBuffer(blob)
+})
 
 // HELPER FUNCTIONS
 

@@ -1,5 +1,5 @@
 import {assert} from './test-util-core.mjs'
-import {getPath, getFile, isNode, isBrowser} from './test-util-core.mjs'
+import {getPath, getUrl, getFile, isNode, isBrowser} from './test-util-core.mjs'
 import {FsReader} from '../src/file-readers/FsReader.mjs'
 import {BlobReader} from '../src/file-readers/BlobReader.mjs'
 import {UrlFetcher} from '../src/file-readers/UrlFetcher.mjs'
@@ -46,7 +46,6 @@ describe('ChunkedReader', () => {
 			file1.input = await fileWrapper(file1.name)
 			file2.input = await fileWrapper(file2.name)
 		})
-
 
 		it(`reads initial chunk`, async () => {
 			let file = new ReaderClass(file1.input, {firstChunkSize})
@@ -252,7 +251,7 @@ describe('ChunkedReader', () => {
 					iptc: true // NEEDED! this bypasses onlyTiff optimizatin which cuts off reading more chunks
 				})
 				await exr.read(file2.input)
-				await exr.parse(file2.input)
+				await exr.parse()
 				assert.equal(exr.file.chunksRead, 5)
 				assert.equal(exr.file.size, file2.size)
 				await exr.file.close()
@@ -270,6 +269,10 @@ describe('ChunkedReader', () => {
 
 	isBrowser && describe('UrlFetcher', () => {
 		testReaderClass(getPath, UrlFetcher)
+	})
+	isNode && describe('UrlFetcher', function() {
+		this.timeout(10000)
+		testReaderClass(getUrl, UrlFetcher)
 	})
 
 	isBrowser && describe('BlobReader', () => {
