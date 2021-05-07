@@ -32,7 +32,7 @@
   "module": "./dist/full.esm.mjs",
   "types": "index.d.ts",
   "scripts": {
-    "test": "mocha test/**.spec.mjs --exclude test/bundle-mini.spec.mjs --exclude test/bundle-lite.spec.mjs --exclude test/bundle-full.spec.mjs",
+    "test": "mocha \"test/**/*.spec.mjs\" --recursive --exclude test/bundle-mini.spec.mjs --exclude test/bundle-lite.spec.mjs --exclude test/bundle-full.spec.mjs",
     "test-bundles": "mocha test/bundle-mini.spec.mjs && mocha test/bundle-lite.spec.mjs && mocha test/bundle-full.spec.mjs",
     "test-full": "mocha test/bundle-full.spec.mjs",
     "test-lite": "mocha test/bundle-lite.spec.mjs",
