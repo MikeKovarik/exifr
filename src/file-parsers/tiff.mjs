@@ -9,9 +9,9 @@ export class TiffFileParser extends FileParserBase {
 
 	static type = 'tiff'
 
-	static canHandle(file, marker) {
-		return marker === TIFF_LITTLE_ENDIAN
-			|| marker === TIFF_BIG_ENDIAN
+	static canHandle(file, firstTwoBytes) {
+		return firstTwoBytes === TIFF_LITTLE_ENDIAN
+			|| firstTwoBytes === TIFF_BIG_ENDIAN
 	}
 
 	extendOptions(options) {

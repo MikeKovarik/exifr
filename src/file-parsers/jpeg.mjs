@@ -63,8 +63,8 @@ export class JpegFileParser extends FileParserBase {
 
 	static type = 'jpeg'
 
-	static canHandle(file, marker) {
-		return marker === JPEG_SOI
+	static canHandle(file, firstTwoBytes) {
+		return firstTwoBytes === JPEG_SOI
 	}
 
 	appSegments = []

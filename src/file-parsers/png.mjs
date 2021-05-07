@@ -28,8 +28,8 @@ export class PngFileParser extends FileParserBase {
 
 	static type = 'png'
 
-	static canHandle(file, marker) {
-		return marker === 0x8950
+	static canHandle(file, firstTwoBytes) {
+		return firstTwoBytes === 0x8950
 			&& file.getUint32(0) === 0x89504e47
 			&& file.getUint32(4) === 0x0d0a1a0a
 	}

@@ -108,7 +108,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 npm install exifr
 ```
 
-Exifr comes in three prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, [build your own](#advanced) around modular core.
+Exifr comes in three prebuilt bundles. It's a good idea to start development with `full` and then scale down to `lite`, `mini`, or better yet, [build your own](#advanced-apis) around modular core.
 
 ```js
 // Modern Node.js can import CommonJS
@@ -158,7 +158,7 @@ Of course, you can use the `full` version in browser, or use any other build in 
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC<br>JFIF<br>IHDR | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
 | size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
-| file            | `full.umd.js`<br>`full.esm.js`<br>`full.esm.mjs`<br>`full.legacy.umd.js` | `lite.umd.js`<br>`lite.esm.js`<br>`lite.esm.mjs`<br>`lite.legacy.umd.js` | `mini.umd.js`<br>`mini.esm.js`<br>`mini.esm.mjs`<br>`mini.legacy.umd.js` | [Learn more](#advanced) |
+| file            | `full.esm.js`<br>`full.esm.mjs`<br>`full.umd.js`<br>`full.umd.cjs`<br>`full.legacy.umd.js` | `lite.esm.js`<br>`lite.esm.mjs`<br>`lite.umd.js`<br>`lite.umd.cjs`<br>`lite.legacy.umd.js` | `mini.esm.js`<br>`mini.esm.mjs`<br>`mini.umd.js`<br>`mini.umd.cjs`<br>`mini.legacy.umd.js` | [Learn more](#advanced) |
 </details>
 
 #### ESM, .js .mjs .cjs extensions, "main", "module", "type":"module"
@@ -770,7 +770,7 @@ The library's functionality is divided into four categories.
 
 * **(Chunked) File reader** reads different input data structures by chunks.
 <br> `BlobReader` (browser), `UrlFetcher` (browser), `FsReader` (Node.js), `Base64Reader`
-<br>See [`src/file-parsers/`](src/file-readers).
+<br>See [`src/file-readers/`](src/file-readers).
 <br>*NOTE: Everything can read everything out-of-the-box as a whole file. But file readers are needed to enable chunked mode.*
 * **File parser** looks for metadata in different file formats
 <br>`.jpg`, `.tiff`, `.heic`
@@ -976,7 +976,7 @@ For full changelog visit [`CHANGELOG.md`](CHANGELOG.md).
 
 ### Notable changes
 
-* **7.0.0** Breaking change in XMP parsing. *Only affects obscure cases with lists and nested `rdf:Description`, but breaking change nonetheless.*
+* **7.0.0** UrlFetcher now works in Node.js as well. Breaking change in XMP parsing. *Only affects obscure cases with lists and nested `rdf:Description`, but breaking change nonetheless.*
 * **6.3.0** AVIF support.
 * **6.0.0** & **6.2.0** PNG support.
 * **4.3.0** Package.json's `"main"` now points to UMD bundle for better compatibility.

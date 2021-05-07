@@ -71,7 +71,6 @@ export var fetch = theGlobal.fetch || function(url, options = {}) {
 				xhr.setRequestHeader(key, options.headers[key])
 		xhr.onload = () => {
 			resolve({
-				ok: xhr.status >= 200 && xhr.status < 300,
 				status: xhr.status,
 				arrayBuffer: () => Promise.resolve(xhr.response),
 			})

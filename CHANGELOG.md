@@ -4,6 +4,9 @@
 
 ## [7.0.0]
 
+### Added
+- UrlFetcher now works in Node.js too. It was previously only available to browser through `window.fetch()`.
+
 ### Fixed
 - Issue #59 regarding `mwg-rs:Regions`.
 - Problems with parsing absolute paths in Electron, NW.JS and other Node/browser hybrid environments. (*Node's `fs` now takes precedence over brower's `fetch` when parsing absolute path argument*)

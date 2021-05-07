@@ -91,6 +91,7 @@ export class BufferView {
 		return new Class(this, offset, arg.byteLength)
 	}
 
+	// Use this to get BufferView of specific subset of this BufferView.
 	subarray(offset, length) {
 		length = length || this._lengthToEnd(offset)
 		return new BufferView(this, offset, length)

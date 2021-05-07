@@ -6,6 +6,6 @@ export var node = !!(typeof global !== 'undefined' && typeof process !== 'undefi
 
 // Needed for webpack. It otherwise packs 'buffer' npm module with the code
 export let Buffer = g.Buffer
-// Needed for ESLint. It doesn't yet support this global.
+// Needed for ESLint. It doesn't yet support global BigInt.
 export let BigInt = g.BigInt
 export var hasBuffer = !!Buffer
