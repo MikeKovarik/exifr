@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [7.0.0]
+
+### Fixed
+- Issue #59 regarding `mwg-rs:Regions`.
+- Problems with parsing absolute paths in Electron, NW.JS and other Node/browser hybrid environments. (*Node's `fs` now takes precedence over brower's `fetch` when parsing absolute path argument*)
+
+### Breaking changes
+- Slight changes to XMP parsing logic. Only affects obscure cases with lists and nested `rdf:Description`. Won't affect most of the basic use cases.
+
 ## [6.3.0]
 
 ### Added
@@ -260,7 +269,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v6.3.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.0.0...HEAD
+[7.0.0]: https://github.com/MikeKovarik/exifr/compare/v6.3.0...v7.0.0
 [6.3.0]: https://github.com/MikeKovarik/exifr/compare/v6.2.0...v6.3.0
 [6.2.0]: https://github.com/MikeKovarik/exifr/compare/v6.1.1...v6.2.0
 [6.1.1]: https://github.com/MikeKovarik/exifr/compare/v6.1.0...v6.1.1

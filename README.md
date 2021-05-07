@@ -976,6 +976,8 @@ For full changelog visit [`CHANGELOG.md`](CHANGELOG.md).
 
 ### Notable changes
 
+* **7.0.0** Breaking change in XMP parsing. *Only affects obscure cases with lists and nested `rdf:Description`, but breaking change nonetheless.*
+* **6.3.0** AVIF support.
 * **6.0.0** & **6.2.0** PNG support.
 * **4.3.0** Package.json's `"main"` now points to UMD bundle for better compatibility.
 * **4.1.0** Started bundling shims and polyfills with `legacy` builds. Suppporting IE10.
