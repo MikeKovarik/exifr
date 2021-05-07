@@ -22,12 +22,14 @@ export function read(arg, options) {
 }
 
 function readString(arg, options) {
+	// IMPORTANT NOTE: Keep node before browser platform check due to electron/nwjs
+	//                 where node's fs should take priority over fetch and file:///
 	if (isBase64Url(arg))
 		return callReaderClass(arg, options, 'base64')
-	else if (platform.browser)
-		return callReader(arg, options, 'url', fetchUrlAsArrayBuffer)
 	else if (platform.node)
 		return callReaderClass(arg, options, 'fs')
+	else if (platform.browser)
+		return callReader(arg, options, 'url', fetchUrlAsArrayBuffer)
 	else
 		throwError(INVALID_INPUT)
 }
