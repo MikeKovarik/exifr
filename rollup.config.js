@@ -9,6 +9,15 @@ import * as polyfills from './src/polyfill/ie.mjs'
 import pkg from './package.json'
 
 
+let exifrDir = path.dirname(fileURLToPath(import.meta.url))
+function createRelativeImportPath(sourcePath, targetPath) {
+	let importPath = path
+		.relative(path.dirname(sourcePath), path.join(exifrDir, './src/', targetPath))
+		.replace(/\\/g, '/')
+	if (!importPath.startsWith('.')) importPath = './' + importPath
+	return importPath
+}
+
 function replaceBuiltinsWithIePolyfills() {
 	// list of things that needs to be translated
 	var translatables = [
@@ -23,24 +32,35 @@ function replaceBuiltinsWithIePolyfills() {
 		['Number.isNaN',       'isNaN'],
 	]
 	// keys of translatables and builtings (like fetch)
-	let polyfillKeys = Object.keys(polyfills)
-	let exifrDir = path.dirname(fileURLToPath(import.meta.url))
-	function createRelativeImportPath(sourcePath, targetPath) {
-		let importPath = path
-			.relative(path.dirname(sourcePath), path.join(exifrDir, './src/', targetPath))
-			.replace(/\\/g, '/')
-		if (!importPath.startsWith('.')) importPath = './' + importPath
-		return importPath
-	}
 	return {
 		async transform(code, filePath) {
 			if (!filePath.includes('exifr')) return null
+			// ignore all cross imported polyfill files to preventcircular dependency
 			if (filePath.endsWith('ie.mjs')) return null
+			if (filePath.endsWith('global.mjs')) return null
 			for (let [from, to] of translatables)
 				code = code.replace(new RegExp(from, 'g'), to)
+			let polyfillKeys = Object.keys(polyfills)
 			let polyfillPath = createRelativeImportPath(filePath, 'polyfill/ie.mjs')
 			let importLine = `import {${polyfillKeys.join(', ')}} from '${polyfillPath}'`
-			code = code.replace('/polyfill/fetch-node.mjs', '/polyfill/fetch-xhr.mjs')
+			return importLine + '\n' + code
+		}
+	}
+}
+
+function replaceFetchPolyfills() {
+	return {
+		async transform(code, filePath) {
+			if (!filePath.includes('exifr')) return null
+			// ignore all cross imported polyfill files to preventcircular dependency
+			if (filePath.endsWith('ie.mjs')) return null
+			if (filePath.endsWith('fetch.mjs')) return null
+			if (filePath.endsWith('global.mjs')) return null
+			if (filePath.endsWith('fetch-node.mjs')) return null
+			if (filePath.endsWith('fetch-xhr.mjs')) return null
+			code = code.replace('polyfill/fetch-node.mjs', 'polyfill/fetch-xhr.mjs')
+			let polyfillPath = createRelativeImportPath(filePath, 'polyfill/fetch-xhr.mjs')
+			let importLine = `import '${polyfillPath}'`
 			return importLine + '\n' + code
 		}
 	}
@@ -156,6 +176,7 @@ function createLegacyBundle(inputPath, outputPath) {
 			replaceFile('import.mjs',   'export default function() {}'),
 			babel(babelLegacy),
 			replaceBuiltinsWithIePolyfills(),
+			replaceFetchPolyfills(),
 			fixIeStaticMethodSubclassing(),
 			terser(terserConfig),
 			cloneCjsAndMjsToJs(),

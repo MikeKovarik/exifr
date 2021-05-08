@@ -1,8 +1,10 @@
 import dynamicImport from '../util/import.mjs'
 import global from './global.mjs'
+import {set as setFetch} from './fetch.mjs'
 
 
-export const fetch = global.fetch || (() => {
+
+if (!global.fetch) {
 
 	function concatBuffers(buffers) {
 		if (buffers.length > 1)
@@ -14,7 +16,7 @@ export const fetch = global.fetch || (() => {
 	const httpPromise  = dynamicImport('http',  http => http)
 	const httpsPromise = dynamicImport('https', https => https)
 
-	return function(url, {headers} = {}) {
+	setFetch(function(url, {headers} = {}) {
 		let {port, hostname, pathname, protocol} = new URL(url)
 		const options = {
 			method: 'GET',
@@ -38,6 +40,6 @@ export const fetch = global.fetch || (() => {
 			req.on('error', reject)
 			req.end()
 		})
-	}
+	})
 
-})()
+}

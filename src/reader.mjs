@@ -2,7 +2,7 @@ import * as platform from './util/platform.mjs'
 import {BufferView} from './util/BufferView.mjs'
 import {throwError} from './util/helpers.mjs'
 import {fileReaders} from './plugins.mjs'
-import {fetch} from './polyfill/fetch-node.mjs'
+import {fetch} from './polyfill/fetch.mjs'
 
 
 // TODO: - API for including 3rd party XML parser
