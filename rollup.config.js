@@ -5,7 +5,7 @@ import path from 'path'
 import babel from 'rollup-plugin-babel'
 import notify from 'rollup-plugin-notify'
 import {terser} from 'rollup-plugin-terser'
-import * as polyfills from './src/util/iePolyfill.mjs'
+import * as polyfills from './src/polyfill/ie.mjs'
 import pkg from './package.json'
 
 
@@ -25,13 +25,9 @@ function replaceBuiltinsWithIePolyfills() {
 	// keys of translatables and builtings (like fetch)
 	let polyfillKeys = Object.keys(polyfills)
 	let exifrDir = path.dirname(fileURLToPath(import.meta.url))
-	let polyFilePath = path.join(exifrDir, './src/util/iePolyfill.mjs')
-	function createImportLine(keys, importPath) {
-		return `import {${keys.join(', ')}} from '${importPath}'\n`
-	}
-	function createRelativeImportPath(filePath) {
+	function createRelativeImportPath(sourcePath, targetPath) {
 		let importPath = path
-			.relative(path.dirname(filePath), polyFilePath)
+			.relative(path.dirname(sourcePath), path.join(exifrDir, './src/', targetPath))
 			.replace(/\\/g, '/')
 		if (!importPath.startsWith('.')) importPath = './' + importPath
 		return importPath
@@ -39,13 +35,13 @@ function replaceBuiltinsWithIePolyfills() {
 	return {
 		async transform(code, filePath) {
 			if (!filePath.includes('exifr')) return null
-			if (filePath.endsWith('iePolyfill.mjs')) return null
+			if (filePath.endsWith('ie.mjs')) return null
 			for (let [from, to] of translatables)
 				code = code.replace(new RegExp(from, 'g'), to)
-			let importPath = createRelativeImportPath(filePath)
-			let importLine = createImportLine(polyfillKeys, importPath)
-			code = importLine + '\n' + code
-			return code
+			let polyfillPath = createRelativeImportPath(filePath, 'polyfill/ie.mjs')
+			let importLine = `import {${polyfillKeys.join(', ')}} from '${polyfillPath}'`
+			code = code.replace('/polyfill/fetch-node.mjs', '/polyfill/fetch-xhr.mjs')
+			return importLine + '\n' + code
 		}
 	}
 }
@@ -58,7 +54,7 @@ function replaceFile(fileName, replacement = 'export default {}') {
 		},
 		load(importPath) {
 			return importPath === targetId ? replacement : null
-		},
+		}
 	}
 }
 

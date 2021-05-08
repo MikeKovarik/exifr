@@ -2,7 +2,7 @@ import * as platform from './util/platform.mjs'
 import {BufferView} from './util/BufferView.mjs'
 import {throwError} from './util/helpers.mjs'
 import {fileReaders} from './plugins.mjs'
-import _fetch from './util/fetch-polyfill.mjs'
+import {fetch} from './polyfill/fetch-node.mjs'
 
 
 // TODO: - API for including 3rd party XML parser
@@ -58,7 +58,7 @@ async function callReaderFunction(input, readerFn) {
 
 // FALLBACK FULL-FILE READERS (when ChunkedReader and the classes aren't available)
 
-export const fetchUrlAsArrayBuffer = url => _fetch(url).then(res => res.arrayBuffer())
+export const fetchUrlAsArrayBuffer = url => fetch(url).then(res => res.arrayBuffer())
 
 export const readBlobAsArrayBuffer = blob => new Promise((resolve, reject) => {
 	let reader = new FileReader()

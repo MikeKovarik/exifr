@@ -1,0 +1,1 @@
+export default typeof self !== 'undefined' ? self : global

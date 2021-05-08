@@ -1,3 +1,6 @@
+import global from './global.mjs'
+
+
 export var ObjectKeys = Object.keys || (object => {
 	let keys = []
 	for (let key in object) keys.push(key)
@@ -58,29 +61,6 @@ if (!String.prototype.endsWith) String.prototype.endsWith = function(search, len
 	return this.substring(len - search.length, len) === search
 }
 
-let theGlobal = typeof self !== 'undefined' ? self : global
-
-export var fetch = theGlobal.fetch || function(url, options = {}) {
-	return new Promise((resolve, reject) => {
-		const xhr = new XMLHttpRequest()
-		xhr.open('get', url, true)
-		xhr.responseType = 'arraybuffer'
-		xhr.onerror = reject
-		if (options.headers)
-			for (const key in options.headers)
-				xhr.setRequestHeader(key, options.headers[key])
-		xhr.onload = () => {
-			resolve({
-				status: xhr.status,
-				arrayBuffer: () => Promise.resolve(xhr.response),
-			})
-		}
-		xhr.send(null)
-	})
-}
-
-
-
 // IE doesnt support initialization with constructor argument
 export var NewSet = arr => {
 	let set = []
@@ -119,8 +99,8 @@ export var NewMap = arr => {
 	return new Map(arr)
 }
 
-var hasFullyImplementedMap = typeof theGlobal.Map !== 'undefined' && theGlobal.Map.prototype.keys !== undefined
-export var Map = hasFullyImplementedMap ? theGlobal.Map : class Map {
+var hasFullyImplementedMap = typeof global.Map !== 'undefined' && global.Map.prototype.keys !== undefined
+export var Map = hasFullyImplementedMap ? global.Map : class Map {
 
 	constructor(init) {
 		this.clear()

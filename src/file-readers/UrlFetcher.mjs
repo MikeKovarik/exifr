@@ -1,7 +1,7 @@
 import {fileReaders} from '../plugins.mjs'
 import {fetchUrlAsArrayBuffer} from '../reader.mjs'
 import {ChunkedReader} from './ChunkedReader.mjs'
-import _fetch from '../util/fetch-polyfill.mjs'
+import {fetch} from '../polyfill/fetch-node.mjs'
 
 
 export class UrlFetcher extends ChunkedReader {
@@ -20,7 +20,7 @@ export class UrlFetcher extends ChunkedReader {
 		// note: end in http range is inclusive, unlike APIs in node,
 		let headers = {}
 		if (offset || end) headers.range = `bytes=${[offset, end].join('-')}`
-		let res = await _fetch(this.input, {headers})
+		let res = await fetch(this.input, {headers})
 		let abChunk = await res.arrayBuffer()
 		let bytesRead = abChunk.byteLength
 		if (res.status === 416) return undefined
