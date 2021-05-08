@@ -1,5 +1,6 @@
 import {assert} from './test-util-core.mjs'
 import {getPath, getUrl, getFile, isNode, isBrowser} from './test-util-core.mjs'
+import {startStaticServer, stopStaticServer} from './test-util-core.mjs'
 import {FsReader} from '../src/file-readers/FsReader.mjs'
 import {BlobReader} from '../src/file-readers/BlobReader.mjs'
 import {UrlFetcher} from '../src/file-readers/UrlFetcher.mjs'
@@ -251,7 +252,7 @@ describe('ChunkedReader', () => {
 					iptc: true // NEEDED! this bypasses onlyTiff optimizatin which cuts off reading more chunks
 				})
 				await exr.read(file2.input)
-				await exr.parse()
+				await exr.parse(file2.input)
 				assert.equal(exr.file.chunksRead, 5)
 				assert.equal(exr.file.size, file2.size)
 				await exr.file.close()
@@ -263,6 +264,7 @@ describe('ChunkedReader', () => {
 
 
 
+
 	isNode && describe('FsReader', () => {
 		testReaderClass(getPath, FsReader)
 	})
@@ -270,10 +272,15 @@ describe('ChunkedReader', () => {
 	isBrowser && describe('UrlFetcher', () => {
 		testReaderClass(getPath, UrlFetcher)
 	})
-	isNode && describe('UrlFetcher', function() {
-		this.timeout(10000)
-		testReaderClass(getUrl, UrlFetcher)
-	})
+	if (isNode) {
+		describe('UrlFetcher', function() {
+			this.timeout(10000)
+			before(startStaticServer)
+			after(stopStaticServer)
+			testReaderClass(getUrl, UrlFetcher)
+		})
+	}
+
 
 	isBrowser && describe('BlobReader', () => {
 		testReaderClass(createBlob, BlobReader)

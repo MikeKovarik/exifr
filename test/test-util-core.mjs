@@ -1,3 +1,4 @@
+import express from 'express'
 import chai from 'chai'
 import path from 'path'
 import {promises as fs} from 'fs'
@@ -45,10 +46,28 @@ export function getPath(filePath) {
 		return testFolderPath + '/' + fileInFixturesPath
 }
 
+
+let staticServerPort = 80
+let staticServer
+export function startStaticServer(done) {
+	let app = express()
+	app.use(express.static(path.join(testFolderPath, 'fixtures')))
+	staticServer = app.listen(() => {
+		staticServerPort = staticServer.address().port
+		done()
+	})
+}
+export function stopStaticServer(done) {
+	staticServer.close()
+	done()
+}
+
 export function getUrl(filePath) {
 	if (filePath.startsWith('http')) return filePath
-	return 'http://localhost/test/' + ensurePathInFixtures(filePath)
+	return `http://localhost:${staticServerPort}/${filePath}`
+	//return 'http://localhost/test/' + ensurePathInFixtures(filePath)
 }
+
 
 let cachedFiles = {}
 
