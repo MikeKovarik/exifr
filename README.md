@@ -152,11 +152,11 @@ Of course, you can use the `full` version in browser, or use any other build in 
 
 |                 | full | lite | mini | core |
 |-----------------|------|------|------|------|
-| chunked<br>file readers | BlobReader<br>UrlFetcher<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher | BlobReader | none |
+| chunked<br>file readers | BlobReader<br>UrlFetcher (*+ Node.js*)<br>FsReader<br>Base64Reader | BlobReader<br>UrlFetcher (*Browser only*) | BlobReader | none |
 | file parsers    | `*.jpg`<br>`*.heic`<br>`*.tif`/`*.iiq`<br>`*.png` | `*.jpg`<br>`*.heic` | `*.jpg` | none |
 | segment<br>parsers | TIFF (EXIF)<br>IPTC<br>XMP<br>ICC<br>JFIF<br>IHDR | TIFF (EXIF)<br>XMP | TIFF (EXIF) | none |
 | dictionaries    | TIFF (+ less frequent tags)<br>IPTC<br>ICC<br>JFIF<br>IHDR | only TIFF keys<br>(IFD0, EXIF, GPS) | none | none |
-| size +-         | 60 Kb | 40 Kb | 25 Kb | 15 Kb |
+| size +-         | 73 Kb | 45 Kb | 29 Kb | 15 Kb |
 | gzipped         | 22 Kb | 12 Kb | 8 Kb  | 4 Kb  |
 | file            | `full.esm.js`<br>`full.esm.mjs`<br>`full.umd.js`<br>`full.umd.cjs`<br>`full.legacy.umd.js` | `lite.esm.js`<br>`lite.esm.mjs`<br>`lite.umd.js`<br>`lite.umd.cjs`<br>`lite.legacy.umd.js` | `mini.esm.js`<br>`mini.esm.mjs`<br>`mini.umd.js`<br>`mini.umd.cjs`<br>`mini.legacy.umd.js` | [Learn more](#advanced) |
 </details>
@@ -976,7 +976,8 @@ For full changelog visit [`CHANGELOG.md`](CHANGELOG.md).
 
 ### Notable changes
 
-* **7.0.0** UrlFetcher now works in Node.js as well. Breaking change in XMP parsing. *Only affects obscure cases with lists and nested `rdf:Description`, but breaking change nonetheless.*
+* **7.0.0** `string` URLs as `file` argument are now accepted in Node.js (*`UrlFetcher` uses polyfill for `fetch()` in Node.js*). But only in `full` bundle.
+<br>Breaking change in XMP parsing. *Only affects obscure cases with lists and nested `rdf:Description`, but breaking change nonetheless.*
 * **6.3.0** AVIF support.
 * **6.0.0** & **6.2.0** PNG support.
 * **4.3.0** Package.json's `"main"` now points to UMD bundle for better compatibility.

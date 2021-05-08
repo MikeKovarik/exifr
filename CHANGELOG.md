@@ -5,7 +5,7 @@
 ## [7.0.0]
 
 ### Added
-- UrlFetcher now works in Node.js too. It was previously only available to browser through `window.fetch()`.
+- `UrlFetcher` now works in Node.js too. i.e. You can use `string` URL as `file` argument in Node.js (previously only available in browser). Exifr now implements polyfill for `window.fetch()`. But it's only available in `full` bundle.
 
 ### Fixed
 - Issue #59 regarding `mwg-rs:Regions`.
