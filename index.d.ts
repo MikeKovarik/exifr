@@ -21,23 +21,28 @@ interface FormatOptions {
 	translateKeys?: boolean,
 	translateValues?: boolean,
 	reviveValues?: boolean,
+	parse?: boolean, // XMP only
 }
 
 interface Options extends FormatOptions {
-	// TIFF segment
+	// TIFF segment IFD blocks
 	tiff?: FormatOptions | boolean,
 	ifd0?: FormatOptions, // cannot be disabled. 
 	ifd1?: FormatOptions | boolean,
 	exif?: FormatOptions | boolean,
 	gps?: FormatOptions | boolean,
 	interop?: FormatOptions | boolean,
-	// Other segments
-	jfif?: FormatOptions | boolean,
-	iptc?: FormatOptions | boolean,
-	xmp?: FormatOptions | boolean,
-	icc?: FormatOptions | boolean,
+	// notable properties in TIFF
 	makerNote?: boolean,
 	userComment?: boolean,
+	// Other segments
+	xmp?: FormatOptions | boolean,
+	icc?: FormatOptions | boolean,
+	iptc?: FormatOptions | boolean,
+	// JPEG only segment
+	jfif?: FormatOptions | boolean,
+	// PNG only only segment
+	ihdr?: FormatOptions | boolean,
 	// other options
 	sanitize?: boolean,
 	mergeOutput?: boolean,
@@ -56,7 +61,7 @@ interface IRotation {
 	canvas: boolean;
 }
 
-export function parse(data: Input, options?: Options | Filter): Promise<any>;
+export function parse(data: Input, options?: Options | Filter | boolean): Promise<any>;
 export function thumbnail(data: Input): Promise<Uint8Array | Buffer | undefined>;
 export function thumbnailUrl(data: Input): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;

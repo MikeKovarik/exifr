@@ -17,6 +17,18 @@ async function main() {
 	exifrDefault.parse('')
 	exifrDefault.parse('', ['foo'])
 	exifrDefault.orientation('').then(or => console.log(or))
+
+	exifr.parse('../test/fixtures/002.tiff')
+	exifr.parse('../test/fixtures/002.tiff', true)
+	exifr.parse('../test/fixtures/002.tiff', {tiff: true})
+	exifr.parse('../test/fixtures/002.tiff', {xmp: {parse: false}})
+	exifr.parse('../test/fixtures/002.tiff', {tiff: true, ifd0: {translateValues: false}})
+
+	exifr.thumbnail('../test/fixtures/002.tiff', 'no second argument');
+	exifr.thumbnailUrl('../test/fixtures/002.tiff', 'no second argument');
+	exifr.gps('../test/fixtures/002.tiff', 'no second argument');
+	exifr.orientation('../test/fixtures/002.tiff', 'no second argument');
+	exifr.rotation('../test/fixtures/002.tiff', 'no second argument');
 }
 
 main()
