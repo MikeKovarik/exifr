@@ -679,7 +679,9 @@ Type: `bool`
 <br>
 Default: `true`
 
-Error messages are stored at `output.errors` instead of thrown as `Error` instances and causing promise rejection.
+Suppresses errors that occur during parsing. Messages are stored at `output.errors` instead of throwing and causing promise rejection.
+
+NOTE: Some fundamental error's can still be thrown. Such as wrong arguments or `Unknown file format`.
 
 Failing silently enables reading broken files. But only file-structure related errors are caught.
 
