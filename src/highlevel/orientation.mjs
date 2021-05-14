@@ -1,70 +1,12 @@
-// High level API.
-import * as platform from './util/platform.mjs'
-import {Buffer} from './util/platform.mjs'
-import {Exifr} from './Exifr.mjs'
-import {TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON, TAG_ORIENTATION} from './tags.mjs'
+import {Exifr} from '../Exifr.mjs'
+import {TAG_ORIENTATION} from '../tags.mjs'
+import {disableAllOptions} from './disableAllOptions.mjs'
 
-
-export const disableAllOptions = {
-	ifd0: false,
-	ifd1: false,
-	exif: false,
-	gps: false,
-	interop: false,
-	// turning off all unnecessary steps and transformation to get the needed data ASAP
-	sanitize: false,
-	reviveValues: true,
-	translateKeys: false,
-	translateValues: false,
-	mergeOutput: false,
-}
-
-export const gpsOnlyOptions = Object.assign({}, disableAllOptions, {
-	firstChunkSize: 40000,
-	gps: [TAG_GPS_LATREF, TAG_GPS_LAT, TAG_GPS_LONREF, TAG_GPS_LON],
-})
 
 export const orientationOnlyOptions = Object.assign({}, disableAllOptions, {
 	firstChunkSize: 40000,
 	ifd0: [TAG_ORIENTATION],
 })
-
-export const thumbnailOnlyOptions = Object.assign({}, disableAllOptions, {
-	tiff: false,
-	ifd1: true,
-	// needed to prevent options from disabling ifd1
-	mergeOutput: false
-})
-
-
-export async function thumbnail(input) {
-	let exr = new Exifr(thumbnailOnlyOptions)
-	await exr.read(input)
-	let u8arr = await exr.extractThumbnail()
-	if (u8arr && platform.hasBuffer)
-		return Buffer.from(u8arr)
-	else
-		return u8arr
-}
-
-// only available in browser
-export async function thumbnailUrl(input) {
-	let u8arr = await this.thumbnail(input)
-	if (u8arr !== undefined) {
-		let blob = new Blob([u8arr]) // note: dont use AB directly, because of byteOffset
-		return URL.createObjectURL(blob)
-	}
-}
-
-export async function gps(input) {
-	let exr = new Exifr(gpsOnlyOptions)
-	await exr.read(input)
-	let output = await exr.parse()
-	if (output && output.gps) {
-		let {latitude, longitude} = output.gps
-		return {latitude, longitude}
-	}
-}
 
 export async function orientation(input) {
 	let exr = new Exifr(orientationOnlyOptions)

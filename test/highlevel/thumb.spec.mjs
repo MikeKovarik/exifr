@@ -1,7 +1,7 @@
-import {assert} from './test-util-core.mjs'
-import {getFile, getPath, isNode, isBrowser} from './test-util-core.mjs'
-import {Exifr} from '../src/bundles/full.mjs'
-import * as exifr from '../src/bundles/full.mjs'
+import {assert} from '../test-util-core.mjs'
+import {getFile, getPath, isNode, isBrowser} from '../test-util-core.mjs'
+import {Exifr} from '../../src/bundles/full.mjs'
+import * as exifr from '../../src/bundles/full.mjs'
 
 
 describe('thumbnail', () => {

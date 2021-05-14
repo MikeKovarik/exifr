@@ -3,8 +3,10 @@ import * as nano from './nano.mjs'
 export default nano
 
 
-// Highlevel API orientation, rotation, gps, thumbnail
-export * from '../highlevel-api.mjs'
+// Highlevel API: gps(), thumbnail(), thumbnailUrl(), orientation(), rotation()
+export * from '../highlevel/gps.mjs'
+export * from '../highlevel/thumb.mjs'
+export * from '../highlevel/orientation.mjs'
 
 // File Readers
 import '../file-readers/BlobReader.mjs'
