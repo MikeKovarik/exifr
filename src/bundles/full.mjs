@@ -7,6 +7,9 @@ import * as lite from './lite.mjs'
 export default lite
 
 
+// Highlevel API: parseSidecar()
+export * from '../highlevel/sidecar.mjs'
+
 // File Readers
 import '../file-readers/FsReader.mjs'
 import '../file-readers/Base64Reader.mjs'
