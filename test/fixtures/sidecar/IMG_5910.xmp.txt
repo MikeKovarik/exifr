@@ -1,0 +1,105 @@
+<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.6-c140 79.160451, 2017/05/06-01:08:21        ">
+	<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+		<rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:aux="http://ns.adobe.com/exif/1.0/aux/" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#" xmlns:stRef="http://ns.adobe.com/xap/1.0/sType/ResourceRef#" xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/" xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/" xmlns:MicrosoftPhoto="http://ns.microsoft.com/photo/1.0/" xmlns:mwg-rs="http://www.metadataworkinggroup.com/schemas/regions/" xmlns:stDim="http://ns.adobe.com/xap/1.0/sType/Dimensions#" xmlns:stArea="http://ns.adobe.com/xmp/sType/Area#" xmlns:lr="http://ns.adobe.com/lightroom/1.0/" xmp:ModifyDate="2015-07-24T22:45:50+02:00" xmp:CreateDate="2015-06-11T10:29:26.69" xmp:CreatorTool="Adobe Photoshop Lightroom 6.1 (Windows)" xmp:MetadataDate="2019-01-13T19:39:07+01:00" xmp:Rating="3" dc:format="image/jpeg" aux:SerialNumber="123063022888" aux:LensInfo="15/1 85/1 0/0 0/0" aux:Lens="EF-S15-85mm f/3.5-5.6 IS USM" aux:LensID="488" aux:LensSerialNumber="0000129324" aux:ImageNumber="0" aux:ApproximateFocusDistance="213/100" aux:FlashCompensation="0/1" aux:Firmware="1.0.2" photoshop:DateCreated="2015-06-11T10:29:26.69" photoshop:City="Berkeley" photoshop:State="California" photoshop:Country="United States" xmpMM:DocumentID="xmp.did:bbbfe6e4-c352-5441-a4c0-d1a95da2ac63" xmpMM:OriginalDocumentID="B6C3AD6C2A4882C8DBC687A5511B328D" xmpMM:InstanceID="xmp.iid:1807eb25-c619-dd44-b595-0e7460fefd2f" Iptc4xmpCore:CountryCode="US" crs:Version="9.1" crs:ProcessVersion="6.7" crs:WhiteBalance="As Shot" crs:AutoWhiteVersion="134348800" crs:Temperature="4300" crs:Tint="+20" crs:Saturation="+17" crs:Sharpness="55" crs:LuminanceSmoothing="21" crs:ColorNoiseReduction="25" crs:VignetteAmount="0" crs:ShadowTint="0" crs:RedHue="0" crs:RedSaturation="0" crs:GreenHue="0" crs:GreenSaturation="0" crs:BlueHue="0" crs:BlueSaturation="0" crs:Vibrance="+19" crs:HueAdjustmentRed="0" crs:HueAdjustmentOrange="0" crs:HueAdjustmentYellow="0" crs:HueAdjustmentGreen="0" crs:HueAdjustmentAqua="0" crs:HueAdjustmentBlue="0" crs:HueAdjustmentPurple="0" crs:HueAdjustmentMagenta="0" crs:SaturationAdjustmentRed="+24" crs:SaturationAdjustmentOrange="+27" crs:SaturationAdjustmentYellow="+27" crs:SaturationAdjustmentGreen="-20" crs:SaturationAdjustmentAqua="0" crs:SaturationAdjustmentBlue="0" crs:SaturationAdjustmentPurple="0" crs:SaturationAdjustmentMagenta="0" crs:LuminanceAdjustmentRed="0" crs:LuminanceAdjustmentOrange="0" crs:LuminanceAdjustmentYellow="0" crs:LuminanceAdjustmentGreen="0" crs:LuminanceAdjustmentAqua="0" crs:LuminanceAdjustmentBlue="0" crs:LuminanceAdjustmentPurple="0" crs:LuminanceAdjustmentMagenta="0" crs:SplitToningShadowHue="0" crs:SplitToningShadowSaturation="0" crs:SplitToningHighlightHue="0" crs:SplitToningHighlightSaturation="0" crs:SplitToningBalance="0" crs:ParametricShadows="0" crs:ParametricDarks="0" crs:ParametricLights="0" crs:ParametricHighlights="0" crs:ParametricShadowSplit="25" crs:ParametricMidtoneSplit="50" crs:ParametricHighlightSplit="75" crs:SharpenRadius="+1.0" crs:SharpenDetail="25" crs:SharpenEdgeMasking="0" crs:PostCropVignetteAmount="0" crs:GrainAmount="0" crs:LuminanceNoiseReductionDetail="50" crs:ColorNoiseReductionDetail="50" crs:LuminanceNoiseReductionContrast="0" crs:ColorNoiseReductionSmoothness="50" crs:LensProfileEnable="0" crs:LensManualDistortionAmount="0" crs:PerspectiveVertical="0" crs:PerspectiveHorizontal="0" crs:PerspectiveRotate="0.0" crs:PerspectiveScale="100" crs:PerspectiveAspect="0" crs:PerspectiveUpright="0" crs:AutoLateralCA="0" crs:Exposure2012="+0.12" crs:Contrast2012="+12" crs:Highlights2012="-83" crs:Shadows2012="+64" crs:Whites2012="+1" crs:Blacks2012="-10" crs:Clarity2012="+26" crs:DefringePurpleAmount="0" crs:DefringePurpleHueLo="30" crs:DefringePurpleHueHi="70" crs:DefringeGreenAmount="0" crs:DefringeGreenHueLo="40" crs:DefringeGreenHueHi="60" crs:Dehaze="0" crs:ToneMapStrength="0" crs:ConvertToGrayscale="False" crs:ToneCurveName="Linear" crs:ToneCurveName2012="Linear" crs:CameraProfile="Camera Standard" crs:LensProfileSetup="LensDefaults" crs:HasSettings="True" crs:CropTop="0.231776" crs:CropLeft="0" crs:CropBottom="1" crs:CropRight="0.768224" crs:CropAngle="0" crs:CropConstrainToWarp="0" crs:HasCrop="True" crs:AlreadyApplied="True" crs:RawFileName="IMG_5910.jpg" MicrosoftPhoto:Rating="50">
+			<dc:creator>
+				<rdf:Seq>
+					<rdf:li>Patrik</rdf:li>
+				</rdf:Seq>
+			</dc:creator>
+			<dc:title>
+				<rdf:Alt>
+					<rdf:li xml:lang="x-default">Squirrel at berkely</rdf:li>
+				</rdf:Alt>
+			</dc:title>
+			<dc:subject>
+				<rdf:Bag>
+					<rdf:li>Alvin the Squirrel</rdf:li>
+					<rdf:li>Berkley</rdf:li>
+					<rdf:li>USA</rdf:li>
+				</rdf:Bag>
+			</dc:subject>
+			<dc:description>
+				<rdf:Alt>
+					<rdf:li xml:lang="x-default">Squirrel at berkely</rdf:li>
+				</rdf:Alt>
+			</dc:description>
+			<xmpMM:History>
+				<rdf:Seq>
+					<rdf:li stEvt:action="derived" stEvt:parameters="converted from image/x-canon-cr2 to image/jpeg, saved to new location"/>
+					<rdf:li stEvt:action="saved" stEvt:instanceID="xmp.iid:bbbfe6e4-c352-5441-a4c0-d1a95da2ac63" stEvt:when="2015-07-24T22:45:50+02:00" stEvt:softwareAgent="Adobe Photoshop Lightroom 6.1 (Windows)" stEvt:changed="/"/>
+					<rdf:li stEvt:action="saved" stEvt:instanceID="xmp.iid:2ae29592-26ec-d344-ac38-bdbca6a40891" stEvt:when="2015-07-24T22:45:51+02:00" stEvt:softwareAgent="Adobe Photoshop Lightroom 6.1 (Windows)" stEvt:changed="/metadata"/>
+					<rdf:li stEvt:action="saved" stEvt:instanceID="xmp.iid:1807eb25-c619-dd44-b595-0e7460fefd2f" stEvt:when="2019-01-13T19:39:07+01:00" stEvt:softwareAgent="Adobe Photoshop Lightroom Classic 8.0 (Windows)" stEvt:changed="/metadata"/>
+				</rdf:Seq>
+			</xmpMM:History>
+			<xmpMM:DerivedFrom stRef:documentID="B6C3AD6C2A4882C8DBC687A5511B328D" stRef:originalDocumentID="B6C3AD6C2A4882C8DBC687A5511B328D"/>
+			<crs:ToneCurve>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurve>
+			<crs:ToneCurveRed>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurveRed>
+			<crs:ToneCurveGreen>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurveGreen>
+			<crs:ToneCurveBlue>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurveBlue>
+			<crs:ToneCurvePV2012>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurvePV2012>
+			<crs:ToneCurvePV2012Red>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurvePV2012Red>
+			<crs:ToneCurvePV2012Green>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurvePV2012Green>
+			<crs:ToneCurvePV2012Blue>
+				<rdf:Seq>
+					<rdf:li>0, 0</rdf:li>
+					<rdf:li>255, 255</rdf:li>
+				</rdf:Seq>
+			</crs:ToneCurvePV2012Blue>
+			<mwg-rs:Regions rdf:parseType="Resource">
+				<mwg-rs:AppliedToDimensions stDim:w="1394" stDim:h="930" stDim:unit="pixel"/>
+				<mwg-rs:RegionList>
+					<rdf:Bag>
+						<rdf:li>
+							<rdf:Description mwg-rs:Rotation="0.00000" mwg-rs:Name="Alvin the Squirrel" mwg-rs:Type="Face">
+								<mwg-rs:Area stArea:h="0.28108" stArea:w="0.21731" stArea:x="0.57214" stArea:y="0.42297"/>
+							</rdf:Description>
+						</rdf:li>
+					</rdf:Bag>
+				</mwg-rs:RegionList>
+			</mwg-rs:Regions>
+			<lr:hierarchicalSubject>
+				<rdf:Bag>
+					<rdf:li>Alvin the Squirrel</rdf:li>
+					<rdf:li>Berkley</rdf:li>
+					<rdf:li>USA</rdf:li>
+				</rdf:Bag>
+			</lr:hierarchicalSubject>
+		</rdf:Description>
+	</rdf:RDF>
+</x:xmpmeta>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <?xpacket end="w"?>
