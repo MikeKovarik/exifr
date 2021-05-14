@@ -4,7 +4,7 @@ import {read} from '../reader.mjs'
 import {throwError} from '../util/helpers.mjs'
 
 
-const allowedSidecars = ['xmp', 'icc', 'iptc']
+const allowedSidecars = ['xmp', 'icc', 'iptc', 'tiff']
 const noop = () => {}
 
 export async function sidecar(input, opts, segType) {
@@ -39,5 +39,6 @@ async function handleSeg(type, chunk, options) {
 
 function guessTypeFromName(filename) {
 	let ext = filename.toLowerCase().split('.').pop()
+	if (ext === 'exif') return 'tiff'
 	if (allowedSidecars.includes(ext)) return ext
 }
