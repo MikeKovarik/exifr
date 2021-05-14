@@ -4,7 +4,7 @@ import {testSegment} from './test-util-suites.mjs'
 import * as exifr from '../src/bundles/full.mjs'
 import {Exifr} from '../src/bundles/full.mjs'
 // FIXME: importing directly from src/ breaks bundle tests
-import XmpParser from '../src/segment-parsers/xmp.mjs'
+import Xmp from '../src/segment-parsers/xmp.mjs'
 import {BufferView} from '../src/util/BufferView.mjs'
 
 
@@ -21,7 +21,7 @@ describe('XMP Segment', () => {
 
 	it(`BufferView input is stringified`, async () => {
 		let bufferView = new BufferView(new Uint8Array([97, 98, 99]))
-		let xmpParser = new XmpParser(bufferView)
+		let xmpParser = new Xmp(bufferView)
 		assert.isString(xmpParser.chunk)
 	})
 

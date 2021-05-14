@@ -1,12 +1,12 @@
 import {assert, getFile} from './test-util-core.mjs'
 // FIXME: importing directly from src/ breaks bundle tests
-import XmpParser from '../src/segment-parsers/xmp.mjs'
+import Xmp from '../src/segment-parsers/xmp.mjs'
 import {XmlTag, normalizeValue, XmlAttr, idNestedTags} from '../src/segment-parsers/xmp.mjs'
 
 
 const VALUE_PROP = 'value'
 
-describe('XmpParser - synthetic tests', () => {
+describe('Xmp - synthetic tests', () => {
 
 
 
@@ -1390,12 +1390,12 @@ describe('XmpParser - synthetic tests', () => {
 
 
 
-	describe('XmpParser.parse', () => {
+	describe('Xmp.parse', () => {
 
 		describe('basic', () => {
 
 			it('tag primitives', () => {
-				let {ns} = XmpParser.parse(`<rdf:Description>
+				let {ns} = Xmp.parse(`<rdf:Description>
 					<ns:tagBoolTrue>true</ns:tagBoolTrue>
 					<ns:tagBoolFalse>false</ns:tagBoolFalse>
 					<ns:tagInteger>42</ns:tagInteger>
@@ -1411,20 +1411,20 @@ describe('XmpParser - synthetic tests', () => {
 
 			it('attr primitives', () => {
 				let ns
-				ns = XmpParser.parse(`<rdf:Description ns:attrString="the attr string"/>`).ns
+				ns = Xmp.parse(`<rdf:Description ns:attrString="the attr string"/>`).ns
 				assert.strictEqual(ns.attrString, 'the attr string')
-				ns = XmpParser.parse(`<rdf:Description ns:attrFloat="0.04"/>`).ns
+				ns = Xmp.parse(`<rdf:Description ns:attrFloat="0.04"/>`).ns
 				assert.strictEqual(ns.attrFloat, 0.04)
-				ns = XmpParser.parse(`<rdf:Description ns:attrInteger="42"/>`).ns
+				ns = Xmp.parse(`<rdf:Description ns:attrInteger="42"/>`).ns
 				assert.strictEqual(ns.attrInteger, 42)
-				ns = XmpParser.parse(`<rdf:Description ns:attrBoolTrue="true"/>`).ns
+				ns = Xmp.parse(`<rdf:Description ns:attrBoolTrue="true"/>`).ns
 				assert.strictEqual(ns.attrBoolTrue, true)
-				ns = XmpParser.parse(`<rdf:Description ns:attrBoolFalse="false"/>`).ns
+				ns = Xmp.parse(`<rdf:Description ns:attrBoolFalse="false"/>`).ns
 				assert.strictEqual(ns.attrBoolFalse, false)
 			})
 
 			it('array of strings contains strings', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description>
 						<ns:arrayOfPrimitives>
 							<rdf:Seq>
@@ -1441,7 +1441,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('array of mixed primitive values contains mixed types', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description>
 						<ns:arrayOfPrimitives>
 							<rdf:Seq>
@@ -1460,7 +1460,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('object tag is property in root (pair tags)', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description>
 						<ns:theObject ns:action="saved" ns:instanceID="943e9954eba8"/>
 					</rdf:Description>
@@ -1470,7 +1470,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('two object tags are properties in root', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description>
 						<ns:firstObject ns:action="derived" ns:parameters="saved to new location" />
 						<ns:secondObject
@@ -1506,7 +1506,7 @@ describe('XmpParser - synthetic tests', () => {
 						</dc:creator>
 					</rdf:Description>
 				`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.containsAllKeys(output, ['xmlns', 'dc'])
 				assert.equal(output.xmlns.dc, 'http://purl.org/dc/elements/1.1/')
 				assert.containsAllKeys(output.dc, ['format', 'title', 'creator'])
@@ -1523,7 +1523,7 @@ describe('XmpParser - synthetic tests', () => {
 						<xapMM:InstanceID>uuid:1a365cee-e070-4b52-8278-db5e46b20a4c</xapMM:InstanceID>
 					</rdf:Description>
 				`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.containsAllKeys(output, ['xmlns', 'xapMM'])
 				assert.equal(output.xmlns.xapMM, 'http://ns.adobe.com/xap/1.0/mm/')
 				assert.containsAllKeys(output.xapMM, ['DocumentID', 'InstanceID'])
@@ -1543,7 +1543,7 @@ describe('XmpParser - synthetic tests', () => {
 						</rdf:RDF>
 					</x:xmpmeta>
 				`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.equal(output.GImage.Data, '/9j/4AAQ')
 				assert.equal(output.GAudio.Data, 'AAAAGGZ0')
 			})
@@ -1553,12 +1553,12 @@ describe('XmpParser - synthetic tests', () => {
 		describe('basic, unwrapped or invalid xmp input', () => {
 
 			it('empty string returns undefined', () => {
-				let output = XmpParser.parse(``)
+				let output = Xmp.parse(``)
 				assert.isUndefined(output)
 			})
 
 			it('raw tag object (with no wrapper) correctly parses', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<ns:theObject
 						tiff:Make="Canon"
 						tiff:Model="Canon EOS 550D"
@@ -1573,7 +1573,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('raw primitive tags (with no wrapper) correctly parses', () => {
-				let {tiff} = XmpParser.parse(`
+				let {tiff} = Xmp.parse(`
 					<tiff:Make>Canon</tiff:Make>
 					<tiff:Model>Canon EOS 550D</tiff:Model>
 				`)
@@ -1588,7 +1588,7 @@ describe('XmpParser - synthetic tests', () => {
 		describe('encapsulation is stripped down to content of rdf:Description', () => {
 
 			it('rdf:Description > data object', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
 						<tiff:Make>Canon</tiff:Make>
 						<tiff:Model>Canon EOS 550D</tiff:Model>
@@ -1601,7 +1601,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('rdf:RDF > rdf:Description > data object', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<rdf:RDF>
 						<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
 							<tiff:Make>Canon</tiff:Make>
@@ -1616,7 +1616,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<x:xmpmeta>
 						<rdf:RDF>
 							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
@@ -1633,7 +1633,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('?xpacket > rdf:RDF > rdf:Description > data object', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<?xpacket>
 						<rdf:RDF>
 							<rdf:Description rdf:about='' xmlns:tiff='http://ns.adobe.com/tiff/1.0/'>
@@ -1650,7 +1650,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('?xpacket > x:xmpmeta > rdf:RDF > rdf:Description > data object', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<?xpacket>
 						<x:xmpmeta>
 							<rdf:RDF>
@@ -1673,17 +1673,17 @@ describe('XmpParser - synthetic tests', () => {
 		describe('rdf:Description without data returns undefined', () => {
 
 			it('empty self-closing rdf:Description returns undefined', () => {
-				let output = XmpParser.parse(`<rdf:Description/>`)
+				let output = Xmp.parse(`<rdf:Description/>`)
 				assert.isUndefined(output)
 			})
 
 			it('empty pair rdf:Description returns undefined', () => {
-				let output = XmpParser.parse(`<rdf:Description></rdf:Description>`)
+				let output = Xmp.parse(`<rdf:Description></rdf:Description>`)
 				assert.isUndefined(output)
 			})
 
 			it('empty pair rdf:Description with children spaces returns undefined', () => {
-				let output = XmpParser.parse(`<rdf:Description>   </rdf:Description>`)
+				let output = Xmp.parse(`<rdf:Description>   </rdf:Description>`)
 				assert.isUndefined(output)
 			})
 
@@ -1692,7 +1692,7 @@ describe('XmpParser - synthetic tests', () => {
 		describe('rdf:Description with data returns object', () => {
 
 			it('self-closing rdf:Description with single attr', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description ns:attrString="the attr string"/>
 				`)
 				assert.isObject(ns)
@@ -1700,14 +1700,14 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('pair rdf:Description with single attr', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description ns:attrString="the attr string"></rdf:Description>
 				`)
 				assert.strictEqual(ns.attrString, 'the attr string')
 			})
 
 			it('pair rdf:Description with newline children with single attr', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description ns:attrString="the attr string">
 					</rdf:Description>
 				`)
@@ -1715,7 +1715,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('pair rdf:Description with single tag', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description>
 						<ns:tagString>the tag string</ns:tagString>
 					</rdf:Description>
@@ -1724,7 +1724,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('tag & attr strings', () => {
-				let {ns} = XmpParser.parse(`
+				let {ns} = Xmp.parse(`
 					<rdf:Description ns:attrString="the attr string">
 						<ns:tagString>the tag string</ns:tagString>
 					</rdf:Description>
@@ -1755,7 +1755,7 @@ describe('XmpParser - synthetic tests', () => {
 			`
 
 			it('all tags are parsed and grouped by namespace when {mergeOutput: false}', () => {
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.containsAllKeys(output, ['tiff', 'aux', 'crs'])
 				assert.equal(output.tiff.Make, 'Canon')
@@ -1767,7 +1767,7 @@ describe('XmpParser - synthetic tests', () => {
 			})
 
 			it('xmlns meta tags are stored in output.xmlns when {mergeOutput: false}', () => {
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				// containsAllKeys is not strict. output has to contain these, but there can be more
 				assert.isObject(output.xmlns)
 				assert.isString(output.xmlns.tiff)
@@ -1781,19 +1781,19 @@ describe('XmpParser - synthetic tests', () => {
 
 			it('the output is undefined if all namespaces are empty or undefined (grouped)', async () => {
 				let code = `<rdf:Description rdf:about=""/>`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.isUndefined(output)
 			})
 
 			it('the output is undefined if all namespaces are empty or undefined (merged)', async () => {
 				let code = `<rdf:Description rdf:about=""/>`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.isUndefined(output)
 			})
 
 			it('empty or undefined segments are not included in the output instead of being undefined (merged)', async () => {
 				let code = `<rdf:Description rdf:about="" foo:bar="baz"/>`
-				let output = XmpParser.parse(code)
+				let output = Xmp.parse(code)
 				assert.hasAllKeys(output, ['foo'])
 			})
 
@@ -2014,7 +2014,7 @@ describe('XmpParser - synthetic tests', () => {
 		describe('parsing', () => {
 
 			it('nested list parse', () => {
-				let {Device} = XmpParser.parse(`
+				let {Device} = Xmp.parse(`
 					<Device:Profiles>
 						<rdf:Seq>
 							<rdf:li>

@@ -14,7 +14,7 @@ const TAG_TYPE_SIG  = 'sig '
 
 const EMPTY_VALUE = '\x00\x00\x00\x00'
 
-export default class IccParser extends AppSegmentParserBase {
+export default class Icc extends AppSegmentParserBase {
 
 	static type = 'icc'
 	static multiSegment = true
@@ -200,4 +200,4 @@ function concatBuffers(buffers) {
     return result
 }
 
-segmentParsers.set('icc', IccParser)
+segmentParsers.set('icc', Icc)

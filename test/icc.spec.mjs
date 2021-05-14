@@ -1,14 +1,14 @@
 import {assert, assertOutputWithoutErrors} from './test-util-core.mjs'
 import {getFile} from './test-util-core.mjs'
 import {testSegment, testMergeSegment, testSegmentTranslation, testImage} from './test-util-suites.mjs'
-import IccParser from '../src/segment-parsers/icc.mjs'
+import Icc from '../src/segment-parsers/icc.mjs'
 import * as exifr from '../src/bundles/full.mjs'
 
 
 function testProfile(filePath, results = {}) {
 	it(`parsing .icc fixture ${filePath}`, async () => {
 		var buffer = await getFile(filePath)
-		var output = await IccParser.parse(buffer)
+		var output = await Icc.parse(buffer)
 		assertOutputWithoutErrors(output)
 		for (let [key, val] of Object.entries(results)) {
 			assert.equal(output[key], val)
@@ -84,7 +84,7 @@ describe('ICC Segment', () => {
 	})
 
 
-	describe('IccParser class', () => {
+	describe('Icc class', () => {
 
 		testProfile('icc/D65_XYZ.icc', {
 			ProfileCMMType: 'none',

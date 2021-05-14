@@ -13,7 +13,7 @@ const TIFF_HEADER_LENGTH = 4
 // Each XMP Extended segment starts with guid, length and offset (of its own, not just the one in TIFF header)
 const XMP_EXTENDED_DATA_OFFSET = 79
 
-export default class XmpParser extends AppSegmentParserBase {
+export default class Xmp extends AppSegmentParserBase {
 
 	static type = 'xmp'
 	static multiSegment = true
@@ -133,7 +133,7 @@ function pruneObject(object) {
 	return undefinedIfEmpty(object)
 }
 
-segmentParsers.set('xmp', XmpParser)
+segmentParsers.set('xmp', Xmp)
 
 
 // ----- ATTRIBUTES -----

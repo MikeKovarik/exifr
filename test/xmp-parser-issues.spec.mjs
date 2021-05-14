@@ -1,13 +1,13 @@
 import {assert, getFile} from './test-util-core.mjs'
-import XmpParser from '../src/segment-parsers/xmp.mjs'
+import Xmp from '../src/segment-parsers/xmp.mjs'
 
 
-describe('XmpParser - issues', () => {
+describe('Xmp - issues', () => {
 
 		describe('#59 (regions): nested rdf:Description', () => {
 
 			it('RegionList with single item', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<rdf:Description>
 						<mwg-rs:Regions rdf:parseType="Resource">
 							<mwg-rs:AppliedToDimensions stDim:w="1697" stDim:h="1132" stDim:unit="pixel"/>
@@ -34,7 +34,7 @@ describe('XmpParser - issues', () => {
 			})
 
 			it('RegionList with multiple items', () => {
-				let output = XmpParser.parse(`
+				let output = Xmp.parse(`
 					<rdf:Description>
 						<mwg-rs:Regions rdf:parseType="Resource">
 							<mwg-rs:AppliedToDimensions stDim:w="1697" stDim:h="1132" stDim:unit="pixel"/>
