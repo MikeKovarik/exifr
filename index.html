@@ -56,10 +56,6 @@
 					or
 					<br>
 					drop your file here
-					<!--
-					<br>
-					or try <span>these</span> examples
-					-->
 				</div>
 				<div if.bind="!browserCompatibleFile">
 					WARNING
@@ -136,8 +132,6 @@
 		<segment-box options.bind="options" output.bind="output" key="ihdr" title="IHDR (PNG only)"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="makerNote" display="buffer"></segment-box>
 		<segment-box options.bind="options" output.bind="output" key="userComment" display="buffer"></segment-box>
-
-		<!-- TODO: add IHDR -->
 
 		<div id="raw" class="wrap">
 			<template if.bind="rawOutput.errors && rawOutput.errors.length > 0">

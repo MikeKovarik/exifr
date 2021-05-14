@@ -121,7 +121,7 @@ export class AppSegmentParserBase {
 
 	static parse(input, segOptions = {}) {
 		let options = new Options({[this.type]: segOptions})
-		let instance = new this(input, options)
+		let instance = new this(input, options, input)
 		return instance.parse()
 	}
 

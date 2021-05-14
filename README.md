@@ -98,7 +98,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 |`exifr.parse(file, {options})`|`object`|Custom settings|
 |`exifr.gps(file)`|`{latitude, longitude}`|Parses only GPS coords|
 |`exifr.orientation(file)`|`number`|Parses only orientation|
-|`exifr.rotation(file)`|`object`|Returns how to rotate the photo|
+|`exifr.rotation(file)`|`object`|Info how to rotate the photo|
 |`exifr.thumbnail(file)`|`Buffer\|Uint8Array` binary|Extracts embedded thumbnail|
 |`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
 
@@ -950,6 +950,17 @@ for (let file of files) exif.parse(file, {exif: true, iptc: true})
 **HEIC:** Simply finding the exif offset takes 0.2-0.3ms with exifr. Compare that to [exif-heic-js](https://github.com/exif-heic-js/exif-heic-js) which takes about 5-10ms on average. Exifr is up to 30x faster.
 
 ### Benchmarks
+
+[pigallery2](https://github.com/bpatrik/pigallery2) did [a few](https://github.com/bpatrik/pigallery2/issues/277#issuecomment-836948216) [benchmarks](https://github.com/bpatrik/pigallery2/issues/277#issuecomment-840515653).
+
+```
+2036 photos (in total 22GB):
+lib        | average  | all files
+---------------------------------
+exifr      | 2.5ms    | 5s         <--- !!!
+exifreader | 9.5ms    | 19.5s
+exiftool   | 76ms     | 154s
+```
 
 Try the benchmark yourself at [benchmark/chunked-vs-whole.js](https://github.com/MikeKovarik/exifr/blob/master/benchmark/chunked-vs-whole.js)
 
