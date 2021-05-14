@@ -86,7 +86,7 @@ describe('ICC Segment', () => {
 
 	describe('IccParser class', () => {
 
-		testProfile('D65_XYZ.icc', {
+		testProfile('icc/D65_XYZ.icc', {
 			ProfileCMMType: 'none',
 			ProfileVersion: '2.4.0',
 			ProfileClass: 'Monitor',
@@ -105,7 +105,7 @@ describe('ICC Segment', () => {
 			ProfileCopyright: 'Copyright Hewlett Packard, 2004'
 		})
 
-		testProfile('sRGB_IEC61966-2-1_black_scaled.icc', {
+		testProfile('icc/sRGB_IEC61966-2-1_black_scaled.icc', {
 			ProfileVersion: '2.0.0',
 			ProfileClass: 'Monitor',
 			ColorSpaceData: 'RGB',
@@ -120,7 +120,7 @@ describe('ICC Segment', () => {
 			ProfileCopyright: 'Copyright International Color Consortium, 2009'
 		})
 
-		testProfile('sRGB_v4_ICC_preference.icc', {
+		testProfile('icc/sRGB_v4_ICC_preference.icc', {
 			ProfileVersion: '4.2.0',
 			ProfileClass: 'Color Space Conversion Profile',
 			ColorSpaceData: 'RGB',
@@ -133,7 +133,7 @@ describe('ICC Segment', () => {
 			ProfileCopyright: 'Copyright 2007 International Color Consortium'
 		})
 
-		testProfile('sRGB2014.icc', {
+		testProfile('icc/sRGB2014.icc', {
 			ProfileVersion: '2.0.0',
 			ProfileClass: 'Monitor',
 			ColorSpaceData: 'RGB',
@@ -148,7 +148,7 @@ describe('ICC Segment', () => {
 			ProfileCopyright: 'Copyright International Color Consortium, 2015'
 		})
 
-		testProfile('USWebCoatedSWOP.icc', {
+		testProfile('icc/USWebCoatedSWOP.icc', {
 			ProfileCMMType: 'Adobe',
 			ProfileVersion: '2.1.0',
 			ProfileClass: 'Printer',

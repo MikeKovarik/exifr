@@ -9,7 +9,7 @@ describe('parser core', () => {
 	describe(`throws if the input file isn't supported`, () => {
 
 		it(`rejects random file 1`, async () => {
-			let input = await getFile('D65_XYZ.icc')
+			let input = await getFile('icc/D65_XYZ.icc')
 			try {
 				await exifr.parse(input)
 			} catch(err) {
