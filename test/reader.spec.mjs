@@ -76,6 +76,20 @@ describe('reader', () => {
 			assert.isObject(output, `output is undefined`)
 		})
 
+		it(`ExternalReader`, async() => {
+			let called;
+
+			const externalReader = async (input, offset, length) => {
+				called = {input, offset, length};
+				let buffer = await getFile(input);
+				return buffer.slice(offset, length);
+			}
+						
+			var output = await exifr.parse('IMG_20180725_163423.jpg', {externalReader})
+			assert.isObject(output, `output is undefined`)
+			assert.isObject(called)
+		})
+
 		isNode && it(`Node: Buffer`, async () => {
 			var buffer = await fs.readFile(getPath('IMG_20180725_163423.jpg'))
 			var output = await exifr.parse(buffer)
