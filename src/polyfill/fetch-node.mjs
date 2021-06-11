@@ -17,11 +17,11 @@ if (!global.fetch) {
 	const httpsPromise = dynamicImport('https', https => https)
 
 	setFetch(function(url, {headers} = {}) {
-		let {port, hostname, pathname, protocol} = new URL(url)
+		let {port, hostname, pathname, protocol, search} = new URL(url)
 		const options = {
 			method: 'GET',
 			hostname,
-			path: encodeURI(pathname),
+			path: encodeURI(pathname) + search,
 			headers
 		}
 		if (port !== '') options.port = Number(port)
