@@ -409,7 +409,8 @@ let defaultOptions = {
   firstChunkSizeNode: 512,
   firstChunkSizeBrowser: 65536, // 64kb
   chunkSize: 65536, // 64kb
-  chunkLimit: 5
+  chunkLimit: 5,
+  httpHeaders: {},
 }
 ```
 
@@ -628,6 +629,14 @@ Max amount of subsequent chunks allowed to read in which exifr searches for data
 This limit is bypassed if multi-segment segments ocurs in the file and if [`options.multiSegment`](#optionsmultisegment) allows reading all of them.
 
 *If the exif isn't found within N chunks (64\*5 = 320KB) it probably isn't in the file and it's not worth reading anymore.*
+
+#### `options.httpHeaders`
+Type: `object`
+<br>
+Default: {}
+
+Additional HTTP headers to include when fetching chunks from URLs that require
+Authorization or other custom headers.
 
 ### Output format
 
