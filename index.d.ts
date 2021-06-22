@@ -62,14 +62,16 @@ interface IRotation {
 }
 
 export function parse(data: Input, options?: Options | Filter | boolean): Promise<any>;
-export function thumbnail(data: Input): Promise<Uint8Array | Buffer | undefined>;
-export function thumbnailUrl(data: Input): Promise<string>;
 export function gps(data: Input): Promise<GpsOutput>;
 export function orientation(data: Input): Promise<number | undefined>;
-export const rotations: {[index: number]: IRotation};
-export let rotateCanvas: boolean;
-export let rotateCss: boolean;
 export function rotation(data: Input): Promise<IRotation | undefined>;
+export function thumbnail(data: Input): Promise<Uint8Array | Buffer | undefined>;
+export function thumbnailUrl(data: Input): Promise<string | undefined>;
+export function sidecar(data: Input, options?: Options, type?: string): Promise<object | undefined>;
+
+export const rotations:    {[index: number]: IRotation};
+export const rotateCanvas: boolean;
+export const rotateCss:    boolean;
 
 export const tagKeys:     Map<string, Map<number, string>>;
 export const tagValues:   Map<string, Map<number, any>>;
@@ -88,10 +90,16 @@ export class Exifr {
 
 declare const _default: {
 	parse:        typeof parse;
-	thumbnail:    typeof thumbnail;
-	thumbnailUrl: typeof thumbnailUrl;
 	gps:          typeof gps;
 	orientation:  typeof orientation;
+	rotation:     typeof rotation;
+	thumbnail:    typeof thumbnail;
+	thumbnailUrl: typeof thumbnailUrl;
+	sidecar:      typeof sidecar;
+
+	rotations:    typeof rotations;
+	rotateCanvas: typeof rotateCanvas;
+	rotateCss:    typeof rotateCss;
 
 	tagKeys:      typeof tagKeys;
 	tagValues:    typeof tagValues;

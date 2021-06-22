@@ -29,6 +29,12 @@ async function main() {
 	exifr.gps('../test/fixtures/002.tiff', 'no second argument');
 	exifr.orientation('../test/fixtures/002.tiff', 'no second argument');
 	exifr.rotation('../test/fixtures/002.tiff', 'no second argument');
+
+	exifr.sidecar('../test/fixtures/002.tiff');
+	exifr.sidecar('../test/fixtures/002.tiff', 'second argument must be object');
+	exifr.sidecar('../test/fixtures/002.tiff', {});
+	exifr.sidecar('../test/fixtures/002.tiff', {}, 'tiff');
+	exifr.sidecar('../test/fixtures/002.tiff', {}, 'tiff', 'no fourth arg');
 }
 
 main()
