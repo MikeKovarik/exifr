@@ -57,6 +57,16 @@ describe('exifr.sidecar()', () => {
 			await assert.catches(promise)
 		})
 
+		/*
+		// doesnt work
+		it('properly applies options', async () => {
+			let input = getPath('sidecar/IMG_5910.xmp')
+			let output = await exifr.sidecar(input, {mergeOutput: true})
+            console.log('~ output', output)
+			assert.isObject(output)
+			assert.isUndefined(output.aux)
+		})
+		*/
 	})
 
 	describe('tiff', () => {
@@ -130,6 +140,14 @@ describe('exifr.sidecar()', () => {
 			let input = await getFile('icc/sRGB_v4_ICC_preference.icc')
 			let output = await exifr.sidecar(input, undefined, 'xmp')
 			assert.isUndefined(output)
+		})
+
+		it('properly applies options', async () => {
+			let input = getPath('icc/sRGB_v4_ICC_preference.icc')
+			let output = await exifr.sidecar(input, {translateKeys: false})
+			assert.isObject(output)
+			assert.isUndefined(output.ProfileVersion)
+			assert.equal(output[8], '4.2.0')
 		})
 
 	})
