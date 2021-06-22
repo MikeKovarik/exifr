@@ -18,7 +18,7 @@ export class UrlFetcher extends ChunkedReader {
 	async _readChunk(offset, length) {
 		let end = length ? offset + length - 1 : undefined
 		// note: end in http range is inclusive, unlike APIs in node,
-		let headers = {}
+		let headers = this.options.httpHeaders || {};
 		if (offset || end) headers.range = `bytes=${[offset, end].join('-')}`
 		let res = await fetch(this.input, {headers})
 		let abChunk = await res.arrayBuffer()
