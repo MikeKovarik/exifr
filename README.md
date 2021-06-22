@@ -101,6 +101,7 @@ Exifr does what no other JS lib does. It's **efficient** and **blazing fast**!
 |`exifr.rotation(file)`|`object`|Info how to rotate the photo|
 |`exifr.thumbnail(file)`|`Buffer\|Uint8Array` binary|Extracts embedded thumbnail|
 |`exifr.thumbnailUrl(file)`|`string` Object URL|Browser only|
+|`exifr.sidecar(file)`|`object`|Parses sidecar file|
 
 ## Installation
 
@@ -281,12 +282,12 @@ and a lot more in the [examples/](examples/) folder
 ## API
 
 ### `parse(file[, options])`
-Returns: `Promise<object>`
+Returns: `Promise<object | undefined>`
 
 Accepts [file](#file-argument) (in any format), parses it and returns exif object. Optional [options](#options-argument) argument can be specified.
 
 ### `gps(file)`
-Returns: `Promise<object>`
+Returns: `Promise<object | undefined>`
 
 Only extracts GPS coordinates.
 
@@ -295,12 +296,12 @@ Only extracts GPS coordinates.
 Check out [examples/gps.js](examples/gps.js) to learn more.
 
 ### `orientation(file)`
-Returns: `Promise<number>`
+Returns: `Promise<number | undefined>`
 
 Only extracts photo's orientation.
 
 ### `rotation(file)`
-Returns: `Promise<object>`
+Returns: `Promise<object | undefined>`
 
 Only extracts photo's orientation. Returns object with instructions how to rotate the image:
 
@@ -322,7 +323,7 @@ if (r.css) {
 ```
 
 ### `thumbnail(file)`
-Returns: `Promise<Buffer|Uint8Array>`
+Returns: `Promise<Buffer | Uint8Array | undefined>`
 
 Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 
@@ -331,11 +332,26 @@ Extracts embedded thumbnail from the photo, returns `Uint8Array`.
 Check out [examples/thumbnail.html](examples/thumbnail.html) and [examples/thumbnail.js](examples/thumbnail.js) to learn more.
 
 ### `thumbnailUrl(file)`
-Returns: `Promise<string>`
+Returns: `Promise<string | undefined>`
 <br>
 browser only
 
 Exports the thumbnail wrapped in [Object URL](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example_Using_object_URLs_to_display_images). The URL has to be revoked when not needed anymore.
+
+### `sidecar(file[, options[, type]])`
+Returns: `Promise<object | undefined>`
+<br>
+full bundle only
+
+Parses sidecar file, i.e., an external metadata usually accompanied by the image file. Most notably `.xmp` or `.icc`.
+
+Third argument is optional but advised if you know the segment type you're dealing with and want to improve performance. Otherwise exifr tries to infer the type from file extension (if `file` is path or url) and/or randomly tries all parsers at its disposal.
+
+```js
+exifr.sidecar('./img_1234.icc')
+exifr.sidecar('./img_1234.icc', {translateKeys: false})
+exifr.sidecar('./img_1234.colorprofile', {translateKeys: false}, 'icc')
+```
 
 ### `Exifr` class
 

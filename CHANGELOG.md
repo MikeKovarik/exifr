@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [7.1.0]
+
+### Added
+- Sidecar support through `exifr.sidecar()`.
+- Support for url query strings and headers in Node.js polyfill of UrlFetcher.
+
 ## [7.0.0]
 
 ### Added
@@ -272,7 +278,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.0.0...HEAD
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.1.0...HEAD
+[7.1.0]: https://github.com/MikeKovarik/exifr/compare/v7.0.0...v7.1.0
 [7.0.0]: https://github.com/MikeKovarik/exifr/compare/v6.3.0...v7.0.0
 [6.3.0]: https://github.com/MikeKovarik/exifr/compare/v6.2.0...v6.3.0
 [6.2.0]: https://github.com/MikeKovarik/exifr/compare/v6.1.1...v6.2.0
