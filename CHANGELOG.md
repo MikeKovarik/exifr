@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [7.1.1]
+## [7.1.2]
 
 ### Fixed
 - Issue #67 -> improved IPTC parsing performance.
@@ -283,8 +283,8 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.1.1...HEAD
-[7.1.1]: https://github.com/MikeKovarik/exifr/compare/v7.1.0...v7.1.1
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.1.2...HEAD
+[7.1.1]: https://github.com/MikeKovarik/exifr/compare/v7.1.0...v7.1.2
 [7.1.0]: https://github.com/MikeKovarik/exifr/compare/v7.0.0...v7.1.0
 [7.0.0]: https://github.com/MikeKovarik/exifr/compare/v6.3.0...v7.0.0
 [6.3.0]: https://github.com/MikeKovarik/exifr/compare/v6.2.0...v6.3.0
