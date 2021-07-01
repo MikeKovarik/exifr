@@ -74,15 +74,22 @@ export default class Iptc extends AppSegmentParserBase {
 	parse() {
 		let {raw} = this
 		let iterableLength = this.chunk.byteLength - 1
+		let foundFirstProp = false
 		for (let offset = 0; offset < iterableLength; offset++) {
+			// NOTE: IPTC has wariable header. data can start immediately or after couple of bytes. So we need to seek
+			// through the data until we find the first 1C02 marker.
 			// reading Uint8 and then another to prevent unnecessarry read of two subsequent bytes, when iterating
 			if (this.chunk.getUint8(offset) === 0x1C && this.chunk.getUint8(offset + 1) === 0x02) {
+                foundFirstProp = true
 				let size = this.chunk.getUint16(offset + 3)
 				let key = this.chunk.getUint8(offset + 2)
 				let val = this.chunk.getLatin1String(offset + 5, size)
 				raw.set(key, this.pluralizeValue(raw.get(key), val))
 				// skip iterating over the bytes we've already read
 				offset += 4 + size
+			} else if (foundFirstProp) {
+				// We would infinately loop through the rest of the chunk (due to the dynamic header length).
+				break
 			}
 		}
 		this.translate()
