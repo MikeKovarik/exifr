@@ -21,6 +21,13 @@ describe('IPTC Segment', () => {
 		assert.equal(output.Keywords.slice(0, 154), 'Budapest. 5. kerület. Kossuth Lajos utca ; Budapest. 5. kerület. Szabad sajtó út 5-6. ; Budapest. 5. kerület. Március 15. tér. Belvárosi Fõplébániatemplom')
 	})
 
+	it(`#67 - Does not infinately loop through and cause leak`, async () => {
+		let input = await getFile('iptc-mess.jpg')
+		var output = await exifr.parse(input, true)
+		assert.equal(output.Byline, 'MARCO VILLANTI')
+		assert.isUndefined(output.City)
+	})
+
 	describe('options.iptc enable/disable', () => {
 		testSegment({
 			key: 'iptc',
