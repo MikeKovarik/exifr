@@ -22,6 +22,7 @@ interface FormatOptions {
 	translateValues?: boolean,
 	reviveValues?: boolean,
 	parse?: boolean, // XMP only
+	multiSegment?: boolean, // XMP and icc only
 }
 
 interface Options extends FormatOptions {
