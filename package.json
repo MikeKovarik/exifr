@@ -42,7 +42,8 @@
     "build-mini": "rollup -c rollup.config.js mini",
     "build-lite": "rollup -c rollup.config.js lite",
     "build-full": "rollup -c rollup.config.js full",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js",
+    "prerelease": "npm run build"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",

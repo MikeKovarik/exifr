@@ -6,6 +6,7 @@
 
 ### Fixed
 - `UrlFetcher` in Node.js can now handle redirects.
+- added missing `multiSegment` in .d.ts file.
 
 ## [7.1.2]
 

@@ -666,8 +666,8 @@ Merges all parsed segments and blocks into a single object.
 **Warning**: `mergeOutput: false` should not be used with `translateKeys: false` or when parsing both `ifd0` (image) and `ifd1` (thumbnail). Tag keys are numeric, sometimes identical and may collide.
 
 <table><tr>
-<td>mergeOutput: false</td>
 <td>mergeOutput: true</td>
+<td>mergeOutput: false</td>
 </tr><tr><td><pre>
 {
   Make: 'Google',
