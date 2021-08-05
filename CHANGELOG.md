@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [7.1.3]
+
+### Fixed
+- `UrlFetcher` in Node.js can now handle redirects.
+
 ## [7.1.2]
 
 ### Fixed
@@ -283,8 +288,9 @@ Quality-Of-Life release. Improves compatibility and ease of use with various too
 ### Added
 - initial implementation
 
-[Unreleased]: https://github.com/MikeKovarik/exifr/compare/v7.1.2...HEAD
-[7.1.1]: https://github.com/MikeKovarik/exifr/compare/v7.1.0...v7.1.2
+[Unreleased]: https://github.com/MikeKovarik/exifr/compare/7.1.3...HEAD
+[7.1.3]: https://github.com/MikeKovarik/exifr/compare/v7.1.2...v7.1.3
+[7.1.2]: https://github.com/MikeKovarik/exifr/compare/v7.1.0...v7.1.2
 [7.1.0]: https://github.com/MikeKovarik/exifr/compare/v7.0.0...v7.1.0
 [7.0.0]: https://github.com/MikeKovarik/exifr/compare/v6.3.0...v7.0.0
 [6.3.0]: https://github.com/MikeKovarik/exifr/compare/v6.2.0...v6.3.0

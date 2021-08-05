@@ -278,6 +278,11 @@ describe('ChunkedReader', () => {
 			before(startStaticServer)
 			after(stopStaticServer)
 			testReaderClass(getUrl, UrlFetcher)
+			it(`redirect`, async () => {
+				let file = new UrlFetcher(getUrl('redirect'))
+				await file.readWhole()
+				assert.equal(file.getUint16(0), 0xFFD8)
+			})
 		})
 	}
 

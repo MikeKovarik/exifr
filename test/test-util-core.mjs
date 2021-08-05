@@ -52,6 +52,7 @@ let staticServer
 export function startStaticServer(done) {
 	let app = express()
 	app.use(express.static(path.join(testFolderPath, 'fixtures')))
+	app.get('/redirect', (req, res) => res.redirect('/cookiezen.jpg'))
 	staticServer = app.listen(() => {
 		staticServerPort = staticServer.address().port
 		done()
