@@ -367,7 +367,7 @@ function findScopesForGlobalTagArray(tagArray, dictKeys) {
 	let scopes = []
 	let dict, scopedTags, blockKey, tagEntry
 	for (blockKey of dictKeys) {
-		dict = tagKeys.get(blockKey)
+		dict = tagKeys.get(blockKey) || []
 		scopedTags = []
 		for (tagEntry of dict) {
 			// NOTE: not expading tagEntry into [key, val] because of performance
