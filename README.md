@@ -923,7 +923,7 @@ Unlike other libraries, exifr can only parse certain tags, avoid unnecessary rea
 
 ```js
 // do this:
-let {ISO, FNumber} = await exifr.parse(file, {exif: ['ISO', 'FNumber']})
+let {ISO, FNumber} = await exifr.parse(file, {pick: ['ISO', 'FNumber']})
 // not this:
 let {ISO, FNumber} = await exifr.parse(file)
 ```
