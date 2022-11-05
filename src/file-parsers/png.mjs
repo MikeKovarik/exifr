@@ -40,6 +40,7 @@ export class PngFileParser extends FileParserBase {
 		await this.readSegments(this.metaChunks)
 		this.findIhdr()
 		this.parseTextChunks()
+		await this.parseItxtChunks().catch(this.catchError)
 		await this.findExif().catch(this.catchError)
 		await this.findXmp().catch(this.catchError)
 		await this.findIcc().catch(this.catchError)
@@ -77,6 +78,65 @@ export class PngFileParser extends FileParserBase {
 		for (let seg of textChunks) {
 			let [key, val] = this.file.getString(seg.start, seg.size).split('\0')
 			this.injectKeyValToIhdr(key, val)
+		}
+	}
+
+	async parseItxtChunks() {
+		let itxtChunks = this.metaChunks.filter(info => info.type === ITXT)
+		for (let seg of itxtChunks) {
+			let prefix = seg.chunk.getString(0, PNG_XMP_PREFIX.length)
+			// exclude xmp data here
+			if (prefix !== PNG_XMP_PREFIX) {
+				let currPos = 0
+				let nextPos
+
+				const findEnd = (chunk, start) => {
+					let i = start
+					for (; i < chunk.byteLength; i++) {
+						if (chunk.getUint8(i) === 0) {
+							break
+						}
+					}
+					return i
+				}
+
+				nextPos = findEnd(seg.chunk, currPos)
+				const keyword = seg.chunk.getString(currPos, nextPos - currPos)
+				currPos = nextPos + 1
+
+				const compressed = seg.chunk.getUint8(nextPos + 1) === 1
+				const compressionMethod = seg.chunk.getUint8(nextPos + 2)
+				currPos = currPos + 2
+
+				nextPos = findEnd(seg.chunk, currPos)
+				const language = seg.chunk.getString(currPos, nextPos - currPos)
+				currPos = nextPos + 1
+
+				nextPos = findEnd(seg.chunk, currPos)
+				const translatedKeyword = seg.chunk.getString(currPos, nextPos - currPos)
+				currPos = nextPos + 1
+
+				nextPos = findEnd(seg.chunk, currPos)
+				let text
+				if (compressed && platform.node) {
+					let zlib = await zlibPromise
+					let dataChunk = seg.chunk.getUint8Array(currPos, nextPos - currPos)
+					dataChunk = zlib.inflateSync(dataChunk)
+					text = dataChunk.toString()
+				} else {
+					text = seg.chunk.getString(currPos, nextPos - currPos)
+				}
+				// here nextPos should equal seg.chunk.byteLength
+
+				// console.log('compressed', compressed)
+				// console.log('compressionMethod', compressionMethod)
+				// console.log('keyword', keyword)
+				// console.log('language', language)
+				// console.log('translatedKeyword', translatedKeyword)
+				// console.log('text', text)
+
+				this.injectKeyValToIhdr(keyword, text)
+			}
 		}
 	}
 
