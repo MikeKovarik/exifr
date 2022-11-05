@@ -101,6 +101,25 @@ describe('PNG File format', () => {
 					DeviceManufacturer: 'Google',
 					ProfileConnectionSpace: 'XYZ',
 				})
+
+				testImageFull('png/iTXt-uncompressed.png', {
+					ImageWidth: 2400,
+					ImageHeight: 2000,
+					BitDepth: 8,
+					// itxt chunk
+					Comment: 'Created with GIMP',
+				})
+
+				testImageFull('png/iTXt-compressed.png', {
+					ImageWidth: 10,
+					ImageHeight: 11,
+					BitDepth: 8,
+					// itxt chunks
+					Title: 'PNG',
+					Author: 'La plume de ma tante', // uncompressed
+					Warning: 'Es is verboten, um diese Datei in das GIF-Bildformat\n'
+						+ 'umzuwandeln.  Sie sind gevarnt worden.', // compressed
+				})
 			}
 
 		})
