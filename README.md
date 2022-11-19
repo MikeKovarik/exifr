@@ -615,7 +615,7 @@ Exifr can read only a few chunks instead of the whole file. It's much faster, sa
 
 **How it works:** A first small chunk (of `firstChunkSize`) is read to determine if the file contains any metadata at all. If so, reading subsequent chunks (of `chunkSize`) continues until all requested segments are found or until `chunkLimit` is reached.
 
-**Supported inputs:** Chunked is only effective with `Blob`, `<img>` element, `string` url, disk path, or base64. These inputs are not yet processed or read into memory. Each input format is implemented in a separate file reader class. Learn more about [file readers and modularity here](#modularity-pugin-api).
+**Supported inputs:** Chunked is only effective with `Blob`, `<img>` element, `string` url, disk path, or base64. These inputs are not yet processed or read into memory. Each input format is implemented in a separate file reader class. Learn more about [file readers and modularity here](#modularity-plugin-api).
 
 **If you use URL as input:** Fetching chunks (implemented in `UrlFetcher`) from web server uses [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests). Range request may fail if your server does not support ranges, if it's not configured properly or if the fetched file is smaller than the first chunk size. Test your web server or disable chunked reader with `{chunked: false}` when in doubt.
 
@@ -717,7 +717,7 @@ Default: `true`
 
 Translates tag keys from numeric codes to understandable string names. I.e. uses `Model` instead of `0x0110`.
 Most keys are numeric. To access the `Model` tag use `output.ifd0[0x0110]` or `output.ifd0[272]`
-Learn more about [dictionaries](#modularity-pugin-api).
+Learn more about [dictionaries](#modularity-plugin-api).
 
 **Warning**: `translateKeys: false` should not be used with `mergeOutput: false`. Keys may collide because ICC, IPTC and TIFF segments use numeric keys starting at 0.
 
@@ -742,7 +742,7 @@ Type: `bool`
 Default: `true`
 
 Translates tag values from raw enums to understandable strings.
-Learn more about [dictionaries](#modularity-pugin-api).
+Learn more about [dictionaries](#modularity-plugin-api).
 
 <table><tr>
 <td>translateValues: false</td>
@@ -767,7 +767,7 @@ Type: `bool`
 Default: `true`
 
 Converts dates from strings to a Date instances and modifies few other tags to a more readable format.
-Learn more about [dictionaries](#modularity-pugin-api).
+Learn more about [dictionaries](#modularity-plugin-api).
 
 <table><tr>
 <td>reviveValues: false</td>
@@ -789,7 +789,7 @@ Learn more about [dictionaries](#modularity-pugin-api).
 Tips for advanced users. You don't need to read further unless you're into customization and bundlers.
 
 <details>
-<summary><b>Modularity, Pugin API, Configure custom bundle</b></summary>
+<summary><b>Modularity, Plugin API, Configure custom bundle</b></summary>
 
 This is mostly **relevant for Web Browsers**, where file size and unused code elimination is important.
 
