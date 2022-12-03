@@ -45,22 +45,22 @@ function reviveVersion(bytes) {
 	return array.join('.')
 }
 
-// can be '2009-09-23 17:40:52 UTC', '2010:07:06 20:45:12', or '2009-09-23 11:40:52-6:00'
+// can be '2009-09-23 17:40:52 UTC', '2010:07:06 20:45:12', or '2009-09-23 11:40:52-06:00'
 function reviveDate(string) {
 	if (typeof string !== 'string') return undefined
 	var [year, month, day, hours, minutes, seconds] = string.trim().split(/[-: ]/g).map(Number)
 	var date = new Date(year, month - 1, day)
 	if (!Number.isNaN(hours) && !Number.isNaN(minutes) && !Number.isNaN(seconds)) {
-		date.setHours(hours)
-		date.setMinutes(minutes)
-		date.setSeconds(seconds)
+		date.setUTCHours(hours)
+		date.setUTCMinutes(minutes)
+		date.setUTCSeconds(seconds)
 	}
 	// If offset exists, this is in local time. Adjust to UTC using the offset.
-	var result = string.match(/-[0-9]{2}:[0-9]{2}/)
+	var result = string.match(/-([0-9]{2}:[0-9]{2})/)
 	if (result) {
-		var [offsetHH, offsetMM] = result[0].split(':')
+		var [offsetHH, offsetMM] = result[1].split(':')
 		var offsetMin = (Number(offsetHH) * 60) + Number(offsetMM)
-		date.setMinutes(date.getMinutes() - offsetMin)
+		date.setMinutes(date.getMinutes() + offsetMin)
 	}
 	if (Number.isNaN(+date))
 		return string
