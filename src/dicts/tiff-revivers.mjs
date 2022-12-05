@@ -55,13 +55,9 @@ function reviveDate(string) {
 		date.setUTCMinutes(minutes)
 		date.setUTCSeconds(seconds)
 	}
-	// If offset exists, this is in local time. Adjust to UTC using the offset.
-	var result = string.match(/-([0-9]{2}:[0-9]{2})/)
-	if (result) {
-		var [offsetHH, offsetMM] = result[1].split(':')
-		var offsetMin = (Number(offsetHH) * 60) + Number(offsetMM)
-		date.setMinutes(date.getMinutes() + offsetMin)
-	}
+	// If offset exists, this is in local time. Let the date object parse it to adjust to UTC using the offset.
+	var result = string.match(/-[0-9]{2}:[0-9]{2}/)
+	if (result) date = new Date(string)
 	if (Number.isNaN(+date))
 		return string
 	else
