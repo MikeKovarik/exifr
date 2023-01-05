@@ -1,6 +1,6 @@
 import * as platform from './util/platform.mjs'
 import {BufferView} from './util/BufferView.mjs'
-import {throwError} from './util/helpers.mjs'
+import {throwError, isReadableStream} from './util/helpers.mjs'
 import {fileReaders} from './plugins.mjs'
 import {fetch} from './polyfill/fetch.mjs'
 
@@ -16,6 +16,8 @@ export function read(arg, options) {
 		return readString(arg.src, options)
 	else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 		return new BufferView(arg)
+	else if (isReadableStream(arg))
+		return callReader(arg, options, 'stream')
 	else if (platform.browser && arg instanceof Blob)
 		return callReader(arg, options, 'blob', readBlobAsArrayBuffer)
 	else
