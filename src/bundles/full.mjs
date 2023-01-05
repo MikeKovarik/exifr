@@ -12,6 +12,7 @@ export * from '../highlevel/sidecar.mjs'
 
 // File Readers
 import '../file-readers/FsReader.mjs'
+import '../file-readers/StreamReader.mjs'
 import '../file-readers/Base64Reader.mjs'
 
 // File Parsers

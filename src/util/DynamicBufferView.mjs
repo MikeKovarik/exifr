@@ -48,7 +48,8 @@ export class DynamicBufferView extends BufferView {
 
 	// TODO: write tests for extending .set()
 	set(arg, offset, canExtend = false) {
-		if (canExtend) this._tryExtend(offset, arg.byteLength, arg)
+		const byteLength = arg.byteLength ?? arg.length
+		if (canExtend) this._tryExtend(offset, byteLength, arg)
 		let chunk = super.set(arg, offset)
 		this.ranges.add(offset, chunk.byteLength)
 		return chunk

@@ -52,3 +52,12 @@ export function estimateMetadataSize(options) {
 	if (options.icc.enabled)  bytes += 6000
 	return bytes
 }
+
+export function isReadableStream(stream) {
+	return stream !== null
+		&& typeof stream === 'object'
+		&& typeof stream.pipe === 'function'
+		&& stream.readable !== false
+		&& typeof stream._read === 'function'
+		&& typeof stream._readableState === 'object';
+}
