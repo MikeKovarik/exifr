@@ -6,7 +6,7 @@ import * as exifr from '../../src/bundles/full.mjs'
 // TODO
 describe('AVIF - AvifFileParser', () => {
 
-	const options = {tiff: true, icc: true, mergeOutput: false, translateKeys: false, translateValues: false, reviveValues: false}
+	const options = {tiff: true, icc: true, xmp: true, mergeOutput: false, translateKeys: false, translateValues: false, reviveValues: false}
 
 	const MAKE = 271
 	const MODEL = 272
@@ -32,6 +32,13 @@ describe('AVIF - AvifFileParser', () => {
 		let output = await exifr.parse(input, options)
 		assert.exists(output.icc, 'output should contain ICC')
 		assert.equal(output.icc[PROFILE], 'acsp')
+	})
+
+	it(`should extract XMP from fixture3`, async () => {
+		let input = await getFile('avif/IMG_20180725_163423-2.avif')
+		let output = await exifr.parse(input, options)
+		assert.exists(output.xmp, 'output should contain XMP')
+		assert.equal(output.xmp.CreatorTool, 'HDR+ 1.0.199571065z')
 	})
 
 })
