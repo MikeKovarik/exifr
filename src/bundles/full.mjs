@@ -18,6 +18,7 @@ import '../file-readers/Base64Reader.mjs'
 import '../file-parsers/tiff.mjs'
 import '../file-parsers/heif.mjs'
 import '../file-parsers/png.mjs'
+import '../file-parsers/webp.mjs'
 
 // TIFF - Additional tags
 import '../dicts/tiff-interop-keys.mjs'
