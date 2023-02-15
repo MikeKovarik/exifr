@@ -889,7 +889,7 @@ exifr.createDictionary(exifr.tagKeys, 'gps', [
 ```js
 // Extend existing IFD0 dictionary
 import exifr from 'exifr'
-exifr.createDictionary(exifr.tagKeys, 'ifd0', [
+exifr.extendDictionary(exifr.tagKeys, 'ifd0', [
   [0xc7b5, 'DefaultUserCrop'],
   [0xc7d5, 'NikonNEFInfo'],
   ...
