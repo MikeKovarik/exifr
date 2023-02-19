@@ -48,6 +48,10 @@ describe('parser core', () => {
 			await exifr.parse(await getFile('avif/Irvine_CA.avif'))
 		})
 
+		it(`accepts WEBP`, async () => {
+			await exifr.parse(await getFile('webp/VRChat_2023-02-19_00-04-01.274_2160x3840.webp'))
+		})
+
 	})
 
 })
