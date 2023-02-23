@@ -88,6 +88,7 @@ export class HeifFileParser extends IsoBmffParser {
 		//await this.findThumb(meta)
 		if (this.options.icc.enabled)  await this.findIcc(meta)
 		if (this.options.tiff.enabled) await this.findExif(meta)
+		if (this.options.xmp.enabled)  await this.findXmp(meta)
 	}
 
 	async registerSegment(key, offset, length) {
@@ -143,6 +144,22 @@ export class HeifFileParser extends IsoBmffParser {
 		await this.registerSegment('tiff', exifOffset, exifLength)
 	}
 
+	async findXmp(meta) {
+		let iinf = this.findBox(meta, 'iinf')
+		if (iinf === undefined) return
+		let iloc = this.findBox(meta, 'iloc')
+		if (iloc === undefined) return
+		let xmpLocId = this.findXmpLocIdInIinf(iinf)
+		let extent = this.findExtentInIloc(iloc, xmpLocId)
+		if (extent === undefined) return
+		let [xmpOffset, xmpLength] = extent
+		await this.file.ensureChunk(xmpOffset, xmpLength)
+		let extentContentShift = 4
+		xmpOffset += extentContentShift
+		xmpLength -= extentContentShift
+		await this.registerSegment('xmp', xmpOffset, xmpLength)
+	}
+
 	findExifLocIdInIinf(box) {
 		this.parseBoxFullHead(box)
 		let offset = box.start
@@ -158,6 +175,28 @@ export class HeifFileParser extends IsoBmffParser {
 				name = this.file.getString(infeOffset + idSize + 2, 4)
 				if (name === 'Exif')
 					return this.file.getUintBytes(infeOffset, idSize)
+			}
+			offset += infe.length
+		}
+	}
+
+	findXmpLocIdInIinf(box) {
+		this.parseBoxFullHead(box)
+		let offset = box.start
+		let count = this.file.getUint16(offset)
+		let infe, infeOffset, idSize, name
+		offset += 2
+		while (count--) {
+			infe = this.parseBoxHead(offset)
+			this.parseBoxFullHead(infe)
+			infeOffset = infe.start
+			if (infe.version >= 2) {
+				idSize = infe.version === 3 ? 4 : 2
+				const dataLength = infe.length - idSize - infe.start + infe.offset - 2
+				name = this.file.getString(infeOffset + idSize + 2, dataLength - 1)
+				if (name === 'mime\0application/rdf+xml') {
+					return this.file.getUintBytes(infeOffset, idSize)
+				}
 			}
 			offset += infe.length
 		}
