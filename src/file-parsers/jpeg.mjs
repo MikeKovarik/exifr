@@ -52,7 +52,7 @@ function getSegmentType(buffer, offset, length) {
 // - 3rd & 4th bytes are length of the APPn segment
 // - Followed by a few bytes of segment itentification - describing what type of content is there.
 // Structure of TIFF (APP1-EXIF):
-// - FF 01 - marker
+// - FF E1 - marker
 // - xx xx - Size
 // - 45 78 69 66 00 00 / ASCII string 'Exif\0\0'
 // - TIFF HEADER
