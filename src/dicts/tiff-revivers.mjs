@@ -1,6 +1,6 @@
-import {tagRevivers, createDictionary} from '../tags.mjs'
-import {toAsciiString} from '../util/BufferView.mjs'
-import {normalizeString} from '../util/helpers.mjs'
+import { tagRevivers, createDictionary } from '../tags.mjs'
+import { toAsciiString } from '../util/BufferView.mjs'
+import { normalizeString } from '../util/helpers.mjs'
 
 
 createDictionary(tagRevivers, ['ifd0', 'ifd1'], [
@@ -49,11 +49,11 @@ function reviveVersion(bytes) {
 function reviveDate(string) {
 	if (typeof string !== 'string') return undefined
 	var [year, month, day, hours, minutes, seconds] = string.trim().split(/[-: ]/g).map(Number)
-	var date = new Date(year, month - 1, day)
+	var date = new Date(Date.UTC(year, month - 1, day))
 	if (!Number.isNaN(hours) && !Number.isNaN(minutes) && !Number.isNaN(seconds)) {
-		date.setHours(hours)
-		date.setMinutes(minutes)
-		date.setSeconds(seconds)
+		date.setUTCHours(hours)
+		date.setUTCMinutes(minutes)
+		date.setUTCSeconds(seconds)
 	}
 	if (Number.isNaN(+date))
 		return string
@@ -76,5 +76,5 @@ function reviveUcs2String(arg) {
 }
 
 function mergeBytes(byte1, byte2) {
-    return (byte1 << 8) | byte2
+	return (byte1 << 8) | byte2
 }
