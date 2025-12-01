@@ -16,6 +16,8 @@ export function read(arg, options) {
 		return readString(arg.src, options)
 	else if (arg instanceof Uint8Array || arg instanceof ArrayBuffer || arg instanceof DataView)
 		return new BufferView(arg)
+	else if (platform.node && arg && typeof arg === 'object' && typeof arg.close === 'function' && typeof arg.read === 'function')
+		return callReaderClass(arg, options, 'fs')
 	else if (platform.browser && arg instanceof Blob)
 		return callReader(arg, options, 'blob', readBlobAsArrayBuffer)
 	else

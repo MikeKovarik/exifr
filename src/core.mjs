@@ -12,6 +12,12 @@ import {Exifr} from './Exifr.mjs'
 
 export async function parse(input, options) {
 	let exr = new Exifr(options)
-	await exr.read(input)
-	return exr.parse()
+	try {
+	    await exr.read(input)
+	    return await exr.parse()
+    } finally {
+        if (exr.file && exr.file.close) {
+            await exr.file.close()
+        }
+    }
 }

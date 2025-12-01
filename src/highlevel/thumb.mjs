@@ -14,12 +14,22 @@ export const thumbnailOnlyOptions = Object.assign({}, disableAllOptions, {
 
 export async function thumbnail(input) {
 	let exr = new Exifr(thumbnailOnlyOptions)
-	await exr.read(input)
-	let u8arr = await exr.extractThumbnail()
-	if (u8arr && platform.hasBuffer)
-		return Buffer.from(u8arr)
-	else
-		return u8arr
+	
+	try {
+	    // Run file reading and thumbnail extraction
+	    await exr.read(input)
+	    let u8arr = await exr.extractThumbnail()
+	    
+	    if (u8arr && platform.hasBuffer)
+	    	return Buffer.from(u8arr)
+	    else
+	    	return u8arr
+	} finally {
+        // The Auto-Close Fix: Guaranteed to run after success or failure
+	    if (exr.file && exr.file.close) {
+	        await exr.file.close()
+	    }
+	}
 }
 
 // only available in browser

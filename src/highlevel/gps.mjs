@@ -10,10 +10,19 @@ export const gpsOnlyOptions = Object.assign({}, disableAllOptions, {
 
 export async function gps(input) {
 	let exr = new Exifr(gpsOnlyOptions)
-	await exr.read(input)
-	let output = await exr.parse()
-	if (output && output.gps) {
-		let {latitude, longitude} = output.gps
-		return {latitude, longitude}
+    
+	try {
+	    await exr.read(input)
+	    let output = await exr.parse()
+	    
+	    if (output && output.gps) {
+	        let {latitude, longitude} = output.gps
+	        return {latitude, longitude}
+	    }
+	} finally {
+        // The Auto-Close Fix for gps: Runs after success or failure
+	    if (exr.file && exr.file.close) {
+	        await exr.file.close()
+	    }
 	}
 }

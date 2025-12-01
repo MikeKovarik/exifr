@@ -24,11 +24,19 @@ export class FsReader extends ChunkedReader {
 
 	async open() {
 		if (this.fh === undefined) {
-			this.fh = await this.fs.open(this.input, 'r')
-			this.size = (await this.fh.stat(this.input)).size
+			// Check if the input is a FileHandle object
+			if (this.input && typeof this.input === 'object' && typeof this.input.close === 'function' && typeof this.input.read === 'function') {
+				this.fh = this.input
+			} else {
+				// Input is a string path, open it normally
+				this.fh = await this.fs.open(this.input, 'r')
+			}
+	
+			// Note: Use .stat() without arguments on the FileHandle
+			this.size = (await this.fh.stat()).size
 		}
 	}
-
+	
 	async _readChunk(offset, length) {
 		// reopen if needed
 		if (this.fh === undefined) await this.open()

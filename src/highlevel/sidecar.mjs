@@ -12,23 +12,36 @@ export async function sidecar(input, opts, segType) {
 	options.chunked = false
 	if (segType === undefined && typeof input === 'string')
 		segType = guessTypeFromName(input)
-	let chunk = await read(input, options)
-	if (segType) {
-		if (allowedSidecars.includes(segType))
-			return handleSeg(segType, chunk, options)
-		else
-			throwError(`Invalid segment type`)
-	} else {
-		if (isXmpData(chunk))
-			return handleSeg('xmp', chunk, options)
-		for (let [type] of segmentParsers) {
-			// skip unsupported sidecar types
-			if (!allowedSidecars.includes(type)) continue
-			// break the loop if parsing succeeded
-			let output = await handleSeg(type, chunk, options).catch(noop)
-			if (output) return output
+
+	// Declare the reader object to be accessible in the finally block
+	let chunk
+
+	try {
+	    // The read function returns the reader object (which has a .close() method)
+		chunk = await read(input, options)
+		
+		if (segType) {
+			if (allowedSidecars.includes(segType))
+				return handleSeg(segType, chunk, options)
+			else
+				throwError(`Invalid segment type`)
+		} else {
+			if (isXmpData(chunk))
+				return handleSeg('xmp', chunk, options)
+			for (let [type] of segmentParsers) {
+				// skip unsupported sidecar types
+				if (!allowedSidecars.includes(type)) continue
+				// break the loop if parsing succeeded
+				let output = await handleSeg(type, chunk, options).catch(noop)
+				if (output) return output
+			}
+			throwError(`Unknown file format`)
 		}
-		throwError(`Unknown file format`)
+	} finally {
+	    // The Auto-Close Fix for sidecar: Check if the returned object has a close method (it will for FsReader)
+	    if (chunk && chunk.close) {
+	        await chunk.close()
+	    }
 	}
 }
 

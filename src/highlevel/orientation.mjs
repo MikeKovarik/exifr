@@ -10,10 +10,20 @@ export const orientationOnlyOptions = Object.assign({}, disableAllOptions, {
 
 export async function orientation(input) {
 	let exr = new Exifr(orientationOnlyOptions)
-	await exr.read(input)
-	let output = await exr.parse()
-	if (output && output.ifd0) {
-		return output.ifd0[TAG_ORIENTATION]
+    
+	try {
+	    // Run file reading and parsing
+	    await exr.read(input)
+	    let output = await exr.parse()
+        
+	    if (output && output.ifd0) {
+	        return output.ifd0[TAG_ORIENTATION]
+	    }
+	} finally {
+        // The Auto-Close Fix: Guaranteed to run after success or failure
+	    if (exr.file && exr.file.close) {
+	        await exr.file.close()
+	    }
 	}
 }
 
